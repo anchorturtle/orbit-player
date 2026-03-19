@@ -13,139 +13,190 @@
     --scanline-opacity: 0.04;
     --vignette-strength: 0.65;
     --aberration: 1.5px;
-    /* JESTR brand colors */
     --jestr-blue:   #2D5BFF;
     --jestr-green:  #00C896;
     --jestr-purple: #7B2FFF;
     --jestr-red:    #E8003D;
   }
   * { box-sizing: border-box; }
-  body {
-    font-family: 'Plus Jakarta Sans', sans-serif;
-    background-color: #0e0c0b;
-    margin: 0; overflow: hidden; color: #e9e1de;
-  }
+  body { font-family: 'Plus Jakarta Sans', sans-serif; background: #0e0c0b; margin: 0; overflow: hidden; color: #e9e1de; }
+
   .grain-overlay {
-    position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-    pointer-events: none; z-index: 200; opacity: var(--grain-opacity);
+    position: fixed; inset: 0; pointer-events: none; z-index: 200;
+    opacity: var(--grain-opacity);
     background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
-    animation: grain-shift 0.08s steps(1) infinite;
-    mix-blend-mode: overlay;
+    animation: grain-shift 0.08s steps(1) infinite; mix-blend-mode: overlay;
   }
   @keyframes grain-shift {
-    0%   { transform: translate(0,0); }   20% { transform: translate(-2px,1px); }
-    40%  { transform: translate(2px,-1px); } 60% { transform: translate(-1px,2px); }
-    80%  { transform: translate(1px,-2px); } 100% { transform: translate(0,0); }
+    0%{transform:translate(0,0)} 20%{transform:translate(-2px,1px)} 40%{transform:translate(2px,-1px)}
+    60%{transform:translate(-1px,2px)} 80%{transform:translate(1px,-2px)} 100%{transform:translate(0,0)}
   }
   .scanlines {
-    position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-    pointer-events: none; z-index: 199;
-    background: repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,0,0,var(--scanline-opacity)) 2px,rgba(0,0,0,var(--scanline-opacity)) 4px);
+    position: fixed; inset: 0; pointer-events: none; z-index: 199;
+    background: repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,0,0,var(--scanline-opacity)) 2px, rgba(0,0,0,var(--scanline-opacity)) 4px);
   }
   .vignette {
-    position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-    pointer-events: none; z-index: 198;
-    background: radial-gradient(ellipse at center,transparent 40%,rgba(6,4,3,var(--vignette-strength)) 100%);
+    position: fixed; inset: 0; pointer-events: none; z-index: 198;
+    background: radial-gradient(ellipse at center, transparent 40%, rgba(6,4,3,var(--vignette-strength)) 100%);
   }
   .chroma { position: relative; display: inline-block; }
-  .chroma::before, .chroma::after {
-    content: attr(data-text); position: absolute; top: 0; left: 0;
-    width: 100%; height: 100%; pointer-events: none;
-  }
+  .chroma::before, .chroma::after { content: attr(data-text); position: absolute; inset: 0; pointer-events: none; }
   .chroma::before { color: rgba(232,0,61,0.4); transform: translateX(calc(-1 * var(--aberration))); mix-blend-mode: screen; }
-  .chroma::after  { color: rgba(45,91,255,0.4); transform: translateX(var(--aberration)); mix-blend-mode: screen; }
+  .chroma::after  { color: rgba(45,91,255,0.4);  transform: translateX(var(--aberration)); mix-blend-mode: screen; }
+
   .planet-glow {
     filter: blur(55px);
     background: radial-gradient(circle, var(--jestr-purple) 0%, var(--jestr-blue) 60%, var(--jestr-green) 100%);
-    animation: pulse 9s infinite alternate;
-    opacity: 0.65;
+    animation: pulse 9s infinite alternate; opacity: 0.65;
   }
-  @keyframes pulse {
-    0%   { transform: scale(1);    opacity: 0.55; }
-    100% { transform: scale(1.08); opacity: 0.75; }
-  }
+  @keyframes pulse { 0%{transform:scale(1);opacity:.55} 100%{transform:scale(1.08);opacity:.75} }
+
   .depth-far  { filter: blur(3px) saturate(0.5) brightness(0.7); }
   .depth-mid  { filter: blur(0.6px) saturate(0.9); }
   .depth-near { filter: none; }
+
   body::before {
-    content: ""; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-    pointer-events: none; z-index: 1;
+    content:""; position:fixed; inset:0; pointer-events:none; z-index:1;
     background: radial-gradient(ellipse at 30% 60%, rgba(45,91,255,0.05) 0%, transparent 60%);
   }
   .container-texture { position: relative; }
   .container-texture::after {
-    content: ""; position: absolute; inset: 0; pointer-events: none; opacity: 0.05;
+    content:""; position:absolute; inset:0; pointer-events:none; opacity:0.05; border-radius:inherit;
     background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n2'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n2)'/%3E%3C/svg%3E");
-    border-radius: inherit;
   }
-  @keyframes vhs-flicker {
-    0%,96%,100% { opacity:1; } 97% { opacity:0.9; } 98% { opacity:1; } 99% { opacity:0.94; }
-  }
+  @keyframes vhs-flicker { 0%,96%,100%{opacity:1} 97%{opacity:.9} 98%{opacity:1} 99%{opacity:.94} }
   .vhs-flicker { animation: vhs-flicker 6s infinite; }
+
   .tape-counter {
     font-variant-numeric: tabular-nums; letter-spacing: 0.15em;
     font-size: 9px; color: rgba(0,200,150,0.55); font-weight: 700; text-transform: uppercase;
   }
   .no-scrollbar::-webkit-scrollbar { display: none; }
   .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
-  #progress-rail, #mob-progress-rail, #volume-rail { cursor: pointer; }
-  .track-item.active {
-    background: rgba(45,91,255,0.1) !important;
-    border-color: rgba(123,47,255,0.3) !important;
+
+  .track-item.active { background: rgba(45,91,255,0.1) !important; border-color: rgba(123,47,255,0.3) !important; }
+  .track-item.active .track-title  { color: #e9e1de !important; }
+  .track-item.active .track-artist { color: var(--jestr-green) !important; }
+
+  /* ── PROGRESS BAR (custom, no overflow:hidden so thumb shows) ── */
+  .progress-wrap {
+    position: relative;
+    height: 20px; /* tall hit area */
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+    flex: 1;
   }
-  .track-item.active .track-title { opacity: 1 !important; }
-  .track-item.active .track-artist { opacity: 1 !important; color: var(--jestr-green) !important; }
-  .progress-track {
-    background: repeating-linear-gradient(90deg,rgba(255,255,255,0.03) 0px,rgba(255,255,255,0.03) 2px,transparent 2px,transparent 6px), rgba(28,25,22,1);
+  .progress-track-bg {
+    position: absolute;
+    left: 0; right: 0;
+    height: 4px;
+    border-radius: 4px;
+    background: repeating-linear-gradient(90deg,rgba(255,255,255,0.04) 0px,rgba(255,255,255,0.04) 2px,transparent 2px,transparent 6px), rgba(30,27,24,1);
   }
-  #mobile-drawer { transform: translateX(-100%); transition: transform 0.3s cubic-bezier(0.4,0,0.2,1); }
-  #mobile-drawer.open { transform: translateX(0); }
-  #drawer-overlay { opacity: 0; pointer-events: none; transition: opacity 0.3s; }
-  #drawer-overlay.open { opacity: 1; pointer-events: all; }
-  .ring-far  { animation: ring-expand 12s linear infinite; }
-  .ring-near { animation: ring-expand  9s linear infinite 1.5s; }
-  @keyframes ring-expand {
-    0%   { transform: scale(0.4); opacity: 0.6; }
-    80%  { opacity: 0.1; }
-    100% { transform: scale(1.6); opacity: 0; }
+  .progress-fill-bar {
+    position: absolute;
+    left: 0; top: 50%; transform: translateY(-50%);
+    height: 4px;
+    border-radius: 4px;
+    background: linear-gradient(90deg, var(--jestr-purple), var(--jestr-blue), var(--jestr-green));
+    pointer-events: none;
+    transition: width 0.05s linear;
   }
-  .sidebar-search {
-    background: rgba(28,25,22,0.8);
-    border: 1px solid rgba(45,91,255,0.15);
-    border-radius: 0.6rem;
-    color: #e9e1de; font-size: 12px;
-    padding: 7px 32px 7px 10px;
-    width: 100%; outline: none; font-family: inherit;
-    transition: border-color 0.2s;
+  .progress-thumb {
+    position: absolute;
+    top: 50%; transform: translate(-50%, -50%);
+    width: 14px; height: 14px;
+    border-radius: 50%;
+    background: #fff;
+    box-shadow: 0 0 0 3px rgba(123,47,255,0.5), 0 2px 8px rgba(0,0,0,0.6);
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.15s, transform 0.1s;
+    z-index: 2;
   }
-  .sidebar-search::placeholder { color: rgba(122,114,128,0.5); }
-  .sidebar-search:focus { border-color: rgba(123,47,255,0.4); }
-  /* Play button gradient cycling through brand colors */
+  .progress-wrap:hover .progress-thumb { opacity: 1; }
+  .progress-wrap:hover .progress-track-bg { height: 5px; }
+  .progress-wrap:hover .progress-fill-bar { height: 5px; }
+  .progress-wrap.dragging .progress-thumb { opacity: 1; transform: translate(-50%, -50%) scale(1.2); }
+
+  /* ── VOLUME ── */
+  .volume-wrap {
+    position: relative; height: 16px; display: flex; align-items: center; cursor: pointer;
+    width: 72px;
+  }
+  .volume-track-bg {
+    position: absolute; left:0; right:0; height:3px; border-radius:3px;
+    background: rgba(30,27,24,1);
+  }
+  .volume-fill-bar {
+    position: absolute; left:0; top:50%; transform:translateY(-50%);
+    height:3px; border-radius:3px;
+    background: var(--jestr-green); pointer-events:none;
+  }
+  .volume-thumb {
+    position:absolute; top:50%; transform:translate(-50%,-50%);
+    width:10px; height:10px; border-radius:50%;
+    background:#fff; box-shadow:0 0 0 2px rgba(0,200,150,0.4);
+    pointer-events:none; opacity:0; transition:opacity 0.15s;
+  }
+  .volume-wrap:hover .volume-thumb { opacity:1; }
+
+  /* ── SEARCH BAR ── */
+  .search-wrap {
+    display: flex; align-items: center; gap: 8px;
+    background: rgba(22,19,16,0.9);
+    border: 1px solid rgba(123,47,255,0.2);
+    border-radius: 10px;
+    padding: 0 10px;
+    height: 36px;
+    transition: border-color 0.2s, box-shadow 0.2s;
+  }
+  .search-wrap:focus-within {
+    border-color: rgba(123,47,255,0.55);
+    box-shadow: 0 0 0 3px rgba(123,47,255,0.08);
+  }
+  .search-wrap .material-symbols-outlined { font-size: 16px; color: rgba(110,104,117,0.6); flex-shrink:0; }
+  .search-wrap input {
+    background: transparent; border: none; outline: none;
+    color: #e9e1de; font-size: 12px; font-family: inherit;
+    width: 100%; letter-spacing: 0.02em;
+  }
+  .search-wrap input::placeholder { color: rgba(110,104,117,0.45); }
+
+  /* ── PLAY BUTTON ── */
   .play-btn {
     background: linear-gradient(135deg, var(--jestr-purple), var(--jestr-blue));
     box-shadow: 0 0 22px rgba(123,47,255,0.45);
+    transition: box-shadow 0.2s, transform 0.1s;
   }
-  .play-btn:hover { box-shadow: 0 0 28px rgba(45,91,255,0.5); }
+  .play-btn:hover { box-shadow: 0 0 30px rgba(45,91,255,0.55); }
+
+  /* ── RINGS ── */
+  .ring-far  { animation: ring-expand 12s linear infinite; }
+  .ring-near { animation: ring-expand  9s linear infinite 1.5s; }
+  @keyframes ring-expand {
+    0%{transform:scale(0.4);opacity:.6} 80%{opacity:.1} 100%{transform:scale(1.6);opacity:0}
+  }
+
+  /* ── MOBILE DRAWER ── */
+  #mobile-drawer { transform: translateX(-100%); transition: transform 0.3s cubic-bezier(0.4,0,0.2,1); }
+  #mobile-drawer.open { transform: translateX(0); }
+  #drawer-overlay { opacity:0; pointer-events:none; transition:opacity 0.3s; }
+  #drawer-overlay.open { opacity:1; pointer-events:all; }
 </style>
 <script id="tailwind-config">
   tailwind.config = {
     darkMode: "class",
-    theme: {
-      extend: {
-        colors: {
-          "surface": "#0e0c0b",
-          "surface-container-low": "#181512",
-          "surface-container": "#1e1b18",
-          "surface-container-high": "#272320",
-          "surface-container-highest": "#302c29",
-          "on-surface": "#e9e1de",
-          "outline": "#6e6875",
-          "background": "#0e0c0b",
-        },
-        fontFamily: { "headline": ["Plus Jakarta Sans"], "body": ["Plus Jakarta Sans"] },
-        borderRadius: { "DEFAULT": "0.75rem", "lg": "1.5rem", "xl": "2.5rem", "full": "9999px" },
+    theme: { extend: {
+      colors: {
+        "surface": "#0e0c0b", "surface-container-low": "#181512",
+        "surface-container": "#1e1b18", "surface-container-high": "#272320",
+        "on-surface": "#e9e1de", "outline": "#6e6875", "background": "#0e0c0b",
       },
-    },
+      fontFamily: { headline: ["Plus Jakarta Sans"], body: ["Plus Jakarta Sans"] },
+      borderRadius: { DEFAULT: "0.75rem", lg: "1.5rem", xl: "2.5rem", full: "9999px" },
+    }},
   }
 </script>
 </head>
@@ -155,34 +206,41 @@
 <div class="grain-overlay"></div>
 <audio id="audio-player"></audio>
 
-<!-- ══ DESKTOP SIDEBAR ═════════════════════════════════ -->
-<aside class="hidden md:flex h-full w-64 fixed left-0 top-0 z-40 flex-col p-5 gap-4 border-r container-texture depth-near" style="background:rgba(18,15,12,0.98);border-color:rgba(45,91,255,0.1)">
-  <div class="flex flex-col gap-0.5">
-    <h1 class="text-2xl font-black tracking-tighter italic vhs-flicker" style="color:var(--jestr-purple)">Orbit</h1>
-    <p class="font-bold tracking-[0.3em] text-[8px] uppercase" style="color:rgba(0,200,150,0.5)">Cosmic Hi-Fi</p>
+<!-- ══ SIDEBAR ══════════════════════════════════════════════ -->
+<aside class="hidden md:flex h-full w-64 fixed left-0 top-0 z-40 flex-col border-r container-texture depth-near"
+  style="background:rgba(14,12,11,0.99);border-color:rgba(45,91,255,0.1);padding:24px 20px;gap:16px">
+  <!-- Logo -->
+  <div style="margin-bottom:4px">
+    <h1 class="text-2xl font-black tracking-tighter italic vhs-flicker" style="color:var(--jestr-purple);line-height:1">Orbit</h1>
+    <p class="font-bold tracking-[0.3em] text-[8px] uppercase" style="color:rgba(0,200,150,0.5);margin-top:2px">Cosmic Hi-Fi</p>
   </div>
-  <nav>
-    <button class="flex items-center gap-3 px-3 py-2.5 rounded-lg w-full text-left" style="background:rgba(123,47,255,0.12);color:rgba(200,180,255,0.9);font-weight:700;font-size:13px">
-      <span class="material-symbols-outlined text-lg">library_music</span>Tracks
-    </button>
-  </nav>
-  <div class="h-px" style="background:rgba(45,91,255,0.12)"></div>
-  <div class="relative">
-    <input id="search-input" class="sidebar-search" placeholder="Search tracks..." type="text"/>
-    <span class="material-symbols-outlined absolute right-2.5 top-1/2 -translate-y-1/2" style="font-size:15px;color:rgba(110,104,117,0.5)">search</span>
+  <!-- Nav tab -->
+  <button class="flex items-center gap-3 px-3 py-2 rounded-lg w-full text-left"
+    style="background:rgba(123,47,255,0.12);color:rgba(200,180,255,0.9);font-weight:700;font-size:12px">
+    <span class="material-symbols-outlined" style="font-size:18px">library_music</span>Tracks
+  </button>
+  <!-- Divider -->
+  <div style="height:1px;background:rgba(45,91,255,0.1)"></div>
+  <!-- Search -->
+  <div class="search-wrap">
+    <span class="material-symbols-outlined">search</span>
+    <input id="search-input" placeholder="Search tracks…" type="text"/>
   </div>
-  <div class="flex items-center justify-between px-1 -mt-1">
+  <!-- Tracklist header -->
+  <div class="flex items-center justify-between" style="padding:0 2px">
     <span class="tape-counter">Tracklist</span>
     <span class="tape-counter" id="track-count">12 TRK</span>
   </div>
-  <div class="flex-1 overflow-y-auto no-scrollbar space-y-0.5" id="sidebar-tracklist"></div>
+  <!-- Tracks -->
+  <div class="flex-1 overflow-y-auto no-scrollbar" style="display:flex;flex-direction:column;gap:2px" id="sidebar-tracklist"></div>
 </aside>
 
-<!-- ══ MOBILE DRAWER OVERLAY ════════════════════════════ -->
+<!-- Drawer overlay -->
 <div id="drawer-overlay" class="fixed inset-0 bg-black/70 z-40 md:hidden"></div>
 
-<!-- ══ MOBILE DRAWER ════════════════════════════════════ -->
-<aside id="mobile-drawer" class="fixed left-0 top-0 h-full w-64 z-50 flex flex-col p-5 gap-4 md:hidden container-texture" style="background:rgba(18,15,12,0.98)">
+<!-- ══ MOBILE DRAWER ═════════════════════════════════════════ -->
+<aside id="mobile-drawer" class="fixed left-0 top-0 h-full w-64 z-50 flex flex-col p-5 gap-4 md:hidden container-texture"
+  style="background:rgba(14,12,11,0.99)">
   <div class="flex items-center justify-between">
     <div>
       <h1 class="text-xl font-black tracking-tighter italic vhs-flicker" style="color:var(--jestr-purple)">Orbit</h1>
@@ -190,141 +248,171 @@
     </div>
     <button id="close-drawer" style="color:#6e6875"><span class="material-symbols-outlined">close</span></button>
   </div>
-  <div class="h-px" style="background:rgba(45,91,255,0.12)"></div>
-  <span class="tape-counter px-1">Tracklist</span>
-  <div class="flex-1 overflow-y-auto no-scrollbar space-y-0.5" id="mobile-tracklist"></div>
+  <div style="height:1px;background:rgba(45,91,255,0.1)"></div>
+  <span class="tape-counter" style="padding:0 4px">Tracklist</span>
+  <div class="flex-1 overflow-y-auto no-scrollbar" style="display:flex;flex-direction:column;gap:2px" id="mobile-tracklist"></div>
 </aside>
 
-<!-- ══ MOBILE TOP BAR ══════════════════════════════════ -->
-<header class="md:hidden fixed top-0 left-0 right-0 z-30 flex items-center justify-between px-5 py-3.5 border-b depth-near" style="background:rgba(18,15,12,0.93);backdrop-filter:blur(20px);border-color:rgba(45,91,255,0.08)">
+<!-- ══ MOBILE TOP BAR ════════════════════════════════════════ -->
+<header class="md:hidden fixed top-0 left-0 right-0 z-30 flex items-center justify-between px-5 py-3.5 border-b depth-near"
+  style="background:rgba(14,12,11,0.93);backdrop-filter:blur(20px);border-color:rgba(45,91,255,0.08)">
   <button id="open-drawer" style="color:#6e6875"><span class="material-symbols-outlined">menu</span></button>
   <h1 class="text-lg font-black tracking-tighter italic vhs-flicker" style="color:var(--jestr-purple)">Orbit</h1>
   <div class="w-7"></div>
 </header>
 
-<!-- ══ DESKTOP MAIN ════════════════════════════════════ -->
-<main class="hidden md:flex h-screen pb-28 px-10 items-center justify-center overflow-hidden relative" style="margin-left:16rem">
+<!-- ══ DESKTOP MAIN ════════════════════════════════════════════ -->
+<main class="hidden md:flex h-screen pb-[100px] items-center justify-center overflow-hidden relative"
+  style="margin-left:16rem;padding-left:40px;padding-right:40px">
   <!-- Far rings -->
   <div class="absolute inset-0 flex items-center justify-center pointer-events-none depth-far">
-    <div class="absolute w-[680px] h-[680px] rounded-full ring-far" style="border:1px solid rgba(45,91,255,0.08)"></div>
-    <div class="absolute w-[460px] h-[460px] rounded-full ring-near" style="border:1px solid rgba(123,47,255,0.1)"></div>
+    <div class="absolute w-[640px] h-[640px] rounded-full ring-far" style="border:1px solid rgba(45,91,255,0.07)"></div>
+    <div class="absolute w-[420px] h-[420px] rounded-full ring-near" style="border:1px solid rgba(123,47,255,0.09)"></div>
   </div>
-  <!-- Planet -->
-  <div class="relative flex-1 flex items-center justify-center">
-    <div class="relative w-[400px] h-[400px] depth-mid">
+  <!-- Planet zone -->
+  <div class="relative flex items-center justify-center" style="flex:1">
+    <div class="relative w-[380px] h-[380px] depth-mid">
       <div class="planet-glow absolute inset-0 rounded-full"></div>
-      <div class="absolute inset-0 rounded-full overflow-hidden shadow-2xl" style="background:rgba(30,27,22,0.3);backdrop-filter:blur(18px) saturate(1.3);border:1px solid rgba(123,47,255,0.1)">
-        <div class="w-full h-full" style="background-image:radial-gradient(rgba(255,255,255,0.15) 1px,transparent 0);background-size:12px 12px;opacity:0.2"></div>
-        <div class="absolute inset-0" style="background:repeating-linear-gradient(0deg,transparent,transparent 18px,rgba(255,255,255,0.012) 18px,rgba(255,255,255,0.012) 19px)"></div>
+      <div class="absolute inset-0 rounded-full overflow-hidden shadow-2xl"
+        style="background:rgba(22,19,14,0.3);backdrop-filter:blur(20px) saturate(1.3);border:1px solid rgba(123,47,255,0.12)">
+        <div class="w-full h-full" style="background-image:radial-gradient(rgba(255,255,255,0.14) 1px,transparent 0);background-size:12px 12px;opacity:0.18"></div>
+        <div class="absolute inset-0" style="background:repeating-linear-gradient(0deg,transparent,transparent 18px,rgba(255,255,255,0.01) 18px,rgba(255,255,255,0.01) 19px)"></div>
       </div>
       <div class="absolute inset-0 flex flex-col items-center justify-center text-center p-8 z-10 depth-near">
-        <p class="tape-counter mb-3">NOW PLAYING</p>
-        <h2 id="focal-title" data-text="—" class="chroma text-[3.2rem] font-black italic tracking-tighter leading-none mb-3 uppercase" style="color:#e9e1de;text-shadow:0 0 40px rgba(123,47,255,0.4)">—</h2>
-        <p id="focal-artist" class="font-bold tracking-[0.5em] uppercase text-[10px]" style="color:var(--jestr-green)">Select a track</p>
+        <p class="tape-counter" style="margin-bottom:12px">NOW PLAYING</p>
+        <h2 id="focal-title" data-text="—" class="chroma font-black italic tracking-tighter leading-none uppercase"
+          style="font-size:3rem;color:#e9e1de;text-shadow:0 0 40px rgba(123,47,255,0.4);margin-bottom:12px">—</h2>
+        <p id="focal-artist" class="font-bold tracking-[0.5em] uppercase" style="font-size:10px;color:var(--jestr-green)">Select a track</p>
       </div>
     </div>
   </div>
   <!-- Up Next -->
-  <div class="w-72 flex flex-col gap-5 z-20 depth-near">
-    <div class="flex items-center justify-between pb-3" style="border-bottom:1px solid rgba(45,91,255,0.1)">
+  <div class="flex flex-col z-20 depth-near" style="width:260px;gap:16px">
+    <div class="flex items-center justify-between" style="padding-bottom:12px;border-bottom:1px solid rgba(45,91,255,0.1)">
       <span class="tape-counter">Up Next</span>
-      <span class="material-symbols-outlined scale-75" style="color:var(--jestr-blue)">auto_awesome</span>
+      <span class="material-symbols-outlined" style="font-size:14px;color:var(--jestr-blue)">auto_awesome</span>
     </div>
-    <div class="space-y-2" id="upnext-list"></div>
+    <div id="upnext-list" style="display:flex;flex-direction:column;gap:6px"></div>
   </div>
 </main>
 
-<!-- ══ MOBILE MAIN ═════════════════════════════════════ -->
+<!-- ══ MOBILE MAIN ═════════════════════════════════════════════ -->
 <main class="md:hidden flex flex-col h-screen pt-14 pb-40 overflow-y-auto no-scrollbar">
   <div class="flex flex-col items-center py-8 relative">
-    <div class="absolute w-56 h-56 rounded-full ring-far depth-far" style="border:1px solid rgba(45,91,255,0.08)"></div>
+    <div class="absolute w-56 h-56 rounded-full ring-far depth-far" style="border:1px solid rgba(45,91,255,0.07)"></div>
     <div class="relative w-44 h-44 depth-mid">
       <div class="planet-glow absolute inset-0 rounded-full"></div>
-      <div class="absolute inset-0 rounded-full overflow-hidden" style="background:rgba(30,27,22,0.3);backdrop-filter:blur(16px);border:1px solid rgba(123,47,255,0.1)">
-        <div class="w-full h-full" style="background-image:radial-gradient(rgba(255,255,255,0.15) 1px,transparent 0);background-size:10px 10px;opacity:0.15"></div>
-        <div class="absolute inset-0" style="background:repeating-linear-gradient(0deg,transparent,transparent 14px,rgba(255,255,255,0.012) 14px,rgba(255,255,255,0.012) 15px)"></div>
+      <div class="absolute inset-0 rounded-full overflow-hidden" style="background:rgba(22,19,14,0.3);backdrop-filter:blur(16px);border:1px solid rgba(123,47,255,0.1)">
+        <div class="w-full h-full" style="background-image:radial-gradient(rgba(255,255,255,0.14) 1px,transparent 0);background-size:10px 10px;opacity:0.15"></div>
       </div>
       <div class="absolute inset-0 flex flex-col items-center justify-center text-center p-4 z-10 depth-near">
-        <p class="tape-counter mb-1" style="font-size:7px">NOW PLAYING</p>
-        <h2 id="focal-title-mobile" data-text="—" class="chroma text-xl font-black italic tracking-tighter leading-none mb-1 uppercase" style="color:#e9e1de">—</h2>
+        <p class="tape-counter" style="font-size:7px;margin-bottom:4px">NOW PLAYING</p>
+        <h2 id="focal-title-mobile" data-text="—" class="chroma text-xl font-black italic tracking-tighter leading-none uppercase" style="color:#e9e1de;margin-bottom:4px">—</h2>
         <p id="focal-artist-mobile" class="font-bold tracking-widest uppercase" style="font-size:8px;color:var(--jestr-green)">Select a track</p>
       </div>
     </div>
   </div>
-  <div class="px-5 pb-4 depth-near">
-    <span class="tape-counter block mb-3">All Tracks</span>
-    <div class="space-y-1" id="mobile-main-tracklist"></div>
+  <div style="padding:0 20px 16px">
+    <span class="tape-counter" style="display:block;margin-bottom:12px">All Tracks</span>
+    <div style="display:flex;flex-direction:column;gap:4px" id="mobile-main-tracklist"></div>
   </div>
 </main>
 
-<!-- ══ DESKTOP FOOTER ══════════════════════════════════ -->
-<footer class="hidden md:flex fixed bottom-0 left-0 w-full z-50 justify-center items-center pb-6 px-8 depth-near">
-  <div class="w-full max-w-6xl rounded-2xl px-8 py-4 flex justify-between items-center container-texture" style="background:rgba(18,15,12,0.9);backdrop-filter:blur(32px);border:1px solid rgba(45,91,255,0.1);box-shadow:0 24px 64px -16px rgba(0,0,0,0.8)">
-    <div class="flex items-center gap-4 w-64">
-      <div class="w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0" style="background:rgba(123,47,255,0.15);border:1px solid rgba(123,47,255,0.2)">
-        <span class="material-symbols-outlined text-2xl" style="color:var(--jestr-purple);font-variation-settings:'FILL' 1">music_note</span>
+<!-- ══ DESKTOP FOOTER ═══════════════════════════════════════════ -->
+<footer class="hidden md:flex fixed bottom-0 left-0 w-full z-50 items-end justify-center depth-near"
+  style="padding:0 32px 20px;pointer-events:none">
+  <div class="w-full container-texture" style="max-width:calc(100% - 16rem);margin-left:16rem;
+    background:rgba(14,12,11,0.92);backdrop-filter:blur(32px) saturate(1.1);
+    border:1px solid rgba(45,91,255,0.1);border-radius:18px;
+    box-shadow:0 24px 64px -16px rgba(0,0,0,0.85);
+    padding:14px 28px;pointer-events:all;
+    display:flex;align-items:center;gap:24px">
+    <!-- Now playing info -->
+    <div style="display:flex;align-items:center;gap:14px;width:220px;flex-shrink:0">
+      <div style="width:44px;height:44px;border-radius:12px;flex-shrink:0;display:flex;align-items:center;justify-content:center;
+        background:rgba(123,47,255,0.15);border:1px solid rgba(123,47,255,0.22)">
+        <span class="material-symbols-outlined" style="font-size:22px;color:var(--jestr-purple);font-variation-settings:'FILL' 1">music_note</span>
       </div>
-      <div class="min-w-0">
-        <p id="footer-title" class="text-xs font-black uppercase tracking-tight truncate" style="color:#e9e1de">No Track</p>
-        <p id="footer-artist" class="font-bold uppercase truncate" style="font-size:9px;color:var(--jestr-green);letter-spacing:0.2em">&mdash;</p>
+      <div style="min-width:0">
+        <p id="footer-title" style="font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:0.04em;color:#e9e1de;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">No Track</p>
+        <p id="footer-artist" style="font-size:8px;font-weight:700;text-transform:uppercase;letter-spacing:0.2em;color:var(--jestr-green);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">&mdash;</p>
       </div>
     </div>
-    <div class="flex flex-col items-center gap-2.5 flex-1 max-w-lg">
-      <div class="flex items-center gap-7">
-        <button id="btn-shuffle" class="transition-all hover:scale-110" style="color:#6e6875"><span class="material-symbols-outlined text-lg">shuffle</span></button>
-        <button id="btn-prev" class="transition-all hover:scale-110" style="color:var(--jestr-blue)"><span class="material-symbols-outlined text-xl">skip_previous</span></button>
-        <button id="btn-play" class="play-btn w-12 h-12 rounded-full flex items-center justify-center transition-all hover:scale-110 active:scale-95">
-          <span id="play-icon" class="material-symbols-outlined text-2xl text-white" style="font-variation-settings:'FILL' 1">play_arrow</span>
+    <!-- Center controls -->
+    <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:10px">
+      <!-- Buttons row -->
+      <div style="display:flex;align-items:center;gap:24px">
+        <button id="btn-shuffle" style="color:#6e6875;transition:color 0.2s,transform 0.1s" onmouseenter="this.style.transform='scale(1.1)'" onmouseleave="this.style.transform=''">
+          <span class="material-symbols-outlined" style="font-size:18px">shuffle</span>
         </button>
-        <button id="btn-next" class="transition-all hover:scale-110" style="color:var(--jestr-blue)"><span class="material-symbols-outlined text-xl">skip_next</span></button>
-        <button id="btn-repeat" class="transition-all hover:scale-110" style="color:#6e6875"><span class="material-symbols-outlined text-lg">repeat</span></button>
+        <button id="btn-prev" style="color:var(--jestr-blue);transition:transform 0.1s" onmouseenter="this.style.transform='scale(1.1)'" onmouseleave="this.style.transform=''">
+          <span class="material-symbols-outlined" style="font-size:22px">skip_previous</span>
+        </button>
+        <button id="btn-play" class="play-btn" style="width:48px;height:48px;border-radius:50%;display:flex;align-items:center;justify-content:center;transition:transform 0.1s,box-shadow 0.2s" onmouseenter="this.style.transform='scale(1.08)'" onmouseleave="this.style.transform=''">
+          <span id="play-icon" class="material-symbols-outlined text-white" style="font-size:24px;font-variation-settings:'FILL' 1">play_arrow</span>
+        </button>
+        <button id="btn-next" style="color:var(--jestr-blue);transition:transform 0.1s" onmouseenter="this.style.transform='scale(1.1)'" onmouseleave="this.style.transform=''">
+          <span class="material-symbols-outlined" style="font-size:22px">skip_next</span>
+        </button>
+        <button id="btn-repeat" style="color:#6e6875;transition:color 0.2s,transform 0.1s" onmouseenter="this.style.transform='scale(1.1)'" onmouseleave="this.style.transform=''">
+          <span class="material-symbols-outlined" style="font-size:18px">repeat</span>
+        </button>
       </div>
-      <div class="w-full flex items-center gap-3">
-        <span id="time-current" class="tape-counter w-8">0:00</span>
-        <div id="progress-rail" class="flex-1 h-1.5 rounded-full overflow-hidden relative progress-track">
-          <div id="progress-fill" class="absolute left-0 top-0 h-full w-0 rounded-full" style="background:linear-gradient(90deg,var(--jestr-purple),var(--jestr-blue),var(--jestr-green))"></div>
+      <!-- Progress row -->
+      <div style="width:100%;display:flex;align-items:center;gap:10px">
+        <span id="time-current" class="tape-counter" style="width:32px">0:00</span>
+        <div class="progress-wrap" id="progress-rail">
+          <div class="progress-track-bg"></div>
+          <div class="progress-fill-bar" id="progress-fill" style="width:0%"></div>
+          <div class="progress-thumb" id="progress-thumb"></div>
         </div>
-        <span id="time-total" class="tape-counter w-8 text-right">0:00</span>
+        <span id="time-total" class="tape-counter" style="width:32px;text-align:right">0:00</span>
       </div>
     </div>
-    <div class="flex items-center gap-4 w-64 justify-end">
-      <span class="material-symbols-outlined text-lg" style="color:#6e6875">volume_up</span>
-      <div id="volume-rail" class="w-16 h-1.5 rounded-full overflow-hidden relative progress-track">
-        <div id="volume-fill" class="absolute left-0 top-0 h-full w-4/5 rounded-full" style="background:var(--jestr-green)"></div>
+    <!-- Volume + download -->
+    <div style="display:flex;align-items:center;gap:12px;width:180px;justify-content:flex-end;flex-shrink:0">
+      <span class="material-symbols-outlined" style="font-size:18px;color:#6e6875">volume_up</span>
+      <div class="volume-wrap" id="volume-rail">
+        <div class="volume-track-bg"></div>
+        <div class="volume-fill-bar" id="volume-fill" style="width:80%"></div>
+        <div class="volume-thumb" id="volume-thumb"></div>
       </div>
-      <button id="btn-download" title="Download" class="transition-all hover:scale-110" style="color:#6e6875">
-        <span class="material-symbols-outlined">download</span>
+      <button id="btn-download" style="color:#6e6875;transition:color 0.2s,transform 0.1s" onmouseenter="this.style.transform='scale(1.1)'" onmouseleave="this.style.transform=''">
+        <span class="material-symbols-outlined" style="font-size:20px">download</span>
       </button>
     </div>
   </div>
 </footer>
 
-<!-- ══ MOBILE FOOTER ═══════════════════════════════════ -->
-<footer class="md:hidden fixed bottom-0 left-0 right-0 z-50 px-3 pb-5 pt-1 depth-near">
-  <div class="rounded-2xl px-4 py-3.5 container-texture" style="background:rgba(18,15,12,0.93);backdrop-filter:blur(28px);border:1px solid rgba(45,91,255,0.1);box-shadow:0 -12px 40px -8px rgba(0,0,0,0.7)">
-    <div class="flex items-center gap-3 mb-2.5">
-      <div class="w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0" style="background:rgba(123,47,255,0.15);border:1px solid rgba(123,47,255,0.2)">
-        <span class="material-symbols-outlined text-xl" style="color:var(--jestr-purple);font-variation-settings:'FILL' 1">music_note</span>
+<!-- ══ MOBILE FOOTER ════════════════════════════════════════════ -->
+<footer class="md:hidden fixed bottom-0 left-0 right-0 z-50 depth-near" style="padding:4px 12px 18px">
+  <div class="container-texture" style="background:rgba(14,12,11,0.93);backdrop-filter:blur(28px);border:1px solid rgba(45,91,255,0.1);border-radius:18px;box-shadow:0 -12px 40px -8px rgba(0,0,0,0.7);padding:12px 14px">
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">
+      <div style="width:38px;height:38px;border-radius:10px;flex-shrink:0;display:flex;align-items:center;justify-content:center;background:rgba(123,47,255,0.15);border:1px solid rgba(123,47,255,0.22)">
+        <span class="material-symbols-outlined" style="font-size:18px;color:var(--jestr-purple);font-variation-settings:'FILL' 1">music_note</span>
       </div>
-      <div class="flex-1 min-w-0">
-        <p id="mob-footer-title" class="text-xs font-black uppercase tracking-tight truncate" style="color:#e9e1de">No Track</p>
-        <p id="mob-footer-artist" class="font-bold uppercase tracking-widest truncate" style="font-size:8px;color:var(--jestr-green)">&mdash;</p>
+      <div style="flex:1;min-width:0">
+        <p id="mob-footer-title" style="font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:0.04em;color:#e9e1de;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">No Track</p>
+        <p id="mob-footer-artist" style="font-size:8px;font-weight:700;text-transform:uppercase;letter-spacing:0.2em;color:var(--jestr-green)">&mdash;</p>
       </div>
-      <div class="flex items-center gap-2">
-        <button id="mob-btn-download" style="color:#6e6875"><span class="material-symbols-outlined text-lg">download</span></button>
-        <button id="mob-btn-prev" style="color:var(--jestr-blue)"><span class="material-symbols-outlined text-xl">skip_previous</span></button>
-        <button id="mob-btn-play" class="play-btn w-10 h-10 rounded-full flex items-center justify-center active:scale-95 transition-all">
-          <span id="mob-play-icon" class="material-symbols-outlined text-xl text-white" style="font-variation-settings:'FILL' 1">play_arrow</span>
+      <div style="display:flex;align-items:center;gap:6px">
+        <button id="mob-btn-download" style="color:#6e6875"><span class="material-symbols-outlined" style="font-size:18px">download</span></button>
+        <button id="mob-btn-prev" style="color:var(--jestr-blue)"><span class="material-symbols-outlined" style="font-size:22px">skip_previous</span></button>
+        <button id="mob-btn-play" class="play-btn" style="width:40px;height:40px;border-radius:50%;display:flex;align-items:center;justify-content:center">
+          <span id="mob-play-icon" class="material-symbols-outlined text-white" style="font-size:20px;font-variation-settings:'FILL' 1">play_arrow</span>
         </button>
-        <button id="mob-btn-next" style="color:var(--jestr-blue)"><span class="material-symbols-outlined text-xl">skip_next</span></button>
+        <button id="mob-btn-next" style="color:var(--jestr-blue)"><span class="material-symbols-outlined" style="font-size:22px">skip_next</span></button>
       </div>
     </div>
-    <div class="flex items-center gap-2">
-      <span id="mob-time-current" class="tape-counter w-7">0:00</span>
-      <div id="mob-progress-rail" class="flex-1 h-1 rounded-full overflow-hidden relative progress-track">
-        <div id="mob-progress-fill" class="absolute left-0 top-0 h-full w-0 rounded-full" style="background:linear-gradient(90deg,var(--jestr-purple),var(--jestr-blue),var(--jestr-green))"></div>
+    <!-- Mobile progress -->
+    <div style="display:flex;align-items:center;gap:8px">
+      <span id="mob-time-current" class="tape-counter" style="width:28px">0:00</span>
+      <div class="progress-wrap" id="mob-progress-rail" style="flex:1">
+        <div class="progress-track-bg"></div>
+        <div class="progress-fill-bar" id="mob-progress-fill" style="width:0%"></div>
+        <div class="progress-thumb" id="mob-progress-thumb"></div>
       </div>
-      <span id="mob-time-total" class="tape-counter w-7 text-right">0:00</span>
+      <span id="mob-time-total" class="tape-counter" style="width:28px;text-align:right">0:00</span>
     </div>
   </div>
 </footer>
@@ -349,11 +437,11 @@
   let currentIndex = 0, isPlaying = false, isShuffle = false, isRepeat = false;
 
   function fmt(s) {
-    if (isNaN(s)||!isFinite(s)) return "0:00";
+    if (!s || isNaN(s) || !isFinite(s)) return "0:00";
     return `${Math.floor(s/60)}:${String(Math.floor(s%60)).padStart(2,"0")}`;
   }
-  function updateChroma(elId, text) {
-    const el = document.getElementById(elId);
+  function updateChroma(id, text) {
+    const el = document.getElementById(id);
     if (!el) return;
     el.textContent = text;
     el.setAttribute("data-text", text);
@@ -361,29 +449,28 @@
   function downloadCurrent() {
     const t = TRACKS[currentIndex];
     const a = document.createElement("a");
-    a.href = encodeURIComponent(t.file);
-    a.download = t.file;
-    a.click();
+    a.href = encodeURIComponent(t.file); a.download = t.file; a.click();
   }
-  function loadTrack(index, autoplay = false) {
+  function loadTrack(index, autoplay=false) {
     currentIndex = index;
     const t = TRACKS[index];
     audio.src = encodeURIComponent(t.file);
     updateChroma("focal-title", t.title);
     updateChroma("focal-title-mobile", t.title);
-    document.getElementById("focal-artist").textContent = t.artist;
-    document.getElementById("focal-artist-mobile").textContent = t.artist;
-    document.getElementById("footer-title").textContent = t.title;
-    document.getElementById("footer-artist").textContent = t.artist;
-    document.getElementById("mob-footer-title").textContent = t.title;
-    document.getElementById("mob-footer-artist").textContent = t.artist;
-    ["progress-fill","mob-progress-fill"].forEach(id => document.getElementById(id).style.width="0%");
+    ["focal-artist","focal-artist-mobile"].forEach(id => document.getElementById(id).textContent = t.artist);
+    ["footer-title","mob-footer-title"].forEach(id => document.getElementById(id).textContent = t.title);
+    ["footer-artist","mob-footer-artist"].forEach(id => document.getElementById(id).textContent = t.artist);
+    setProgress(0);
     ["time-current","mob-time-current","time-total","mob-time-total"].forEach(id => document.getElementById(id).textContent="0:00");
     renderAll();
     if (autoplay) { audio.play(); isPlaying=true; } else { isPlaying=false; }
     updatePlayIcons();
-    // update track count
-    document.getElementById("track-count").textContent = `${TRACKS.length} TRK`;
+  }
+  function setProgress(pct) {
+    document.getElementById("progress-fill").style.width = pct+"%";
+    document.getElementById("mob-progress-fill").style.width = pct+"%";
+    document.getElementById("progress-thumb").style.left = pct+"%";
+    document.getElementById("mob-progress-thumb").style.left = pct+"%";
   }
   function updatePlayIcons() {
     const icon = isPlaying ? "pause" : "play_arrow";
@@ -391,11 +478,15 @@
     document.getElementById("mob-play-icon").textContent = icon;
   }
   function trackHTML(t, i, isActive) {
-    return `<div class="track-item flex items-center gap-2.5 px-3 py-2.5 rounded-lg cursor-pointer transition-all border border-transparent ${isActive?'active':''}" data-index="${i}" style="${isActive?'':'hover-track'}">
-      <span style="font-size:9px;font-weight:700;color:#6e6875;width:14px;flex-shrink:0">${String(i+1).padStart(2,"0")}</span>
-      <div class="flex-1 min-w-0">
-        <p class="track-title text-xs font-bold truncate" style="color:${isActive?'#e9e1de':'rgba(233,225,222,0.5)'}">${t.title}</p>
-        <p class="track-artist font-bold uppercase truncate" style="font-size:8px;letter-spacing:0.15em;color:${isActive?'var(--jestr-green)':'rgba(110,104,117,0.5)'}">${t.artist}</p>
+    return `<div class="track-item" data-index="${i}"
+      style="display:flex;align-items:center;gap:10px;padding:8px 12px;border-radius:10px;cursor:pointer;
+        border:1px solid ${isActive?'rgba(123,47,255,0.3)':'transparent'};
+        background:${isActive?'rgba(45,91,255,0.1)':'transparent'};
+        transition:background 0.15s,border-color 0.15s">
+      <span style="font-size:9px;font-weight:700;color:#6e6875;width:16px;flex-shrink:0;text-align:right">${String(i+1).padStart(2,"0")}</span>
+      <div style="flex:1;min-width:0">
+        <p class="track-title" style="font-size:11px;font-weight:700;color:${isActive?'#e9e1de':'rgba(233,225,222,0.45)'};white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin:0">${t.title}</p>
+        <p class="track-artist" style="font-size:8px;font-weight:700;text-transform:uppercase;letter-spacing:0.14em;color:${isActive?'var(--jestr-green)':'rgba(110,104,117,0.45)'};margin:0">${t.artist}</p>
       </div>
       ${isActive&&isPlaying?'<span class="material-symbols-outlined" style="font-size:12px;color:var(--jestr-purple);flex-shrink:0">equalizer</span>':''}
     </div>`;
@@ -407,8 +498,8 @@
       if (!el) return;
       el.innerHTML = html;
       el.querySelectorAll(".track-item").forEach(item => {
-        item.addEventListener("mouseenter", () => { if (!item.classList.contains("active")) item.style.background="rgba(45,91,255,0.06)"; });
-        item.addEventListener("mouseleave", () => { if (!item.classList.contains("active")) item.style.background=""; });
+        item.addEventListener("mouseenter", () => { if (parseInt(item.dataset.index)!==currentIndex) item.style.background="rgba(45,91,255,0.06)"; });
+        item.addEventListener("mouseleave", () => { if (parseInt(item.dataset.index)!==currentIndex) item.style.background=""; });
         item.addEventListener("click", () => { loadTrack(parseInt(item.dataset.index),true); closeDrawer(); });
       });
     });
@@ -417,11 +508,12 @@
       upnext.innerHTML = [1,2,3].map(i => {
         const idx = (currentIndex+i)%TRACKS.length;
         const t = TRACKS[idx];
-        return `<div class="flex items-center gap-3 px-3 py-3 rounded-lg cursor-pointer transition-all" style="border:1px solid rgba(45,91,255,0.08)" onmouseenter="this.style.background='rgba(45,91,255,0.07)'" onmouseleave="this.style.background=''" data-index="${idx}">
-          <span style="font-size:9px;font-weight:700;color:#6e6875">${String(i).padStart(2,"0")}</span>
-          <div class="flex-1 min-w-0">
-            <p style="font-size:12px;font-weight:700;color:rgba(233,225,222,0.5);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${t.title.toUpperCase()}</p>
-            <p style="font-size:8px;font-weight:700;color:rgba(0,200,150,0.4);letter-spacing:0.15em">${t.artist.toUpperCase()}</p>
+        return `<div data-index="${idx}" style="display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:10px;cursor:pointer;border:1px solid rgba(45,91,255,0.08);transition:background 0.15s"
+          onmouseenter="this.style.background='rgba(45,91,255,0.07)'" onmouseleave="this.style.background=''">
+          <span style="font-size:9px;font-weight:700;color:#6e6875;flex-shrink:0">${String(i).padStart(2,"0")}</span>
+          <div style="flex:1;min-width:0">
+            <p style="font-size:11px;font-weight:700;color:rgba(233,225,222,0.5);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin:0">${t.title.toUpperCase()}</p>
+            <p style="font-size:8px;font-weight:700;color:rgba(0,200,150,0.4);letter-spacing:0.14em;margin:0">${t.artist.toUpperCase()}</p>
           </div>
         </div>`;
       }).join("");
@@ -431,6 +523,77 @@
     }
   }
 
+  /* ── SEEK (click + drag) ─────────────────────────── */
+  function seekFromEvent(e, rail) {
+    const r = rail.getBoundingClientRect();
+    const pct = Math.max(0, Math.min(1, (e.clientX - r.left) / r.width));
+    if (audio.duration && isFinite(audio.duration)) {
+      audio.currentTime = pct * audio.duration;
+    }
+  }
+  function makeScrubber(railId) {
+    const rail = document.getElementById(railId);
+    let dragging = false;
+    rail.addEventListener("mousedown", e => {
+      dragging = true;
+      rail.classList.add("dragging");
+      seekFromEvent(e, rail);
+      e.preventDefault();
+    });
+    window.addEventListener("mousemove", e => {
+      if (!dragging) return;
+      seekFromEvent(e, rail);
+    });
+    window.addEventListener("mouseup", () => {
+      if (!dragging) return;
+      dragging = false;
+      rail.classList.remove("dragging");
+    });
+    // Touch support
+    rail.addEventListener("touchstart", e => {
+      dragging = true;
+      rail.classList.add("dragging");
+      seekFromEvent(e.touches[0], rail);
+      e.preventDefault();
+    }, {passive:false});
+    window.addEventListener("touchmove", e => {
+      if (!dragging) return;
+      seekFromEvent(e.touches[0], rail);
+    }, {passive:true});
+    window.addEventListener("touchend", () => { dragging=false; rail.classList.remove("dragging"); });
+  }
+  makeScrubber("progress-rail");
+  makeScrubber("mob-progress-rail");
+
+  /* ── VOLUME (click + drag) ───────────────────────── */
+  function setVolume(pct) {
+    audio.volume = pct;
+    document.getElementById("volume-fill").style.width = (pct*100)+"%";
+    document.getElementById("volume-thumb").style.left = (pct*100)+"%";
+  }
+  (function() {
+    const rail = document.getElementById("volume-rail");
+    let dragging = false;
+    function volFromEvent(e) {
+      const r = rail.getBoundingClientRect();
+      setVolume(Math.max(0,Math.min(1,(e.clientX-r.left)/r.width)));
+    }
+    rail.addEventListener("mousedown", e => { dragging=true; volFromEvent(e); e.preventDefault(); });
+    window.addEventListener("mousemove", e => { if(dragging) volFromEvent(e); });
+    window.addEventListener("mouseup",   () => { dragging=false; });
+  })();
+
+  /* ── TIMEUPDATE ──────────────────────────────────── */
+  audio.addEventListener("timeupdate", () => {
+    if (!audio.duration || !isFinite(audio.duration)) return;
+    const pct = (audio.currentTime / audio.duration) * 100;
+    setProgress(pct);
+    const cur = fmt(audio.currentTime), tot = fmt(audio.duration);
+    ["time-current","mob-time-current"].forEach(id => document.getElementById(id).textContent=cur);
+    ["time-total","mob-time-total"].forEach(id => document.getElementById(id).textContent=tot);
+  });
+
+  /* ── CONTROLS ────────────────────────────────────── */
   document.getElementById("btn-play").addEventListener("click", togglePlay);
   document.getElementById("btn-prev").addEventListener("click", prevTrack);
   document.getElementById("btn-next").addEventListener("click", nextTrack);
@@ -449,7 +612,7 @@
   });
 
   function togglePlay() {
-    if (!audio.src||audio.src===window.location.href) { loadTrack(0,true); return; }
+    if (!audio.src || audio.src===window.location.href) { loadTrack(0,true); return; }
     if (isPlaying) { audio.pause(); isPlaying=false; } else { audio.play(); isPlaying=true; }
     updatePlayIcons(); renderAll();
   }
@@ -458,38 +621,20 @@
     loadTrack((currentIndex-1+TRACKS.length)%TRACKS.length, isPlaying);
   }
   function nextTrack() {
-    loadTrack(isShuffle?Math.floor(Math.random()*TRACKS.length):(currentIndex+1)%TRACKS.length, isPlaying);
+    loadTrack(isShuffle ? Math.floor(Math.random()*TRACKS.length) : (currentIndex+1)%TRACKS.length, isPlaying);
   }
+  audio.addEventListener("ended", () => { if(isRepeat){audio.currentTime=0;audio.play();return;} nextTrack(); });
 
-  audio.addEventListener("timeupdate", () => {
-    if (!audio.duration) return;
-    const pct = (audio.currentTime/audio.duration)*100;
-    document.getElementById("progress-fill").style.width=pct+"%";
-    document.getElementById("mob-progress-fill").style.width=pct+"%";
-    const cur=fmt(audio.currentTime), tot=fmt(audio.duration);
-    ["time-current","mob-time-current"].forEach(id=>document.getElementById(id).textContent=cur);
-    ["time-total","mob-time-total"].forEach(id=>document.getElementById(id).textContent=tot);
-  });
-  [["progress-rail"],["mob-progress-rail"]].forEach(([railId]) => {
-    document.getElementById(railId).addEventListener("click", e => {
-      const r=e.currentTarget.getBoundingClientRect();
-      if (audio.duration) audio.currentTime=((e.clientX-r.left)/r.width)*audio.duration;
-    });
-  });
-  document.getElementById("volume-rail").addEventListener("click", e => {
-    const r=e.currentTarget.getBoundingClientRect();
-    const vol=Math.max(0,Math.min(1,(e.clientX-r.left)/r.width));
-    audio.volume=vol;
-    document.getElementById("volume-fill").style.width=(vol*100)+"%";
-  });
-  audio.addEventListener("ended", () => { if (isRepeat){audio.play();return;} nextTrack(); });
+  /* ── SEARCH ──────────────────────────────────────── */
   document.getElementById("search-input").addEventListener("input", e => {
-    const q=e.target.value.toLowerCase();
+    const q = e.target.value.toLowerCase();
     document.querySelectorAll(".track-item").forEach(el => {
-      const t=TRACKS[parseInt(el.dataset.index)];
-      el.style.display=(t.title.toLowerCase().includes(q)||t.artist.toLowerCase().includes(q))?"":"none";
+      const t = TRACKS[parseInt(el.dataset.index)];
+      el.style.display = (t.title.toLowerCase().includes(q)||t.artist.toLowerCase().includes(q)) ? "" : "none";
     });
   });
+
+  /* ── DRAWER ──────────────────────────────────────── */
   document.getElementById("open-drawer").addEventListener("click", () => {
     document.getElementById("mobile-drawer").classList.add("open");
     document.getElementById("drawer-overlay").classList.add("open");
@@ -500,6 +645,8 @@
     document.getElementById("mobile-drawer").classList.remove("open");
     document.getElementById("drawer-overlay").classList.remove("open");
   }
+
+  setVolume(0.8);
   loadTrack(0, false);
 </script>
 </body>
