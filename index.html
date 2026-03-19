@@ -20,10 +20,8 @@
   }
   * { box-sizing: border-box; }
   body { font-family: 'Plus Jakarta Sans', sans-serif; background: #0e0c0b; margin: 0; overflow: hidden; color: #e9e1de; }
-
   .grain-overlay {
-    position: fixed; inset: 0; pointer-events: none; z-index: 200;
-    opacity: var(--grain-opacity);
+    position: fixed; inset: 0; pointer-events: none; z-index: 200; opacity: var(--grain-opacity);
     background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
     animation: grain-shift 0.08s steps(1) infinite; mix-blend-mode: overlay;
   }
@@ -42,19 +40,16 @@
   .chroma { position: relative; display: inline-block; }
   .chroma::before, .chroma::after { content: attr(data-text); position: absolute; inset: 0; pointer-events: none; }
   .chroma::before { color: rgba(232,0,61,0.4); transform: translateX(calc(-1 * var(--aberration))); mix-blend-mode: screen; }
-  .chroma::after  { color: rgba(45,91,255,0.4);  transform: translateX(var(--aberration)); mix-blend-mode: screen; }
-
+  .chroma::after  { color: rgba(45,91,255,0.4); transform: translateX(var(--aberration)); mix-blend-mode: screen; }
   .planet-glow {
     filter: blur(55px);
     background: radial-gradient(circle, var(--jestr-purple) 0%, var(--jestr-blue) 60%, var(--jestr-green) 100%);
     animation: pulse 9s infinite alternate; opacity: 0.65;
   }
   @keyframes pulse { 0%{transform:scale(1);opacity:.55} 100%{transform:scale(1.08);opacity:.75} }
-
   .depth-far  { filter: blur(3px) saturate(0.5) brightness(0.7); }
   .depth-mid  { filter: blur(0.6px) saturate(0.9); }
   .depth-near { filter: none; }
-
   body::before {
     content:""; position:fixed; inset:0; pointer-events:none; z-index:1;
     background: radial-gradient(ellipse at 30% 60%, rgba(45,91,255,0.05) 0%, transparent 60%);
@@ -66,14 +61,12 @@
   }
   @keyframes vhs-flicker { 0%,96%,100%{opacity:1} 97%{opacity:.9} 98%{opacity:1} 99%{opacity:.94} }
   .vhs-flicker { animation: vhs-flicker 6s infinite; }
-
   .tape-counter {
     font-variant-numeric: tabular-nums; letter-spacing: 0.15em;
     font-size: 9px; color: rgba(0,200,150,0.55); font-weight: 700; text-transform: uppercase;
   }
   .no-scrollbar::-webkit-scrollbar { display: none; }
   .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
-
   .track-item.active { background: rgba(45,91,255,0.1) !important; border-color: rgba(123,47,255,0.3) !important; }
   .track-item.active .track-title  { color: #e9e1de !important; }
   .track-item.active .track-artist { color: var(--jestr-green) !important; }
@@ -87,12 +80,13 @@
   .progress-track-bg {
     position: absolute; left: 0; right: 0; height: 4px; border-radius: 4px;
     background: repeating-linear-gradient(90deg,rgba(255,255,255,0.04) 0px,rgba(255,255,255,0.04) 2px,transparent 2px,transparent 6px), rgba(30,27,24,1);
+    transition: height 0.12s;
   }
   .progress-fill-bar {
     position: absolute; left: 0; top: 50%; transform: translateY(-50%);
     height: 4px; border-radius: 4px;
     background: linear-gradient(90deg, var(--jestr-purple), var(--jestr-blue), var(--jestr-green));
-    pointer-events: none; transition: width 0.05s linear;
+    pointer-events: none; transition: height 0.12s;
   }
   .progress-thumb {
     position: absolute; top: 50%; transform: translate(-50%, -50%);
@@ -118,29 +112,15 @@
     display: flex; align-items: center; gap: 8px;
     background: rgba(22,19,16,0.9);
     border: 1px solid rgba(123,47,255,0.2);
-    border-radius: 10px;
-    padding: 0 10px; height: 36px;
+    border-radius: 10px; padding: 0 10px; height: 36px;
     transition: border-color 0.2s, box-shadow 0.2s;
   }
-  .search-wrap:focus-within {
-    border-color: rgba(123,47,255,0.55);
-    box-shadow: 0 0 0 3px rgba(123,47,255,0.08);
-  }
+  .search-wrap:focus-within { border-color: rgba(123,47,255,0.55); box-shadow: 0 0 0 3px rgba(123,47,255,0.08); }
   .search-wrap .material-symbols-outlined { font-size: 16px; color: rgba(110,104,117,0.6); flex-shrink:0; }
-  /* Kill ALL native focus styling on the input */
   .search-wrap input {
-    background: transparent !important;
-    border: none !important;
-    outline: none !important;
-    box-shadow: none !important;
-    -webkit-appearance: none !important;
-    appearance: none !important;
-    color: #e9e1de;
-    font-size: 12px;
-    font-family: inherit;
-    width: 100%;
-    letter-spacing: 0.02em;
-    padding: 0;
+    background: transparent !important; border: none !important; outline: none !important;
+    box-shadow: none !important; -webkit-appearance: none !important; appearance: none !important;
+    color: #e9e1de; font-size: 12px; font-family: inherit; width: 100%; letter-spacing: 0.02em; padding: 0;
   }
   .search-wrap input::placeholder { color: rgba(110,104,117,0.45); }
   .search-wrap input:focus { outline: none !important; box-shadow: none !important; }
@@ -148,8 +128,7 @@
   /* ── PLAY BUTTON ── */
   .play-btn {
     background: linear-gradient(135deg, var(--jestr-purple), var(--jestr-blue));
-    box-shadow: 0 0 22px rgba(123,47,255,0.45);
-    transition: box-shadow 0.2s, transform 0.1s;
+    box-shadow: 0 0 22px rgba(123,47,255,0.45); transition: box-shadow 0.2s, transform 0.1s;
   }
   .play-btn:hover { box-shadow: 0 0 30px rgba(45,91,255,0.55); }
 
@@ -163,6 +142,11 @@
   #mobile-drawer.open { transform: translateX(0); }
   #drawer-overlay { opacity:0; pointer-events:none; transition:opacity 0.3s; }
   #drawer-overlay.open { opacity:1; pointer-events:all; }
+
+  /* ── CTRL BUTTON SHARED ── */
+  .ctrl-btn { background:none; border:none; cursor:pointer; padding:0; display:flex; align-items:center; justify-content:center; transition: color 0.2s, transform 0.1s; }
+  .ctrl-btn:hover { transform: scale(1.12); }
+  .ctrl-btn:active { transform: scale(0.95); }
 </style>
 <script id="tailwind-config">
   tailwind.config = {
@@ -183,7 +167,7 @@
 <div class="vignette"></div>
 <div class="scanlines"></div>
 <div class="grain-overlay"></div>
-<audio id="audio-player"></audio>
+<audio id="audio-player" preload="auto"></audio>
 
 <!-- ══ SIDEBAR ══════════════════════════════════════════════ -->
 <aside class="hidden md:flex h-full w-64 fixed left-0 top-0 z-40 flex-col border-r container-texture depth-near"
@@ -295,8 +279,10 @@
     border:1px solid rgba(45,91,255,0.1);border-radius:18px;
     box-shadow:0 24px 64px -16px rgba(0,0,0,0.85);
     padding:14px 28px;pointer-events:all;
-    display:flex;align-items:center;gap:24px">
-    <div style="display:flex;align-items:center;gap:14px;width:220px;flex-shrink:0">
+    display:flex;align-items:center;gap:20px">
+
+    <!-- Now playing -->
+    <div style="display:flex;align-items:center;gap:14px;width:210px;flex-shrink:0">
       <div style="width:44px;height:44px;border-radius:12px;flex-shrink:0;display:flex;align-items:center;justify-content:center;
         background:rgba(123,47,255,0.15);border:1px solid rgba(123,47,255,0.22)">
         <span class="material-symbols-outlined" style="font-size:22px;color:var(--jestr-purple);font-variation-settings:'FILL' 1">music_note</span>
@@ -306,24 +292,35 @@
         <p id="footer-artist" style="font-size:8px;font-weight:700;text-transform:uppercase;letter-spacing:0.2em;color:var(--jestr-green);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">&mdash;</p>
       </div>
     </div>
+
+    <!-- Center controls -->
     <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:10px">
-      <div style="display:flex;align-items:center;gap:24px">
-        <button id="btn-shuffle" style="color:#6e6875;transition:color 0.2s,transform 0.1s" onmouseenter="this.style.transform='scale(1.1)'" onmouseleave="this.style.transform=''">
+      <!-- Button row: shuffle | prev | -10 | play | +10 | next | repeat -->
+      <div style="display:flex;align-items:center;gap:16px">
+        <button id="btn-shuffle" class="ctrl-btn" style="color:#6e6875" title="Shuffle">
           <span class="material-symbols-outlined" style="font-size:18px">shuffle</span>
         </button>
-        <button id="btn-prev" style="color:var(--jestr-blue);transition:transform 0.1s" onmouseenter="this.style.transform='scale(1.1)'" onmouseleave="this.style.transform=''">
+        <button id="btn-prev" class="ctrl-btn" style="color:var(--jestr-blue)" title="Previous">
           <span class="material-symbols-outlined" style="font-size:22px">skip_previous</span>
         </button>
-        <button id="btn-play" class="play-btn" style="width:48px;height:48px;border-radius:50%;display:flex;align-items:center;justify-content:center" onmouseenter="this.style.transform='scale(1.08)'" onmouseleave="this.style.transform=''">
+        <button id="btn-back10" class="ctrl-btn" style="color:#a09aad" title="Back 10s">
+          <span class="material-symbols-outlined" style="font-size:20px">replay_10</span>
+        </button>
+        <button id="btn-play" class="play-btn" style="width:48px;height:48px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0">
           <span id="play-icon" class="material-symbols-outlined text-white" style="font-size:24px;font-variation-settings:'FILL' 1">play_arrow</span>
         </button>
-        <button id="btn-next" style="color:var(--jestr-blue);transition:transform 0.1s" onmouseenter="this.style.transform='scale(1.1)'" onmouseleave="this.style.transform=''">
+        <button id="btn-fwd10" class="ctrl-btn" style="color:#a09aad" title="Forward 10s">
+          <span class="material-symbols-outlined" style="font-size:20px">forward_10</span>
+        </button>
+        <button id="btn-next" class="ctrl-btn" style="color:var(--jestr-blue)" title="Next">
           <span class="material-symbols-outlined" style="font-size:22px">skip_next</span>
         </button>
-        <button id="btn-repeat" style="color:#6e6875;transition:color 0.2s,transform 0.1s" onmouseenter="this.style.transform='scale(1.1)'" onmouseleave="this.style.transform=''">
-          <span class="material-symbols-outlined" style="font-size:18px">repeat</span>
+        <!-- repeat: 0=off 1=all 2=one -->
+        <button id="btn-repeat" class="ctrl-btn" style="color:#6e6875" title="Repeat">
+          <span id="repeat-icon" class="material-symbols-outlined" style="font-size:18px">repeat</span>
         </button>
       </div>
+      <!-- Progress row -->
       <div style="width:100%;display:flex;align-items:center;gap:10px">
         <span id="time-current" class="tape-counter" style="width:32px">0:00</span>
         <div class="progress-wrap" id="progress-rail">
@@ -334,14 +331,16 @@
         <span id="time-total" class="tape-counter" style="width:32px;text-align:right">0:00</span>
       </div>
     </div>
-    <div style="display:flex;align-items:center;gap:12px;width:180px;justify-content:flex-end;flex-shrink:0">
+
+    <!-- Volume + download -->
+    <div style="display:flex;align-items:center;gap:12px;width:170px;justify-content:flex-end;flex-shrink:0">
       <span class="material-symbols-outlined" style="font-size:18px;color:#6e6875">volume_up</span>
       <div class="volume-wrap" id="volume-rail">
         <div class="volume-track-bg"></div>
         <div class="volume-fill-bar" id="volume-fill" style="width:80%"></div>
         <div class="volume-thumb" id="volume-thumb"></div>
       </div>
-      <button id="btn-download" style="color:#6e6875" onmouseenter="this.style.transform='scale(1.1)'" onmouseleave="this.style.transform=''">
+      <button id="btn-download" class="ctrl-btn" style="color:#6e6875">
         <span class="material-symbols-outlined" style="font-size:20px">download</span>
       </button>
     </div>
@@ -351,7 +350,7 @@
 <!-- ══ MOBILE FOOTER ════════════════════════════════════════════ -->
 <footer class="md:hidden fixed bottom-0 left-0 right-0 z-50 depth-near" style="padding:4px 12px 18px">
   <div class="container-texture" style="background:rgba(14,12,11,0.93);backdrop-filter:blur(28px);border:1px solid rgba(45,91,255,0.1);border-radius:18px;box-shadow:0 -12px 40px -8px rgba(0,0,0,0.7);padding:12px 14px">
-    <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">
+    <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">
       <div style="width:38px;height:38px;border-radius:10px;flex-shrink:0;display:flex;align-items:center;justify-content:center;background:rgba(123,47,255,0.15);border:1px solid rgba(123,47,255,0.22)">
         <span class="material-symbols-outlined" style="font-size:18px;color:var(--jestr-purple);font-variation-settings:'FILL' 1">music_note</span>
       </div>
@@ -359,13 +358,15 @@
         <p id="mob-footer-title" style="font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:0.04em;color:#e9e1de;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">No Track</p>
         <p id="mob-footer-artist" style="font-size:8px;font-weight:700;text-transform:uppercase;letter-spacing:0.2em;color:var(--jestr-green)">&mdash;</p>
       </div>
-      <div style="display:flex;align-items:center;gap:6px">
-        <button id="mob-btn-download" style="color:#6e6875"><span class="material-symbols-outlined" style="font-size:18px">download</span></button>
-        <button id="mob-btn-prev" style="color:var(--jestr-blue)"><span class="material-symbols-outlined" style="font-size:22px">skip_previous</span></button>
-        <button id="mob-btn-play" class="play-btn" style="width:40px;height:40px;border-radius:50%;display:flex;align-items:center;justify-content:center">
+      <div style="display:flex;align-items:center;gap:4px">
+        <button id="mob-btn-back10" class="ctrl-btn" style="color:#a09aad"><span class="material-symbols-outlined" style="font-size:18px">replay_10</span></button>
+        <button id="mob-btn-prev" class="ctrl-btn" style="color:var(--jestr-blue)"><span class="material-symbols-outlined" style="font-size:20px">skip_previous</span></button>
+        <button id="mob-btn-play" class="play-btn" style="width:40px;height:40px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0">
           <span id="mob-play-icon" class="material-symbols-outlined text-white" style="font-size:20px;font-variation-settings:'FILL' 1">play_arrow</span>
         </button>
-        <button id="mob-btn-next" style="color:var(--jestr-blue)"><span class="material-symbols-outlined" style="font-size:22px">skip_next</span></button>
+        <button id="mob-btn-next" class="ctrl-btn" style="color:var(--jestr-blue)"><span class="material-symbols-outlined" style="font-size:20px">skip_next</span></button>
+        <button id="mob-btn-fwd10" class="ctrl-btn" style="color:#a09aad"><span class="material-symbols-outlined" style="font-size:18px">forward_10</span></button>
+        <button id="mob-btn-download" class="ctrl-btn" style="color:#6e6875"><span class="material-symbols-outlined" style="font-size:18px">download</span></button>
       </div>
     </div>
     <div style="display:flex;align-items:center;gap:8px">
@@ -397,7 +398,12 @@
   ];
 
   const audio = document.getElementById("audio-player");
-  let currentIndex = 0, isPlaying = false, isShuffle = false, isRepeat = false;
+  let currentIndex = 0, isPlaying = false, isShuffle = false;
+  // repeatMode: 0 = off, 1 = repeat all, 2 = repeat one
+  let repeatMode = 0;
+
+  // ── pending seek: if user seeks before duration is known, store and apply on loadedmetadata
+  let pendingSeekPct = null;
 
   function fmt(s) {
     if (!s || isNaN(s) || !isFinite(s)) return "0:00";
@@ -412,10 +418,21 @@
     const a = document.createElement("a");
     a.href = encodeURIComponent(t.file); a.download = t.file; a.click();
   }
+
+  // ── Apply pending seek once metadata is loaded
+  audio.addEventListener("loadedmetadata", () => {
+    if (pendingSeekPct !== null && isFinite(audio.duration) && audio.duration > 0) {
+      audio.currentTime = pendingSeekPct * audio.duration;
+      pendingSeekPct = null;
+    }
+  });
+
   function loadTrack(index, autoplay=false) {
     currentIndex = index;
+    pendingSeekPct = null;
     const t = TRACKS[index];
     audio.src = encodeURIComponent(t.file);
+    audio.load();
     updateChroma("focal-title", t.title);
     updateChroma("focal-title-mobile", t.title);
     ["focal-artist","focal-artist-mobile"].forEach(id => document.getElementById(id).textContent = t.artist);
@@ -424,20 +441,91 @@
     setProgress(0);
     ["time-current","mob-time-current","time-total","mob-time-total"].forEach(id => document.getElementById(id).textContent="0:00");
     renderAll();
-    if (autoplay) { audio.play(); isPlaying=true; } else { isPlaying=false; }
+    if (autoplay) {
+      audio.play().then(() => { isPlaying=true; updatePlayIcons(); renderAll(); }).catch(()=>{});
+    } else {
+      isPlaying=false;
+    }
     updatePlayIcons();
   }
+
   function setProgress(pct) {
     document.getElementById("progress-fill").style.width = pct+"%";
     document.getElementById("mob-progress-fill").style.width = pct+"%";
     document.getElementById("progress-thumb").style.left = pct+"%";
     document.getElementById("mob-progress-thumb").style.left = pct+"%";
   }
+
+  // ── SEEK — works even if metadata not yet loaded
+  function seekToPct(pct) {
+    pct = Math.max(0, Math.min(1, pct));
+    if (audio.readyState >= 1 && isFinite(audio.duration) && audio.duration > 0) {
+      audio.currentTime = pct * audio.duration;
+      pendingSeekPct = null;
+    } else {
+      // store and apply once metadata arrives
+      pendingSeekPct = pct;
+    }
+    // update UI immediately so it feels responsive
+    setProgress(pct * 100);
+  }
+
+  function seekFromEvent(e, rail) {
+    const r = rail.getBoundingClientRect();
+    seekToPct((e.clientX - r.left) / r.width);
+  }
+
+  function makeScrubber(railId) {
+    const rail = document.getElementById(railId);
+    let dragging = false;
+    rail.addEventListener("mousedown", e => {
+      dragging = true; rail.classList.add("dragging");
+      seekFromEvent(e, rail); e.preventDefault();
+    });
+    window.addEventListener("mousemove", e => { if (dragging) seekFromEvent(e, rail); });
+    window.addEventListener("mouseup", () => { if (dragging) { dragging=false; rail.classList.remove("dragging"); } });
+    rail.addEventListener("touchstart", e => {
+      dragging=true; rail.classList.add("dragging");
+      seekFromEvent(e.touches[0], rail); e.preventDefault();
+    }, {passive:false});
+    window.addEventListener("touchmove", e => { if (dragging) seekFromEvent(e.touches[0], rail); }, {passive:true});
+    window.addEventListener("touchend", () => { dragging=false; rail.classList.remove("dragging"); });
+  }
+  makeScrubber("progress-rail");
+  makeScrubber("mob-progress-rail");
+
+  // ── SKIP ±10s
+  function skip(sec) {
+    if (audio.readyState >= 1) {
+      audio.currentTime = Math.max(0, Math.min(audio.duration||0, (audio.currentTime||0) + sec));
+    }
+  }
+
+  // ── REPEAT MODE (0=off, 1=all, 2=one)
+  function updateRepeatUI() {
+    const btn = document.getElementById("btn-repeat");
+    const icon = document.getElementById("repeat-icon");
+    if (repeatMode === 0) {
+      btn.style.color = "#6e6875";
+      icon.textContent = "repeat";
+      btn.title = "Repeat: Off";
+    } else if (repeatMode === 1) {
+      btn.style.color = "var(--jestr-blue)";
+      icon.textContent = "repeat";
+      btn.title = "Repeat: All";
+    } else {
+      btn.style.color = "var(--jestr-red)";
+      icon.textContent = "repeat_one";
+      btn.title = "Repeat: One";
+    }
+  }
+
   function updatePlayIcons() {
     const icon = isPlaying ? "pause" : "play_arrow";
     document.getElementById("play-icon").textContent = icon;
     document.getElementById("mob-play-icon").textContent = icon;
   }
+
   function trackHTML(t, i, isActive) {
     return `<div class="track-item" data-index="${i}"
       style="display:flex;align-items:center;gap:10px;padding:8px 12px;border-radius:10px;cursor:pointer;
@@ -452,6 +540,7 @@
       ${isActive&&isPlaying?'<span class="material-symbols-outlined" style="font-size:12px;color:var(--jestr-purple);flex-shrink:0">equalizer</span>':''}
     </div>`;
   }
+
   function renderAll() {
     const html = TRACKS.map((t,i) => trackHTML(t,i,i===currentIndex)).join("");
     ["sidebar-tracklist","mobile-tracklist","mobile-main-tracklist"].forEach(id => {
@@ -482,23 +571,7 @@
     }
   }
 
-  function seekFromEvent(e, rail) {
-    const r = rail.getBoundingClientRect();
-    const pct = Math.max(0, Math.min(1, (e.clientX - r.left) / r.width));
-    if (audio.duration && isFinite(audio.duration)) audio.currentTime = pct * audio.duration;
-  }
-  function makeScrubber(railId) {
-    const rail = document.getElementById(railId); let dragging = false;
-    rail.addEventListener("mousedown", e => { dragging=true; rail.classList.add("dragging"); seekFromEvent(e,rail); e.preventDefault(); });
-    window.addEventListener("mousemove", e => { if(dragging) seekFromEvent(e,rail); });
-    window.addEventListener("mouseup", () => { if(dragging){dragging=false;rail.classList.remove("dragging");} });
-    rail.addEventListener("touchstart", e => { dragging=true; rail.classList.add("dragging"); seekFromEvent(e.touches[0],rail); e.preventDefault(); },{passive:false});
-    window.addEventListener("touchmove", e => { if(dragging) seekFromEvent(e.touches[0],rail); },{passive:true});
-    window.addEventListener("touchend", () => { dragging=false; rail.classList.remove("dragging"); });
-  }
-  makeScrubber("progress-rail");
-  makeScrubber("mob-progress-rail");
-
+  // ── VOLUME
   function setVolume(pct) {
     audio.volume = pct;
     document.getElementById("volume-fill").style.width = (pct*100)+"%";
@@ -512,41 +585,60 @@
     window.addEventListener("mouseup",()=>{dragging=false;});
   })();
 
+  // ── TIMEUPDATE
   audio.addEventListener("timeupdate", () => {
     if (!audio.duration||!isFinite(audio.duration)) return;
     const pct = (audio.currentTime/audio.duration)*100;
     setProgress(pct);
-    const cur=fmt(audio.currentTime),tot=fmt(audio.duration);
+    const cur=fmt(audio.currentTime), tot=fmt(audio.duration);
     ["time-current","mob-time-current"].forEach(id=>document.getElementById(id).textContent=cur);
     ["time-total","mob-time-total"].forEach(id=>document.getElementById(id).textContent=tot);
   });
 
-  document.getElementById("btn-play").addEventListener("click",togglePlay);
-  document.getElementById("btn-prev").addEventListener("click",prevTrack);
-  document.getElementById("btn-next").addEventListener("click",nextTrack);
-  document.getElementById("btn-download").addEventListener("click",downloadCurrent);
-  document.getElementById("mob-btn-play").addEventListener("click",togglePlay);
-  document.getElementById("mob-btn-prev").addEventListener("click",prevTrack);
-  document.getElementById("mob-btn-next").addEventListener("click",nextTrack);
-  document.getElementById("mob-btn-download").addEventListener("click",downloadCurrent);
-  document.getElementById("btn-shuffle").addEventListener("click",()=>{
-    isShuffle=!isShuffle;
-    document.getElementById("btn-shuffle").style.color=isShuffle?"var(--jestr-blue)":"#6e6875";
-  });
-  document.getElementById("btn-repeat").addEventListener("click",()=>{
-    isRepeat=!isRepeat;
-    document.getElementById("btn-repeat").style.color=isRepeat?"var(--jestr-red)":"#6e6875";
+  // ── ENDED
+  audio.addEventListener("ended", () => {
+    if (repeatMode === 2) { audio.currentTime=0; audio.play(); return; }
+    if (repeatMode === 1) { loadTrack((currentIndex+1)%TRACKS.length, true); return; }
+    // repeat off: advance but stop at last track
+    if (currentIndex < TRACKS.length - 1) {
+      loadTrack(isShuffle ? Math.floor(Math.random()*TRACKS.length) : currentIndex+1, true);
+    } else {
+      isPlaying=false; updatePlayIcons(); renderAll();
+    }
   });
 
+  // ── CONTROLS
   function togglePlay(){
     if(!audio.src||audio.src===window.location.href){loadTrack(0,true);return;}
     if(isPlaying){audio.pause();isPlaying=false;}else{audio.play();isPlaying=true;}
     updatePlayIcons();renderAll();
   }
-  function prevTrack(){if(audio.currentTime>3){audio.currentTime=0;return;}loadTrack((currentIndex-1+TRACKS.length)%TRACKS.length,isPlaying);}
+  function prevTrack(){if((audio.currentTime||0)>3){audio.currentTime=0;return;}loadTrack((currentIndex-1+TRACKS.length)%TRACKS.length,isPlaying);}
   function nextTrack(){loadTrack(isShuffle?Math.floor(Math.random()*TRACKS.length):(currentIndex+1)%TRACKS.length,isPlaying);}
-  audio.addEventListener("ended",()=>{if(isRepeat){audio.currentTime=0;audio.play();return;}nextTrack();});
 
+  document.getElementById("btn-play").addEventListener("click",togglePlay);
+  document.getElementById("btn-prev").addEventListener("click",prevTrack);
+  document.getElementById("btn-next").addEventListener("click",nextTrack);
+  document.getElementById("btn-back10").addEventListener("click",()=>skip(-10));
+  document.getElementById("btn-fwd10").addEventListener("click",()=>skip(10));
+  document.getElementById("btn-download").addEventListener("click",downloadCurrent);
+  document.getElementById("mob-btn-play").addEventListener("click",togglePlay);
+  document.getElementById("mob-btn-prev").addEventListener("click",prevTrack);
+  document.getElementById("mob-btn-next").addEventListener("click",nextTrack);
+  document.getElementById("mob-btn-back10").addEventListener("click",()=>skip(-10));
+  document.getElementById("mob-btn-fwd10").addEventListener("click",()=>skip(10));
+  document.getElementById("mob-btn-download").addEventListener("click",downloadCurrent);
+
+  document.getElementById("btn-shuffle").addEventListener("click",()=>{
+    isShuffle=!isShuffle;
+    document.getElementById("btn-shuffle").style.color=isShuffle?"var(--jestr-blue)":"#6e6875";
+  });
+  document.getElementById("btn-repeat").addEventListener("click",()=>{
+    repeatMode=(repeatMode+1)%3;
+    updateRepeatUI();
+  });
+
+  // ── SEARCH
   document.getElementById("search-input").addEventListener("input",e=>{
     const q=e.target.value.toLowerCase();
     document.querySelectorAll(".track-item").forEach(el=>{
@@ -555,6 +647,7 @@
     });
   });
 
+  // ── DRAWER
   document.getElementById("open-drawer").addEventListener("click",()=>{
     document.getElementById("mobile-drawer").classList.add("open");
     document.getElementById("drawer-overlay").classList.add("open");
@@ -567,6 +660,7 @@
   }
 
   setVolume(0.8);
+  updateRepeatUI();
   loadTrack(0,false);
 </script>
 </body>
