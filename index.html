@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<html class="dark" lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Orbit Planetary Player</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+<style>
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background-color: #161311;
+            margin: 0;
+            overflow: hidden;
+            color: #e9e1de;
+        }
+        /* Grainy "Fuzzy Cardboard" Texture Overlay */
+        .grain-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 99;
+            opacity: 0.04;
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
+        }
+        .container-texture {
+            position: relative;
+        }
+        .container-texture::after {
+            content: "";
+            position: absolute;
+            inset: 0;
+            pointer-events: none;
+            opacity: 0.05;
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
+            border-radius: inherit;
+        }
+        .planet-glow {
+            filter: blur(80px);
+            background: radial-gradient(circle, #6200ea 0%, #008080 100%);
+            animation: pulse 8s infinite alternate;
+        }
+        @keyframes pulse {
+            0% { transform: scale(1); opacity: 0.5; }
+            100% { transform: scale(1.1); opacity: 0.7; }
+        }
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .no-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+    </style>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "surface-dim": "#161311",
+                        "on-background": "#e9e1de",
+                        "on-surface-variant": "#cbc3d9",
+                        "on-secondary-fixed-variant": "#004f4f",
+                        "on-surface": "#e9e1de",
+                        "surface-bright": "#3c3836",
+                        "on-tertiary": "#690100",
+                        "on-error-container": "#ffdad6",
+                        "surface": "#161311",
+                        "on-tertiary-container": "#ffb4a8",
+                        "tertiary-fixed": "#ffdad4",
+                        "surface-variant": "#383432",
+                        "primary": "#cfbcff",
+                        "on-tertiary-fixed-variant": "#930100",
+                        "surface-container-highest": "#383432",
+                        "primary-fixed-dim": "#cfbcff",
+                        "on-secondary-fixed": "#002020",
+                        "inverse-on-surface": "#33302e",
+                        "on-primary-container": "#cfbcff",
+                        "surface-container": "#221f1d",
+                        "error-container": "#93000a",
+                        "inverse-surface": "#e9e1de",
+                        "on-error": "#690005",
+                        "tertiary-container": "#aa0100",
+                        "surface-container-high": "#2d2927",
+                        "secondary-fixed": "#93f2f2",
+                        "secondary-container": "#007f7f",
+                        "outline-variant": "#494456",
+                        "primary-container": "#6200ea",
+                        "on-primary": "#3a0092",
+                        "on-secondary": "#003737",
+                        "background": "#161311",
+                        "surface-container-low": "#1e1b19",
+                        "error": "#ffb4ab",
+                        "secondary-fixed-dim": "#76d6d5",
+                        "secondary": "#76d6d5",
+                        "on-primary-fixed": "#22005d",
+                        "inverse-primary": "#6e25f6",
+                        "tertiary-fixed-dim": "#ffb4a8",
+                        "surface-container-lowest": "#100e0c",
+                        "on-tertiary-fixed": "#410000",
+                        "on-secondary-container": "#ddfffe",
+                        "outline": "#958da2",
+                        "primary-fixed": "#e9ddff",
+                        "surface-tint": "#cfbcff",
+                        "on-primary-fixed-variant": "#5400cc",
+                        "accent-blue": "#89CFF0",
+                        "accent-red": "#FF0000"
+                    },
+                    fontFamily: {
+                        "headline": ["Plus Jakarta Sans"],
+                        "body": ["Plus Jakarta Sans"],
+                        "label": ["Plus Jakarta Sans"]
+                    },
+                    borderRadius: {"DEFAULT": "1rem", "lg": "2rem", "xl": "3rem", "full": "9999px"},
+                },
+            },
+        }
+    </script>
+</head>
+<body class="bg-surface text-on-surface selection:bg-secondary selection:text-on-secondary">
+<div class="grain-overlay"></div>
+<!-- SideNavBar -->
+<aside class="h-full w-72 fixed left-0 top-0 z-40 bg-surface-container-low flex flex-col p-6 gap-6 shadow-[1px_0_0_0_rgba(255,255,255,0.05)] container-texture">
+<div class="flex flex-col gap-1 mb-4">
+<h1 class="text-3xl font-black tracking-tighter text-primary-container italic">Orbit</h1>
+<p class="font-bold tracking-widest text-[10px] uppercase text-outline opacity-60">Cosmic High-Fidelity</p>
+</div>
+<nav class="flex flex-col gap-2">
+<button class="flex items-center gap-3 px-4 py-3 rounded-xl bg-primary-container/10 text-primary font-bold">
+<span class="material-symbols-outlined">library_music</span>
+<span>Tracks</span>
+</button>
+<button class="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-surface-container-high transition-colors text-outline">
+<span class="material-symbols-outlined">album</span>
+<span>Albums</span>
+</button>
+<button class="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-surface-container-high transition-colors text-outline">
+<span class="material-symbols-outlined">person</span>
+<span>Artists</span>
+</button>
+</nav>
+<div class="h-px bg-outline/10 my-2"></div>
+<div class="flex items-center justify-between px-2">
+<span class="text-[10px] font-bold uppercase tracking-widest text-outline">Collections</span>
+<button class="text-outline hover:text-primary transition-colors">
+<span class="material-symbols-outlined text-sm">filter_list</span>
+</button>
+</div>
+<div class="flex-1 overflow-y-auto no-scrollbar space-y-4 pr-1">
+<div class="group relative aspect-square w-full rounded-2xl overflow-hidden shadow-lg transition-all hover:scale-[1.02] cursor-pointer">
+<img alt="Album 1" class="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBtQP0NUAWnnX-NVgqLTGTaUWBwSmHI9cT1mv93_MSgGgua3t2Rfx9MAWo_5fl9t80_ZGpQuSpuxj9AJJQGMRA5CKr9wcH2aFWsDeUaVA9aMvkcTerM5c-GcVYAisVx46ZnQqr0-hYUubvJqB3WzUvXlQXNVu2I-JIfPW6Cpq5yS_5Yz5KX8eNdPCRmoQ9I4aVoYPwJagcvbL81URh7cyx1hEM07ASWejrtV5jq40UTC8GjKcmmy5NbNC3QlyB1poYmKjOYoj-0h9U"/>
+<div class="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+<span class="material-symbols-outlined text-white text-3xl">play_arrow</span>
+</div>
+</div>
+<div class="group relative aspect-square w-full rounded-2xl overflow-hidden shadow-lg transition-all hover:scale-[1.02] cursor-pointer">
+<img alt="Album 2" class="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDH6Gu63agJ4pDjJXFzak8_LnYE8AlA8Db2X9s0ELA5-4B1oH1SYHxGZYLJA5eMvhH3-Fm5wxKKtD5ZSfkIROUZwuj8VEmv878J4i9RZOwVU8RMUplEf7S358RvqZxz84D4BtBROXlc14YsXidmsLP5u1Mz2NdDafZQw6jVRepjRy38xpLIQEgbKtpOZyVtxjnTGk0mfdQjrHAF8gr1HSNjLA8iH6V2JJJ4SAtIaPR780Ln4kmTXrpbI3MIvXMEnYki0VJQJo61gYE"/>
+<div class="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+<span class="material-symbols-outlined text-white text-3xl">play_arrow</span>
+</div>
+</div>
+<div class="group relative aspect-square w-full rounded-2xl overflow-hidden shadow-lg transition-all hover:scale-[1.02] cursor-pointer">
+<img alt="Album 3" class="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuB4FXu6dKwuPPANw7hKYhuNrfxMH5Qiw74G-P5jOa35MBeg70ZXtzAcKLxmAsh9j-pBMuhrCBscKPiyXO-e_p01ww37vbE_8Mdrdr-iEhGVOmv6drRnlHyAdp7sXvZ6nM7I03xg6STKxbsbxpy3dh8Cp1-P1jBbHZxaTcu5-ckuivcop4h-mhdk8x7fBgrovaJzA_7WbTNxZGxaGdwA63N2_n0Eo39qBrt74sd4yejHj83LkixvlTjSi2nBf3tgJ2wTaAFqf9atkEQ"/>
+<div class="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+<span class="material-symbols-outlined text-white text-3xl">play_arrow</span>
+</div>
+</div>
+</div>
+<div class="mt-auto pt-4">
+<div class="flex items-center gap-3 p-3 rounded-2xl bg-surface-container hover:bg-surface-container-high transition-all cursor-pointer">
+<div class="w-10 h-10 rounded-full overflow-hidden ring-2 ring-primary/20">
+<img class="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDECzxzL4xXed5aZUNr1DC-SnuVwpaqfxJHPSXTOKy6gLygA7pFeaf8-Vwq4zzDKtN2pWSQUOTLIVuwBd9dUSsWNpr6E6mTktERo0oSUDUfnfPC2x4Vzi_7hPdiLq2FvAGG0uqnZVacvjlmb5FFEmc60LJHP-GhaBgA5q-vICyZFg9WT3sGj_zp564ghLavuFInNb7jtRuQLu78UIqmsRjkAbdZgFxUHrlh2Jz1sPXdfuOzO9QTjNi6B9qXp9cuWMwc7QuYGiGAoHY"/>
+</div>
+<div class="flex flex-col">
+<span class="text-xs font-bold text-on-surface">Pilot 01</span>
+<span class="text-[9px] text-primary uppercase tracking-tight">System Online</span>
+</div>
+</div>
+</div>
+</aside>
+<!-- TopNavBar -->
+<header class="fixed top-0 right-0 w-[calc(100%-18rem)] z-30 flex justify-between items-center px-12 py-8 bg-transparent">
+<div class="flex items-center gap-2">
+<span class="text-xs font-bold uppercase tracking-[0.3em] text-outline opacity-50">Stellar Navigation</span>
+</div>
+<div class="flex items-center gap-8">
+<div class="relative group">
+<input class="bg-surface-container border-none rounded-full px-8 py-2.5 w-80 text-sm focus:ring-2 focus:ring-primary/40 transition-all placeholder:text-outline/40 shadow-inner" placeholder="Search the nebula..." type="text"/>
+<span class="material-symbols-outlined absolute right-5 top-1/2 -translate-y-1/2 text-outline/40 scale-90">search</span>
+</div>
+<div class="flex items-center gap-4">
+<button class="p-2 text-outline hover:text-accent-blue transition-all hover:scale-110">
+<span class="material-symbols-outlined">notifications</span>
+</button>
+<button class="p-2 text-outline hover:text-accent-blue transition-all hover:scale-110">
+<span class="material-symbols-outlined">settings</span>
+</button>
+</div>
+</div>
+</header>
+<!-- Main Content -->
+<main class="ml-72 h-screen pt-24 pb-32 px-12 relative flex items-center justify-center overflow-hidden">
+<!-- Central Visualization Area -->
+<div class="relative flex-1 flex items-center justify-center">
+<!-- Ripple Background -->
+<div class="absolute w-[700px] h-[700px] rounded-full border border-secondary/5 animate-[ping_10s_linear_infinite]"></div>
+<div class="absolute w-[500px] h-[500px] rounded-full border border-primary/5 animate-[ping_12s_linear_infinite_1s]"></div>
+<!-- Focal Hologram Visualizer -->
+<div class="relative w-[450px] h-[450px]">
+<div class="planet-glow absolute inset-0 rounded-full"></div>
+<div class="absolute inset-0 rounded-full bg-surface-container-highest/20 backdrop-blur-2xl border border-white/5 overflow-hidden shadow-2xl">
+<div class="w-full h-full opacity-30" style="background-image: radial-gradient(#fff 1px, transparent 0); background-size: 10px 10px;"></div>
+</div>
+<!-- Track Title Centered in Focal Point -->
+<div class="absolute inset-0 flex flex-col items-center justify-center text-center p-8 z-10">
+<h2 class="text-7xl font-black italic tracking-tighter text-on-surface leading-none drop-shadow-2xl mb-4">STELLAR DRIFT</h2>
+<p class="text-accent-blue font-bold tracking-[0.4em] uppercase text-xs">Synthetic Horizons • 2024</p>
+</div>
+</div>
+</div>
+<!-- Up Next Sidebar -->
+<div class="w-80 flex flex-col gap-8 z-20">
+<div class="flex items-center justify-between border-b border-outline/10 pb-4">
+<span class="text-xs font-bold uppercase tracking-widest text-outline">Up Next</span>
+<span class="material-symbols-outlined text-accent-blue scale-75">auto_awesome</span>
+</div>
+<div class="space-y-3">
+<div class="group flex items-center gap-4 p-4 rounded-2xl bg-surface-container-low/40 backdrop-blur-md border border-white/5 hover:bg-surface-container-high/60 transition-all cursor-pointer container-texture">
+<span class="text-[10px] font-bold text-outline">01</span>
+<div class="flex-1">
+<p class="text-sm font-bold text-on-surface">VOYAGER PULSE</p>
+<p class="text-[10px] text-accent-blue uppercase font-bold">LUNAR LABS</p>
+</div>
+<span class="material-symbols-outlined text-primary text-sm">equalizer</span>
+</div>
+<div class="group flex items-center gap-4 p-4 rounded-2xl bg-transparent hover:bg-surface-container-high/40 transition-all cursor-pointer">
+<span class="text-[10px] font-bold text-outline">02</span>
+<div class="flex-1">
+<p class="text-sm font-bold text-on-surface opacity-60">QUANTUM ECHO</p>
+<p class="text-[10px] text-outline uppercase font-bold opacity-40">OBSIDIAN</p>
+</div>
+<span class="text-[10px] text-outline opacity-40">04:21</span>
+</div>
+<div class="group flex items-center gap-4 p-4 rounded-2xl bg-transparent hover:bg-surface-container-high/40 transition-all cursor-pointer">
+<span class="text-[10px] font-bold text-outline">03</span>
+<div class="flex-1">
+<p class="text-sm font-bold text-on-surface opacity-60">NEON TIDES</p>
+<p class="text-[10px] text-outline uppercase font-bold opacity-40">SOLARIS</p>
+</div>
+<span class="text-[10px] text-outline opacity-40">03:55</span>
+</div>
+</div>
+<!-- Data Stream Card -->
+<div class="mt-4 p-6 rounded-2xl bg-surface-container-highest/40 backdrop-blur-xl border border-white/5 container-texture">
+<div class="flex items-center gap-2 mb-4">
+<span class="material-symbols-outlined text-accent-red text-lg">info</span>
+<span class="text-[10px] font-bold uppercase tracking-widest text-on-surface">Data Stream</span>
+</div>
+<p class="text-xs text-outline leading-relaxed opacity-80">Recorded in a vacuum at 0G. The harmonics ripple through the cardboard textures of space-time, creating a high-fidelity analog warmth.</p>
+<div class="flex gap-3 mt-6">
+<div class="bg-surface-container-low px-3 py-1.5 rounded-lg text-[9px] font-bold text-accent-blue border border-accent-blue/20">88.2KHZ</div>
+<div class="bg-surface-container-low px-3 py-1.5 rounded-lg text-[9px] font-bold text-primary border border-primary/20">24-BIT</div>
+</div>
+</div>
+</div>
+</main>
+<!-- Bottom Player Toolbar -->
+<footer class="fixed bottom-0 left-0 w-full z-50 flex justify-center items-center pb-8 px-12">
+<div class="w-full max-w-7xl rounded-[2.5rem] px-10 py-5 bg-surface-container-high/80 backdrop-blur-3xl shadow-[0_32px_64px_-16px_rgba(0,0,0,0.5)] border border-white/5 flex justify-between items-center container-texture">
+<!-- Now Playing Meta -->
+<div class="flex items-center gap-5 w-72">
+<div class="w-14 h-14 rounded-2xl bg-surface-container-highest flex items-center justify-center overflow-hidden shadow-lg border border-white/5">
+<img class="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAmWa6FZxSgDT3E18PJ-VhFBRAdgVXEJfpsX2wXDmf_2wsNLFMRorPBSJRI0F-zP0zG2abr-_X31s44fH0TgoRCWqGtlAnXXhnpJGUiGUEvlbAI5Y4aV6oGzdrJo3BhaARqGWXuYcjaBoArGDeTPA6fv_Q1NCmVe42N6g61CwRu7SpYgK1aLbzl65e1cI8VYdDzbmf0hw2w-yQ6Rh0u-BpKsBpBocBf5QnO3Z1NUHS06Y4CprNwXIZQNE8VKDObe-BEd1c61erhHFw"/>
+</div>
+<div>
+<p class="text-sm font-black text-on-surface uppercase tracking-tight">Stellar Drift</p>
+<p class="text-[10px] text-accent-blue font-bold uppercase tracking-widest mt-0.5">Synthetic Horizons</p>
+</div>
+</div>
+<!-- Player Controls -->
+<div class="flex flex-col items-center gap-3 flex-1 max-w-xl">
+<div class="flex items-center gap-8">
+<button class="text-outline hover:text-accent-red transition-all"><span class="material-symbols-outlined text-xl">shuffle</span></button>
+<button class="text-accent-blue hover:text-primary transition-all"><span class="material-symbols-outlined text-2xl">skip_previous</span></button>
+<button class="w-14 h-14 rounded-full bg-gradient-to-br from-primary-container to-secondary-container text-white flex items-center justify-center hover:scale-110 active:scale-95 transition-all shadow-xl shadow-primary/20">
+<span class="material-symbols-outlined text-3xl" style="font-variation-settings: 'FILL' 1;">play_arrow</span>
+</button>
+<button class="text-accent-blue hover:text-primary transition-all"><span class="material-symbols-outlined text-2xl">skip_next</span></button>
+<button class="text-outline hover:text-accent-red transition-all"><span class="material-symbols-outlined text-xl">repeat</span></button>
+</div>
+<!-- Progress Rail -->
+<div class="w-full flex items-center gap-3">
+<span class="text-[9px] font-bold text-outline/60 tabular-nums">1:24</span>
+<div class="flex-1 h-1.5 bg-surface-container rounded-full overflow-hidden relative group cursor-pointer">
+<div class="absolute left-0 top-0 h-full w-[40%] bg-gradient-to-r from-primary to-secondary rounded-full"></div>
+</div>
+<span class="text-[9px] font-bold text-outline/60 tabular-nums">3:45</span>
+</div>
+</div>
+<!-- Utility Controls -->
+<div class="flex items-center gap-6 w-72 justify-end">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-outline text-lg">volume_up</span>
+<div class="w-20 h-1 bg-surface-container rounded-full overflow-hidden">
+<div class="w-[70%] h-full bg-accent-blue"></div>
+</div>
+</div>
+<button class="text-outline hover:text-accent-blue transition-all">
+<span class="material-symbols-outlined">download</span>
+</button>
+<button class="text-outline hover:text-accent-blue transition-all">
+<span class="material-symbols-outlined">more_vert</span>
+</button>
+</div>
+</div>
+</footer>
+</body></html>
