@@ -22,8 +22,6 @@
     overflow: hidden;
     color: #e9e1de;
   }
-
-  /* ── FILM GRAIN ─────────────────────────────────────── */
   .grain-overlay {
     position: fixed; top: 0; left: 0; width: 100%; height: 100%;
     pointer-events: none; z-index: 200; opacity: var(--grain-opacity);
@@ -32,154 +30,75 @@
     mix-blend-mode: overlay;
   }
   @keyframes grain-shift {
-    0%   { transform: translate(0, 0); }
-    20%  { transform: translate(-2px, 1px); }
-    40%  { transform: translate(2px, -1px); }
-    60%  { transform: translate(-1px, 2px); }
-    80%  { transform: translate(1px, -2px); }
-    100% { transform: translate(0, 0); }
+    0%   { transform: translate(0,0); }
+    20%  { transform: translate(-2px,1px); }
+    40%  { transform: translate(2px,-1px); }
+    60%  { transform: translate(-1px,2px); }
+    80%  { transform: translate(1px,-2px); }
+    100% { transform: translate(0,0); }
   }
-
-  /* ── SCANLINES ───────────────────────────────────────── */
   .scanlines {
     position: fixed; top: 0; left: 0; width: 100%; height: 100%;
     pointer-events: none; z-index: 199;
-    background: repeating-linear-gradient(
-      0deg,
-      transparent,
-      transparent 2px,
-      rgba(0,0,0,var(--scanline-opacity)) 2px,
-      rgba(0,0,0,var(--scanline-opacity)) 4px
-    );
+    background: repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,0,0,var(--scanline-opacity)) 2px,rgba(0,0,0,var(--scanline-opacity)) 4px);
   }
-
-  /* ── VIGNETTE ────────────────────────────────────────── */
   .vignette {
     position: fixed; top: 0; left: 0; width: 100%; height: 100%;
     pointer-events: none; z-index: 198;
-    background: radial-gradient(
-      ellipse at center,
-      transparent 40%,
-      rgba(8, 6, 4, var(--vignette-strength)) 100%
-    );
+    background: radial-gradient(ellipse at center,transparent 40%,rgba(8,6,4,var(--vignette-strength)) 100%);
   }
-
-  /* ── CHROMATIC ABERRATION on focal title ─────────────── */
-  .chroma {
-    position: relative;
-    display: inline-block;
+  .chroma { position: relative; display: inline-block; }
+  .chroma::before, .chroma::after {
+    content: attr(data-text); position: absolute; top: 0; left: 0;
+    width: 100%; height: 100%; pointer-events: none;
   }
-  .chroma::before,
-  .chroma::after {
-    content: attr(data-text);
-    position: absolute;
-    top: 0; left: 0;
-    width: 100%; height: 100%;
-    pointer-events: none;
-  }
-  .chroma::before {
-    color: rgba(255, 50, 50, 0.35);
-    transform: translateX(calc(-1 * var(--aberration)));
-    mix-blend-mode: screen;
-  }
-  .chroma::after {
-    color: rgba(50, 200, 255, 0.35);
-    transform: translateX(var(--aberration));
-    mix-blend-mode: screen;
-  }
-
-  /* ── PLANET GLOW ─────────────────────────────────────── */
+  .chroma::before { color: rgba(255,50,50,0.35); transform: translateX(calc(-1 * var(--aberration))); mix-blend-mode: screen; }
+  .chroma::after  { color: rgba(50,200,255,0.35); transform: translateX(var(--aberration)); mix-blend-mode: screen; }
   .planet-glow {
     filter: blur(55px);
-    background: radial-gradient(circle, #5500cc 0%, #006666 100%);
+    background: radial-gradient(circle,#5500cc 0%,#006666 100%);
     animation: pulse 9s infinite alternate;
     opacity: 0.7;
   }
   @keyframes pulse {
-    0%   { transform: scale(1);   opacity: 0.55; }
+    0%   { transform: scale(1);    opacity: 0.55; }
     100% { transform: scale(1.08); opacity: 0.75; }
   }
-
-  /* ── DEPTH LAYERS ────────────────────────────────────── */
-  /* Far background — heavily blurred, desaturated */
-  .depth-far {
-    filter: blur(3px) saturate(0.5) brightness(0.7);
-    transition: filter 0.4s ease;
-  }
-  /* Mid — slight blur */
-  .depth-mid {
-    filter: blur(0.6px) saturate(0.85);
-  }
-  /* Near / in-focus — sharp, vivid */
-  .depth-near {
-    filter: none;
-  }
-
-  /* ── ANALOG WARMTH tint ──────────────────────────────── */
+  .depth-far  { filter: blur(3px) saturate(0.5) brightness(0.7); transition: filter 0.4s ease; }
+  .depth-mid  { filter: blur(0.6px) saturate(0.85); }
+  .depth-near { filter: none; }
   body::before {
-    content: "";
-    position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+    content: ""; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
     pointer-events: none; z-index: 1;
-    background: radial-gradient(ellipse at 30% 60%, rgba(80,30,0,0.08) 0%, transparent 70%);
+    background: radial-gradient(ellipse at 30% 60%,rgba(80,30,0,0.08) 0%,transparent 70%);
   }
-
-  /* ── CONTAINER TEXTURE ───────────────────────────────── */
   .container-texture { position: relative; }
   .container-texture::after {
-    content: ""; position: absolute; inset: 0; pointer-events: none;
-    opacity: 0.06;
+    content: ""; position: absolute; inset: 0; pointer-events: none; opacity: 0.06;
     background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n2'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n2)'/%3E%3C/svg%3E");
     border-radius: inherit;
   }
-
-  /* ── VHS HEADER FLICKER (subtle) ─────────────────────── */
   @keyframes vhs-flicker {
-    0%, 96%, 100% { opacity: 1; }
-    97% { opacity: 0.92; }
-    98% { opacity: 1; }
-    99% { opacity: 0.95; }
+    0%,96%,100% { opacity:1; } 97% { opacity:0.92; } 98% { opacity:1; } 99% { opacity:0.95; }
   }
   .vhs-flicker { animation: vhs-flicker 6s infinite; }
-
-  /* ── TAPE COUNTER (aesthetic detail) ─────────────────── */
   .tape-counter {
-    font-variant-numeric: tabular-nums;
-    letter-spacing: 0.15em;
-    font-size: 9px;
-    color: rgba(137, 207, 240, 0.5);
-    font-weight: 700;
-    text-transform: uppercase;
+    font-variant-numeric: tabular-nums; letter-spacing: 0.15em;
+    font-size: 9px; color: rgba(137,207,240,0.5); font-weight: 700; text-transform: uppercase;
   }
-
-  /* ── MISC ────────────────────────────────────────────── */
   .no-scrollbar::-webkit-scrollbar { display: none; }
   .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
   #progress-rail, #mob-progress-rail, #volume-rail { cursor: pointer; }
   .track-item.active { background: rgba(25,22,18,0.7) !important; border-color: rgba(207,188,255,0.15) !important; }
   .track-item.active .track-title { opacity: 1 !important; }
   .track-item.active .track-artist { opacity: 1 !important; color: #89CFF0 !important; }
-
-  /* ── PROGRESS BAR with analog tape look ──────────────── */
   .progress-track {
-    background: repeating-linear-gradient(
-      90deg,
-      rgba(255,255,255,0.03) 0px,
-      rgba(255,255,255,0.03) 2px,
-      transparent 2px,
-      transparent 6px
-    ), rgba(34,31,29,1);
+    background: repeating-linear-gradient(90deg,rgba(255,255,255,0.03) 0px,rgba(255,255,255,0.03) 2px,transparent 2px,transparent 6px), rgba(34,31,29,1);
   }
-
-  /* ── MOBILE DRAWER ───────────────────────────────────── */
-  #mobile-drawer {
-    transform: translateX(-100%);
-    transition: transform 0.3s cubic-bezier(0.4,0,0.2,1);
-  }
+  #mobile-drawer { transform: translateX(-100%); transition: transform 0.3s cubic-bezier(0.4,0,0.2,1); }
   #mobile-drawer.open { transform: translateX(0); }
   #drawer-overlay { opacity: 0; pointer-events: none; transition: opacity 0.3s; }
   #drawer-overlay.open { opacity: 1; pointer-events: all; }
-
-  /* ── RIPPLE RINGS custom ─────────────────────────────── */
   .ring-far  { animation: ring-expand 12s linear infinite; }
   .ring-near { animation: ring-expand 9s linear infinite 1.5s; }
   @keyframes ring-expand {
@@ -187,6 +106,20 @@
     80%  { opacity: 0.1; }
     100% { transform: scale(1.6); opacity: 0; }
   }
+  /* Sidebar search */
+  .sidebar-search {
+    background: rgba(32,29,26,0.7);
+    border: 1px solid rgba(255,255,255,0.06);
+    border-radius: 0.6rem;
+    color: #e9e1de;
+    font-size: 12px;
+    padding: 7px 32px 7px 10px;
+    width: 100%;
+    outline: none;
+    font-family: inherit;
+  }
+  .sidebar-search::placeholder { color: rgba(122,114,128,0.6); }
+  .sidebar-search:focus { border-color: rgba(207,188,255,0.2); }
 </style>
 <script id="tailwind-config">
   tailwind.config = {
@@ -202,14 +135,11 @@
           "surface-container-highest": "#333028",
           "on-surface": "#e9e1de",
           "outline": "#7a7280",
-          "outline-variant": "#3d3840",
           "primary": "#cfbcff",
           "primary-container": "#5500cc",
-          "on-primary": "#3a0092",
           "secondary": "#76d6d5",
           "secondary-container": "#006666",
           "accent-blue": "#89CFF0",
-          "accent-red": "#cc2200",
           "background": "#12100e",
         },
         fontFamily: { "headline": ["Plus Jakarta Sans"], "body": ["Plus Jakarta Sans"] },
@@ -220,50 +150,50 @@
 </script>
 </head>
 <body class="bg-surface text-on-surface">
-
-<!-- Analog overlays (back to front) -->
 <div class="vignette"></div>
 <div class="scanlines"></div>
 <div class="grain-overlay"></div>
 <audio id="audio-player"></audio>
 
 <!-- ══ DESKTOP SIDEBAR ══════════════════════════════════════ -->
-<aside class="hidden md:flex h-full w-64 fixed left-0 top-0 z-40 bg-surface-container-low/95 flex-col p-5 gap-5 border-r border-white/[0.04] container-texture depth-near">
-  <div class="flex flex-col gap-0.5 mb-1">
+<aside class="hidden md:flex h-full w-64 fixed left-0 top-0 z-40 flex-col p-5 gap-4 border-r container-texture depth-near" style="background:rgba(26,23,20,0.97);border-color:rgba(255,255,255,0.04)">
+  <!-- Logo -->
+  <div class="flex flex-col gap-0.5">
     <h1 class="text-2xl font-black tracking-tighter italic vhs-flicker" style="color:#cfbcff">Orbit</h1>
     <p class="font-bold tracking-[0.3em] text-[8px] uppercase" style="color:rgba(137,207,240,0.4)">Cosmic Hi-Fi</p>
   </div>
+  <!-- Nav -->
   <nav>
     <button class="flex items-center gap-3 px-3 py-2.5 rounded-lg w-full text-left" style="background:rgba(85,0,204,0.12);color:#cfbcff;font-weight:700;font-size:13px">
       <span class="material-symbols-outlined text-lg">library_music</span>Tracks
     </button>
   </nav>
   <div class="h-px" style="background:rgba(255,255,255,0.05)"></div>
-  <div class="flex items-center justify-between px-1">
+  <!-- Search in sidebar -->
+  <div class="relative">
+    <input id="search-input" class="sidebar-search" placeholder="Search tracks..." type="text"/>
+    <span class="material-symbols-outlined absolute right-2.5 top-1/2 -translate-y-1/2 text-outline/40" style="font-size:15px">search</span>
+  </div>
+  <!-- Tracklist header -->
+  <div class="flex items-center justify-between px-1 -mt-1">
     <span class="tape-counter">Tracklist</span>
-    <span id="tape-count" class="tape-counter">04 TRK</span>
+    <span class="tape-counter">04 TRK</span>
   </div>
+  <!-- Track list -->
   <div class="flex-1 overflow-y-auto no-scrollbar space-y-0.5" id="sidebar-tracklist"></div>
-  <!-- VHS tape counter detail -->
-  <div class="pt-3 border-t border-white/[0.04] flex items-center justify-between">
-    <span class="tape-counter" id="tape-timer">00:00:00</span>
-    <span class="tape-counter" style="color:rgba(204,34,0,0.6)">● REC</span>
-  </div>
 </aside>
 
 <!-- ══ MOBILE DRAWER OVERLAY ══════════════════════════════ -->
 <div id="drawer-overlay" class="fixed inset-0 bg-black/70 z-40 md:hidden"></div>
 
 <!-- ══ MOBILE DRAWER ══════════════════════════════════════ -->
-<aside id="mobile-drawer" class="fixed left-0 top-0 h-full w-64 z-50 bg-surface-container-low flex flex-col p-5 gap-4 md:hidden container-texture">
+<aside id="mobile-drawer" class="fixed left-0 top-0 h-full w-64 z-50 flex flex-col p-5 gap-4 md:hidden container-texture" style="background:rgba(26,23,20,0.97)">
   <div class="flex items-center justify-between">
     <div>
       <h1 class="text-xl font-black tracking-tighter italic vhs-flicker" style="color:#cfbcff">Orbit</h1>
       <p class="text-[8px] font-bold tracking-[0.3em] uppercase" style="color:rgba(137,207,240,0.4)">Cosmic Hi-Fi</p>
     </div>
-    <button id="close-drawer" class="text-outline hover:text-primary">
-      <span class="material-symbols-outlined">close</span>
-    </button>
+    <button id="close-drawer" style="color:#7a7280"><span class="material-symbols-outlined">close</span></button>
   </div>
   <div class="h-px" style="background:rgba(255,255,255,0.05)"></div>
   <span class="tape-counter px-1">Tracklist</span>
@@ -277,40 +207,21 @@
   <div class="w-7"></div>
 </header>
 
-<!-- ══ DESKTOP TOP BAR ═══════════════════════════════════ -->
-<header class="hidden md:flex fixed top-0 right-0 z-30 justify-between items-center px-10 py-6 depth-near" style="width:calc(100% - 16rem)">
-  <div class="flex items-center gap-3">
-    <span class="tape-counter">Stellar Nav</span>
-    <span class="w-1.5 h-1.5 rounded-full" style="background:#cc2200;box-shadow:0 0 6px #cc2200"></span>
-  </div>
-  <div class="relative">
-    <input id="search-input" class="rounded-full px-7 py-2 w-72 text-sm placeholder:text-outline/40 border" style="background:rgba(32,29,26,0.8);border-color:rgba(255,255,255,0.06);color:#e9e1de;outline:none" placeholder="Search tracks..." type="text"/>
-    <span class="material-symbols-outlined absolute right-4 top-1/2 -translate-y-1/2 text-outline/40 scale-90">search</span>
-  </div>
-</header>
-
 <!-- ══ DESKTOP MAIN ══════════════════════════════════════ -->
-<main class="hidden md:flex h-screen pt-20 pb-28 px-10 items-center justify-center overflow-hidden relative" style="margin-left:16rem">
-
-  <!-- Far background rings — most blurred (depth far) -->
+<main class="hidden md:flex h-screen pb-28 px-10 items-center justify-center overflow-hidden relative" style="margin-left:16rem">
+  <!-- Far rings -->
   <div class="absolute inset-0 flex items-center justify-center pointer-events-none depth-far">
     <div class="absolute w-[680px] h-[680px] rounded-full ring-far" style="border:1px solid rgba(118,214,213,0.06)"></div>
     <div class="absolute w-[460px] h-[460px] rounded-full ring-near" style="border:1px solid rgba(207,188,255,0.07)"></div>
   </div>
-
-  <!-- Mid — planet sphere (slight blur) -->
+  <!-- Planet -->
   <div class="relative flex-1 flex items-center justify-center">
     <div class="relative w-[400px] h-[400px] depth-mid">
-      <!-- Glow -->
       <div class="planet-glow absolute inset-0 rounded-full"></div>
-      <!-- Glass shell -->
       <div class="absolute inset-0 rounded-full overflow-hidden shadow-2xl" style="background:rgba(40,35,30,0.25);backdrop-filter:blur(18px) saturate(1.2);border:1px solid rgba(255,255,255,0.06)">
-        <!-- Dot grid -->
         <div class="w-full h-full" style="background-image:radial-gradient(rgba(255,255,255,0.18) 1px,transparent 0);background-size:12px 12px;opacity:0.2"></div>
-        <!-- Horizontal tape lines -->
         <div class="absolute inset-0" style="background:repeating-linear-gradient(0deg,transparent,transparent 18px,rgba(255,255,255,0.015) 18px,rgba(255,255,255,0.015) 19px)"></div>
       </div>
-      <!-- Focal text — NEAR (sharpest) -->
       <div class="absolute inset-0 flex flex-col items-center justify-center text-center p-8 z-10 depth-near">
         <p class="tape-counter mb-3" style="color:rgba(137,207,240,0.5)">NOW PLAYING</p>
         <h2 id="focal-title" data-text="—" class="chroma text-[3.2rem] font-black italic tracking-tighter leading-none mb-3 uppercase" style="color:#e9e1de;text-shadow:0 0 40px rgba(207,188,255,0.3)">—</h2>
@@ -318,8 +229,7 @@
       </div>
     </div>
   </div>
-
-  <!-- Up Next — near/mid depth -->
+  <!-- Up Next -->
   <div class="w-72 flex flex-col gap-5 z-20 depth-near">
     <div class="flex items-center justify-between pb-3" style="border-bottom:1px solid rgba(255,255,255,0.05)">
       <span class="tape-counter">Up Next</span>
@@ -331,7 +241,6 @@
 
 <!-- ══ MOBILE MAIN ═══════════════════════════════════════ -->
 <main class="md:hidden flex flex-col h-screen pt-14 pb-40 overflow-y-auto no-scrollbar">
-  <!-- Mini visualizer -->
   <div class="flex flex-col items-center py-8 relative">
     <div class="absolute w-56 h-56 rounded-full ring-far depth-far" style="border:1px solid rgba(118,214,213,0.06)"></div>
     <div class="relative w-44 h-44 depth-mid">
@@ -356,7 +265,6 @@
 <!-- ══ DESKTOP FOOTER ════════════════════════════════════ -->
 <footer class="hidden md:flex fixed bottom-0 left-0 w-full z-50 justify-center items-center pb-6 px-8 depth-near">
   <div class="w-full max-w-6xl rounded-2xl px-8 py-4 flex justify-between items-center container-texture" style="background:rgba(26,23,20,0.88);backdrop-filter:blur(32px) saturate(1.1);border:1px solid rgba(255,255,255,0.05);box-shadow:0 24px 64px -16px rgba(0,0,0,0.7)">
-    <!-- Now playing -->
     <div class="flex items-center gap-4 w-64">
       <div class="w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0" style="background:rgba(85,0,204,0.2);border:1px solid rgba(207,188,255,0.1)">
         <span class="material-symbols-outlined text-2xl" style="color:#cfbcff;font-variation-settings:'FILL' 1">music_note</span>
@@ -366,7 +274,6 @@
         <p id="footer-artist" class="font-bold uppercase truncate" style="font-size:9px;color:#89CFF0;letter-spacing:0.2em">&mdash;</p>
       </div>
     </div>
-    <!-- Controls -->
     <div class="flex flex-col items-center gap-2.5 flex-1 max-w-lg">
       <div class="flex items-center gap-7">
         <button id="btn-shuffle" class="transition-all hover:scale-110" style="color:#7a7280"><span class="material-symbols-outlined text-lg">shuffle</span></button>
@@ -385,7 +292,6 @@
         <span id="time-total" class="tape-counter w-8 text-right">0:00</span>
       </div>
     </div>
-    <!-- Utility -->
     <div class="flex items-center gap-4 w-64 justify-end">
       <span class="material-symbols-outlined text-lg" style="color:#7a7280">volume_up</span>
       <div id="volume-rail" class="w-16 h-1.5 rounded-full overflow-hidden relative progress-track">
@@ -440,17 +346,15 @@
   let currentIndex = 0, isPlaying = false, isShuffle = false, isRepeat = false;
 
   function fmt(s) {
-    if (isNaN(s) || !isFinite(s)) return "0:00";
+    if (isNaN(s)||!isFinite(s)) return "0:00";
     return `${Math.floor(s/60)}:${String(Math.floor(s%60)).padStart(2,"0")}`;
   }
-
   function updateChroma(elId, text) {
     const el = document.getElementById(elId);
     if (!el) return;
     el.textContent = text;
     el.setAttribute("data-text", text);
   }
-
   function downloadCurrent() {
     const t = TRACKS[currentIndex];
     const a = document.createElement("a");
@@ -458,7 +362,6 @@
     a.download = t.file;
     a.click();
   }
-
   function loadTrack(index, autoplay = false) {
     currentIndex = index;
     const t = TRACKS[index];
@@ -477,38 +380,35 @@
     if (autoplay) { audio.play(); isPlaying = true; } else { isPlaying = false; }
     updatePlayIcons();
   }
-
   function updatePlayIcons() {
     const icon = isPlaying ? "pause" : "play_arrow";
     document.getElementById("play-icon").textContent = icon;
     document.getElementById("mob-play-icon").textContent = icon;
   }
-
   function trackHTML(t, i, isActive) {
-    return `<div class="track-item flex items-center gap-2.5 px-3 py-2.5 rounded-lg cursor-pointer transition-all border border-transparent ${isActive ? 'active' : 'hover:bg-surface-container-high/50'}" data-index="${i}" style="${isActive ? 'background:rgba(25,22,18,0.7)' : ''}">
+    return `<div class="track-item flex items-center gap-2.5 px-3 py-2.5 rounded-lg cursor-pointer transition-all border border-transparent ${isActive?'active':'hover:bg-surface-container-high/50'}" data-index="${i}" style="${isActive?'background:rgba(25,22,18,0.7)':''}">
       <span style="font-size:9px;font-weight:700;color:#7a7280;width:14px">${String(i+1).padStart(2,"0")}</span>
       <div class="flex-1 min-w-0">
-        <p class="track-title text-xs font-bold truncate ${isActive ? '' : 'opacity-50'}" style="color:#e9e1de">${t.title}</p>
-        <p class="track-artist font-bold uppercase truncate ${isActive ? '' : 'opacity-30'}" style="font-size:8px;letter-spacing:0.15em;color:${isActive ? '#89CFF0' : '#7a7280'}">${t.artist}</p>
+        <p class="track-title text-xs font-bold truncate ${isActive?'':'opacity-50'}" style="color:#e9e1de">${t.title}</p>
+        <p class="track-artist font-bold uppercase truncate ${isActive?'':'opacity-30'}" style="font-size:8px;letter-spacing:0.15em;color:${isActive?'#89CFF0':'#7a7280'}">${t.artist}</p>
       </div>
-      ${isActive && isPlaying ? '<span class="material-symbols-outlined" style="font-size:12px;color:#cfbcff">equalizer</span>' : ''}
+      ${isActive&&isPlaying?'<span class="material-symbols-outlined" style="font-size:12px;color:#cfbcff">equalizer</span>':''}
     </div>`;
   }
-
   function renderAll() {
-    const html = TRACKS.map((t, i) => trackHTML(t, i, i === currentIndex)).join("");
+    const html = TRACKS.map((t,i) => trackHTML(t,i,i===currentIndex)).join("");
     ["sidebar-tracklist","mobile-tracklist","mobile-main-tracklist"].forEach(id => {
       const el = document.getElementById(id);
       if (!el) return;
       el.innerHTML = html;
       el.querySelectorAll(".track-item").forEach(item => {
-        item.addEventListener("click", () => { loadTrack(parseInt(item.dataset.index), true); closeDrawer(); });
+        item.addEventListener("click", () => { loadTrack(parseInt(item.dataset.index),true); closeDrawer(); });
       });
     });
     const upnext = document.getElementById("upnext-list");
     if (upnext) {
       upnext.innerHTML = [1,2,3].map(i => {
-        const idx = (currentIndex + i) % TRACKS.length;
+        const idx = (currentIndex+i)%TRACKS.length;
         const t = TRACKS[idx];
         return `<div class="flex items-center gap-3 px-3 py-3 rounded-lg cursor-pointer transition-all" style="border:1px solid rgba(255,255,255,0.04)" onmouseenter="this.style.background='rgba(42,38,35,0.5)'" onmouseleave="this.style.background=''" data-index="${idx}">
           <span style="font-size:9px;font-weight:700;color:#7a7280">${String(i).padStart(2,"0")}</span>
@@ -519,12 +419,11 @@
         </div>`;
       }).join("");
       upnext.querySelectorAll("[data-index]").forEach(el => {
-        el.addEventListener("click", () => loadTrack(parseInt(el.dataset.index), true));
+        el.addEventListener("click", () => loadTrack(parseInt(el.dataset.index),true));
       });
     }
   }
 
-  // Controls
   document.getElementById("btn-play").addEventListener("click", togglePlay);
   document.getElementById("btn-prev").addEventListener("click", prevTrack);
   document.getElementById("btn-next").addEventListener("click", nextTrack);
@@ -533,7 +432,6 @@
   document.getElementById("mob-btn-prev").addEventListener("click", prevTrack);
   document.getElementById("mob-btn-next").addEventListener("click", nextTrack);
   document.getElementById("mob-btn-download").addEventListener("click", downloadCurrent);
-
   document.getElementById("btn-shuffle").addEventListener("click", () => {
     isShuffle = !isShuffle;
     document.getElementById("btn-shuffle").style.color = isShuffle ? "#89CFF0" : "#7a7280";
@@ -544,51 +442,44 @@
   });
 
   function togglePlay() {
-    if (!audio.src || audio.src === window.location.href) { loadTrack(0, true); return; }
-    if (isPlaying) { audio.pause(); isPlaying = false; }
-    else { audio.play(); isPlaying = true; }
+    if (!audio.src||audio.src===window.location.href) { loadTrack(0,true); return; }
+    if (isPlaying) { audio.pause(); isPlaying=false; } else { audio.play(); isPlaying=true; }
     updatePlayIcons(); renderAll();
   }
   function prevTrack() {
-    if (audio.currentTime > 3) { audio.currentTime = 0; return; }
-    loadTrack((currentIndex - 1 + TRACKS.length) % TRACKS.length, isPlaying);
+    if (audio.currentTime>3) { audio.currentTime=0; return; }
+    loadTrack((currentIndex-1+TRACKS.length)%TRACKS.length, isPlaying);
   }
   function nextTrack() {
-    loadTrack(isShuffle ? Math.floor(Math.random()*TRACKS.length) : (currentIndex+1)%TRACKS.length, isPlaying);
+    loadTrack(isShuffle?Math.floor(Math.random()*TRACKS.length):(currentIndex+1)%TRACKS.length, isPlaying);
   }
 
   audio.addEventListener("timeupdate", () => {
     if (!audio.duration) return;
-    const pct = (audio.currentTime / audio.duration) * 100;
-    document.getElementById("progress-fill").style.width = pct + "%";
-    document.getElementById("mob-progress-fill").style.width = pct + "%";
+    const pct = (audio.currentTime/audio.duration)*100;
+    document.getElementById("progress-fill").style.width = pct+"%";
+    document.getElementById("mob-progress-fill").style.width = pct+"%";
     const cur = fmt(audio.currentTime), tot = fmt(audio.duration);
-    ["time-current","mob-time-current"].forEach(id => document.getElementById(id).textContent = cur);
-    ["time-total","mob-time-total"].forEach(id => document.getElementById(id).textContent = tot);
-    // update tape counter
-    const el = document.getElementById("tape-timer");
-    if (el) {
-      const h = Math.floor(audio.currentTime/3600), m = Math.floor((audio.currentTime%3600)/60), s = Math.floor(audio.currentTime%60);
-      el.textContent = `${String(h).padStart(2,"0")}:${String(m).padStart(2,"0")}:${String(s).padStart(2,"0")}`;
-    }
+    ["time-current","mob-time-current"].forEach(id => document.getElementById(id).textContent=cur);
+    ["time-total","mob-time-total"].forEach(id => document.getElementById(id).textContent=tot);
   });
 
-  [["progress-rail","progress-fill"],["mob-progress-rail","mob-progress-fill"]].forEach(([railId]) => {
-    document.getElementById(railId).addEventListener("click", (e) => {
+  [["progress-rail"],["mob-progress-rail"]].forEach(([railId]) => {
+    document.getElementById(railId).addEventListener("click", e => {
       const r = e.currentTarget.getBoundingClientRect();
-      if (audio.duration) audio.currentTime = ((e.clientX-r.left)/r.width) * audio.duration;
+      if (audio.duration) audio.currentTime = ((e.clientX-r.left)/r.width)*audio.duration;
     });
   });
-  document.getElementById("volume-rail").addEventListener("click", (e) => {
+  document.getElementById("volume-rail").addEventListener("click", e => {
     const r = e.currentTarget.getBoundingClientRect();
-    const vol = Math.max(0, Math.min(1, (e.clientX-r.left)/r.width));
+    const vol = Math.max(0,Math.min(1,(e.clientX-r.left)/r.width));
     audio.volume = vol;
-    document.getElementById("volume-fill").style.width = (vol*100) + "%";
+    document.getElementById("volume-fill").style.width = (vol*100)+"%";
   });
 
   audio.addEventListener("ended", () => { if (isRepeat) { audio.play(); return; } nextTrack(); });
 
-  document.getElementById("search-input").addEventListener("input", (e) => {
+  document.getElementById("search-input").addEventListener("input", e => {
     const q = e.target.value.toLowerCase();
     document.querySelectorAll(".track-item").forEach(el => {
       const t = TRACKS[parseInt(el.dataset.index)];
