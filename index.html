@@ -4,7 +4,7 @@
 <meta charset="utf-8"/>
 <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
 <title>Orbit — jestR</title>
-<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script src="https://cdn.tailwindcss.com"></script>
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
 <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
 <style>
@@ -78,42 +78,28 @@
   .track-item.active .track-title  { color: #e9e1de !important; }
   .track-item.active .track-artist { color: var(--jestr-green) !important; }
 
-  /* ── PROGRESS BAR (custom, no overflow:hidden so thumb shows) ── */
+  /* ── PROGRESS BAR ── */
   .progress-wrap {
-    position: relative;
-    height: 20px; /* tall hit area */
-    display: flex;
-    align-items: center;
-    cursor: pointer;
-    flex: 1;
+    position: relative; height: 20px;
+    display: flex; align-items: center;
+    cursor: pointer; flex: 1;
   }
   .progress-track-bg {
-    position: absolute;
-    left: 0; right: 0;
-    height: 4px;
-    border-radius: 4px;
+    position: absolute; left: 0; right: 0; height: 4px; border-radius: 4px;
     background: repeating-linear-gradient(90deg,rgba(255,255,255,0.04) 0px,rgba(255,255,255,0.04) 2px,transparent 2px,transparent 6px), rgba(30,27,24,1);
   }
   .progress-fill-bar {
-    position: absolute;
-    left: 0; top: 50%; transform: translateY(-50%);
-    height: 4px;
-    border-radius: 4px;
+    position: absolute; left: 0; top: 50%; transform: translateY(-50%);
+    height: 4px; border-radius: 4px;
     background: linear-gradient(90deg, var(--jestr-purple), var(--jestr-blue), var(--jestr-green));
-    pointer-events: none;
-    transition: width 0.05s linear;
+    pointer-events: none; transition: width 0.05s linear;
   }
   .progress-thumb {
-    position: absolute;
-    top: 50%; transform: translate(-50%, -50%);
-    width: 14px; height: 14px;
-    border-radius: 50%;
-    background: #fff;
+    position: absolute; top: 50%; transform: translate(-50%, -50%);
+    width: 14px; height: 14px; border-radius: 50%; background: #fff;
     box-shadow: 0 0 0 3px rgba(123,47,255,0.5), 0 2px 8px rgba(0,0,0,0.6);
-    pointer-events: none;
-    opacity: 0;
-    transition: opacity 0.15s, transform 0.1s;
-    z-index: 2;
+    pointer-events: none; opacity: 0;
+    transition: opacity 0.15s, transform 0.1s; z-index: 2;
   }
   .progress-wrap:hover .progress-thumb { opacity: 1; }
   .progress-wrap:hover .progress-track-bg { height: 5px; }
@@ -121,25 +107,10 @@
   .progress-wrap.dragging .progress-thumb { opacity: 1; transform: translate(-50%, -50%) scale(1.2); }
 
   /* ── VOLUME ── */
-  .volume-wrap {
-    position: relative; height: 16px; display: flex; align-items: center; cursor: pointer;
-    width: 72px;
-  }
-  .volume-track-bg {
-    position: absolute; left:0; right:0; height:3px; border-radius:3px;
-    background: rgba(30,27,24,1);
-  }
-  .volume-fill-bar {
-    position: absolute; left:0; top:50%; transform:translateY(-50%);
-    height:3px; border-radius:3px;
-    background: var(--jestr-green); pointer-events:none;
-  }
-  .volume-thumb {
-    position:absolute; top:50%; transform:translate(-50%,-50%);
-    width:10px; height:10px; border-radius:50%;
-    background:#fff; box-shadow:0 0 0 2px rgba(0,200,150,0.4);
-    pointer-events:none; opacity:0; transition:opacity 0.15s;
-  }
+  .volume-wrap { position: relative; height: 16px; display: flex; align-items: center; cursor: pointer; width: 72px; }
+  .volume-track-bg { position: absolute; left:0; right:0; height:3px; border-radius:3px; background: rgba(30,27,24,1); }
+  .volume-fill-bar { position: absolute; left:0; top:50%; transform:translateY(-50%); height:3px; border-radius:3px; background: var(--jestr-green); pointer-events:none; }
+  .volume-thumb { position:absolute; top:50%; transform:translate(-50%,-50%); width:10px; height:10px; border-radius:50%; background:#fff; box-shadow:0 0 0 2px rgba(0,200,150,0.4); pointer-events:none; opacity:0; transition:opacity 0.15s; }
   .volume-wrap:hover .volume-thumb { opacity:1; }
 
   /* ── SEARCH BAR ── */
@@ -148,8 +119,7 @@
     background: rgba(22,19,16,0.9);
     border: 1px solid rgba(123,47,255,0.2);
     border-radius: 10px;
-    padding: 0 10px;
-    height: 36px;
+    padding: 0 10px; height: 36px;
     transition: border-color 0.2s, box-shadow 0.2s;
   }
   .search-wrap:focus-within {
@@ -157,12 +127,23 @@
     box-shadow: 0 0 0 3px rgba(123,47,255,0.08);
   }
   .search-wrap .material-symbols-outlined { font-size: 16px; color: rgba(110,104,117,0.6); flex-shrink:0; }
+  /* Kill ALL native focus styling on the input */
   .search-wrap input {
-    background: transparent; border: none; outline: none;
-    color: #e9e1de; font-size: 12px; font-family: inherit;
-    width: 100%; letter-spacing: 0.02em;
+    background: transparent !important;
+    border: none !important;
+    outline: none !important;
+    box-shadow: none !important;
+    -webkit-appearance: none !important;
+    appearance: none !important;
+    color: #e9e1de;
+    font-size: 12px;
+    font-family: inherit;
+    width: 100%;
+    letter-spacing: 0.02em;
+    padding: 0;
   }
   .search-wrap input::placeholder { color: rgba(110,104,117,0.45); }
+  .search-wrap input:focus { outline: none !important; box-shadow: none !important; }
 
   /* ── PLAY BUTTON ── */
   .play-btn {
@@ -175,9 +156,7 @@
   /* ── RINGS ── */
   .ring-far  { animation: ring-expand 12s linear infinite; }
   .ring-near { animation: ring-expand  9s linear infinite 1.5s; }
-  @keyframes ring-expand {
-    0%{transform:scale(0.4);opacity:.6} 80%{opacity:.1} 100%{transform:scale(1.6);opacity:0}
-  }
+  @keyframes ring-expand { 0%{transform:scale(0.4);opacity:.6} 80%{opacity:.1} 100%{transform:scale(1.6);opacity:0} }
 
   /* ── MOBILE DRAWER ── */
   #mobile-drawer { transform: translateX(-100%); transition: transform 0.3s cubic-bezier(0.4,0,0.2,1); }
@@ -209,33 +188,26 @@
 <!-- ══ SIDEBAR ══════════════════════════════════════════════ -->
 <aside class="hidden md:flex h-full w-64 fixed left-0 top-0 z-40 flex-col border-r container-texture depth-near"
   style="background:rgba(14,12,11,0.99);border-color:rgba(45,91,255,0.1);padding:24px 20px;gap:16px">
-  <!-- Logo -->
   <div style="margin-bottom:4px">
     <h1 class="text-2xl font-black tracking-tighter italic vhs-flicker" style="color:var(--jestr-purple);line-height:1">Orbit</h1>
     <p class="font-bold tracking-[0.3em] text-[8px] uppercase" style="color:rgba(0,200,150,0.5);margin-top:2px">Cosmic Hi-Fi</p>
   </div>
-  <!-- Nav tab -->
   <button class="flex items-center gap-3 px-3 py-2 rounded-lg w-full text-left"
     style="background:rgba(123,47,255,0.12);color:rgba(200,180,255,0.9);font-weight:700;font-size:12px">
     <span class="material-symbols-outlined" style="font-size:18px">library_music</span>Tracks
   </button>
-  <!-- Divider -->
   <div style="height:1px;background:rgba(45,91,255,0.1)"></div>
-  <!-- Search -->
   <div class="search-wrap">
     <span class="material-symbols-outlined">search</span>
-    <input id="search-input" placeholder="Search tracks…" type="text"/>
+    <input id="search-input" placeholder="Search tracks…" type="text" autocomplete="off"/>
   </div>
-  <!-- Tracklist header -->
   <div class="flex items-center justify-between" style="padding:0 2px">
     <span class="tape-counter">Tracklist</span>
     <span class="tape-counter" id="track-count">12 TRK</span>
   </div>
-  <!-- Tracks -->
   <div class="flex-1 overflow-y-auto no-scrollbar" style="display:flex;flex-direction:column;gap:2px" id="sidebar-tracklist"></div>
 </aside>
 
-<!-- Drawer overlay -->
 <div id="drawer-overlay" class="fixed inset-0 bg-black/70 z-40 md:hidden"></div>
 
 <!-- ══ MOBILE DRAWER ═════════════════════════════════════════ -->
@@ -264,12 +236,10 @@
 <!-- ══ DESKTOP MAIN ════════════════════════════════════════════ -->
 <main class="hidden md:flex h-screen pb-[100px] items-center justify-center overflow-hidden relative"
   style="margin-left:16rem;padding-left:40px;padding-right:40px">
-  <!-- Far rings -->
   <div class="absolute inset-0 flex items-center justify-center pointer-events-none depth-far">
     <div class="absolute w-[640px] h-[640px] rounded-full ring-far" style="border:1px solid rgba(45,91,255,0.07)"></div>
     <div class="absolute w-[420px] h-[420px] rounded-full ring-near" style="border:1px solid rgba(123,47,255,0.09)"></div>
   </div>
-  <!-- Planet zone -->
   <div class="relative flex items-center justify-center" style="flex:1">
     <div class="relative w-[380px] h-[380px] depth-mid">
       <div class="planet-glow absolute inset-0 rounded-full"></div>
@@ -286,7 +256,6 @@
       </div>
     </div>
   </div>
-  <!-- Up Next -->
   <div class="flex flex-col z-20 depth-near" style="width:260px;gap:16px">
     <div class="flex items-center justify-between" style="padding-bottom:12px;border-bottom:1px solid rgba(45,91,255,0.1)">
       <span class="tape-counter">Up Next</span>
@@ -327,7 +296,6 @@
     box-shadow:0 24px 64px -16px rgba(0,0,0,0.85);
     padding:14px 28px;pointer-events:all;
     display:flex;align-items:center;gap:24px">
-    <!-- Now playing info -->
     <div style="display:flex;align-items:center;gap:14px;width:220px;flex-shrink:0">
       <div style="width:44px;height:44px;border-radius:12px;flex-shrink:0;display:flex;align-items:center;justify-content:center;
         background:rgba(123,47,255,0.15);border:1px solid rgba(123,47,255,0.22)">
@@ -338,9 +306,7 @@
         <p id="footer-artist" style="font-size:8px;font-weight:700;text-transform:uppercase;letter-spacing:0.2em;color:var(--jestr-green);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">&mdash;</p>
       </div>
     </div>
-    <!-- Center controls -->
     <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:10px">
-      <!-- Buttons row -->
       <div style="display:flex;align-items:center;gap:24px">
         <button id="btn-shuffle" style="color:#6e6875;transition:color 0.2s,transform 0.1s" onmouseenter="this.style.transform='scale(1.1)'" onmouseleave="this.style.transform=''">
           <span class="material-symbols-outlined" style="font-size:18px">shuffle</span>
@@ -348,7 +314,7 @@
         <button id="btn-prev" style="color:var(--jestr-blue);transition:transform 0.1s" onmouseenter="this.style.transform='scale(1.1)'" onmouseleave="this.style.transform=''">
           <span class="material-symbols-outlined" style="font-size:22px">skip_previous</span>
         </button>
-        <button id="btn-play" class="play-btn" style="width:48px;height:48px;border-radius:50%;display:flex;align-items:center;justify-content:center;transition:transform 0.1s,box-shadow 0.2s" onmouseenter="this.style.transform='scale(1.08)'" onmouseleave="this.style.transform=''">
+        <button id="btn-play" class="play-btn" style="width:48px;height:48px;border-radius:50%;display:flex;align-items:center;justify-content:center" onmouseenter="this.style.transform='scale(1.08)'" onmouseleave="this.style.transform=''">
           <span id="play-icon" class="material-symbols-outlined text-white" style="font-size:24px;font-variation-settings:'FILL' 1">play_arrow</span>
         </button>
         <button id="btn-next" style="color:var(--jestr-blue);transition:transform 0.1s" onmouseenter="this.style.transform='scale(1.1)'" onmouseleave="this.style.transform=''">
@@ -358,7 +324,6 @@
           <span class="material-symbols-outlined" style="font-size:18px">repeat</span>
         </button>
       </div>
-      <!-- Progress row -->
       <div style="width:100%;display:flex;align-items:center;gap:10px">
         <span id="time-current" class="tape-counter" style="width:32px">0:00</span>
         <div class="progress-wrap" id="progress-rail">
@@ -369,7 +334,6 @@
         <span id="time-total" class="tape-counter" style="width:32px;text-align:right">0:00</span>
       </div>
     </div>
-    <!-- Volume + download -->
     <div style="display:flex;align-items:center;gap:12px;width:180px;justify-content:flex-end;flex-shrink:0">
       <span class="material-symbols-outlined" style="font-size:18px;color:#6e6875">volume_up</span>
       <div class="volume-wrap" id="volume-rail">
@@ -377,7 +341,7 @@
         <div class="volume-fill-bar" id="volume-fill" style="width:80%"></div>
         <div class="volume-thumb" id="volume-thumb"></div>
       </div>
-      <button id="btn-download" style="color:#6e6875;transition:color 0.2s,transform 0.1s" onmouseenter="this.style.transform='scale(1.1)'" onmouseleave="this.style.transform=''">
+      <button id="btn-download" style="color:#6e6875" onmouseenter="this.style.transform='scale(1.1)'" onmouseleave="this.style.transform=''">
         <span class="material-symbols-outlined" style="font-size:20px">download</span>
       </button>
     </div>
@@ -404,7 +368,6 @@
         <button id="mob-btn-next" style="color:var(--jestr-blue)"><span class="material-symbols-outlined" style="font-size:22px">skip_next</span></button>
       </div>
     </div>
-    <!-- Mobile progress -->
     <div style="display:flex;align-items:center;gap:8px">
       <span id="mob-time-current" class="tape-counter" style="width:28px">0:00</span>
       <div class="progress-wrap" id="mob-progress-rail" style="flex:1">
@@ -441,10 +404,8 @@
     return `${Math.floor(s/60)}:${String(Math.floor(s%60)).padStart(2,"0")}`;
   }
   function updateChroma(id, text) {
-    const el = document.getElementById(id);
-    if (!el) return;
-    el.textContent = text;
-    el.setAttribute("data-text", text);
+    const el = document.getElementById(id); if (!el) return;
+    el.textContent = text; el.setAttribute("data-text", text);
   }
   function downloadCurrent() {
     const t = TRACKS[currentIndex];
@@ -494,8 +455,7 @@
   function renderAll() {
     const html = TRACKS.map((t,i) => trackHTML(t,i,i===currentIndex)).join("");
     ["sidebar-tracklist","mobile-tracklist","mobile-main-tracklist"].forEach(id => {
-      const el = document.getElementById(id);
-      if (!el) return;
+      const el = document.getElementById(id); if (!el) return;
       el.innerHTML = html;
       el.querySelectorAll(".track-item").forEach(item => {
         item.addEventListener("mouseenter", () => { if (parseInt(item.dataset.index)!==currentIndex) item.style.background="rgba(45,91,255,0.06)"; });
@@ -506,8 +466,7 @@
     const upnext = document.getElementById("upnext-list");
     if (upnext) {
       upnext.innerHTML = [1,2,3].map(i => {
-        const idx = (currentIndex+i)%TRACKS.length;
-        const t = TRACKS[idx];
+        const idx = (currentIndex+i)%TRACKS.length; const t = TRACKS[idx];
         return `<div data-index="${idx}" style="display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:10px;cursor:pointer;border:1px solid rgba(45,91,255,0.08);transition:background 0.15s"
           onmouseenter="this.style.background='rgba(45,91,255,0.07)'" onmouseleave="this.style.background=''">
           <span style="font-size:9px;font-weight:700;color:#6e6875;flex-shrink:0">${String(i).padStart(2,"0")}</span>
@@ -523,131 +482,92 @@
     }
   }
 
-  /* ── SEEK (click + drag) ─────────────────────────── */
   function seekFromEvent(e, rail) {
     const r = rail.getBoundingClientRect();
     const pct = Math.max(0, Math.min(1, (e.clientX - r.left) / r.width));
-    if (audio.duration && isFinite(audio.duration)) {
-      audio.currentTime = pct * audio.duration;
-    }
+    if (audio.duration && isFinite(audio.duration)) audio.currentTime = pct * audio.duration;
   }
   function makeScrubber(railId) {
-    const rail = document.getElementById(railId);
-    let dragging = false;
-    rail.addEventListener("mousedown", e => {
-      dragging = true;
-      rail.classList.add("dragging");
-      seekFromEvent(e, rail);
-      e.preventDefault();
-    });
-    window.addEventListener("mousemove", e => {
-      if (!dragging) return;
-      seekFromEvent(e, rail);
-    });
-    window.addEventListener("mouseup", () => {
-      if (!dragging) return;
-      dragging = false;
-      rail.classList.remove("dragging");
-    });
-    // Touch support
-    rail.addEventListener("touchstart", e => {
-      dragging = true;
-      rail.classList.add("dragging");
-      seekFromEvent(e.touches[0], rail);
-      e.preventDefault();
-    }, {passive:false});
-    window.addEventListener("touchmove", e => {
-      if (!dragging) return;
-      seekFromEvent(e.touches[0], rail);
-    }, {passive:true});
+    const rail = document.getElementById(railId); let dragging = false;
+    rail.addEventListener("mousedown", e => { dragging=true; rail.classList.add("dragging"); seekFromEvent(e,rail); e.preventDefault(); });
+    window.addEventListener("mousemove", e => { if(dragging) seekFromEvent(e,rail); });
+    window.addEventListener("mouseup", () => { if(dragging){dragging=false;rail.classList.remove("dragging");} });
+    rail.addEventListener("touchstart", e => { dragging=true; rail.classList.add("dragging"); seekFromEvent(e.touches[0],rail); e.preventDefault(); },{passive:false});
+    window.addEventListener("touchmove", e => { if(dragging) seekFromEvent(e.touches[0],rail); },{passive:true});
     window.addEventListener("touchend", () => { dragging=false; rail.classList.remove("dragging"); });
   }
   makeScrubber("progress-rail");
   makeScrubber("mob-progress-rail");
 
-  /* ── VOLUME (click + drag) ───────────────────────── */
   function setVolume(pct) {
     audio.volume = pct;
     document.getElementById("volume-fill").style.width = (pct*100)+"%";
     document.getElementById("volume-thumb").style.left = (pct*100)+"%";
   }
-  (function() {
-    const rail = document.getElementById("volume-rail");
-    let dragging = false;
-    function volFromEvent(e) {
-      const r = rail.getBoundingClientRect();
-      setVolume(Math.max(0,Math.min(1,(e.clientX-r.left)/r.width)));
-    }
-    rail.addEventListener("mousedown", e => { dragging=true; volFromEvent(e); e.preventDefault(); });
-    window.addEventListener("mousemove", e => { if(dragging) volFromEvent(e); });
-    window.addEventListener("mouseup",   () => { dragging=false; });
+  (function(){
+    const rail = document.getElementById("volume-rail"); let dragging=false;
+    function volFromEvent(e){const r=rail.getBoundingClientRect();setVolume(Math.max(0,Math.min(1,(e.clientX-r.left)/r.width)));}
+    rail.addEventListener("mousedown",e=>{dragging=true;volFromEvent(e);e.preventDefault();});
+    window.addEventListener("mousemove",e=>{if(dragging)volFromEvent(e);});
+    window.addEventListener("mouseup",()=>{dragging=false;});
   })();
 
-  /* ── TIMEUPDATE ──────────────────────────────────── */
   audio.addEventListener("timeupdate", () => {
-    if (!audio.duration || !isFinite(audio.duration)) return;
-    const pct = (audio.currentTime / audio.duration) * 100;
+    if (!audio.duration||!isFinite(audio.duration)) return;
+    const pct = (audio.currentTime/audio.duration)*100;
     setProgress(pct);
-    const cur = fmt(audio.currentTime), tot = fmt(audio.duration);
-    ["time-current","mob-time-current"].forEach(id => document.getElementById(id).textContent=cur);
-    ["time-total","mob-time-total"].forEach(id => document.getElementById(id).textContent=tot);
+    const cur=fmt(audio.currentTime),tot=fmt(audio.duration);
+    ["time-current","mob-time-current"].forEach(id=>document.getElementById(id).textContent=cur);
+    ["time-total","mob-time-total"].forEach(id=>document.getElementById(id).textContent=tot);
   });
 
-  /* ── CONTROLS ────────────────────────────────────── */
-  document.getElementById("btn-play").addEventListener("click", togglePlay);
-  document.getElementById("btn-prev").addEventListener("click", prevTrack);
-  document.getElementById("btn-next").addEventListener("click", nextTrack);
-  document.getElementById("btn-download").addEventListener("click", downloadCurrent);
-  document.getElementById("mob-btn-play").addEventListener("click", togglePlay);
-  document.getElementById("mob-btn-prev").addEventListener("click", prevTrack);
-  document.getElementById("mob-btn-next").addEventListener("click", nextTrack);
-  document.getElementById("mob-btn-download").addEventListener("click", downloadCurrent);
-  document.getElementById("btn-shuffle").addEventListener("click", () => {
-    isShuffle = !isShuffle;
-    document.getElementById("btn-shuffle").style.color = isShuffle ? "var(--jestr-blue)" : "#6e6875";
+  document.getElementById("btn-play").addEventListener("click",togglePlay);
+  document.getElementById("btn-prev").addEventListener("click",prevTrack);
+  document.getElementById("btn-next").addEventListener("click",nextTrack);
+  document.getElementById("btn-download").addEventListener("click",downloadCurrent);
+  document.getElementById("mob-btn-play").addEventListener("click",togglePlay);
+  document.getElementById("mob-btn-prev").addEventListener("click",prevTrack);
+  document.getElementById("mob-btn-next").addEventListener("click",nextTrack);
+  document.getElementById("mob-btn-download").addEventListener("click",downloadCurrent);
+  document.getElementById("btn-shuffle").addEventListener("click",()=>{
+    isShuffle=!isShuffle;
+    document.getElementById("btn-shuffle").style.color=isShuffle?"var(--jestr-blue)":"#6e6875";
   });
-  document.getElementById("btn-repeat").addEventListener("click", () => {
-    isRepeat = !isRepeat;
-    document.getElementById("btn-repeat").style.color = isRepeat ? "var(--jestr-red)" : "#6e6875";
+  document.getElementById("btn-repeat").addEventListener("click",()=>{
+    isRepeat=!isRepeat;
+    document.getElementById("btn-repeat").style.color=isRepeat?"var(--jestr-red)":"#6e6875";
   });
 
-  function togglePlay() {
-    if (!audio.src || audio.src===window.location.href) { loadTrack(0,true); return; }
-    if (isPlaying) { audio.pause(); isPlaying=false; } else { audio.play(); isPlaying=true; }
-    updatePlayIcons(); renderAll();
+  function togglePlay(){
+    if(!audio.src||audio.src===window.location.href){loadTrack(0,true);return;}
+    if(isPlaying){audio.pause();isPlaying=false;}else{audio.play();isPlaying=true;}
+    updatePlayIcons();renderAll();
   }
-  function prevTrack() {
-    if (audio.currentTime>3) { audio.currentTime=0; return; }
-    loadTrack((currentIndex-1+TRACKS.length)%TRACKS.length, isPlaying);
-  }
-  function nextTrack() {
-    loadTrack(isShuffle ? Math.floor(Math.random()*TRACKS.length) : (currentIndex+1)%TRACKS.length, isPlaying);
-  }
-  audio.addEventListener("ended", () => { if(isRepeat){audio.currentTime=0;audio.play();return;} nextTrack(); });
+  function prevTrack(){if(audio.currentTime>3){audio.currentTime=0;return;}loadTrack((currentIndex-1+TRACKS.length)%TRACKS.length,isPlaying);}
+  function nextTrack(){loadTrack(isShuffle?Math.floor(Math.random()*TRACKS.length):(currentIndex+1)%TRACKS.length,isPlaying);}
+  audio.addEventListener("ended",()=>{if(isRepeat){audio.currentTime=0;audio.play();return;}nextTrack();});
 
-  /* ── SEARCH ──────────────────────────────────────── */
-  document.getElementById("search-input").addEventListener("input", e => {
-    const q = e.target.value.toLowerCase();
-    document.querySelectorAll(".track-item").forEach(el => {
-      const t = TRACKS[parseInt(el.dataset.index)];
-      el.style.display = (t.title.toLowerCase().includes(q)||t.artist.toLowerCase().includes(q)) ? "" : "none";
+  document.getElementById("search-input").addEventListener("input",e=>{
+    const q=e.target.value.toLowerCase();
+    document.querySelectorAll(".track-item").forEach(el=>{
+      const t=TRACKS[parseInt(el.dataset.index)];
+      el.style.display=(t.title.toLowerCase().includes(q)||t.artist.toLowerCase().includes(q))?"":"none";
     });
   });
 
-  /* ── DRAWER ──────────────────────────────────────── */
-  document.getElementById("open-drawer").addEventListener("click", () => {
+  document.getElementById("open-drawer").addEventListener("click",()=>{
     document.getElementById("mobile-drawer").classList.add("open");
     document.getElementById("drawer-overlay").classList.add("open");
   });
-  document.getElementById("close-drawer").addEventListener("click", closeDrawer);
-  document.getElementById("drawer-overlay").addEventListener("click", closeDrawer);
-  function closeDrawer() {
+  document.getElementById("close-drawer").addEventListener("click",closeDrawer);
+  document.getElementById("drawer-overlay").addEventListener("click",closeDrawer);
+  function closeDrawer(){
     document.getElementById("mobile-drawer").classList.remove("open");
     document.getElementById("drawer-overlay").classList.remove("open");
   }
 
   setVolume(0.8);
-  loadTrack(0, false);
+  loadTrack(0,false);
 </script>
 </body>
 </html>
