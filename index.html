@@ -16,7 +16,6 @@
   *{box-sizing:border-box;}
   body{font-family:'Plus Jakarta Sans',sans-serif;background:#06040f;margin:0;overflow:hidden;color:#e9e1de;}
 
-  /* ── SPACE BG ── */
   #space-bg{
     position:fixed;inset:0;z-index:0;pointer-events:none;
     background:
@@ -27,7 +26,6 @@
   }
   #stars-canvas{position:fixed;inset:0;z-index:0;pointer-events:none;}
 
-  /* ── CRT / RETRO OVERLAYS ── */
   .grain-overlay{position:fixed;inset:0;pointer-events:none;z-index:200;opacity:var(--grain-opacity);background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");animation:grain-shift .1s steps(1) infinite;mix-blend-mode:overlay;}
   @keyframes grain-shift{0%{transform:translate(0,0)}20%{transform:translate(-2px,1px)}40%{transform:translate(2px,-1px)}60%{transform:translate(-1px,2px)}80%{transform:translate(1px,-2px)}100%{transform:translate(0,0)}}
   .scanlines{position:fixed;inset:0;pointer-events:none;z-index:199;background:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,255,180,.018) 2px,rgba(0,255,180,.018) 3px);}
@@ -56,7 +54,6 @@
   #drawer-overlay{opacity:0;pointer-events:none;transition:opacity .3s;}
   #drawer-overlay.open{opacity:1;pointer-events:all;}
 
-  /* ── FROSTED GLASS CTRL BUTTONS ── */
   .ctrl-btn{
     background:rgba(255,255,255,.04);
     border:1px solid rgba(255,255,255,.07);
@@ -83,7 +80,8 @@
   .play-btn:hover{box-shadow:0 0 34px rgba(45,91,255,.75),inset 0 1px 0 rgba(255,255,255,.2);}
 
   /* ── PROGRESS ── */
-  .progress-wrap{position:relative;height:18px;display:flex;align-items:center;cursor:pointer;flex:1;}
+  .progress-wrap{position:relative;height:18px;display:flex;align-items:center;cursor:pointer;flex:1;
+    user-select:none;-webkit-user-select:none;}
   .progress-track-bg{position:absolute;left:0;right:0;height:3px;border-radius:3px;background:rgba(255,255,255,.1);transition:height .12s;}
   .progress-fill-bar{position:absolute;left:0;top:50%;transform:translateY(-50%);height:3px;border-radius:3px;background:linear-gradient(90deg,var(--jestr-purple),var(--jestr-blue),var(--jestr-green));pointer-events:none;transition:height .12s;}
   .progress-thumb{position:absolute;top:50%;transform:translate(-50%,-50%);width:12px;height:12px;border-radius:50%;background:#fff;box-shadow:0 0 0 3px rgba(123,47,255,.5),0 2px 8px rgba(0,0,0,.6);pointer-events:none;opacity:0;transition:opacity .15s,transform .1s;z-index:2;}
@@ -91,14 +89,18 @@
   .progress-wrap:hover .progress-track-bg,.progress-wrap:hover .progress-fill-bar{height:5px;}
   .progress-wrap.dragging .progress-thumb{opacity:1;transform:translate(-50%,-50%) scale(1.2);}
 
-  /* ── VOLUME ── */
-  .volume-wrap{position:relative;height:14px;display:flex;align-items:center;cursor:pointer;width:60px;}
-  .volume-track-bg{position:absolute;left:0;right:0;height:3px;border-radius:3px;background:rgba(255,255,255,.1);}
-  .volume-fill-bar{position:absolute;left:0;top:50%;transform:translateY(-50%);height:3px;border-radius:3px;background:var(--jestr-green);pointer-events:none;}
-  .volume-thumb{position:absolute;top:50%;transform:translate(-50%,-50%);width:9px;height:9px;border-radius:50%;background:#fff;box-shadow:0 0 0 2px rgba(0,200,150,.4);pointer-events:none;opacity:0;transition:opacity .15s;}
+  /* ── VOLUME (now full-width row, matches progress style) ── */
+  .volume-wrap{
+    position:relative;height:18px;display:flex;align-items:center;cursor:pointer;flex:1;
+    user-select:none;-webkit-user-select:none;
+  }
+  .volume-track-bg{position:absolute;left:0;right:0;height:3px;border-radius:3px;background:rgba(255,255,255,.1);transition:height .12s;}
+  .volume-fill-bar{position:absolute;left:0;top:50%;transform:translateY(-50%);height:3px;border-radius:3px;background:var(--jestr-green);pointer-events:none;transition:height .12s;}
+  .volume-thumb{position:absolute;top:50%;transform:translate(-50%,-50%);width:12px;height:12px;border-radius:50%;background:#fff;box-shadow:0 0 0 3px rgba(0,200,150,.5),0 2px 8px rgba(0,0,0,.6);pointer-events:none;opacity:0;transition:opacity .15s,transform .1s;z-index:2;}
   .volume-wrap:hover .volume-thumb{opacity:1;}
+  .volume-wrap:hover .volume-track-bg,.volume-wrap:hover .volume-fill-bar{height:5px;}
+  .volume-wrap.dragging .volume-thumb{opacity:1;transform:translate(-50%,-50%) scale(1.2);}
 
-  /* ── SEARCH ── */
   .search-wrap{display:flex;align-items:center;gap:8px;background:rgba(255,255,255,.04);border:1px solid rgba(123,47,255,.2);border-radius:10px;padding:0 10px;height:36px;transition:border-color .2s,box-shadow .2s;}
   .search-wrap:focus-within{border-color:rgba(123,47,255,.55);box-shadow:0 0 0 3px rgba(123,47,255,.08);}
   .search-wrap .material-symbols-outlined{font-size:16px;color:rgba(110,104,117,.6);flex-shrink:0;}
@@ -106,7 +108,6 @@
   .search-wrap input::placeholder{color:rgba(110,104,117,.45);}
   .search-wrap input:focus{outline:none!important;box-shadow:none!important;}
 
-  /* ── FLOATING PLAYER ── */
   #float-player{
     position:fixed;z-index:300;
     left:320px;bottom:20px;
@@ -127,7 +128,6 @@
     overflow:hidden;
   }
 
-  /* ── MOBILE: full-viewport fixed layout ── */
   @media (max-width:767px){
     body{overflow:hidden;}
     #float-player{
@@ -192,7 +192,7 @@
     display:flex;align-items:center;justify-content:center;
     gap:8px;margin-bottom:10px;position:relative;z-index:1;
   }
-  #fp-progress{
+  #fp-progress,#fp-volume{
     display:flex;align-items:center;gap:7px;
     position:relative;z-index:1;
     background:rgba(0,0,0,.2);
@@ -200,6 +200,7 @@
     border-radius:10px;
     padding:5px 10px;
   }
+  #fp-progress{margin-bottom:6px;}
 </style>
 <script id="tailwind-config">
   tailwind.config={darkMode:"class",theme:{extend:{
@@ -217,7 +218,6 @@
 <div class="grain-overlay"></div>
 <audio id="audio-player" preload="auto"></audio>
 
-<!-- ══ SIDEBAR ════════════════════════════════════════ -->
 <aside class="hidden md:flex h-full w-64 fixed left-0 top-0 z-40 flex-col border-r container-texture depth-near"
   style="background:rgba(6,4,18,.82);backdrop-filter:blur(24px);border-color:rgba(100,60,200,.14);padding:24px 20px;gap:16px">
   <div style="text-align:center;margin-bottom:4px">
@@ -242,7 +242,6 @@
 
 <div id="drawer-overlay" class="fixed inset-0 bg-black/70 z-40 md:hidden"></div>
 
-<!-- ══ MOBILE DRAWER ═══════════════════════════════════════ -->
 <aside id="mobile-drawer" class="fixed left-0 top-0 h-full w-64 z-50 flex flex-col p-5 gap-4 md:hidden container-texture"
   style="background:rgba(6,4,18,.92);backdrop-filter:blur(24px)">
   <div class="flex items-center justify-between">
@@ -257,7 +256,6 @@
   <div class="flex-1 overflow-y-auto no-scrollbar" style="display:flex;flex-direction:column;gap:2px" id="mobile-tracklist"></div>
 </aside>
 
-<!-- ══ MOBILE TOP BAR ══════════════════════════════════════ -->
 <header class="md:hidden fixed top-0 left-0 right-0 z-30 flex items-center justify-between px-5 py-3.5 border-b depth-near"
   style="background:rgba(6,4,18,.8);backdrop-filter:blur(20px);border-color:rgba(100,60,200,.1)">
   <button id="open-drawer" style="color:#6e6875"><span class="material-symbols-outlined">menu</span></button>
@@ -265,7 +263,6 @@
   <div class="w-7"></div>
 </header>
 
-<!-- ══ DESKTOP MAIN ═════════════════════════════════════════ -->
 <main class="hidden md:flex h-screen items-center justify-center overflow-hidden relative" style="margin-left:16rem;padding:40px">
   <div class="absolute inset-0 flex items-center justify-center pointer-events-none depth-far">
     <div class="absolute w-[640px] h-[640px] rounded-full ring-far" style="border:1px solid rgba(45,91,255,.07)"></div>
@@ -296,7 +293,6 @@
   </div>
 </main>
 
-<!-- ══ MOBILE MAIN ═══════════════════════════════════════════ -->
 <main class="md:hidden mobile-main">
   <div class="mobile-planet-section relative">
     <div class="absolute w-56 h-56 rounded-full ring-far depth-far" style="border:1px solid rgba(45,91,255,.07)"></div>
@@ -336,6 +332,7 @@
     </button>
   </div>
 
+  <!-- track info — volume icon/slider removed from here -->
   <div id="fp-info">
     <div id="fp-art">
       <span class="material-symbols-outlined" style="font-size:18px;color:var(--jestr-purple);font-variation-settings:'FILL' 1">music_note</span>
@@ -343,12 +340,6 @@
     <div style="flex:1;min-width:0">
       <p id="fp-title" style="font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.04em;color:#e9e1de;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin:0">No Track</p>
       <p id="fp-artist" class="phosphor" style="font-size:8px;font-weight:700;text-transform:uppercase;letter-spacing:.18em;color:var(--jestr-green);margin:0">&mdash;</p>
-    </div>
-    <span class="material-symbols-outlined" style="font-size:14px;color:#6e6875;flex-shrink:0">volume_up</span>
-    <div class="volume-wrap" id="volume-rail">
-      <div class="volume-track-bg"></div>
-      <div class="volume-fill-bar" id="volume-fill" style="width:80%"></div>
-      <div class="volume-thumb" id="volume-thumb"></div>
     </div>
   </div>
 
@@ -376,6 +367,7 @@
     </button>
   </div>
 
+  <!-- progress row -->
   <div id="fp-progress">
     <span id="time-current" class="tape-counter" style="width:30px;flex-shrink:0;font-size:8px">0:00</span>
     <div class="progress-wrap" id="progress-rail">
@@ -384,6 +376,17 @@
       <div class="progress-thumb" id="progress-thumb"></div>
     </div>
     <span id="time-total" class="tape-counter" style="width:30px;flex-shrink:0;text-align:right;font-size:8px">0:00</span>
+  </div>
+
+  <!-- volume row — same box style as progress, full-width slider, no text-highlight -->
+  <div id="fp-volume">
+    <span class="material-symbols-outlined" style="font-size:14px;color:rgba(0,200,150,.55);flex-shrink:0">volume_up</span>
+    <div class="volume-wrap" id="volume-rail">
+      <div class="volume-track-bg"></div>
+      <div class="volume-fill-bar" id="volume-fill" style="width:80%"></div>
+      <div class="volume-thumb" id="volume-thumb"></div>
+    </div>
+    <span class="tape-counter" style="width:30px;flex-shrink:0;text-align:right;font-size:8px" id="volume-pct">80%</span>
   </div>
 </div>
 
@@ -509,9 +512,6 @@
   function updateChroma(id,text){const el=document.getElementById(id);if(!el)return;el.textContent=text;el.setAttribute("data-text",text);}
   function downloadCurrent(){const t=TRACKS[currentIndex];const a=document.createElement("a");a.href=t.file;a.download=t.file;a.click();}
 
-  /* ── DURATION HELPERS ──
-     Strict check: must be finite, positive, and under 5 hours.
-     This rejects Infinity (VBR pre-scan) and 0/NaN. */
   function isGoodDuration(d){
     return typeof d==="number" && isFinite(d) && d>0 && d<18000;
   }
@@ -524,18 +524,11 @@
     return false;
   }
 
-  /* ── VBR DURATION POLLING ──
-     Polls every 500ms for up to 30s after audio.load().
-     On desktop, large VBR files (e.g. Wheels) return Infinity until
-     enough of the file has been buffered/scanned. The poll catches
-     the moment the browser finally resolves the real duration. */
   function startDurationPoll(){
     if(durationPollTimer){clearInterval(durationPollTimer);durationPollTimer=null;}
     const deadline=Date.now()+30000;
     durationPollTimer=setInterval(()=>{
-      if(tryUpdateDuration()){
-        clearInterval(durationPollTimer);durationPollTimer=null;return;
-      }
+      if(tryUpdateDuration()){clearInterval(durationPollTimer);durationPollTimer=null;return;}
       if(Date.now()>=deadline){clearInterval(durationPollTimer);durationPollTimer=null;}
     },500);
   }
@@ -569,19 +562,25 @@
     const r=rail.getBoundingClientRect();
     return Math.max(0,Math.min(1,(clientX-r.left)/r.width));
   }
-  function makeScrubber(railId){
+
+  /* ── GENERIC SCRUBBER (handles mouse + touch, no text-select) ── */
+  function makeScrubber(railId,onScrub,onEnd){
     const rail=document.getElementById(railId);let drag=false;
-    function startDrag(x){drag=true;isSeeking=true;rail.classList.add("dragging");seekToPct(clientXToFraction(x,rail));}
-    function moveDrag(x){if(!drag)return;seekToPct(clientXToFraction(x,rail));}
-    function endDrag(){if(!drag)return;drag=false;isSeeking=false;rail.classList.remove("dragging");}
-    rail.addEventListener("mousedown",e=>{startDrag(e.clientX);e.preventDefault();});
-    window.addEventListener("mousemove",e=>moveDrag(e.clientX));
-    window.addEventListener("mouseup",endDrag);
-    rail.addEventListener("touchstart",e=>{startDrag(e.touches[0].clientX);e.preventDefault();},{passive:false});
-    window.addEventListener("touchmove",e=>{if(drag)moveDrag(e.touches[0].clientX);},{passive:true});
-    window.addEventListener("touchend",endDrag);
+    function start(x){drag=true;rail.classList.add("dragging");onScrub(clientXToFraction(x,rail));}
+    function move(x){if(!drag)return;onScrub(clientXToFraction(x,rail));}
+    function end(){if(!drag)return;drag=false;rail.classList.remove("dragging");if(onEnd)onEnd();}
+    rail.addEventListener("mousedown",e=>{start(e.clientX);e.preventDefault();});
+    window.addEventListener("mousemove",e=>{if(drag)move(e.clientX);});
+    window.addEventListener("mouseup",end);
+    rail.addEventListener("touchstart",e=>{start(e.touches[0].clientX);e.preventDefault();},{passive:false});
+    window.addEventListener("touchmove",e=>{if(drag){e.preventDefault();move(e.touches[0].clientX);}},{passive:false});
+    window.addEventListener("touchend",end);
   }
-  makeScrubber("progress-rail");
+
+  makeScrubber("progress-rail",
+    pct=>{isSeeking=true;seekToPct(pct);},
+    ()=>{isSeeking=false;}
+  );
 
   function loadTrack(index,autoplay=false){
     currentIndex=index;seekOnReady=null;isSeeking=false;
@@ -603,27 +602,20 @@
   }
 
   function setVolume(pct){
+    pct=Math.max(0,Math.min(1,pct));
     audio.volume=pct;
     document.getElementById("volume-fill").style.width=(pct*100)+"%";
     document.getElementById("volume-thumb").style.left=(pct*100)+"%";
+    document.getElementById("volume-pct").textContent=Math.round(pct*100)+"%";
   }
-  (function(){
-    const rail=document.getElementById("volume-rail");let drag=false;
-    function v(e){const r=rail.getBoundingClientRect();setVolume(Math.max(0,Math.min(1,(e.clientX-r.left)/r.width)));}
-    rail.addEventListener("mousedown",e=>{drag=true;v(e);e.preventDefault();});
-    window.addEventListener("mousemove",e=>{if(drag)v(e);});
-    window.addEventListener("mouseup",()=>{drag=false;});
-  })();
+
+  makeScrubber("volume-rail", pct=>setVolume(pct));
 
   audio.addEventListener("timeupdate",()=>{
     const dur=audio.duration;
     const cur=audio.currentTime;
-    // If playback has started but duration is still unresolved (Infinity/NaN),
-    // try once more — at this point the browser has buffered enough to know it.
     if(cur>0 && !isGoodDuration(dur)){
-      if(tryUpdateDuration() && durationPollTimer){
-        clearInterval(durationPollTimer);durationPollTimer=null;
-      }
+      if(tryUpdateDuration()&&durationPollTimer){clearInterval(durationPollTimer);durationPollTimer=null;}
     }
     if(isGoodDuration(dur)){
       document.getElementById("time-total").textContent=fmt(dur);
