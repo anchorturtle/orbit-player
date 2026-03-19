@@ -8,40 +8,51 @@
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
 <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
 <style>
-  :root {
-    --grain-opacity:.07;--scanline-opacity:.03;--vignette-strength:.7;--aberration:1.5px;
+  :root{
+    --grain-opacity:.07;--scanline-opacity:.045;--vignette-strength:.72;--aberration:1.5px;
     --jestr-blue:#2D5BFF;--jestr-green:#00C896;--jestr-purple:#7B2FFF;--jestr-red:#E8003D;
   }
   *{box-sizing:border-box;}
   body{font-family:'Plus Jakarta Sans',sans-serif;background:#06040f;margin:0;overflow:hidden;color:#e9e1de;}
 
-  /* ── SPACE BACKGROUND ── */
+  /* ── SPACE BG ── */
   #space-bg{
     position:fixed;inset:0;z-index:0;pointer-events:none;
     background:
-      radial-gradient(ellipse 80% 60% at 60% 40%, rgba(60,20,120,.55) 0%, transparent 70%),
-      radial-gradient(ellipse 60% 50% at 20% 70%, rgba(0,80,180,.35) 0%, transparent 65%),
-      radial-gradient(ellipse 50% 40% at 80% 80%, rgba(0,160,120,.2) 0%, transparent 60%),
+      radial-gradient(ellipse 80% 60% at 60% 40%,rgba(60,20,120,.55) 0%,transparent 70%),
+      radial-gradient(ellipse 60% 50% at 20% 70%,rgba(0,80,180,.35) 0%,transparent 65%),
+      radial-gradient(ellipse 50% 40% at 80% 80%,rgba(0,160,120,.2) 0%,transparent 60%),
       #06040f;
   }
   #stars-canvas{position:fixed;inset:0;z-index:0;pointer-events:none;}
 
+  /* ── CRT / RETRO OVERLAYS ── */
   .grain-overlay{position:fixed;inset:0;pointer-events:none;z-index:200;opacity:var(--grain-opacity);background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");animation:grain-shift .1s steps(1) infinite;mix-blend-mode:overlay;}
   @keyframes grain-shift{0%{transform:translate(0,0)}20%{transform:translate(-2px,1px)}40%{transform:translate(2px,-1px)}60%{transform:translate(-1px,2px)}80%{transform:translate(1px,-2px)}100%{transform:translate(0,0)}}
-  .scanlines{position:fixed;inset:0;pointer-events:none;z-index:199;background:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,0,0,var(--scanline-opacity)) 2px,rgba(0,0,0,var(--scanline-opacity)) 4px);}
-  .vignette{position:fixed;inset:0;pointer-events:none;z-index:198;background:radial-gradient(ellipse at center,transparent 35%,rgba(3,2,8,var(--vignette-strength)) 100%);}
+  /* phosphor scanlines — tighter, slightly green-tinted for CRT feel */
+  .scanlines{position:fixed;inset:0;pointer-events:none;z-index:199;background:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,255,180,.018) 2px,rgba(0,255,180,.018) 3px);}
+  /* horizontal sweep — slow rolling bright line */
+  .crt-sweep{
+    position:fixed;left:0;right:0;height:2px;z-index:201;pointer-events:none;
+    background:linear-gradient(90deg,transparent,rgba(0,230,160,.18),transparent);
+    animation:sweep 8s linear infinite;
+  }
+  @keyframes sweep{0%{top:-2px}100%{top:100vh}}
+  .vignette{position:fixed;inset:0;pointer-events:none;z-index:198;background:radial-gradient(ellipse at center,transparent 32%,rgba(3,2,10,var(--vignette-strength)) 100%);}
+  /* subtle phosphor glow on text */
+  .phosphor{text-shadow:0 0 8px rgba(0,200,150,.4),0 0 2px rgba(0,200,150,.2);}
   .chroma{position:relative;display:inline-block;}
   .chroma::before,.chroma::after{content:attr(data-text);position:absolute;inset:0;pointer-events:none;}
   .chroma::before{color:rgba(232,0,61,.4);transform:translateX(calc(-1 * var(--aberration)));mix-blend-mode:screen;}
   .chroma::after{color:rgba(45,91,255,.4);transform:translateX(var(--aberration));mix-blend-mode:screen;}
-  .planet-glow{filter:blur(55px);background:radial-gradient(circle,var(--jestr-purple) 0%,var(--jestr-blue) 60%,var(--jestr-green) 100%);animation:pulse 9s infinite alternate;opacity:.7;}
-  @keyframes pulse{0%{transform:scale(1);opacity:.6}100%{transform:scale(1.08);opacity:.8}}
+  .planet-glow{filter:blur(55px);background:radial-gradient(circle,var(--jestr-purple) 0%,var(--jestr-blue) 60%,var(--jestr-green) 100%);animation:ppulse 9s infinite alternate;opacity:.7;}
+  @keyframes ppulse{0%{transform:scale(1);opacity:.6}100%{transform:scale(1.08);opacity:.82}}
   .depth-far{filter:blur(3px) saturate(.5) brightness(.7);}.depth-mid{filter:blur(.6px) saturate(.9);}.depth-near{filter:none;}
   .container-texture{position:relative;}
   .container-texture::after{content:"";position:absolute;inset:0;pointer-events:none;opacity:.04;border-radius:inherit;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n2'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n2)'/%3E%3C/svg%3E");}
-  @keyframes vhs-flicker{0%,96%,100%{opacity:1}97%{opacity:.9}98%{opacity:1}99%{opacity:.94}}
-  .vhs-flicker{animation:vhs-flicker 6s infinite;}
-  .tape-counter{font-variant-numeric:tabular-nums;letter-spacing:.15em;font-size:9px;color:rgba(0,200,150,.55);font-weight:700;text-transform:uppercase;}
+  @keyframes vhs-flicker{0%,96%,100%{opacity:1}97%{opacity:.88}98%{opacity:1}99%{opacity:.92}}
+  .vhs-flicker{animation:vhs-flicker 5s infinite;}
+  .tape-counter{font-variant-numeric:tabular-nums;letter-spacing:.15em;font-size:9px;color:rgba(0,200,150,.65);font-weight:700;text-transform:uppercase;}
   .no-scrollbar::-webkit-scrollbar{display:none;}.no-scrollbar{-ms-overflow-style:none;scrollbar-width:none;}
   .track-item.active{background:rgba(45,91,255,.1)!important;border-color:rgba(123,47,255,.3)!important;}
   .track-item.active .track-title{color:#e9e1de!important;}
@@ -52,28 +63,49 @@
   #mobile-drawer.open{transform:translateX(0);}
   #drawer-overlay{opacity:0;pointer-events:none;transition:opacity .3s;}
   #drawer-overlay.open{opacity:1;pointer-events:all;}
-  .ctrl-btn{background:none;border:none;cursor:pointer;padding:0;display:flex;align-items:center;justify-content:center;transition:color .2s,transform .1s;}
-  .ctrl-btn:hover{transform:scale(1.12);}.ctrl-btn:active{transform:scale(.95);}
-  .play-btn{background:linear-gradient(135deg,var(--jestr-purple),var(--jestr-blue));box-shadow:0 0 22px rgba(123,47,255,.5);transition:box-shadow .2s,transform .1s;border:none;cursor:pointer;}
-  .play-btn:hover{box-shadow:0 0 32px rgba(45,91,255,.7);}
 
-  /* ─ PROGRESS ─ */
+  /* ── FROSTED GLASS CTRL BUTTONS ── */
+  .ctrl-btn{
+    background:rgba(255,255,255,.04);
+    border:1px solid rgba(255,255,255,.07);
+    border-radius:8px;
+    cursor:pointer;padding:5px;
+    display:flex;align-items:center;justify-content:center;
+    transition:background .2s,border-color .2s,transform .1s,box-shadow .2s;
+    backdrop-filter:blur(8px);
+  }
+  .ctrl-btn:hover{
+    background:rgba(123,47,255,.18);
+    border-color:rgba(123,47,255,.4);
+    box-shadow:0 0 10px rgba(123,47,255,.25);
+    transform:scale(1.08);
+  }
+  .ctrl-btn:active{transform:scale(.95);}
+  .play-btn{
+    background:linear-gradient(135deg,var(--jestr-purple),var(--jestr-blue));
+    box-shadow:0 0 22px rgba(123,47,255,.55),inset 0 1px 0 rgba(255,255,255,.15);
+    transition:box-shadow .2s,transform .1s;
+    border:none;cursor:pointer;
+  }
+  .play-btn:hover{box-shadow:0 0 34px rgba(45,91,255,.75),inset 0 1px 0 rgba(255,255,255,.2);}
+
+  /* ── PROGRESS ── */
   .progress-wrap{position:relative;height:18px;display:flex;align-items:center;cursor:pointer;flex:1;}
-  .progress-track-bg{position:absolute;left:0;right:0;height:3px;border-radius:3px;background:rgba(255,255,255,.08);transition:height .12s;}
+  .progress-track-bg{position:absolute;left:0;right:0;height:3px;border-radius:3px;background:rgba(255,255,255,.1);transition:height .12s;}
   .progress-fill-bar{position:absolute;left:0;top:50%;transform:translateY(-50%);height:3px;border-radius:3px;background:linear-gradient(90deg,var(--jestr-purple),var(--jestr-blue),var(--jestr-green));pointer-events:none;transition:height .12s;}
   .progress-thumb{position:absolute;top:50%;transform:translate(-50%,-50%);width:12px;height:12px;border-radius:50%;background:#fff;box-shadow:0 0 0 3px rgba(123,47,255,.5),0 2px 8px rgba(0,0,0,.6);pointer-events:none;opacity:0;transition:opacity .15s,transform .1s;z-index:2;}
   .progress-wrap:hover .progress-thumb{opacity:1;}
-  .progress-wrap:hover .progress-track-bg,.progress-wrap:hover .progress-fill-bar{height:4px;}
+  .progress-wrap:hover .progress-track-bg,.progress-wrap:hover .progress-fill-bar{height:5px;}
   .progress-wrap.dragging .progress-thumb{opacity:1;transform:translate(-50%,-50%) scale(1.2);}
 
-  /* ─ VOLUME ─ */
+  /* ── VOLUME ── */
   .volume-wrap{position:relative;height:14px;display:flex;align-items:center;cursor:pointer;width:60px;}
-  .volume-track-bg{position:absolute;left:0;right:0;height:3px;border-radius:3px;background:rgba(255,255,255,.08);}
+  .volume-track-bg{position:absolute;left:0;right:0;height:3px;border-radius:3px;background:rgba(255,255,255,.1);}
   .volume-fill-bar{position:absolute;left:0;top:50%;transform:translateY(-50%);height:3px;border-radius:3px;background:var(--jestr-green);pointer-events:none;}
   .volume-thumb{position:absolute;top:50%;transform:translate(-50%,-50%);width:9px;height:9px;border-radius:50%;background:#fff;box-shadow:0 0 0 2px rgba(0,200,150,.4);pointer-events:none;opacity:0;transition:opacity .15s;}
   .volume-wrap:hover .volume-thumb{opacity:1;}
 
-  /* ─ SEARCH ─ */
+  /* ── SEARCH ── */
   .search-wrap{display:flex;align-items:center;gap:8px;background:rgba(255,255,255,.04);border:1px solid rgba(123,47,255,.2);border-radius:10px;padding:0 10px;height:36px;transition:border-color .2s,box-shadow .2s;}
   .search-wrap:focus-within{border-color:rgba(123,47,255,.55);box-shadow:0 0 0 3px rgba(123,47,255,.08);}
   .search-wrap .material-symbols-outlined{font-size:16px;color:rgba(110,104,117,.6);flex-shrink:0;}
@@ -81,65 +113,84 @@
   .search-wrap input::placeholder{color:rgba(110,104,117,.45);}
   .search-wrap input:focus{outline:none!important;box-shadow:none!important;}
 
-  /* ── FLOATING PLAYER — glassy ── */
+  /* ── FLOATING PLAYER ── */
   #float-player{
     position:fixed;z-index:300;
-    bottom:20px;left:50%;transform:translateX(-50%);
-    width:420px;
-    min-width:300px;max-width:680px;
-    min-height:140px;
-    background:rgba(12,8,28,.55);
-    backdrop-filter:blur(36px) saturate(1.6) brightness(1.1);
-    -webkit-backdrop-filter:blur(36px) saturate(1.6) brightness(1.1);
-    border:1px solid rgba(150,100,255,.28);
-    border-radius:20px;
+    /* default: left side, vertically centered */
+    left:320px; top:50%; transform:translateY(-50%);
+    width:360px;
+    min-width:280px;max-width:680px;
+    background:rgba(8,5,22,.52);
+    backdrop-filter:blur(40px) saturate(1.8) brightness(1.05);
+    -webkit-backdrop-filter:blur(40px) saturate(1.8) brightness(1.05);
+    border:1px solid rgba(150,100,255,.3);
+    border-radius:18px;
     box-shadow:
-      0 8px 48px rgba(0,0,0,.6),
-      0 0 0 1px rgba(45,91,255,.08),
-      inset 0 1px 0 rgba(255,255,255,.07);
-    padding:10px 14px;
+      0 8px 48px rgba(0,0,0,.65),
+      0 0 0 1px rgba(45,91,255,.07),
+      inset 0 1px 0 rgba(255,255,255,.08),
+      inset 0 -1px 0 rgba(0,0,0,.3);
+    padding:10px 14px 12px;
     user-select:none;
-    overflow:visible;
+    overflow:hidden; /* clip content, no overflow needed */
   }
+  /* corner glow — pure CSS, no elements */
+  #float-player::before{
+    content:"";
+    position:absolute;inset:0;border-radius:18px;pointer-events:none;
+    background:
+      radial-gradient(circle 18px at 0% 0%,rgba(123,47,255,.35) 0%,transparent 70%),
+      radial-gradient(circle 18px at 100% 0%,rgba(123,47,255,.35) 0%,transparent 70%),
+      radial-gradient(circle 18px at 0% 100%,rgba(123,47,255,.35) 0%,transparent 70%),
+      radial-gradient(circle 18px at 100% 100%,rgba(123,47,255,.35) 0%,transparent 70%);
+    opacity:.7;
+    transition:opacity .3s;
+    z-index:0;
+  }
+  #float-player:hover::before{opacity:1;}
+  /* resize cursor zones on corners via outline trick — handled in JS */
   #float-player.is-positioned{transform:none;}
 
   /* drag handle */
   #fp-handle{
     display:flex;align-items:center;justify-content:space-between;
     margin-bottom:8px;cursor:grab;padding-bottom:6px;
-    border-bottom:1px solid rgba(150,100,255,.1);
+    border-bottom:1px solid rgba(150,100,255,.12);
+    position:relative;z-index:1;
   }
   #fp-handle:active{cursor:grabbing;}
 
-  /* ── corner resize: small rounded dot, no diagonal lines ── */
+  /* invisible corner resize zones */
   .fp-resize{
-    position:absolute;width:18px;height:18px;
-    display:flex;align-items:center;justify-content:center;
-    z-index:10;
+    position:absolute;width:20px;height:20px;
+    z-index:10;opacity:0; /* invisible — cursor only */
   }
-  .fp-resize::after{
-    content:"";
-    width:6px;height:6px;
-    border-radius:50%;
-    background:rgba(123,47,255,.3);
-    box-shadow:0 0 4px rgba(123,47,255,.2);
-    transition:background .2s,box-shadow .2s,transform .15s;
-    display:block;
-  }
-  .fp-resize:hover::after{
-    background:rgba(123,47,255,.9);
-    box-shadow:0 0 8px rgba(123,47,255,.6);
-    transform:scale(1.4);
-  }
-  .fp-resize.nw{top:4px;left:4px;cursor:nw-resize;}
-  .fp-resize.ne{top:4px;right:4px;cursor:ne-resize;}
-  .fp-resize.sw{bottom:4px;left:4px;cursor:sw-resize;}
-  .fp-resize.se{bottom:4px;right:4px;cursor:se-resize;}
+  .fp-resize.nw{top:0;left:0;cursor:nw-resize;}
+  .fp-resize.ne{top:0;right:0;cursor:ne-resize;}
+  .fp-resize.sw{bottom:0;left:0;cursor:sw-resize;}
+  .fp-resize.se{bottom:0;right:0;cursor:se-resize;}
 
-  #fp-info{display:flex;align-items:center;gap:10px;margin-bottom:8px;}
-  #fp-art{width:34px;height:34px;border-radius:10px;flex-shrink:0;display:flex;align-items:center;justify-content:center;background:rgba(123,47,255,.2);border:1px solid rgba(123,47,255,.3);box-shadow:0 0 14px rgba(123,47,255,.2);}
-  #fp-controls{display:flex;align-items:center;justify-content:center;gap:10px;margin-bottom:8px;}
-  #fp-progress{display:flex;align-items:center;gap:7px;}
+  #fp-info{display:flex;align-items:center;gap:10px;margin-bottom:8px;position:relative;z-index:1;}
+  #fp-art{
+    width:36px;height:36px;border-radius:10px;flex-shrink:0;
+    display:flex;align-items:center;justify-content:center;
+    background:rgba(123,47,255,.22);
+    border:1px solid rgba(123,47,255,.35);
+    box-shadow:0 0 16px rgba(123,47,255,.25),inset 0 1px 0 rgba(255,255,255,.1);
+  }
+  #fp-controls{
+    display:flex;align-items:center;justify-content:center;
+    gap:8px;margin-bottom:10px;position:relative;z-index:1;
+  }
+  /* progress row — times INSIDE the container */
+  #fp-progress{
+    display:flex;align-items:center;gap:7px;
+    position:relative;z-index:1;
+    background:rgba(0,0,0,.2);
+    border:1px solid rgba(255,255,255,.06);
+    border-radius:10px;
+    padding:5px 10px;
+  }
 </style>
 <script id="tailwind-config">
   tailwind.config={darkMode:"class",theme:{extend:{
@@ -154,20 +205,22 @@
 <canvas id="stars-canvas"></canvas>
 <div class="vignette"></div>
 <div class="scanlines"></div>
+<div class="crt-sweep"></div>
 <div class="grain-overlay"></div>
 <audio id="audio-player" preload="auto"></audio>
 
 <!-- ══ SIDEBAR ════════════════════════════════════════ -->
 <aside class="hidden md:flex h-full w-64 fixed left-0 top-0 z-40 flex-col border-r container-texture depth-near"
-  style="background:rgba(8,5,20,.85);backdrop-filter:blur(20px);border-color:rgba(100,60,200,.12);padding:24px 20px;gap:16px">
+  style="background:rgba(6,4,18,.82);backdrop-filter:blur(24px);border-color:rgba(100,60,200,.14);padding:24px 20px;gap:16px">
   <div style="margin-bottom:4px">
-    <h1 class="text-2xl font-black tracking-tighter italic vhs-flicker" style="color:var(--jestr-purple);line-height:1">Orbit</h1>
-    <p class="font-bold tracking-[0.3em] text-[8px] uppercase" style="color:rgba(0,200,150,.5);margin-top:2px">Cosmic Hi-Fi</p>
+    <h1 class="text-2xl font-black tracking-tighter italic vhs-flicker phosphor" style="color:var(--jestr-purple);line-height:1">Orbit</h1>
+    <p class="font-bold tracking-[0.3em] text-[8px] uppercase phosphor" style="color:rgba(0,200,150,.6);margin-top:2px">Cosmic Hi-Fi</p>
   </div>
-  <button class="flex items-center gap-3 px-3 py-2 rounded-lg w-full text-left" style="background:rgba(123,47,255,.12);color:rgba(200,180,255,.9);font-weight:700;font-size:12px">
+  <button class="flex items-center gap-3 px-3 py-2 rounded-lg w-full text-left"
+    style="background:rgba(123,47,255,.14);border:1px solid rgba(123,47,255,.2);color:rgba(200,180,255,.9);font-weight:700;font-size:12px;backdrop-filter:blur(8px);box-shadow:inset 0 1px 0 rgba(255,255,255,.06)">
     <span class="material-symbols-outlined" style="font-size:18px">library_music</span>Tracks
   </button>
-  <div style="height:1px;background:rgba(100,60,200,.12)"></div>
+  <div style="height:1px;background:rgba(100,60,200,.14)"></div>
   <div class="search-wrap">
     <span class="material-symbols-outlined">search</span>
     <input id="search-input" placeholder="Search tracks…" type="text" autocomplete="off"/>
@@ -182,24 +235,25 @@
 <div id="drawer-overlay" class="fixed inset-0 bg-black/70 z-40 md:hidden"></div>
 
 <!-- ══ MOBILE DRAWER ═══════════════════════════════════════ -->
-<aside id="mobile-drawer" class="fixed left-0 top-0 h-full w-64 z-50 flex flex-col p-5 gap-4 md:hidden container-texture" style="background:rgba(8,5,20,.92);backdrop-filter:blur(20px)">
+<aside id="mobile-drawer" class="fixed left-0 top-0 h-full w-64 z-50 flex flex-col p-5 gap-4 md:hidden container-texture"
+  style="background:rgba(6,4,18,.92);backdrop-filter:blur(24px)">
   <div class="flex items-center justify-between">
     <div>
-      <h1 class="text-xl font-black tracking-tighter italic vhs-flicker" style="color:var(--jestr-purple)">Orbit</h1>
-      <p class="text-[8px] font-bold tracking-[0.3em] uppercase" style="color:rgba(0,200,150,.5)">Cosmic Hi-Fi</p>
+      <h1 class="text-xl font-black tracking-tighter italic vhs-flicker phosphor" style="color:var(--jestr-purple)">Orbit</h1>
+      <p class="text-[8px] font-bold tracking-[0.3em] uppercase phosphor" style="color:rgba(0,200,150,.6)">Cosmic Hi-Fi</p>
     </div>
     <button id="close-drawer" style="color:#6e6875"><span class="material-symbols-outlined">close</span></button>
   </div>
-  <div style="height:1px;background:rgba(100,60,200,.12)"></div>
+  <div style="height:1px;background:rgba(100,60,200,.14)"></div>
   <span class="tape-counter" style="padding:0 4px">Tracklist</span>
   <div class="flex-1 overflow-y-auto no-scrollbar" style="display:flex;flex-direction:column;gap:2px" id="mobile-tracklist"></div>
 </aside>
 
 <!-- ══ MOBILE TOP BAR ══════════════════════════════════════ -->
 <header class="md:hidden fixed top-0 left-0 right-0 z-30 flex items-center justify-between px-5 py-3.5 border-b depth-near"
-  style="background:rgba(8,5,20,.8);backdrop-filter:blur(20px);border-color:rgba(100,60,200,.1)">
+  style="background:rgba(6,4,18,.8);backdrop-filter:blur(20px);border-color:rgba(100,60,200,.1)">
   <button id="open-drawer" style="color:#6e6875"><span class="material-symbols-outlined">menu</span></button>
-  <h1 class="text-lg font-black tracking-tighter italic vhs-flicker" style="color:var(--jestr-purple)">Orbit</h1>
+  <h1 class="text-lg font-black tracking-tighter italic vhs-flicker phosphor" style="color:var(--jestr-purple)">Orbit</h1>
   <div class="w-7"></div>
 </header>
 
@@ -212,14 +266,16 @@
   <div class="relative flex items-center justify-center" style="flex:1">
     <div class="relative w-[360px] h-[360px] depth-mid">
       <div class="planet-glow absolute inset-0 rounded-full"></div>
-      <div class="absolute inset-0 rounded-full overflow-hidden shadow-2xl" style="background:rgba(15,10,35,.35);backdrop-filter:blur(20px) saturate(1.4);border:1px solid rgba(123,47,255,.15)">
+      <div class="absolute inset-0 rounded-full overflow-hidden shadow-2xl"
+        style="background:rgba(15,10,35,.35);backdrop-filter:blur(20px) saturate(1.4);border:1px solid rgba(123,47,255,.15)">
         <div class="w-full h-full" style="background-image:radial-gradient(rgba(255,255,255,.12) 1px,transparent 0);background-size:12px 12px;opacity:.2"></div>
         <div class="absolute inset-0" style="background:repeating-linear-gradient(0deg,transparent,transparent 18px,rgba(255,255,255,.008) 18px,rgba(255,255,255,.008) 19px)"></div>
       </div>
       <div class="absolute inset-0 flex flex-col items-center justify-center text-center p-8 z-10 depth-near">
-        <p class="tape-counter" style="margin-bottom:12px">NOW PLAYING</p>
-        <h2 id="focal-title" data-text="—" class="chroma font-black italic tracking-tighter leading-none uppercase" style="font-size:2.8rem;color:#e9e1de;text-shadow:0 0 40px rgba(123,47,255,.5);margin-bottom:12px">—</h2>
-        <p id="focal-artist" class="font-bold tracking-[0.5em] uppercase" style="font-size:10px;color:var(--jestr-green)">Select a track</p>
+        <p class="tape-counter phosphor" style="margin-bottom:12px">NOW PLAYING</p>
+        <h2 id="focal-title" data-text="—" class="chroma font-black italic tracking-tighter leading-none uppercase"
+          style="font-size:2.8rem;color:#e9e1de;text-shadow:0 0 40px rgba(123,47,255,.5);margin-bottom:12px">—</h2>
+        <p id="focal-artist" class="font-bold tracking-[0.5em] uppercase phosphor" style="font-size:10px;color:var(--jestr-green)">Select a track</p>
       </div>
     </div>
   </div>
@@ -238,13 +294,14 @@
     <div class="absolute w-56 h-56 rounded-full ring-far depth-far" style="border:1px solid rgba(45,91,255,.07)"></div>
     <div class="relative w-44 h-44 depth-mid">
       <div class="planet-glow absolute inset-0 rounded-full"></div>
-      <div class="absolute inset-0 rounded-full overflow-hidden" style="background:rgba(15,10,35,.3);backdrop-filter:blur(16px);border:1px solid rgba(123,47,255,.12)">
+      <div class="absolute inset-0 rounded-full overflow-hidden"
+        style="background:rgba(15,10,35,.3);backdrop-filter:blur(16px);border:1px solid rgba(123,47,255,.12)">
         <div class="w-full h-full" style="background-image:radial-gradient(rgba(255,255,255,.12) 1px,transparent 0);background-size:10px 10px;opacity:.15"></div>
       </div>
       <div class="absolute inset-0 flex flex-col items-center justify-center text-center p-4 z-10 depth-near">
         <p class="tape-counter" style="font-size:7px;margin-bottom:4px">NOW PLAYING</p>
         <h2 id="focal-title-mobile" data-text="—" class="chroma text-xl font-black italic tracking-tighter leading-none uppercase" style="color:#e9e1de;margin-bottom:4px">—</h2>
-        <p id="focal-artist-mobile" class="font-bold tracking-widest uppercase" style="font-size:8px;color:var(--jestr-green)">Select a track</p>
+        <p id="focal-artist-mobile" class="font-bold tracking-widest uppercase phosphor" style="font-size:8px;color:var(--jestr-green)">Select a track</p>
       </div>
     </div>
   </div>
@@ -254,9 +311,9 @@
   </div>
 </main>
 
-<!-- ══ FLOATING PLAYER WIDGET ════════════════════════════════ -->
+<!-- ══ FLOATING PLAYER ═══════════════════════════════════════ -->
 <div id="float-player" class="container-texture">
-  <!-- corner resize dot handles -->
+  <!-- invisible corner resize zones -->
   <div class="fp-resize nw" data-dir="nw"></div>
   <div class="fp-resize ne" data-dir="ne"></div>
   <div class="fp-resize sw" data-dir="sw"></div>
@@ -265,10 +322,10 @@
   <!-- drag handle -->
   <div id="fp-handle">
     <div style="display:flex;align-items:center;gap:6px">
-      <span class="material-symbols-outlined" style="font-size:13px;color:rgba(150,100,255,.5)">drag_indicator</span>
+      <span class="material-symbols-outlined" style="font-size:13px;color:rgba(150,100,255,.55)">drag_indicator</span>
       <span class="tape-counter" style="font-size:8px">Orbit Player</span>
     </div>
-    <button id="btn-download" class="ctrl-btn" style="color:#6e6875" title="Download">
+    <button id="btn-download" class="ctrl-btn" style="color:#6e6875;background:transparent;border-color:transparent" title="Download">
       <span class="material-symbols-outlined" style="font-size:15px">download</span>
     </button>
   </div>
@@ -280,7 +337,7 @@
     </div>
     <div style="flex:1;min-width:0">
       <p id="fp-title" style="font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.04em;color:#e9e1de;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin:0">No Track</p>
-      <p id="fp-artist" style="font-size:8px;font-weight:700;text-transform:uppercase;letter-spacing:.18em;color:var(--jestr-green);margin:0">&mdash;</p>
+      <p id="fp-artist" class="phosphor" style="font-size:8px;font-weight:700;text-transform:uppercase;letter-spacing:.18em;color:var(--jestr-green);margin:0">&mdash;</p>
     </div>
     <span class="material-symbols-outlined" style="font-size:14px;color:#6e6875;flex-shrink:0">volume_up</span>
     <div class="volume-wrap" id="volume-rail">
@@ -290,45 +347,45 @@
     </div>
   </div>
 
-  <!-- controls: shuffle | prev | -10 | play | +10 | next | repeat -->
+  <!-- controls: shuffle | prev | -10 | PLAY | +10 | next | repeat -->
   <div id="fp-controls">
     <button id="btn-shuffle" class="ctrl-btn" style="color:#6e6875" title="Shuffle">
-      <span class="material-symbols-outlined" style="font-size:17px">shuffle</span>
+      <span class="material-symbols-outlined" style="font-size:16px">shuffle</span>
     </button>
     <button id="btn-prev" class="ctrl-btn" style="color:var(--jestr-blue)" title="Prev">
-      <span class="material-symbols-outlined" style="font-size:20px">skip_previous</span>
+      <span class="material-symbols-outlined" style="font-size:18px">skip_previous</span>
     </button>
     <button id="btn-back10" class="ctrl-btn" style="color:#a09aad" title="-10s">
-      <span class="material-symbols-outlined" style="font-size:18px">replay_10</span>
+      <span class="material-symbols-outlined" style="font-size:17px">replay_10</span>
     </button>
-    <button id="btn-play" class="play-btn" style="width:42px;height:42px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0">
+    <button id="btn-play" class="play-btn" style="width:44px;height:44px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0">
       <span id="play-icon" class="material-symbols-outlined text-white" style="font-size:22px;font-variation-settings:'FILL' 1">play_arrow</span>
     </button>
     <button id="btn-fwd10" class="ctrl-btn" style="color:#a09aad" title="+10s">
-      <span class="material-symbols-outlined" style="font-size:18px">forward_10</span>
+      <span class="material-symbols-outlined" style="font-size:17px">forward_10</span>
     </button>
     <button id="btn-next" class="ctrl-btn" style="color:var(--jestr-blue)" title="Next">
-      <span class="material-symbols-outlined" style="font-size:20px">skip_next</span>
+      <span class="material-symbols-outlined" style="font-size:18px">skip_next</span>
     </button>
     <button id="btn-repeat" class="ctrl-btn" style="color:#6e6875" title="Repeat">
-      <span id="repeat-icon" class="material-symbols-outlined" style="font-size:17px">repeat</span>
+      <span id="repeat-icon" class="material-symbols-outlined" style="font-size:16px">repeat</span>
     </button>
   </div>
 
-  <!-- progress -->
+  <!-- progress: times INSIDE the bar container -->
   <div id="fp-progress">
-    <span id="time-current" class="tape-counter" style="width:28px;flex-shrink:0">0:00</span>
+    <span id="time-current" class="tape-counter" style="width:30px;flex-shrink:0;font-size:8px">0:00</span>
     <div class="progress-wrap" id="progress-rail">
       <div class="progress-track-bg"></div>
       <div class="progress-fill-bar" id="progress-fill" style="width:0%"></div>
       <div class="progress-thumb" id="progress-thumb"></div>
     </div>
-    <span id="time-total" class="tape-counter" style="width:28px;flex-shrink:0;text-align:right">0:00</span>
+    <span id="time-total" class="tape-counter" style="width:30px;flex-shrink:0;text-align:right;font-size:8px">0:00</span>
   </div>
 </div>
 
 <script>
-  /* ── STARFIELD CANVAS ── */
+  /* ── STARFIELD ── */
   (function(){
     const c=document.getElementById("stars-canvas");
     const ctx=c.getContext("2d");
@@ -336,26 +393,15 @@
     function resize(){W=c.width=window.innerWidth;H=c.height=window.innerHeight;}
     function mkStars(){
       stars=[];
-      const n=Math.floor((W*H)/3000);
-      for(let i=0;i<n;i++){
-        stars.push({
-          x:Math.random()*W, y:Math.random()*H,
-          r:Math.random()*1.2+.2,
-          a:Math.random(),
-          da:(Math.random()-.5)*.004,
-          speed:Math.random()*.04+.005
-        });
-      }
+      const n=Math.floor((W*H)/2800);
+      for(let i=0;i<n;i++)stars.push({x:Math.random()*W,y:Math.random()*H,r:Math.random()*1.2+.15,a:Math.random(),da:(Math.random()-.5)*.005,speed:Math.random()*.035+.004});
     }
     function draw(){
       ctx.clearRect(0,0,W,H);
       for(const s of stars){
-        s.a+=s.da;
-        if(s.a<=0||s.a>=1)s.da*=-1;
-        s.y+=s.speed;
-        if(s.y>H){s.y=0;s.x=Math.random()*W;}
-        ctx.beginPath();
-        ctx.arc(s.x,s.y,s.r,0,Math.PI*2);
+        s.a+=s.da;if(s.a<=0||s.a>=1)s.da*=-1;
+        s.y+=s.speed;if(s.y>H){s.y=0;s.x=Math.random()*W;}
+        ctx.beginPath();ctx.arc(s.x,s.y,s.r,0,Math.PI*2);
         ctx.fillStyle=`rgba(220,210,255,${Math.max(0,Math.min(1,s.a))})`;
         ctx.fill();
       }
@@ -365,7 +411,7 @@
     window.addEventListener("resize",()=>{resize();mkStars();});
   })();
 
-  const TRACKS = [
+  const TRACKS=[
     {title:"Geronimo",                  artist:"jestR",file:"11 - Geronimo- jestR - 2020.mp3"},
     {title:"Mile High",                 artist:"jestR",file:"3 - Mile High- jestR - 2020.mp3"},
     {title:"Follow The Flow",           artist:"jestR",file:"Mp3-FollowTheFlow.mp3"},
@@ -380,109 +426,102 @@
     {title:"What Dreams May Come",      artist:"jestR",file:"what_dreams_may_comewavy.wav"},
   ];
 
-  const audio = document.getElementById("audio-player");
-  let currentIndex=0, isPlaying=false, isShuffle=false, repeatMode=0;
+  const audio=document.getElementById("audio-player");
+  let currentIndex=0,isPlaying=false,isShuffle=false,repeatMode=0;
   let seekOnReady=null;
+  let isSeeking=false; // true while user drags the scrubber
 
   /* ── DRAG + CORNER RESIZE ── */
   (function(){
-    const fp = document.getElementById("float-player");
-    const handle = document.getElementById("fp-handle");
-    let mode=null;
-    let startX,startY,startL,startT,startW,startH;
+    const fp=document.getElementById("float-player");
+    const handle=document.getElementById("fp-handle");
+    let mode=null,startX,startY,startL,startT,startW,startH;
 
-    function getRect(){ return fp.getBoundingClientRect(); }
-
+    function getRect(){return fp.getBoundingClientRect();}
     function pinPosition(){
       if(!fp.classList.contains("is-positioned")){
         const r=getRect();
-        fp.style.transform="none";
-        fp.style.bottom="";
-        fp.style.left=r.left+"px";
-        fp.style.top=r.top+"px";
+        fp.style.transform="none";fp.style.bottom="";
+        fp.style.left=r.left+"px";fp.style.top=r.top+"px";
         fp.style.width=r.width+"px";
-        fp.style.height=r.height+"px";
         fp.classList.add("is-positioned");
       }
     }
-
-    function clamp(v,mn,mx){ return Math.max(mn,Math.min(mx,v)); }
-
-    function onDown(e, m){
+    function clamp(v,mn,mx){return Math.max(mn,Math.min(mx,v));}
+    function onDown(e,m){
       pinPosition();
-      const r=getRect();
-      mode=m;
-      const cx = e.touches?e.touches[0].clientX:e.clientX;
-      const cy = e.touches?e.touches[0].clientY:e.clientY;
-      startX=cx; startY=cy;
-      startL=r.left; startT=r.top;
-      startW=r.width; startH=r.height;
+      const r=getRect();mode=m;
+      const cx=e.touches?e.touches[0].clientX:e.clientX;
+      const cy=e.touches?e.touches[0].clientY:e.clientY;
+      startX=cx;startY=cy;startL=r.left;startT=r.top;startW=r.width;startH=r.height;
       e.preventDefault();
     }
-
     function onMove(e){
       if(!mode)return;
       const cx=e.touches?e.touches[0].clientX:e.clientX;
       const cy=e.touches?e.touches[0].clientY:e.clientY;
-      const dx=cx-startX, dy=cy-startY;
-      const mw=300, mh=140;
-      const vw=window.innerWidth, vh=window.innerHeight;
-
+      const dx=cx-startX,dy=cy-startY;
+      const mw=280,mh=120;
+      const vw=window.innerWidth,vh=window.innerHeight;
       if(mode==='drag'){
-        const nl=clamp(startL+dx,0,vw-startW);
-        const nt=clamp(startT+dy,0,vh-startH);
-        fp.style.left=nl+"px"; fp.style.top=nt+"px";
+        fp.style.left=clamp(startL+dx,0,vw-startW)+"px";
+        fp.style.top=clamp(startT+dy,0,vh-startH)+"px";
       } else {
         let l=startL,t=startT,w=startW,h=startH;
-        if(mode==='se'){ w=clamp(startW+dx,mw,680); h=clamp(startH+dy,mh,600); }
-        if(mode==='sw'){ const nw=clamp(startW-dx,mw,680); l=startL+startW-nw; w=nw; h=clamp(startH+dy,mh,600); }
-        if(mode==='ne'){ w=clamp(startW+dx,mw,680); const nh=clamp(startH-dy,mh,600); t=startT+startH-nh; h=nh; }
-        if(mode==='nw'){ const nw=clamp(startW-dx,mw,680); l=startL+startW-nw; w=nw; const nh=clamp(startH-dy,mh,600); t=startT+startH-nh; h=nh; }
-        fp.style.left=l+"px"; fp.style.top=t+"px"; fp.style.width=w+"px"; fp.style.height=h+"px";
+        if(mode==='se'){w=clamp(startW+dx,mw,680);h=clamp(startH+dy,mh,600);}
+        if(mode==='sw'){const nw=clamp(startW-dx,mw,680);l=startL+startW-nw;w=nw;h=clamp(startH+dy,mh,600);}
+        if(mode==='ne'){w=clamp(startW+dx,mw,680);const nh=clamp(startH-dy,mh,600);t=startT+startH-nh;h=nh;}
+        if(mode==='nw'){const nw=clamp(startW-dx,mw,680);l=startL+startW-nw;w=nw;const nh=clamp(startH-dy,mh,600);t=startT+startH-nh;h=nh;}
+        fp.style.left=l+"px";fp.style.top=t+"px";fp.style.width=w+"px";fp.style.height=h+"px";
       }
     }
-    function onUp(){ mode=null; }
-
+    function onUp(){mode=null;}
     handle.addEventListener("mousedown",e=>onDown(e,'drag'));
     handle.addEventListener("touchstart",e=>onDown(e,'drag'),{passive:false});
     fp.querySelectorAll(".fp-resize").forEach(el=>{
-      el.addEventListener("mousedown",e=>{ onDown(e,el.dataset.dir); });
-      el.addEventListener("touchstart",e=>{ onDown(e,el.dataset.dir); },{passive:false});
+      el.addEventListener("mousedown",e=>{onDown(e,el.dataset.dir);e.stopPropagation();});
+      el.addEventListener("touchstart",e=>{onDown(e,el.dataset.dir);e.stopPropagation();},{passive:false});
     });
     window.addEventListener("mousemove",onMove);
-    window.addEventListener("touchmove",e=>{ if(mode)onMove(e); },{passive:true});
+    window.addEventListener("touchmove",e=>{if(mode)onMove(e);},{passive:true});
     window.addEventListener("mouseup",onUp);
     window.addEventListener("touchend",onUp);
   })();
 
   /* ── HELPERS ── */
-  function fmt(s){ if(!s||isNaN(s)||!isFinite(s))return"0:00"; return`${Math.floor(s/60)}:${String(Math.floor(s%60)).padStart(2,"0")}`; }
-  function updateChroma(id,text){ const el=document.getElementById(id);if(!el)return;el.textContent=text;el.setAttribute("data-text",text); }
-  function downloadCurrent(){ const t=TRACKS[currentIndex];const a=document.createElement("a");a.href=t.file;a.download=t.file;a.click(); }
+  function fmt(s){if(!s||isNaN(s)||!isFinite(s))return"0:00";return`${Math.floor(s/60)}:${String(Math.floor(s%60)).padStart(2,"0")}`; }
+  function updateChroma(id,text){const el=document.getElementById(id);if(!el)return;el.textContent=text;el.setAttribute("data-text",text);}
+  function downloadCurrent(){const t=TRACKS[currentIndex];const a=document.createElement("a");a.href=t.file;a.download=t.file;a.click();}
 
-  /* ── SEEK ── */
+  /* ── SEEK ──
+     seekOnReady stores a target fraction [0,1].
+     We apply it once we have duration. Fires on both loadedmetadata + canplay.
+     isSeeking flag prevents timeupdate from clobbering the scrubber while dragging.
+  */
   function applySavedSeek(){
-    if(seekOnReady!==null && audio.readyState>=1 && isFinite(audio.duration) && audio.duration>0){
+    if(seekOnReady!==null&&audio.readyState>=1&&isFinite(audio.duration)&&audio.duration>0){
       audio.currentTime=seekOnReady*audio.duration;
       seekOnReady=null;
     }
   }
-  audio.addEventListener("loadedmetadata", applySavedSeek);
-  audio.addEventListener("canplay", applySavedSeek);
+  audio.addEventListener("loadedmetadata",applySavedSeek);
+  audio.addEventListener("canplay",applySavedSeek);
 
   function setProgress(pct){
     document.getElementById("progress-fill").style.width=pct+"%";
     document.getElementById("progress-thumb").style.left=pct+"%";
   }
 
+  /* Core seek — never calls audio.load(), just sets currentTime */
   function seekToPct(pct){
     pct=Math.max(0,Math.min(1,pct));
+    setProgress(pct*100);
     if(audio.readyState>=1&&isFinite(audio.duration)&&audio.duration>0){
-      audio.currentTime=pct*audio.duration; seekOnReady=null;
+      audio.currentTime=pct*audio.duration;
+      seekOnReady=null;
     } else {
       seekOnReady=pct;
     }
-    setProgress(pct*100);
   }
 
   function skip(sec){
@@ -491,39 +530,46 @@
     }
   }
 
-  function seekFromEvent(e,rail){
+  function clientXToFraction(clientX,rail){
     const r=rail.getBoundingClientRect();
-    seekToPct((e.clientX-r.left)/r.width);
+    return Math.max(0,Math.min(1,(clientX-r.left)/r.width));
   }
 
   function makeScrubber(railId){
-    const rail=document.getElementById(railId); let drag=false;
-    rail.addEventListener("mousedown",e=>{ drag=true;rail.classList.add("dragging");seekFromEvent(e,rail);e.preventDefault(); });
-    window.addEventListener("mousemove",e=>{ if(drag)seekFromEvent(e,rail); });
-    window.addEventListener("mouseup",()=>{ if(drag){drag=false;rail.classList.remove("dragging");} });
-    rail.addEventListener("touchstart",e=>{ drag=true;rail.classList.add("dragging");seekFromEvent(e.touches[0],rail);e.preventDefault(); },{passive:false});
-    window.addEventListener("touchmove",e=>{ if(drag)seekFromEvent(e.touches[0],rail); },{passive:true});
-    window.addEventListener("touchend",()=>{ drag=false;rail.classList.remove("dragging"); });
+    const rail=document.getElementById(railId);
+    let drag=false;
+    function startDrag(clientX){drag=true;isSeeking=true;rail.classList.add("dragging");seekToPct(clientXToFraction(clientX,rail));}
+    function moveDrag(clientX){if(!drag)return;seekToPct(clientXToFraction(clientX,rail));}
+    function endDrag(){if(!drag)return;drag=false;isSeeking=false;rail.classList.remove("dragging");}
+    rail.addEventListener("mousedown",e=>{startDrag(e.clientX);e.preventDefault();});
+    window.addEventListener("mousemove",e=>{moveDrag(e.clientX);});
+    window.addEventListener("mouseup",endDrag);
+    rail.addEventListener("touchstart",e=>{startDrag(e.touches[0].clientX);e.preventDefault();},{passive:false});
+    window.addEventListener("touchmove",e=>{if(drag)moveDrag(e.touches[0].clientX);},{passive:true});
+    window.addEventListener("touchend",endDrag);
   }
   makeScrubber("progress-rail");
 
-  /* ── LOAD TRACK ── */
-  function loadTrack(index, autoplay=false){
-    currentIndex=index; seekOnReady=null;
+  /* ── LOAD TRACK ──
+     Sets audio.src to the raw filename and calls audio.load().
+     Does NOT seek — just resets to 0.
+  */
+  function loadTrack(index,autoplay=false){
+    currentIndex=index;seekOnReady=null;isSeeking=false;
     const t=TRACKS[index];
-    audio.src=t.file;
+    audio.src=t.file; // raw filename, no encoding
     audio.load();
     updateChroma("focal-title",t.title);
     updateChroma("focal-title-mobile",t.title);
-    ["focal-artist","focal-artist-mobile"].forEach(id=>{ const el=document.getElementById(id);if(el)el.textContent=t.artist; });
+    ["focal-artist","focal-artist-mobile"].forEach(id=>{const el=document.getElementById(id);if(el)el.textContent=t.artist;});
     document.getElementById("fp-title").textContent=t.title;
     document.getElementById("fp-artist").textContent=t.artist;
     setProgress(0);
     document.getElementById("time-current").textContent="0:00";
     document.getElementById("time-total").textContent="0:00";
     renderAll();
-    if(autoplay){ audio.play().then(()=>{ isPlaying=true;updatePlayIcons();renderAll(); }).catch(()=>{}); }
-    else{ isPlaying=false; }
+    if(autoplay){audio.play().then(()=>{isPlaying=true;updatePlayIcons();renderAll();}).catch(()=>{});}
+    else{isPlaying=false;}
     updatePlayIcons();
   }
 
@@ -544,20 +590,20 @@
   /* ── TIMEUPDATE ── */
   audio.addEventListener("timeupdate",()=>{
     if(!audio.duration||!isFinite(audio.duration))return;
-    setProgress((audio.currentTime/audio.duration)*100);
     document.getElementById("time-current").textContent=fmt(audio.currentTime);
     document.getElementById("time-total").textContent=fmt(audio.duration);
+    if(!isSeeking)setProgress((audio.currentTime/audio.duration)*100);
   });
 
   /* ── ENDED ── */
   audio.addEventListener("ended",()=>{
     if(repeatMode===2){audio.currentTime=0;audio.play();return;}
     if(repeatMode===1){loadTrack((currentIndex+1)%TRACKS.length,true);return;}
-    if(currentIndex<TRACKS.length-1){ loadTrack(isShuffle?Math.floor(Math.random()*TRACKS.length):currentIndex+1,true); }
-    else{ isPlaying=false;updatePlayIcons();renderAll(); }
+    if(currentIndex<TRACKS.length-1){loadTrack(isShuffle?Math.floor(Math.random()*TRACKS.length):currentIndex+1,true);}
+    else{isPlaying=false;updatePlayIcons();renderAll();}
   });
 
-  /* ── REPEAT / SHUFFLE UI ── */
+  /* ── UI STATE ── */
   function updateRepeatUI(){
     const btn=document.getElementById("btn-repeat");
     const icon=document.getElementById("repeat-icon");
@@ -569,7 +615,7 @@
     document.getElementById("play-icon").textContent=isPlaying?"pause":"play_arrow";
   }
 
-  /* ── RENDER TRACKS ── */
+  /* ── RENDER ── */
   function trackHTML(t,i,isActive){
     return `<div class="track-item" data-index="${i}"
       style="display:flex;align-items:center;gap:10px;padding:8px 12px;border-radius:10px;cursor:pointer;
