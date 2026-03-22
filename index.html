@@ -99,7 +99,7 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:#06040f;color:#e9e1de
 .win-resize.sw{bottom:0;left:0;cursor:sw-resize;}
 .win-resize.se{bottom:0;right:0;cursor:se-resize;}
 
-.win-body{flex:1;overflow:hidden;position:relative;z-index:1;display:flex;flex-direction:column;}
+.win-body{flex:1;overflow:hidden;position:relative;z-index:1;display:flex;flex-direction:column;}#player-win{min-height:270px;min-width:300px;}#player-win .win-body{overflow-y:auto;}
 
 /* ============ ANALOG BUTTONS ============ */
 .ctrl-btn,.taskbar-btn,.m-tab{
@@ -529,7 +529,7 @@ function applyDesktopLayout(){
   const gW=Math.min(300,Math.max(220,(vw-cx-PLANET_R-PAD)*0.9));
   const gH=Math.min(460,usableH-2*PAD);
   const plW=Math.min(380,Math.max(300,vw*0.28));
-  const plH=220;
+  const plH=270;
   tl.style.width=tlW+'px';tl.style.height=tlH+'px';
   g.style.width=gW+'px';g.style.height=gH+'px';
   pl.style.width=plW+'px';pl.style.height=plH+'px';
@@ -613,7 +613,7 @@ function makeWindowDraggable(winId,barId){
   }
   function onMove(e){
     if(!mode)return;
-    const dx=e.clientX-sx,dy=e.clientY-sy,mw=240,mh=120,vw=window.innerWidth,vh=window.innerHeight;
+    const dx=e.clientX-sx,dy=e.clientY-sy,mw=240,mh=200,vw=window.innerWidth,vh=window.innerHeight;
     if(mode==='drag'){win.style.left=clamp(sl+dx,0,vw-sw)+'px';win.style.top=clamp(st+dy,0,vh-sh)+'px';}
     else{
       let l=sl,t=st,w=sw,h=sh;
