@@ -213,7 +213,31 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:#06040f;color:#e9e1de
 
 /* ============ IMAGE VIEWER WINDOW ============ */
 #image-win{display:none;}
-#image-win .win-body{align-items:center;justify-content:center;background:rgba(3,2,10,.5);padding:10px;overflow:hidden;}
+#image-win .win-body{align-items:center;justify-content:center;background:rgba(3,2,10,.5);padding:10px;overflow:hidden;position:relative;}
+.img-nav{
+  position:absolute;top:50%;transform:translateY(-50%);
+  width:40px;height:40px;border-radius:999px;
+  background:rgba(0,0,0,.55);
+  border:1px solid rgba(255,255,255,.12);
+  border-top-color:rgba(255,255,255,.18);border-left-color:rgba(255,255,255,.15);
+  border-bottom-color:rgba(0,0,0,.5);border-right-color:rgba(0,0,0,.32);
+  display:flex;align-items:center;justify-content:center;
+  cursor:pointer;
+  box-shadow:0 3px 8px rgba(0,0,0,.55),inset 0 1px 0 rgba(255,255,255,.08);
+  color:var(--baby-blue);
+  transition:background .12s,box-shadow .12s,transform .07s,border-color .12s,color .12s;
+  z-index:5;
+}
+.img-nav-prev{left:8px;}
+.img-nav-next{right:8px;}
+.img-nav:hover{background:rgba(126,200,227,.18);box-shadow:0 4px 10px rgba(0,0,0,.6),0 0 14px rgba(123,47,255,.5);}
+.img-nav:active{transform:scale(.95) translateY(1px);box-shadow:0 2px 4px rgba(0,0,0,.6),inset 0 2px 4px rgba(0,0,0,.4);}
+.img-nav-icon{font-size:22px;}
+
+@media(max-width:767px){
+  .img-nav{width:48px;height:48px;}
+  .img-nav-icon{font-size:26px;}
+}
 
 /* ============ DESKTOP DOCK ============ */
 #dock-win{position:fixed;bottom:10px;left:50%;transform:translateX(-50%);width:min(500px,94vw);z-index:400;border-radius:14px;}
@@ -284,7 +308,7 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:#06040f;color:#e9e1de
     width:90vw!important;height:80vh!important;border-radius:16px!important;
   }
 }
-@media(min-width:768px){#planet-bg{bottom:80px;}} /\* ============ TABLET / IPAD (768-1180px) ============ \*/ @media(min-width:768px)and(max-width:1180px){ .ctrl-btn,.taskbar-btn,.mob-btn,.win-close{min-width:36px;min-height:36px;} .ctrl-btn .material-symbols-outlined,.taskbar-btn .material-symbols-outlined,.mob-btn .material-symbols-outlined{font-size:22px!important;} .win-title{font-size:10px!important;} .win-bar{padding:11px 14px 10px!important;} .win-close{width:26px!important;height:26px!important;font-size:13px!important;} .track-title{font-size:13px!important;} .track-artist{font-size:10px!important;} .vol-row{padding:7px 12px!important;} #vol-slider::-webkit-slider-thumb{width:20px!important;height:20px!important;} #vol-pct{font-size:10px!important;} .taskbar-btn{font-size:11px!important;padding:8px 12px!important;min-width:72px!important;} .taskbar-btn .material-symbols-outlined{font-size:22px!important;} .mob-btn{padding:10px 22px!important;font-size:10px!important;} .mob-btn .material-symbols-outlined{font-size:26px!important;} #fp-title{font-size:13px!important;} #fp-artist{font-size:10px!important;} } /\* ============ BUTTON PRESS FIX ============ \*/ .ctrl-btn,.taskbar-btn,.mob-btn{ box-shadow:0 3px 6px rgba(0,0,0,.45),0 1px 0 rgba(0,0,0,.3),inset 0 1px 0 rgba(255,255,255,.10); border-top-color:rgba(255,255,255,.15);border-left-color:rgba(255,255,255,.12); border-bottom-color:rgba(0,0,0,.45);border-right-color:rgba(0,0,0,.28); } .ctrl-btn:active,.taskbar-btn:active,.mob-btn:active{ transform:scale(.95) translateY(2px)!important; box-shadow:0 1px 2px rgba(0,0,0,.5),inset 0 3px 6px rgba(0,0,0,.4),inset 0 1px 2px rgba(0,0,0,.3)!important; border-top-color:rgba(0,0,0,.4)!important;border-left-color:rgba(0,0,0,.3)!important; border-bottom-color:rgba(255,255,255,.08)!important;border-right-color:rgba(0,0,0,.15)!important; } .win-close{ box-shadow:0 3px 6px rgba(0,0,0,.5),inset 0 1px 0 rgba(255,255,255,.08); border-top-color:rgba(255,255,255,.15);border-left-color:rgba(255,255,255,.12); border-bottom-color:rgba(0,0,0,.45);border-right-color:rgba(0,0,0,.28); } .win-close:active{ transform:scale(.88) translateY(2px)!important; box-shadow:0 1px 2px rgba(0,0,0,.5),inset 0 3px 5px rgba(0,0,0,.35)!important; border-top-color:rgba(0,0,0,.4)!important;border-bottom-color:rgba(255,255,255,.06)!important; }
+@media(min-width:768px){#planet-bg{bottom:80px;}} /* ============ TABLET / IPAD (768-1180px) ============ */ @media(min-width:768px)and(max-width:1180px){ .ctrl-btn,.taskbar-btn,.mob-btn,.win-close{min-width:36px;min-height:36px;} .ctrl-btn .material-symbols-outlined,.taskbar-btn .material-symbols-outlined,.mob-btn .material-symbols-outlined{font-size:22px!important;} .win-title{font-size:10px!important;} .win-bar{padding:11px 14px 10px!important;} .win-close{width:26px!important;height:26px!important;font-size:13px!important;} .track-title{font-size:13px!important;} .track-artist{font-size:10px!important;} .vol-row{padding:7px 12px!important;} #vol-slider::-webkit-slider-thumb{width:20px!important;height:20px!important;} #vol-pct{font-size:10px!important;} .taskbar-btn{font-size:11px!important;padding:8px 12px!important;min-width:72px!important;} .taskbar-btn .material-symbols-outlined{font-size:22px!important;} .mob-btn{padding:10px 22px!important;font-size:10px!important;} .mob-btn .material-symbols-outlined{font-size:26px!important;} #fp-title{font-size:13px!important;} #fp-artist{font-size:10px!important;} } /* ============ BUTTON PRESS FIX ============ */ .ctrl-btn,.taskbar-btn,.mob-btn{ box-shadow:0 3px 6px rgba(0,0,0,.45),0 1px 0 rgba(0,0,0,.3),inset 0 1px 0 rgba(255,255,255,.10); border-top-color:rgba(255,255,255,.15);border-left-color:rgba(255,255,255,.12); border-bottom-color:rgba(0,0,0,.45);border-right-color:rgba(0,0,0,.28); } .ctrl-btn:active,.taskbar-btn:active,.mob-btn:active{ transform:scale(.95) translateY(2px)!important; box-shadow:0 1px 2px rgba(0,0,0,.5),inset 0 3px 6px rgba(0,0,0,.4),inset 0 1px 2px rgba(0,0,0,.3)!important; border-top-color:rgba(0,0,0,.4)!important;border-left-color:rgba(0,0,0,.3)!important; border-bottom-color:rgba(255,255,255,.08)!important;border-right-color:rgba(0,0,0,.15)!important; } .win-close{ box-shadow:0 3px 6px rgba(0,0,0,.5),inset 0 1px 0 rgba(255,255,255,.08); border-top-color:rgba(255,255,255,.15);border-left-color:rgba(255,255,255,.12); border-bottom-color:rgba(0,0,0,.45);border-right-color:rgba(0,0,0,.28); } .win-close:active{ transform:scale(.88) translateY(2px)!important; box-shadow:0 1px 2px rgba(0,0,0,.5),inset 0 3px 5px rgba(0,0,0,.35)!important; border-top-color:rgba(0,0,0,.4)!important;border-bottom-color:rgba(255,255,255,.06)!important; }
 </style>
 <script id="tc">tailwind.config={darkMode:"class",theme:{extend:{fontFamily:{headline:["Plus Jakarta Sans"],body:["Plus Jakarta Sans"]}}}}</script>
 </head>
@@ -571,14 +595,54 @@ function renderGallery(){
   const grid=document.getElementById('gw-grid');if(!grid)return;
   grid.innerHTML=GALLERY.map((g,i)=>`<div class="gallery-item" data-gi="${i}"><img src="${g.src}" alt="" loading="lazy"/></div>`).join('');
   grid.querySelectorAll('.gallery-item').forEach(el=>{
-    el.addEventListener('click',()=>openImageWin(+el.dataset.gi));
-    el.addEventListener('touchend',e=>{e.preventDefault();openImageWin(+el.dataset.gi);},{passive:false});
+    const idx=+el.dataset.gi;
+    let pressStartTime=0,startX=0,startY=0;
+    const LONG_PRESS_MS=350;
+    const MOVE_TOL=10;
+
+    el.addEventListener('pointerdown',e=>{
+      if(e.pointerType==='touch'){
+        pressStartTime=performance.now();
+        startX=e.clientX;
+        startY=e.clientY;
+      }else{
+        pressStartTime=0;
+      }
+    });
+
+    el.addEventListener('pointerup',e=>{
+      const now=performance.now();
+      if(e.pointerType==='mouse'||e.pointerType==='pen'){
+        openImageWin(idx);
+        return;
+      }
+      if(!pressStartTime)return;
+      const dt=now-pressStartTime;
+      const dx=Math.abs(e.clientX-startX);
+      const dy=Math.abs(e.clientY-startY);
+      if(dt>=LONG_PRESS_MS&&dx<=MOVE_TOL&&dy<=MOVE_TOL){
+        openImageWin(idx);
+      }
+      pressStartTime=0;
+    });
+
+    el.addEventListener('pointercancel',()=>{pressStartTime=0;});
+    el.addEventListener('pointermove',e=>{
+      if(!pressStartTime)return;
+      const dx=Math.abs(e.clientX-startX);
+      const dy=Math.abs(e.clientY-startY);
+      if(dx>MOVE_TOL||dy>MOVE_TOL){pressStartTime=0;}
+    });
   });
 }
+
+let _imgIdx=0;
+let _imgWinPinned=false;
 
 /* ── IMAGE VIEWER ── */
 function openImageWin(idx){
   const win=document.getElementById('image-win');
+  _imgIdx=idx;
   document.getElementById('image-win-img').src=GALLERY[idx].src;
   if(!isMob()){
     const vw=window.innerWidth,vh=window.innerHeight;
@@ -590,7 +654,56 @@ function openImageWin(idx){
   win.style.display='flex';
   bringToFront('image-win');
 }
-document.getElementById('close-image-win').addEventListener('click',()=>document.getElementById('image-win').style.display='none'); /* ── IMAGE NAV ── */ function imgNavGo(dir){ _imgIdx=(_imgIdx+dir+GALLERY.length)%GALLERY.length; document.getElementById('image-win-img').src=GALLERY[_imgIdx].src; } document.getElementById('img-nav-prev').addEventListener('click',()=>imgNavGo(-1)); document.getElementById('img-nav-next').addEventListener('click',()=>imgNavGo(1)); document.getElementById('img-nav-prev').addEventListener('touchend',e=>{e.preventDefault();imgNavGo(-1);},{passive:false}); document.getElementById('img-nav-next').addEventListener('touchend',e=>{e.preventDefault();imgNavGo(1);},{passive:false}); /* ── KEYBOARD GALLERY ── */ document.addEventListener('keydown',e=>{ const win=document.getElementById('image-win'); if(win.style.display!=='flex')return; if(e.key==='ArrowLeft'){e.preventDefault();imgNavGo(-1);} else if(e.key==='ArrowRight'){e.preventDefault();imgNavGo(1);} else if(e.key==='Escape'){win.style.display='none';} }); /* ── MARK IMAGE WIN AS PINNED AFTER FIRST DRAG ── */ (function(){ const bar=document.getElementById('image-win-bar'); bar.addEventListener('mousedown',()=>{_imgWinPinned=true;},{once:false}); bar.addEventListener('touchstart',()=>{_imgWinPinned=true;},{once:false,passive:true}); })();
+document.getElementById('close-image-win').addEventListener('click',()=>document.getElementById('image-win').style.display='none');
+
+/* ── IMAGE NAV ── */
+function imgNavGo(dir){
+  _imgIdx=(_imgIdx+dir+GALLERY.length)%GALLERY.length;
+  document.getElementById('image-win-img').src=GALLERY[_imgIdx].src;
+}
+document.getElementById('img-nav-prev').addEventListener('click',()=>imgNavGo(-1));
+document.getElementById('img-nav-next').addEventListener('click',()=>imgNavGo(1));
+document.getElementById('img-nav-prev').addEventListener('touchend',e=>{e.preventDefault();imgNavGo(-1);},{passive:false});
+document.getElementById('img-nav-next').addEventListener('touchend',e=>{e.preventDefault();imgNavGo(1);},{passive:false});
+
+/* ── SWIPE NAV IN IMAGE VIEWER (MOBILE / TABLET) ── */
+(function(){
+  const img=document.getElementById('image-win-img');
+  let startX=0,startY=0,startTime=0;
+  const SWIPE_DIST=50;
+  const SWIPE_TIME=600;
+  img.addEventListener('touchstart',e=>{
+    if(e.touches.length!==1)return;
+    const t=e.touches[0];
+    startX=t.clientX;startY=t.clientY;startTime=performance.now();
+  },{passive:true});
+  img.addEventListener('touchend',e=>{
+    if(e.changedTouches.length!==1)return;
+    const t=e.changedTouches[0];
+    const dx=t.clientX-startX;
+    const dy=t.clientY-startY;
+    const dt=performance.now()-startTime;
+    if(dt<=SWIPE_TIME&&Math.abs(dx)>=SWIPE_DIST&&Math.abs(dy)<40){
+      if(dx<0)imgNavGo(1);else imgNavGo(-1);
+    }
+  },{passive:true});
+})();
+
+/* ── KEYBOARD GALLERY ── */
+document.addEventListener('keydown',e=>{
+  const win=document.getElementById('image-win');
+  if(win.style.display!=='flex')return;
+  if(e.key==='ArrowLeft'){e.preventDefault();imgNavGo(-1);} 
+  else if(e.key==='ArrowRight'){e.preventDefault();imgNavGo(1);} 
+  else if(e.key==='Escape'){win.style.display='none';}
+});
+
+/* ── MARK IMAGE WIN AS PINNED AFTER FIRST DRAG ── */
+(function(){
+  const bar=document.getElementById('image-win-bar');
+  bar.addEventListener('mousedown',()=>{_imgWinPinned=true;},{once:false});
+  bar.addEventListener('touchstart',()=>{_imgWinPinned=true;},{once:false,passive:true});
+})();
 
 /* ── WINDOW DRAG + RESIZE ── */
 function makeWindowDraggable(winId,barId){
