@@ -92,15 +92,20 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:#06040f;color:#e9e1de
 .win-close:hover{background:rgba(232,0,61,.45);color:#fff;box-shadow:0 3px 8px rgba(0,0,0,.5),0 0 12px rgba(232,0,61,.45);}
 .win-close:active{transform:scale(.9) translateY(1px);}
 
-/* Resize handles: invisible 20x20 corner zones */
-.win-resize{position:absolute;width:20px;height:20px;z-index:10;opacity:0;}
-.win-resize.nw{top:0;left:0;cursor:nw-resize;}
-.win-resize.ne{top:0;right:0;cursor:ne-resize;}
-.win-resize.sw{bottom:0;left:0;cursor:sw-resize;}
-.win-resize.se{bottom:0;right:0;cursor:se-resize;}
+/* ── Resize handles: corners (20×20) + sides (thin strips) ── */
+.win-resize{position:absolute;z-index:10;opacity:0;}
+/* corners */
+.win-resize.nw{top:0;left:0;width:20px;height:20px;cursor:nw-resize;}
+.win-resize.ne{top:0;right:0;width:20px;height:20px;cursor:ne-resize;}
+.win-resize.sw{bottom:0;left:0;width:20px;height:20px;cursor:sw-resize;}
+.win-resize.se{bottom:0;right:0;width:20px;height:20px;cursor:se-resize;}
+/* sides */
+.win-resize.n{top:0;left:20px;right:20px;height:6px;cursor:n-resize;}
+.win-resize.s{bottom:0;left:20px;right:20px;height:6px;cursor:s-resize;}
+.win-resize.e{top:20px;right:0;width:6px;bottom:20px;cursor:e-resize;}
+.win-resize.w{top:20px;left:0;width:6px;bottom:20px;cursor:w-resize;}
 
 .win-body{flex:1;overflow:hidden;position:relative;z-index:1;display:flex;flex-direction:column;}
-/* FIX 1: player window min-height raised to 270px to prevent volume row clipping */
 #player-win{min-height:270px;min-width:300px;}
 #player-win .win-body{overflow-y:auto;}
 
@@ -174,9 +179,11 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:#06040f;color:#e9e1de
 .track-item.active .track-artist{color:var(--jestr-green)!important;}
 .track-item.is-dragging{opacity:.3;background:rgba(123,47,255,.06)!important;}
 
-/* Drop line */
+/* ── Drop line: constrained to tracklist window (position:absolute inside) ── */
 #drop-line{
-  position:fixed;left:0;right:0;pointer-events:none;z-index:9999;
+  position:absolute;
+  left:0;right:0;
+  pointer-events:none;z-index:9999;
   height:3px;
   background:linear-gradient(90deg,transparent 0%,var(--jestr-purple) 8%,var(--jestr-blue) 50%,var(--jestr-green) 92%,transparent 100%);
   box-shadow:0 0 10px rgba(123,47,255,.9),0 0 20px rgba(0,200,150,.5);
@@ -321,7 +328,6 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:#06040f;color:#e9e1de
 <div class="vignette"></div>
 <div class="scanlines"></div>
 <div class="grain-overlay"></div>
-<div id="drop-line"></div>
 <audio id="audio-player" preload="auto"></audio>
 
 <!-- PLANET -->
@@ -345,6 +351,8 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:#06040f;color:#e9e1de
 <div id="tracklist-win" class="win" style="display:none;z-index:320">
   <div class="win-resize nw" data-dir="nw"></div><div class="win-resize ne" data-dir="ne"></div>
   <div class="win-resize sw" data-dir="sw"></div><div class="win-resize se" data-dir="se"></div>
+  <div class="win-resize n" data-dir="n"></div><div class="win-resize s" data-dir="s"></div>
+  <div class="win-resize e" data-dir="e"></div><div class="win-resize w" data-dir="w"></div>
   <div class="win-bar" id="tracklist-bar">
     <div class="win-bar-left">
       <span class="material-symbols-outlined" style="font-size:12px;color:rgba(150,100,255,.5)">drag_indicator</span>
@@ -362,7 +370,10 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:#06040f;color:#e9e1de
         <input id="search-input" placeholder="Search tracks…" type="text" autocomplete="off"/>
       </div>
     </div>
-    <div style="flex:1;overflow-y:auto;display:flex;flex-direction:column;gap:1px;padding:0 4px" class="no-scrollbar" id="sidebar-tracklist"></div>
+    <!-- drop-line lives INSIDE the tracklist body so it is clipped to window width -->
+    <div style="flex:1;overflow-y:auto;display:flex;flex-direction:column;gap:1px;padding:0 4px;position:relative" class="no-scrollbar" id="sidebar-tracklist">
+      <div id="drop-line"></div>
+    </div>
   </div>
 </div>
 
@@ -370,6 +381,8 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:#06040f;color:#e9e1de
 <div id="gallery-win" class="win" style="display:none;z-index:310">
   <div class="win-resize nw" data-dir="nw"></div><div class="win-resize ne" data-dir="ne"></div>
   <div class="win-resize sw" data-dir="sw"></div><div class="win-resize se" data-dir="se"></div>
+  <div class="win-resize n" data-dir="n"></div><div class="win-resize s" data-dir="s"></div>
+  <div class="win-resize e" data-dir="e"></div><div class="win-resize w" data-dir="w"></div>
   <div class="win-bar" id="gallery-bar">
     <div class="win-bar-left">
       <span class="material-symbols-outlined" style="font-size:12px;color:rgba(150,100,255,.5)">drag_indicator</span>
@@ -387,6 +400,8 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:#06040f;color:#e9e1de
 <div id="player-win" class="win" style="display:none;z-index:330">
   <div class="win-resize nw" data-dir="nw"></div><div class="win-resize ne" data-dir="ne"></div>
   <div class="win-resize sw" data-dir="sw"></div><div class="win-resize se" data-dir="se"></div>
+  <div class="win-resize n" data-dir="n"></div><div class="win-resize s" data-dir="s"></div>
+  <div class="win-resize e" data-dir="e"></div><div class="win-resize w" data-dir="w"></div>
   <div class="win-bar" id="player-bar">
     <div class="win-bar-left">
       <span class="material-symbols-outlined" style="font-size:12px;color:rgba(150,100,255,.5)">drag_indicator</span>
@@ -443,6 +458,8 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:#06040f;color:#e9e1de
 <div id="image-win" class="win" style="z-index:500">
   <div class="win-resize nw" data-dir="nw"></div><div class="win-resize ne" data-dir="ne"></div>
   <div class="win-resize sw" data-dir="sw"></div><div class="win-resize se" data-dir="se"></div>
+  <div class="win-resize n" data-dir="n"></div><div class="win-resize s" data-dir="s"></div>
+  <div class="win-resize e" data-dir="e"></div><div class="win-resize w" data-dir="w"></div>
   <div class="win-bar" id="image-win-bar">
     <div class="win-bar-left">
       <span class="material-symbols-outlined" style="font-size:12px;color:rgba(150,100,255,.5)">drag_indicator</span>
@@ -556,7 +573,6 @@ function applyDesktopLayout(){
   const gW=Math.min(300,Math.max(220,(vw-cx-PLANET_R-PAD)*0.9));
   const gH=Math.min(460,usableH-2*PAD);
   const plW=Math.min(380,Math.max(300,vw*0.28));
-  /* FIX 2: player height floor raised to 270px to match CSS min-height */
   const plH=Math.max(270,Math.min(320,usableH*0.38));
   tl.style.width=tlW+'px';tl.style.height=tlH+'px';
   g.style.width=gW+'px';g.style.height=gH+'px';
@@ -569,6 +585,8 @@ function applyDesktopLayout(){
   pl.style.top=Math.max(PAD,Math.min(usableH-plH-PAD,cy+PLANET_R-20))+'px';
   tl.style.bottom=g.style.bottom=pl.style.bottom='';
   tl.style.right=g.style.right=pl.style.right='';
+  /* FIX 1: populate gallery immediately on desktop startup */
+  renderGallery();
 }
 
 /* ── GALLERY ── */
@@ -597,6 +615,7 @@ const GALLERY=[
 ];
 function renderGallery(){
   const grid=document.getElementById('gw-grid');if(!grid)return;
+  if(grid.children.length)return; /* already rendered — skip */
   grid.innerHTML=GALLERY.map((g,i)=>`<div class="gallery-item" data-gi="${i}"><img src="${g.src}" alt="" loading="lazy"/></div>`).join('');
   grid.querySelectorAll('.gallery-item').forEach(el=>{
     const idx=+el.dataset.gi;
@@ -641,7 +660,6 @@ function renderGallery(){
 }
 
 let _imgIdx=0;
-/* Tracks whether the image viewer has been positioned at least once */
 let _imgWinPositioned=false;
 
 /* ── IMAGE VIEWER ── */
@@ -649,8 +667,6 @@ function openImageWin(idx){
   const win=document.getElementById('image-win');
   _imgIdx=idx;
   document.getElementById('image-win-img').src=GALLERY[idx].src;
-  /* Only set size/position the very first time the window opens.
-     After that, keep whatever position/size the user has set. */
   if(!isMob()&&!_imgWinPositioned){
     const vw=window.innerWidth,vh=window.innerHeight;
     const w=Math.min(560,vw-80),h=Math.min(520,vh-120);
@@ -728,16 +744,22 @@ function makeWindowDraggable(winId,barId){
   function onMove(e){
     if(!mode)return;
     const dx=e.clientX-sx,dy=e.clientY-sy,mw=240,
-          /* FIX 3: player window resize floor matches CSS min-height of 270px */
           mh=(winId==='player-win'?270:200),
           vw=window.innerWidth,vh=window.innerHeight;
-    if(mode==='drag'){win.style.left=clamp(sl+dx,0,vw-sw)+'px';win.style.top=clamp(st+dy,0,vh-sh)+'px';}
-    else{
+    if(mode==='drag'){
+      win.style.left=clamp(sl+dx,0,vw-sw)+'px';
+      win.style.top=clamp(st+dy,0,vh-sh)+'px';
+    } else {
       let l=sl,t=st,w=sw,h=sh;
       if(mode==='se'){w=clamp(sw+dx,mw,1200);h=clamp(sh+dy,mh,900);}
       else if(mode==='sw'){const nw=clamp(sw-dx,mw,1200);l=sl+sw-nw;w=nw;h=clamp(sh+dy,mh,900);}
       else if(mode==='ne'){w=clamp(sw+dx,mw,1200);const nh=clamp(sh-dy,mh,900);t=st+sh-nh;h=nh;}
       else if(mode==='nw'){const nw=clamp(sw-dx,mw,1200);l=sl+sw-nw;w=nw;const nh=clamp(sh-dy,mh,900);t=st+sh-nh;h=nh;}
+      /* FIX 3: side handle resize directions */
+      else if(mode==='n'){const nh=clamp(sh-dy,mh,900);t=st+sh-nh;h=nh;}
+      else if(mode==='s'){h=clamp(sh+dy,mh,900);}
+      else if(mode==='e'){w=clamp(sw+dx,mw,1200);}
+      else if(mode==='w'){const nw=clamp(sw-dx,mw,1200);l=sl+sw-nw;w=nw;}
       win.style.left=l+'px';win.style.top=t+'px';win.style.width=w+'px';win.style.height=h+'px';
     }
   }
@@ -935,115 +957,149 @@ document.getElementById('btn-download').addEventListener('click',()=>{
 });
 
 /* ── TRACKLIST RENDER + DRAG-REORDER ── */
-let dragSrcIdx=null,dragOverIdx=null;
-const dropLine=document.getElementById('drop-line');
-
-function renderTracklist(filter=''){
-  const list=document.getElementById('sidebar-tracklist');
-  const q=filter.toLowerCase();
-  list.innerHTML='';
-  TRACKS.forEach((t,i)=>{
-    if(q&&!t.title.toLowerCase().includes(q)&&!t.artist.toLowerCase().includes(q))return;
+function renderTracklist(filter){
+  const container=document.getElementById('sidebar-tracklist');
+  /* preserve drop-line element */
+  const dropLine=document.getElementById('drop-line');
+  /* clear all track items but keep drop-line */
+  Array.from(container.children).forEach(el=>{if(el.id!=='drop-line')el.remove();});
+  const q=(filter||'').toLowerCase();
+  const items=TRACKS.map((t,i)=>({t,origIdx:i})).filter(({t})=>!q||t.title.toLowerCase().includes(q)||t.artist.toLowerCase().includes(q));
+  document.getElementById('track-count').textContent=`${items.length}/${TRACKS.length}`;
+  items.forEach(({t,origIdx})=>{
     const el=document.createElement('div');
-    el.className='track-item'+(i===currentIndex?' active':'');
-    el.dataset.idx=i;
+    el.className='track-item'+(origIdx===currentIndex?' active':'');
+    el.dataset.idx=origIdx;
     el.innerHTML=`
-      <div class="drag-handle" data-idx="${i}" title="Drag to reorder">
-        <svg width="10" height="16" viewBox="0 0 10 16" fill="none"><circle cx="3" cy="3" r="1.2" fill="currentColor"/><circle cx="7" cy="3" r="1.2" fill="currentColor"/><circle cx="3" cy="8" r="1.2" fill="currentColor"/><circle cx="7" cy="8" r="1.2" fill="currentColor"/><circle cx="3" cy="13" r="1.2" fill="currentColor"/><circle cx="7" cy="13" r="1.2" fill="currentColor"/></svg>
-      </div>
+      <div class="drag-handle" title="Drag to reorder"><span class="material-symbols-outlined" style="font-size:16px;pointer-events:none">drag_indicator</span></div>
       <div style="flex:1;min-width:0">
-        <p class="track-title" style="font-size:11px;font-weight:700;color:rgba(233,225,222,.85);margin:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${t.title}</p>
-        <p class="track-artist" style="font-size:9px;font-weight:600;color:rgba(0,200,150,.55);margin:0;letter-spacing:.08em">${t.artist}</p>
+        <p class="track-title" style="font-size:11px;font-weight:700;color:rgba(233,225,222,.82);margin:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${t.title}</p>
+        <p class="track-artist" style="font-size:8px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:rgba(0,200,150,.5);margin:0">${t.artist}</p>
       </div>
-      <span class="tape-counter" style="font-size:8px;opacity:.45">${String(i+1).padStart(2,'0')}</span>`;
-    el.addEventListener('click',e=>{
-      if(e.target.closest('.drag-handle'))return;
-      loadTrack(i,true);
-      const playerWin=document.getElementById('player-win');
-      if(playerWin.style.display!=='flex'){
-        if(isMob()){mobToggle('player-win','btn-mob-player');}
-        else{playerWin.style.display='flex';const btn=document.getElementById('btn-player');if(btn)btn.classList.add('win-open');bringToFront('player-win');}
-      }
-    });
-    /* drag-reorder */
-    const handle=el.querySelector('.drag-handle');
-    handle.addEventListener('pointerdown',e=>{
-      dragSrcIdx=i;
-      handle.classList.add('grabbing');
-      el.classList.add('is-dragging');
-      handle.setPointerCapture(e.pointerId);
-      e.stopPropagation();
-    });
-    handle.addEventListener('pointermove',e=>{
-      if(dragSrcIdx===null)return;
-      e.preventDefault();
-      const items=[...list.querySelectorAll('.track-item:not(.is-dragging)')];
-      let best=null,bestDist=Infinity;
-      for(const item of items){
-        const r=item.getBoundingClientRect();
-        const mid=r.top+r.height/2;
-        const d=Math.abs(e.clientY-mid);
-        if(d<bestDist){bestDist=d;best={item,mid,r};}
-      }
-      if(best){
-        const targetIdx=+best.item.dataset.idx;
-        dragOverIdx=e.clientY<best.mid?targetIdx:targetIdx+1;
-        const lineY=e.clientY<best.mid?best.r.top:best.r.bottom;
-        dropLine.style.top=(lineY-1.5)+'px';
-        dropLine.style.display='block';
-      }
-    },{passive:false});
-    handle.addEventListener('pointerup',()=>{
-      handle.classList.remove('grabbing');
-      el.classList.remove('is-dragging');
-      dropLine.style.display='none';
-      if(dragSrcIdx!==null&&dragOverIdx!==null&&dragOverIdx!==dragSrcIdx&&dragOverIdx!==dragSrcIdx+1){
-        const moved=TRACKS.splice(dragSrcIdx,1)[0];
-        const insertAt=dragOverIdx>dragSrcIdx?dragOverIdx-1:dragOverIdx;
-        TRACKS.splice(insertAt,0,moved);
-        if(currentIndex===dragSrcIdx)currentIndex=insertAt;
-        else if(dragSrcIdx<currentIndex&&insertAt>=currentIndex)currentIndex--;
-        else if(dragSrcIdx>currentIndex&&insertAt<=currentIndex)currentIndex++;
-        renderTracklist(document.getElementById('search-input').value);
-        document.getElementById('track-count').textContent=`${TRACKS.length} tracks`;
-      }
-      dragSrcIdx=null;dragOverIdx=null;
-    });
-    handle.addEventListener('pointercancel',()=>{
-      handle.classList.remove('grabbing');
-      el.classList.remove('is-dragging');
-      dropLine.style.display='none';
-      dragSrcIdx=null;dragOverIdx=null;
-    });
-    list.appendChild(el);
+      <span class="material-symbols-outlined" style="font-size:13px;color:rgba(150,100,255,.3);flex-shrink:0;font-variation-settings:'FILL' 1">music_note</span>`;
+    el.addEventListener('click',e=>{if(e.target.closest('.drag-handle'))return;loadTrack(origIdx,true);});
+    container.appendChild(el);
   });
-  document.getElementById('track-count').textContent=`${TRACKS.length} tracks`;
 }
 
-document.getElementById('search-input').addEventListener('input',e=>renderTracklist(e.target.value));
+/* ── TRACKLIST DRAG REORDER ── */
+(function(){
+  const container=document.getElementById('sidebar-tracklist');
+  const dropLine=document.getElementById('drop-line');
+  let dragging=null,dragOrigIdx=-1,insertBefore=null;
+
+  function getTrackItems(){return Array.from(container.querySelectorAll('.track-item'));}
+
+  function getInsertTarget(clientY){
+    const items=getTrackItems();
+    for(let i=0;i<items.length;i++){
+      const r=items[i].getBoundingClientRect();
+      if(clientY<r.top+r.height/2)return items[i];
+    }
+    return null;
+  }
+
+  /* FIX 2: drop-line is now position:absolute inside the scrollable container.
+     We position it relative to the container's scrollTop. */
+  function positionDropLine(targetEl){
+    const contRect=container.getBoundingClientRect();
+    if(targetEl){
+      const r=targetEl.getBoundingClientRect();
+      const y=r.top-contRect.top+container.scrollTop-2;
+      dropLine.style.top=y+'px';
+    } else {
+      const items=getTrackItems();
+      if(items.length){
+        const last=items[items.length-1].getBoundingClientRect();
+        dropLine.style.top=(last.bottom-contRect.top+container.scrollTop+1)+'px';
+      } else {
+        dropLine.style.top='0px';
+      }
+    }
+    dropLine.style.left='4px';
+    dropLine.style.right='4px';
+    dropLine.style.display='block';
+  }
+
+  function startDrag(handle,e){
+    const item=handle.closest('.track-item');
+    if(!item)return;
+    dragOrigIdx=+item.dataset.idx;
+    dragging=item;
+    item.classList.add('is-dragging');
+    handle.classList.add('grabbing');
+    e.preventDefault();
+  }
+
+  function onMove(clientY){
+    if(!dragging)return;
+    insertBefore=getInsertTarget(clientY);
+    positionDropLine(insertBefore);
+  }
+
+  function endDrag(){
+    if(!dragging){dropLine.style.display='none';return;}
+    dragging.classList.remove('is-dragging');
+    dragging.querySelector('.drag-handle')?.classList.remove('grabbing');
+    dropLine.style.display='none';
+
+    if(insertBefore!==dragging&&insertBefore!==null){
+      const targetIdx=+insertBefore.dataset.idx;
+      const moved=TRACKS.splice(dragOrigIdx,1)[0];
+      const newIdx=targetIdx>dragOrigIdx?targetIdx-1:targetIdx;
+      TRACKS.splice(newIdx,0,moved);
+      if(currentIndex===dragOrigIdx)currentIndex=newIdx;
+      else if(dragOrigIdx<currentIndex&&newIdx>=currentIndex)currentIndex--;
+      else if(dragOrigIdx>currentIndex&&newIdx<=currentIndex)currentIndex++;
+    } else if(insertBefore===null&&dragging){
+      /* dropped at end */
+      const moved=TRACKS.splice(dragOrigIdx,1)[0];
+      TRACKS.push(moved);
+      if(currentIndex===dragOrigIdx)currentIndex=TRACKS.length-1;
+      else if(dragOrigIdx<currentIndex)currentIndex--;
+    }
+
+    dragging=null;dragOrigIdx=-1;insertBefore=null;
+    renderTracklist(document.getElementById('search-input').value);
+  }
+
+  container.addEventListener('mousedown',e=>{
+    const handle=e.target.closest('.drag-handle');
+    if(handle)startDrag(handle,e);
+  });
+  container.addEventListener('touchstart',e=>{
+    const handle=e.target.closest('.drag-handle');
+    if(handle){startDrag(handle,e.touches[0]);}
+  },{passive:false});
+  window.addEventListener('mousemove',e=>{if(dragging)onMove(e.clientY);});
+  window.addEventListener('touchmove',e=>{if(dragging){e.preventDefault();onMove(e.touches[0].clientY);}},{passive:false});
+  window.addEventListener('mouseup',endDrag);
+  window.addEventListener('touchend',endDrag);
+})();
+
+document.getElementById('search-input').addEventListener('input',function(){renderTracklist(this.value);});
 
 /* ── INIT ── */
 (function init(){
   renderTracklist();
-  renderGallery();
-  const allWins=['tracklist-win','gallery-win','player-win'];
-  allWins.forEach(id=>{
-    const w=document.getElementById(id);
-    if(w)w.style.display='flex';
-  });
-  document.getElementById('btn-tracklist').classList.add('win-open');
-  document.getElementById('btn-gallery').classList.add('win-open');
-  document.getElementById('btn-player').classList.add('win-open');
-  requestAnimationFrame(()=>{
-    requestAnimationFrame(()=>{
-      applyDesktopLayout();
-      updateMobPlayerHeight();
+  if(!isMob()){
+    ['tracklist-win','gallery-win','player-win'].forEach(id=>{
+      const w=document.getElementById(id);
+      if(w)w.style.display='flex';
+      const btn=id==='tracklist-win'?'btn-tracklist':id==='gallery-win'?'btn-gallery':'btn-player';
+      const b=document.getElementById(btn);if(b)b.classList.add('win-open');
     });
-  });
-  window.addEventListener('resize',()=>{
-    applyDesktopLayout();
+    /* layout then gallery in one shot */
+    requestAnimationFrame(()=>requestAnimationFrame(applyDesktopLayout));
+  } else {
+    ['tracklist-win','player-win'].forEach(id=>{
+      const w=document.getElementById(id);if(w)w.style.display='flex';
+    });
+    setMobActive('btn-mob-tracks',true);
+    setMobActive('btn-mob-player',true);
     updateMobPlayerHeight();
-  });
+  }
+  window.addEventListener('resize',()=>{if(!isMob())applyDesktopLayout();});
 })();
 </script>
 </body>
