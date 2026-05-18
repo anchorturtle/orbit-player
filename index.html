@@ -549,28 +549,31 @@ function updateMobPlayerHeight(){
 window.addEventListener('resize',updateMobPlayerHeight);
 
 /* ── MOBILE TOGGLE ──
-   FIX: tapping a toolbar button always brings that window to the front.
-   The window only hides if it's already the front-most active window AND
-   the user taps it again — detected by a short debounce tap.
-   Practically: first tap = show+front; second tap on same button = hide.
-   Close (×) button is the primary way to dismiss. */
+   FIX: tapping any toolbar button ALWAYS shows the window and brings it to
+   the front. The × close button is the primary dismiss. Tapping the same
+   active button a second time still dismisses (toggle) — but only after the
+   window is already on top (i.e. it was the last-tapped window). */
 function setMobActive(id,on){const b=document.getElementById(id);if(b)on?b.classList.add('active'):b.classList.remove('active');}
-let _lastMobTap={winId:null,time:0};
+
 function mobToggle(winId,btnId){
   const win=document.getElementById(winId);
   const vis=win.style.display==='flex';
-  const now=Date.now();
-  /* If window is visible AND the same button was tapped within 400ms = second-tap dismiss */
-  if(vis&&_lastMobTap.winId===winId&&(now-_lastMobTap.time)<400){
-    win.style.display='none';setMobActive(btnId,false);
-    _lastMobTap={winId:null,time:0};
+
+  /* Always bring to front and show. If already visible and already on top,
+     treat as a second tap → dismiss (toggle off). */
+  const currentZ=parseInt(win.style.zIndex)||0;
+  const isOnTop=currentZ>=_zBase+10;
+
+  if(vis&&isOnTop){
+    /* second tap on the front window → hide */
+    win.style.display='none';
+    setMobActive(btnId,false);
   } else {
-    /* First tap or different window: always show + bring to front */
+    /* first tap, or window was behind others → always show + front */
     win.style.display='flex';
     setMobActive(btnId,true);
     bringToFront(winId);
     if(winId==='gallery-win')renderGallery();
-    _lastMobTap={winId,time:now};
   }
   updateMobPlayerHeight();
 }
@@ -631,18 +634,21 @@ const GALLERY=[
   {src:'mandala.jpg'},
   {src:'scratchyjstr.jpg'},
 ];
+
+/* FIX: removed the early-exit guard so gallery always re-renders when opened.
+   This ensures it fills correctly after being hidden/shown on mobile. */
 function renderGallery(){
   const grid=document.getElementById('gw-grid');if(!grid)return;
-  if(grid.children.length)return;
   grid.innerHTML=GALLERY.map((g,i)=>`<div class="gallery-item" data-gi="${i}"><img src="${g.src}" alt="" loading="lazy"/></div>`).join('');
   grid.querySelectorAll('.gallery-item').forEach(el=>{
     const idx=+el.dataset.gi;
-    /* FIX: single-tap opens on mobile (120ms threshold + scroll-cancel guard).
-       Mouse/pen = immediate click. Touch = fire on pointerup if finger barely moved
-       and hold was >= 80ms (avoids mis-fires from a sloppy quick-tap during scroll start). */
-    const TAP_MIN_MS=80;   /* min hold to count as intentional tap */
-    const TAP_MAX_MS=700;  /* cancel if held longer than this (true long-press / scroll) */
-    const MOVE_TOL=12;     /* px of movement allowed before we treat it as a scroll */
+
+    /* FIX: TAP_MIN_MS reduced to 30ms — registers a quick intentional tap
+       without being so fast it fires accidentally when starting a scroll.
+       MOVE_TOL stays at 12px to cancel if the finger drifts while browsing. */
+    const TAP_MIN_MS=30;
+    const TAP_MAX_MS=700;
+    const MOVE_TOL=12;
     let ts=0,sx=0,sy=0,moved=false;
 
     el.addEventListener('pointerdown',e=>{
@@ -673,7 +679,17 @@ function openImageWin(idx){
   const win=document.getElementById('image-win');
   _imgIdx=idx;
   document.getElementById('image-win-img').src=GALLERY[idx].src;
-  if(!isMob()&&!_imgWinPositioned){
+  if(isMob()){
+    /* FIX: on mobile force true full-screen dimensions via inline style
+       (CSS already handles it via @media but inline ensures no leftover
+       desktop sizing from a previous desktop session bleeds through). */
+    win.style.width='100vw';
+    win.style.height='100dvh';
+    win.style.left='0';
+    win.style.top='0';
+    win.style.bottom='';
+    win.style.right='';
+  } else if(!_imgWinPositioned){
     const vw=window.innerWidth,vh=window.innerHeight;
     const w=Math.min(560,vw-80),h=Math.min(520,vh-120);
     win.style.width=w+'px';win.style.height=h+'px';
