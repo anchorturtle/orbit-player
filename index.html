@@ -100,7 +100,7 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:#06040f;color:#e9e1de
 .win-resize.se{bottom:0;right:0;cursor:se-resize;}
 
 .win-body{flex:1;overflow:hidden;position:relative;z-index:1;display:flex;flex-direction:column;}
-/* Player window: min-height raised to 270px to prevent volume row clipping */
+/* FIX 1: player window min-height raised to 270px to prevent volume row clipping */
 #player-win{min-height:270px;min-width:300px;}
 #player-win .win-body{overflow-y:auto;}
 
@@ -556,7 +556,7 @@ function applyDesktopLayout(){
   const gW=Math.min(300,Math.max(220,(vw-cx-PLANET_R-PAD)*0.9));
   const gH=Math.min(460,usableH-2*PAD);
   const plW=Math.min(380,Math.max(300,vw*0.28));
-  /* Fixed: player height must be at least 270px to avoid clipping the volume row */
+  /* FIX 2: player height floor raised to 270px to match CSS min-height */
   const plH=Math.max(270,Math.min(320,usableH*0.38));
   tl.style.width=tlW+'px';tl.style.height=tlH+'px';
   g.style.width=gW+'px';g.style.height=gH+'px';
@@ -728,7 +728,7 @@ function makeWindowDraggable(winId,barId){
   function onMove(e){
     if(!mode)return;
     const dx=e.clientX-sx,dy=e.clientY-sy,mw=240,
-          /* Fixed: player window resize floor matches CSS min-height of 270px */
+          /* FIX 3: player window resize floor matches CSS min-height of 270px */
           mh=(winId==='player-win'?270:200),
           vw=window.innerWidth,vh=window.innerHeight;
     if(mode==='drag'){win.style.left=clamp(sl+dx,0,vw-sw)+'px';win.style.top=clamp(st+dy,0,vh-sh)+'px';}
@@ -833,56 +833,62 @@ audio.addEventListener('timeupdate',()=>{
   if(isGoodDuration(dur)&&cur>=0){
     setProgress((cur/dur)*100);
     document.getElementById('time-current').textContent=fmt(cur);
-    tryUpdateDuration();
   }
 });
+
+audio.addEventListener('ended',()=>{
+  if(repeatMode===2){audio.currentTime=0;audio.play();return;}
+  if(isShuffle){
+    let ni;do{ni=Math.floor(Math.random()*TRACKS.length);}while(TRACKS.length>1&&ni===currentIndex);
+    loadTrack(ni,true);
+  }else if(currentIndex<TRACKS.length-1){
+    loadTrack(currentIndex+1,true);
+  }else if(repeatMode===1){
+    loadTrack(0,true);
+  }else{
+    isPlaying=false;updatePlayUI();
+  }
+});
+
+function updatePlayUI(){
+  document.getElementById('play-icon').textContent=isPlaying?'pause':'play_arrow';
+}
 
 function loadTrack(idx,autoplay){
   currentIndex=idx;
   const t=TRACKS[idx];
   audio.src=t.file;
+  audio.load();
   document.getElementById('fp-title').textContent=t.title;
   document.getElementById('fp-artist').textContent=t.artist;
   document.getElementById('focal-title').textContent=t.title;
   document.getElementById('focal-artist').textContent=t.artist;
-  setProgress(0);
-  document.getElementById('time-current').textContent='0:00';
   document.getElementById('time-total').textContent='0:00';
+  document.getElementById('time-current').textContent='0:00';
+  setProgress(0);
   seekOnReady=null;
   startDurationPoll();
-  renderTracklist();
-  if(autoplay){audio.play().then(()=>{isPlaying=true;updatePlayBtn();}).catch(()=>{});}
-}
-
-function updatePlayBtn(){
-  document.getElementById('play-icon').textContent=isPlaying?'pause':'play_arrow';
-}
-
-audio.addEventListener('ended',()=>{
-  if(repeatMode===2){audio.currentTime=0;audio.play().catch(()=>{});}
-  else if(repeatMode===1||isShuffle){playNext();}
-  else if(currentIndex<TRACKS.length-1){loadTrack(currentIndex+1,true);}
-  else{isPlaying=false;updatePlayBtn();}
-});
-
-function playNext(){
-  if(isShuffle){loadTrack(Math.floor(Math.random()*TRACKS.length),true);}
-  else{loadTrack((currentIndex+1)%TRACKS.length,true);}
-}
-function playPrev(){
-  if(audio.currentTime>3){audio.currentTime=0;return;}
-  loadTrack((currentIndex-1+TRACKS.length)%TRACKS.length,isPlaying);
+  document.querySelectorAll('.track-item').forEach((el,i)=>{
+    el.classList.toggle('active',i===idx);
+  });
+  if(autoplay){audio.play().then(()=>{isPlaying=true;updatePlayUI();}).catch(()=>{isPlaying=false;updatePlayUI();});}
+  else{isPlaying=false;updatePlayUI();}
 }
 
 document.getElementById('btn-play').addEventListener('click',()=>{
+  if(!audio.src||audio.src===window.location.href){if(TRACKS.length)loadTrack(0,true);return;}
   if(isPlaying){audio.pause();isPlaying=false;}
-  else{audio.play().then(()=>{isPlaying=true;}).catch(()=>{});isPlaying=true;}
-  updatePlayBtn();
+  else{audio.play().then(()=>{isPlaying=true;}).catch(()=>{isPlaying=false;});isPlaying=true;}
+  updatePlayUI();
 });
-document.getElementById('btn-next').addEventListener('click',playNext);
-document.getElementById('btn-prev').addEventListener('click',playPrev);
-document.getElementById('btn-fwd10').addEventListener('click',()=>skip(10));
+
+document.getElementById('btn-prev').addEventListener('click',()=>{
+  if(audio.currentTime>3){audio.currentTime=0;return;}
+  loadTrack((currentIndex-1+TRACKS.length)%TRACKS.length,isPlaying);
+});
+document.getElementById('btn-next').addEventListener('click',()=>loadTrack((currentIndex+1)%TRACKS.length,isPlaying));
 document.getElementById('btn-back10').addEventListener('click',()=>skip(-10));
+document.getElementById('btn-fwd10').addEventListener('click',()=>skip(10));
 
 document.getElementById('btn-shuffle').addEventListener('click',function(){
   isShuffle=!isShuffle;
@@ -892,124 +898,152 @@ document.getElementById('btn-shuffle').addEventListener('click',function(){
 document.getElementById('btn-repeat').addEventListener('click',function(){
   repeatMode=(repeatMode+1)%3;
   const icon=document.getElementById('repeat-icon');
-  this.classList.toggle('active-state',repeatMode>0);
-  icon.textContent=repeatMode===2?'repeat_one':'repeat';
+  if(repeatMode===0){this.classList.remove('active-state');icon.textContent='repeat';}
+  else if(repeatMode===1){this.classList.add('active-state');icon.textContent='repeat';}
+  else{this.classList.add('active-state');icon.textContent='repeat_one';}
 });
 
 /* ── VOLUME ── */
+const volSlider=document.getElementById('vol-slider');
+const volIcon=document.getElementById('vol-icon');
 function setVolume(v){
   v=Math.max(0,Math.min(100,v));
   audio.volume=v/100;
-  document.getElementById('vol-slider').value=v;
+  volSlider.value=v;
+  volSlider.style.setProperty('--vol-pct',v+'%');
   document.getElementById('vol-pct').textContent=v+'%';
-  document.getElementById('vol-slider').style.setProperty('--vol-pct',v+'%');
-  const icon=document.getElementById('vol-icon');
-  icon.textContent=v===0?'volume_off':v<40?'volume_down':'volume_up';
-  if(isMuted&&v>0){isMuted=false;icon.classList.remove('muted');}
+  if(!isMuted){
+    volIcon.textContent=v===0?'volume_off':v<50?'volume_down':'volume_up';
+    volIcon.classList.toggle('muted',false);
+  }
 }
-document.getElementById('vol-slider').addEventListener('input',function(){
-  premuteVolume=+this.value;isMuted=false;
-  document.getElementById('vol-icon').classList.remove('muted');
-  setVolume(+this.value);
+volSlider.addEventListener('input',()=>{
+  if(isMuted){isMuted=false;volIcon.classList.remove('muted');}
+  premuteVolume=+volSlider.value;
+  setVolume(+volSlider.value);
 });
 document.getElementById('vol-icon-wrap').addEventListener('click',()=>{
-  if(isMuted){isMuted=false;setVolume(premuteVolume||80);document.getElementById('vol-icon').classList.remove('muted');}
-  else{premuteVolume=+document.getElementById('vol-slider').value;isMuted=true;audio.volume=0;document.getElementById('vol-icon').classList.add('muted');document.getElementById('vol-pct').textContent='0%';}
+  if(isMuted){isMuted=false;setVolume(premuteVolume||80);volIcon.classList.remove('muted');}
+  else{premuteVolume=+volSlider.value||80;isMuted=true;audio.volume=0;volIcon.textContent='volume_off';volIcon.classList.add('muted');}
 });
 setVolume(80);
 
 /* ── DOWNLOAD ── */
 document.getElementById('btn-download').addEventListener('click',()=>{
-  if(!audio.src)return;
-  const a=document.createElement('a');a.href=audio.src;
-  const parts=audio.src.split('/');a.download=decodeURIComponent(parts[parts.length-1]);
-  document.body.appendChild(a);a.click();document.body.removeChild(a);
+  const t=TRACKS[currentIndex];if(!t)return;
+  const a=document.createElement('a');a.href=t.file;a.download=t.file;a.click();
 });
 
-/* ── TRACKLIST RENDER ── */
-let _dragSrcIdx=null,_dragOverIdx=null;
-const _dropLine=document.getElementById('drop-line');
+/* ── TRACKLIST RENDER + DRAG-REORDER ── */
+let dragSrcIdx=null,dragOverIdx=null;
+const dropLine=document.getElementById('drop-line');
 
-function renderTracklist(){
-  const q=(document.getElementById('search-input').value||'').toLowerCase();
+function renderTracklist(filter=''){
   const list=document.getElementById('sidebar-tracklist');
+  const q=filter.toLowerCase();
   list.innerHTML='';
-  document.getElementById('track-count').textContent=`${TRACKS.length} tracks`;
   TRACKS.forEach((t,i)=>{
     if(q&&!t.title.toLowerCase().includes(q)&&!t.artist.toLowerCase().includes(q))return;
-    const div=document.createElement('div');
-    div.className='track-item'+(i===currentIndex?' active':'');
-    div.dataset.idx=i;
-    div.draggable=true;
-    div.innerHTML=`
-      <div class="drag-handle" title="Drag to reorder"><span class="material-symbols-outlined" style="font-size:14px;pointer-events:none">drag_indicator</span></div>
-      <div style="flex:1;min-width:0">
-        <p class="track-title" style="font-size:11px;font-weight:700;color:rgba(233,225,222,.75);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin:0">${t.title}</p>
-        <p class="track-artist" style="font-size:9px;color:rgba(110,104,117,.7);margin:0">${t.artist}</p>
+    const el=document.createElement('div');
+    el.className='track-item'+(i===currentIndex?' active':'');
+    el.dataset.idx=i;
+    el.innerHTML=`
+      <div class="drag-handle" data-idx="${i}" title="Drag to reorder">
+        <svg width="10" height="16" viewBox="0 0 10 16" fill="none"><circle cx="3" cy="3" r="1.2" fill="currentColor"/><circle cx="7" cy="3" r="1.2" fill="currentColor"/><circle cx="3" cy="8" r="1.2" fill="currentColor"/><circle cx="7" cy="8" r="1.2" fill="currentColor"/><circle cx="3" cy="13" r="1.2" fill="currentColor"/><circle cx="7" cy="13" r="1.2" fill="currentColor"/></svg>
       </div>
-      <span class="material-symbols-outlined" style="font-size:13px;color:rgba(123,47,255,.4);flex-shrink:0;font-variation-settings:'FILL' 1">${i===currentIndex?'graphic_eq':'music_note'}</span>
-    `;
-    div.addEventListener('click',e=>{if(e.target.closest('.drag-handle'))return;loadTrack(i,true);});
-
-    /* drag-and-drop reorder */
-    div.addEventListener('dragstart',e=>{
-      _dragSrcIdx=i;div.classList.add('is-dragging');
-      e.dataTransfer.effectAllowed='move';
+      <div style="flex:1;min-width:0">
+        <p class="track-title" style="font-size:11px;font-weight:700;color:rgba(233,225,222,.85);margin:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${t.title}</p>
+        <p class="track-artist" style="font-size:9px;font-weight:600;color:rgba(0,200,150,.55);margin:0;letter-spacing:.08em">${t.artist}</p>
+      </div>
+      <span class="tape-counter" style="font-size:8px;opacity:.45">${String(i+1).padStart(2,'0')}</span>`;
+    el.addEventListener('click',e=>{
+      if(e.target.closest('.drag-handle'))return;
+      loadTrack(i,true);
+      const playerWin=document.getElementById('player-win');
+      if(playerWin.style.display!=='flex'){
+        if(isMob()){mobToggle('player-win','btn-mob-player');}
+        else{playerWin.style.display='flex';const btn=document.getElementById('btn-player');if(btn)btn.classList.add('win-open');bringToFront('player-win');}
+      }
     });
-    div.addEventListener('dragend',()=>{
-      div.classList.remove('is-dragging');_dragSrcIdx=null;_dragOverIdx=null;
-      _dropLine.style.display='none';
+    /* drag-reorder */
+    const handle=el.querySelector('.drag-handle');
+    handle.addEventListener('pointerdown',e=>{
+      dragSrcIdx=i;
+      handle.classList.add('grabbing');
+      el.classList.add('is-dragging');
+      handle.setPointerCapture(e.pointerId);
+      e.stopPropagation();
     });
-    div.addEventListener('dragover',e=>{
-      e.preventDefault();e.dataTransfer.dropEffect='move';
-      if(_dragSrcIdx===null||_dragSrcIdx===i)return;
-      _dragOverIdx=i;
-      const r=div.getBoundingClientRect();
-      const mid=r.top+r.height/2;
-      const lineY=e.clientY<mid?r.top:r.bottom;
-      _dropLine.style.display='block';
-      _dropLine.style.top=(lineY-1)+'px';
-      _dropLine.style.left='0';_dropLine.style.right='0';
+    handle.addEventListener('pointermove',e=>{
+      if(dragSrcIdx===null)return;
+      e.preventDefault();
+      const items=[...list.querySelectorAll('.track-item:not(.is-dragging)')];
+      let best=null,bestDist=Infinity;
+      for(const item of items){
+        const r=item.getBoundingClientRect();
+        const mid=r.top+r.height/2;
+        const d=Math.abs(e.clientY-mid);
+        if(d<bestDist){bestDist=d;best={item,mid,r};}
+      }
+      if(best){
+        const targetIdx=+best.item.dataset.idx;
+        dragOverIdx=e.clientY<best.mid?targetIdx:targetIdx+1;
+        const lineY=e.clientY<best.mid?best.r.top:best.r.bottom;
+        dropLine.style.top=(lineY-1.5)+'px';
+        dropLine.style.display='block';
+      }
+    },{passive:false});
+    handle.addEventListener('pointerup',()=>{
+      handle.classList.remove('grabbing');
+      el.classList.remove('is-dragging');
+      dropLine.style.display='none';
+      if(dragSrcIdx!==null&&dragOverIdx!==null&&dragOverIdx!==dragSrcIdx&&dragOverIdx!==dragSrcIdx+1){
+        const moved=TRACKS.splice(dragSrcIdx,1)[0];
+        const insertAt=dragOverIdx>dragSrcIdx?dragOverIdx-1:dragOverIdx;
+        TRACKS.splice(insertAt,0,moved);
+        if(currentIndex===dragSrcIdx)currentIndex=insertAt;
+        else if(dragSrcIdx<currentIndex&&insertAt>=currentIndex)currentIndex--;
+        else if(dragSrcIdx>currentIndex&&insertAt<=currentIndex)currentIndex++;
+        renderTracklist(document.getElementById('search-input').value);
+        document.getElementById('track-count').textContent=`${TRACKS.length} tracks`;
+      }
+      dragSrcIdx=null;dragOverIdx=null;
     });
-    div.addEventListener('drop',e=>{
-      e.preventDefault();_dropLine.style.display='none';
-      if(_dragSrcIdx===null||_dragSrcIdx===_dragOverIdx)return;
-      const r=div.getBoundingClientRect();
-      const mid=r.top+r.height/2;
-      const insertAfter=e.clientY>=mid;
-      const moved=TRACKS.splice(_dragSrcIdx,1)[0];
-      let dest=_dragOverIdx;
-      if(_dragSrcIdx<dest)dest--;
-      if(insertAfter)dest++;
-      TRACKS.splice(dest,0,moved);
-      if(currentIndex===_dragSrcIdx)currentIndex=dest;
-      else if(_dragSrcIdx<currentIndex&&dest>=currentIndex)currentIndex--;
-      else if(_dragSrcIdx>currentIndex&&dest<=currentIndex)currentIndex++;
-      renderTracklist();
+    handle.addEventListener('pointercancel',()=>{
+      handle.classList.remove('grabbing');
+      el.classList.remove('is-dragging');
+      dropLine.style.display='none';
+      dragSrcIdx=null;dragOverIdx=null;
     });
-
-    list.appendChild(div);
+    list.appendChild(el);
   });
+  document.getElementById('track-count').textContent=`${TRACKS.length} tracks`;
 }
 
-document.getElementById('search-input').addEventListener('input',renderTracklist);
+document.getElementById('search-input').addEventListener('input',e=>renderTracklist(e.target.value));
 
 /* ── INIT ── */
-(function(){
-  applyDesktopLayout();
-  const wins=['tracklist-win','gallery-win','player-win'];
-  wins.forEach(id=>{
+(function init(){
+  renderTracklist();
+  renderGallery();
+  const allWins=['tracklist-win','gallery-win','player-win'];
+  allWins.forEach(id=>{
     const w=document.getElementById(id);
     if(w)w.style.display='flex';
   });
   document.getElementById('btn-tracklist').classList.add('win-open');
   document.getElementById('btn-gallery').classList.add('win-open');
   document.getElementById('btn-player').classList.add('win-open');
-  renderTracklist();
-  if(isMob()){
+  requestAnimationFrame(()=>{
+    requestAnimationFrame(()=>{
+      applyDesktopLayout();
+      updateMobPlayerHeight();
+    });
+  });
+  window.addEventListener('resize',()=>{
+    applyDesktopLayout();
     updateMobPlayerHeight();
-    renderGallery();
-  }
+  });
 })();
 </script>
 </body>
