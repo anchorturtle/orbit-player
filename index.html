@@ -313,9 +313,11 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:#06040f;color:#e9e1de
     width:100%!important;max-width:100%!important;
     border-radius:0!important;border-left:none!important;border-right:none!important;border-top:none!important;
   }
+  /* IMAGE VIEWER: full screen on mobile */
   #image-win{
-    position:fixed!important;left:5vw!important;top:5vh!important;
-    width:90vw!important;height:80vh!important;border-radius:16px!important;
+    position:fixed!important;left:0!important;top:0!important;
+    width:100vw!important;height:100dvh!important;
+    border-radius:0!important;z-index:9000!important;
   }
 }
 @media(min-width:768px){#planet-bg{bottom:80px;}} /* ============ TABLET / IPAD (768-1180px) ============ */ @media(min-width:768px)and(max-width:1180px){ .ctrl-btn,.taskbar-btn,.mob-btn,.win-close{min-width:36px;min-height:36px;} .ctrl-btn .material-symbols-outlined,.taskbar-btn .material-symbols-outlined,.mob-btn .material-symbols-outlined{font-size:22px!important;} .win-title{font-size:10px!important;} .win-bar{padding:11px 14px 10px!important;} .win-close{width:26px!important;height:26px!important;font-size:13px!important;} .track-title{font-size:13px!important;} .track-artist{font-size:10px!important;} .vol-row{padding:7px 12px!important;} #vol-slider::-webkit-slider-thumb{width:20px!important;height:20px!important;} #vol-pct{font-size:10px!important;} .taskbar-btn{font-size:11px!important;padding:8px 12px!important;min-width:72px!important;} .taskbar-btn .material-symbols-outlined{font-size:22px!important;} .mob-btn{padding:10px 22px!important;font-size:10px!important;} .mob-btn .material-symbols-outlined{font-size:26px!important;} #fp-title{font-size:13px!important;} #fp-artist{font-size:10px!important;} } /* ============ BUTTON PRESS FIX ============ */ .ctrl-btn,.taskbar-btn,.mob-btn{ box-shadow:0 3px 6px rgba(0,0,0,.45),0 1px 0 rgba(0,0,0,.3),inset 0 1px 0 rgba(255,255,255,.10); border-top-color:rgba(255,255,255,.15);border-left-color:rgba(255,255,255,.12); border-bottom-color:rgba(0,0,0,.45);border-right-color:rgba(0,0,0,.28); } .ctrl-btn:active,.taskbar-btn:active,.mob-btn:active{ transform:scale(.95) translateY(2px)!important; box-shadow:0 1px 2px rgba(0,0,0,.5),inset 0 3px 6px rgba(0,0,0,.4),inset 0 1px 2px rgba(0,0,0,.3)!important; border-top-color:rgba(0,0,0,.4)!important;border-left-color:rgba(0,0,0,.3)!important; border-bottom-color:rgba(255,255,255,.08)!important;border-right-color:rgba(0,0,0,.15)!important; } .win-close{ box-shadow:0 3px 6px rgba(0,0,0,.5),inset 0 1px 0 rgba(255,255,255,.08); border-top-color:rgba(255,255,255,.15);border-left-color:rgba(255,255,255,.12); border-bottom-color:rgba(0,0,0,.45);border-right-color:rgba(0,0,0,.28); } .win-close:active{ transform:scale(.88) translateY(2px)!important; box-shadow:0 1px 2px rgba(0,0,0,.5),inset 0 3px 5px rgba(0,0,0,.35)!important; border-top-color:rgba(0,0,0,.4)!important;border-bottom-color:rgba(255,255,255,.06)!important; }
@@ -546,13 +548,30 @@ function updateMobPlayerHeight(){
 }
 window.addEventListener('resize',updateMobPlayerHeight);
 
-/* ── MOBILE TOGGLE ── */
+/* ── MOBILE TOGGLE ──
+   FIX: tapping a toolbar button always brings that window to the front.
+   The window only hides if it's already the front-most active window AND
+   the user taps it again — detected by a short debounce tap.
+   Practically: first tap = show+front; second tap on same button = hide.
+   Close (×) button is the primary way to dismiss. */
 function setMobActive(id,on){const b=document.getElementById(id);if(b)on?b.classList.add('active'):b.classList.remove('active');}
+let _lastMobTap={winId:null,time:0};
 function mobToggle(winId,btnId){
   const win=document.getElementById(winId);
   const vis=win.style.display==='flex';
-  if(vis){win.style.display='none';setMobActive(btnId,false);}
-  else{win.style.display='flex';setMobActive(btnId,true);bringToFront(winId);if(winId==='gallery-win')renderGallery();}
+  const now=Date.now();
+  /* If window is visible AND the same button was tapped within 400ms = second-tap dismiss */
+  if(vis&&_lastMobTap.winId===winId&&(now-_lastMobTap.time)<400){
+    win.style.display='none';setMobActive(btnId,false);
+    _lastMobTap={winId:null,time:0};
+  } else {
+    /* First tap or different window: always show + bring to front */
+    win.style.display='flex';
+    setMobActive(btnId,true);
+    bringToFront(winId);
+    if(winId==='gallery-win')renderGallery();
+    _lastMobTap={winId,time:now};
+  }
   updateMobPlayerHeight();
 }
 
@@ -585,7 +604,6 @@ function applyDesktopLayout(){
   pl.style.top=Math.max(PAD,Math.min(usableH-plH-PAD,cy+PLANET_R-20))+'px';
   tl.style.bottom=g.style.bottom=pl.style.bottom='';
   tl.style.right=g.style.right=pl.style.right='';
-  /* FIX 1: populate gallery immediately on desktop startup */
   renderGallery();
 }
 
@@ -615,47 +633,35 @@ const GALLERY=[
 ];
 function renderGallery(){
   const grid=document.getElementById('gw-grid');if(!grid)return;
-  if(grid.children.length)return; /* already rendered — skip */
+  if(grid.children.length)return;
   grid.innerHTML=GALLERY.map((g,i)=>`<div class="gallery-item" data-gi="${i}"><img src="${g.src}" alt="" loading="lazy"/></div>`).join('');
   grid.querySelectorAll('.gallery-item').forEach(el=>{
     const idx=+el.dataset.gi;
-    let pressStartTime=0,startX=0,startY=0;
-    const LONG_PRESS_MS=350;
-    const MOVE_TOL=10;
+    /* FIX: single-tap opens on mobile (120ms threshold + scroll-cancel guard).
+       Mouse/pen = immediate click. Touch = fire on pointerup if finger barely moved
+       and hold was >= 80ms (avoids mis-fires from a sloppy quick-tap during scroll start). */
+    const TAP_MIN_MS=80;   /* min hold to count as intentional tap */
+    const TAP_MAX_MS=700;  /* cancel if held longer than this (true long-press / scroll) */
+    const MOVE_TOL=12;     /* px of movement allowed before we treat it as a scroll */
+    let ts=0,sx=0,sy=0,moved=false;
 
     el.addEventListener('pointerdown',e=>{
       if(e.pointerType==='touch'){
-        pressStartTime=performance.now();
-        startX=e.clientX;
-        startY=e.clientY;
-      }else{
-        pressStartTime=0;
+        ts=performance.now();sx=e.clientX;sy=e.clientY;moved=false;
       }
     });
-
-    el.addEventListener('pointerup',e=>{
-      const now=performance.now();
-      if(e.pointerType==='mouse'||e.pointerType==='pen'){
-        openImageWin(idx);
-        return;
-      }
-      if(!pressStartTime)return;
-      const dt=now-pressStartTime;
-      const dx=Math.abs(e.clientX-startX);
-      const dy=Math.abs(e.clientY-startY);
-      if(dt>=LONG_PRESS_MS&&dx<=MOVE_TOL&&dy<=MOVE_TOL){
-        openImageWin(idx);
-      }
-      pressStartTime=0;
-    });
-
-    el.addEventListener('pointercancel',()=>{pressStartTime=0;});
     el.addEventListener('pointermove',e=>{
-      if(!pressStartTime)return;
-      const dx=Math.abs(e.clientX-startX);
-      const dy=Math.abs(e.clientY-startY);
-      if(dx>MOVE_TOL||dy>MOVE_TOL){pressStartTime=0;}
+      if(!ts)return;
+      if(Math.abs(e.clientX-sx)>MOVE_TOL||Math.abs(e.clientY-sy)>MOVE_TOL){moved=true;}
     });
+    el.addEventListener('pointerup',e=>{
+      if(e.pointerType==='mouse'||e.pointerType==='pen'){openImageWin(idx);return;}
+      if(!ts)return;
+      const dt=performance.now()-ts;
+      ts=0;
+      if(!moved&&dt>=TAP_MIN_MS&&dt<=TAP_MAX_MS){openImageWin(idx);}
+    });
+    el.addEventListener('pointercancel',()=>{ts=0;});
   });
 }
 
@@ -755,7 +761,6 @@ function makeWindowDraggable(winId,barId){
       else if(mode==='sw'){const nw=clamp(sw-dx,mw,1200);l=sl+sw-nw;w=nw;h=clamp(sh+dy,mh,900);}
       else if(mode==='ne'){w=clamp(sw+dx,mw,1200);const nh=clamp(sh-dy,mh,900);t=st+sh-nh;h=nh;}
       else if(mode==='nw'){const nw=clamp(sw-dx,mw,1200);l=sl+sw-nw;w=nw;const nh=clamp(sh-dy,mh,900);t=st+sh-nh;h=nh;}
-      /* FIX 3: side handle resize directions */
       else if(mode==='n'){const nh=clamp(sh-dy,mh,900);t=st+sh-nh;h=nh;}
       else if(mode==='s'){h=clamp(sh+dy,mh,900);}
       else if(mode==='e'){w=clamp(sw+dx,mw,1200);}
@@ -999,8 +1004,6 @@ function renderTracklist(filter){
     return null;
   }
 
-  /* FIX 2: drop-line is now position:absolute inside the scrollable container.
-     We position it relative to the container's scrollTop. */
   function positionDropLine(targetEl){
     const contRect=container.getBoundingClientRect();
     if(targetEl){
