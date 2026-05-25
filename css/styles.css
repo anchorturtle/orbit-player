@@ -198,6 +198,20 @@ body { font-family: 'Plus Jakarta Sans', sans-serif; background: #06040f; color:
 }
 
 #player-win { min-height: 270px; min-width: 360px; }
+
+/* Song Detail Window polish */
+#song-detail-win .win-body {
+  font-family: inherit;
+}
+#song-detail-win h2 {
+  font-style: italic;
+  letter-spacing: -0.02em;
+}
+
+/* Toast */
+#app-toast {
+  transition: opacity 0.2s ease;
+}
 #player-win .win-body { overflow-y: auto; }
 
 /* ============ ANALOG BUTTONS ============ */

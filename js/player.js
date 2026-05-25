@@ -4,20 +4,132 @@
    ============================================ */
 
 const TRACKS = [
-  {title:'Geronimo',                  artist:'jestR', slug:'geronimo',                  file:'11 - Geronimo- jestR - 2020.mp3'},
-  {title:'Mile High',                 artist:'jestR', slug:'mile-high',                 file:'3 - Mile High- jestR - 2020.mp3'},
-  {title:'Follow The Flow',           artist:'jestR', slug:'follow-the-flow',           file:'Mp3-FollowTheFlow.mp3'},
-  {title:'Soul Seer',                 artist:'jestR', slug:'soul-seer',                 file:'Mp3-SoulSeer.mp3'},
-  {title:'Peace',                     artist:'jestR', slug:'peace',                     file:'Peace.mp3'},
-  {title:'Strider',                   artist:'jestR', slug:'strider',                   file:'Strider.mp3'},
-  {title:'Insane Membrane',           artist:'jestR', slug:'insane-membrane',           file:'Insane_membrane.mp3'},
-  {title:'Wavy',                      artist:'jestR', slug:'wavy',                      file:'wavy.mp3'},
-  {title:'Boa Constrictor',           artist:'jestR', slug:'boa-constrictor',           file:'boaconstrictor.mp3'},
-  {title:'News',                      artist:'jestR', slug:'news',                      file:'Newsss.mp3'},
-  {title:'Wheels',                    artist:'jestR', slug:'wheels',                    file:'mp3Wheels-36.mp3'},
-  {title:'Pop',                       artist:'jestR', slug:'pop',                       file:'pop.mp3'},
-  {title:'The Sum Of Hippy Thoughts', artist:'jestR', slug:'the-sum-of-hippy-thoughts', file:'the sum of hippy thoughts - Output - Stereo Out.mp3'},
-  {title:'What Dreams May Come',      artist:'jestR', slug:'what-dreams-may-come',      file:'what_dreams_may_comewavy.wav'},
+  {
+    title: 'Geronimo',
+    artist: 'jestR',
+    slug: 'geronimo',
+    file: '11 - Geronimo- jestR - 2020.mp3',
+    year: 2020,
+    description: 'Explosive opener with raw energy and sharp lyricism.',
+    artwork: 'Jesterdaze.png'
+  },
+  {
+    title: 'Mile High',
+    artist: 'jestR',
+    slug: 'mile-high',
+    file: '3 - Mile High- jestR - 2020.mp3',
+    year: 2020,
+    description: 'Atmospheric and introspective with soaring melodies.',
+    artwork: null
+  },
+  {
+    title: 'Follow The Flow',
+    artist: 'jestR',
+    slug: 'follow-the-flow',
+    file: 'Mp3-FollowTheFlow.mp3',
+    year: 2021,
+    description: 'Smooth, hypnotic groove exploring surrender and momentum.',
+    artwork: null
+  },
+  {
+    title: 'Soul Seer',
+    artist: 'jestR',
+    slug: 'soul-seer',
+    file: 'Mp3-SoulSeer.mp3',
+    year: 2021,
+    description: 'Mystical and introspective journey through inner vision.',
+    artwork: null
+  },
+  {
+    title: 'Peace',
+    artist: 'jestR',
+    slug: 'peace',
+    file: 'Peace.mp3',
+    year: 2022,
+    description: 'Minimal and meditative. A moment of stillness.',
+    artwork: null
+  },
+  {
+    title: 'Strider',
+    artist: 'jestR',
+    slug: 'strider',
+    file: 'Strider.mp3',
+    year: 2022,
+    description: 'Dark, driving beat with determined, cinematic feel.',
+    artwork: null
+  },
+  {
+    title: 'Insane Membrane',
+    artist: 'jestR',
+    slug: 'insane-membrane',
+    file: 'Insane_membrane.mp3',
+    year: 2023,
+    description: 'Chaotic, textured, and emotionally charged.',
+    artwork: null
+  },
+  {
+    title: 'Wavy',
+    artist: 'jestR',
+    slug: 'wavy',
+    file: 'wavy.mp3',
+    year: 2023,
+    description: 'Liquid, dreamy production with fluid delivery.',
+    artwork: 'wavy.mp3' // placeholder - can point to image later
+  },
+  {
+    title: 'Boa Constrictor',
+    artist: 'jestR',
+    slug: 'boa-constrictor',
+    file: 'boaconstrictor.mp3',
+    year: 2024,
+    description: 'Tense, coiled energy that slowly tightens.',
+    artwork: null
+  },
+  {
+    title: 'News',
+    artist: 'jestR',
+    slug: 'news',
+    file: 'Newsss.mp3',
+    year: 2024,
+    description: 'Sharp commentary wrapped in heavy, distorted beats.',
+    artwork: null
+  },
+  {
+    title: 'Wheels',
+    artist: 'jestR',
+    slug: 'wheels',
+    file: 'mp3Wheels-36.mp3',
+    year: 2020,
+    description: 'Cyclic, hypnotic rhythm. Motion without destination.',
+    artwork: null
+  },
+  {
+    title: 'Pop',
+    artist: 'jestR',
+    slug: 'pop',
+    file: 'pop.mp3',
+    year: 2024,
+    description: 'Playful yet biting take on pop culture.',
+    artwork: null
+  },
+  {
+    title: 'The Sum Of Hippy Thoughts',
+    artist: 'jestR',
+    slug: 'the-sum-of-hippy-thoughts',
+    file: 'the sum of hippy thoughts - Output - Stereo Out.mp3',
+    year: 2025,
+    description: 'Expansive, philosophical closer with lush textures.',
+    artwork: null
+  },
+  {
+    title: 'What Dreams May Come',
+    artist: 'jestR',
+    slug: 'what-dreams-may-come',
+    file: 'what_dreams_may_comewavy.wav',
+    year: 2020,
+    description: 'Ethereal and cinematic. A dreamlike farewell.',
+    artwork: 'wavy.mp3'
+  }
 ];
 
 const audio = document.getElementById('audio-player');
@@ -377,41 +489,58 @@ function openSongDetail(slug) {
   const track = TRACKS[idx];
   currentSongSlug = slug;
 
-  // Populate UI
+  // Basic info
   document.getElementById('song-detail-title').textContent = track.title;
   document.getElementById('song-detail-artist').textContent = track.artist;
   document.getElementById('song-detail-title-bar').textContent = track.title;
+  document.getElementById('song-detail-year').textContent = track.year ? track.year : '';
 
-  // Meta info
+  // Artwork
+  const artContainer = document.getElementById('song-detail-art');
+  artContainer.innerHTML = '';
+  if (track.artwork) {
+    const img = document.createElement('img');
+    img.src = track.artwork;
+    img.style.cssText = 'width:100%;height:100%;object-fit:cover;border-radius:14px;';
+    artContainer.appendChild(img);
+  } else {
+    const icon = document.createElement('span');
+    icon.className = 'material-symbols-outlined';
+    icon.style.cssText = 'font-size:42px;color:var(--jestr-purple);font-variation-settings:"FILL" 1';
+    icon.textContent = 'music_note';
+    artContainer.appendChild(icon);
+  }
+
+  // Description
+  const descEl = document.getElementById('song-detail-description');
+  descEl.textContent = track.description || 'No description available.';
+
+  // Meta / Credits
   const metaEl = document.getElementById('song-detail-meta');
   metaEl.innerHTML = `
-    <div>Track ${idx + 1} of ${TRACKS.length}</div>
-    <div style="margin-top:4px;opacity:0.6;">Click play to listen • Shareable link ready</div>
+    <div><strong>Track</strong> ${idx + 1} / ${TRACKS.length}</div>
+    ${track.year ? `<div><strong>Year</strong> ${track.year}</div>` : ''}
+    <div style="flex:1 1 100%; height:1px; background:rgba(255,255,255,0.06); margin:4px 0;"></div>
+    <div style="opacity:0.6;">Dedicated link ready to share</div>
   `;
 
   const win = document.getElementById('song-detail-win');
   win.style.display = 'flex';
   bringToFront('song-detail-win');
 
-  // Wire buttons
+  // Buttons
   const playBtn = document.getElementById('song-detail-play');
   const downloadBtn = document.getElementById('song-detail-download');
   const shareBtn = document.getElementById('song-detail-share');
 
-  // Update play icon based on current state
   function syncPlayIcon() {
     const icon = playBtn.querySelector('.material-symbols-outlined');
-    if (currentIndex === idx && isPlaying) {
-      icon.textContent = 'pause';
-    } else {
-      icon.textContent = 'play_arrow';
-    }
+    icon.textContent = (currentIndex === idx && isPlaying) ? 'pause' : 'play_arrow';
   }
   syncPlayIcon();
 
   playBtn.onclick = () => {
     if (currentIndex === idx && isPlaying) {
-      // pause current
       document.getElementById('audio-player').pause();
       isPlaying = false;
       updatePlayUI();
@@ -431,14 +560,35 @@ function openSongDetail(slug) {
   shareBtn.onclick = () => {
     const url = `${location.origin}${location.pathname}#song/${slug}`;
     navigator.clipboard.writeText(url).then(() => {
-      const origText = shareBtn.innerHTML;
-      shareBtn.innerHTML = `<span class="material-symbols-outlined" style="font-size:15px">check</span>`;
-      setTimeout(() => { shareBtn.innerHTML = origText; }, 1400);
+      showToast('Link copied to clipboard');
     }).catch(() => {
-      // Fallback
       prompt('Copy this link:', url);
     });
   };
+}
+
+// Simple toast system
+function showToast(message, duration = 1800) {
+  let toast = document.getElementById('app-toast');
+  if (!toast) {
+    toast = document.createElement('div');
+    toast.id = 'app-toast';
+    toast.style.cssText = `
+      position:fixed; bottom:20px; left:50%; transform:translateX(-50%);
+      background:rgba(10,6,30,.92); color:#e9e1de; padding:8px 16px;
+      border-radius:8px; font-size:11px; font-weight:600; letter-spacing:.5px;
+      border:1px solid rgba(123,47,255,.25); z-index:9999; backdrop-filter:blur(12px);
+      box-shadow:0 4px 20px rgba(0,0,0,.4);
+    `;
+    document.body.appendChild(toast);
+  }
+  toast.textContent = message;
+  toast.style.display = 'block';
+
+  clearTimeout(toast._hideTimer);
+  toast._hideTimer = setTimeout(() => {
+    toast.style.display = 'none';
+  }, duration);
 }
 
 // Wire player share button (in main player header)
