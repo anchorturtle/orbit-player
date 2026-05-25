@@ -684,7 +684,7 @@ function openSongDetail(slug) {
 
     if (shareBtn) {
       shareBtn.onclick = () => {
-        const url = `${location.origin}${location.pathname}#song/${slug}`;
+        const url = `${location.origin}/song/${slug}`;
         navigator.clipboard.writeText(url).then(() => {
           showToast('Link copied to clipboard');
         }).catch(() => {
@@ -737,7 +737,7 @@ if (playerShareBtn) {
   playerShareBtn.addEventListener('click', () => {
     if (currentIndex >= 0 && TRACKS[currentIndex]) {
       const slug = TRACKS[currentIndex].slug;
-      const url = `${location.origin}${location.pathname}#song/${slug}`;
+      const url = `${location.origin}/song/${slug}`;
       openSongDetail(slug); // Open the dedicated page
       navigator.clipboard.writeText(url).then(() => {
         showToast('Link copied to clipboard');
@@ -764,18 +764,29 @@ if (fpArtist) fpArtist.addEventListener('click', openCurrentSongDetail);
 
 
 
-// Handle hash routing for direct song links (dedicated shareable links)
-function handleSongHash() {
-  const hash = location.hash;
-  if (hash.startsWith('#song/')) {
-    const slug = hash.replace('#song/', '');
-    // Multiple attempts to handle different load timings
+// Handle routing for direct song links (dedicated shareable links)
+function handleSongRouting() {
+  let slug = null;
+
+  // Support clean paths: /song/geronimo
+  if (window.location.pathname.startsWith('/song/')) {
+    slug = window.location.pathname.replace('/song/', '').replace(/\/$/, '');
+    // Update to hash version for SPA consistency
+    history.replaceState(null, '', `/#song/${slug}`);
+  } 
+  // Support old hash links: #song/geronimo
+  else if (location.hash.startsWith('#song/')) {
+    slug = location.hash.replace('#song/', '');
+  }
+
+  if (slug) {
+    // Multiple attempts for reliability on initial load
     const tryOpen = (delay) => {
       setTimeout(() => {
         openSongDetail(slug);
         const idx = findTrackBySlug(slug);
         if (idx !== -1) {
-          loadTrack(idx, false); // load the track without auto-playing
+          loadTrack(idx, false);
         }
       }, delay);
     };
@@ -786,7 +797,8 @@ function handleSongHash() {
   }
 }
 
-window.addEventListener('hashchange', handleSongHash);
+window.addEventListener('hashchange', handleSongRouting);
+window.addEventListener('load', handleSongRouting);
 
 // Run on initial load (multiple attempts for reliability)
 window.addEventListener('load', () => {
