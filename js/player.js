@@ -14,6 +14,15 @@ const TRACKS = [
     artwork: 'Jesterdaze.png'
   },
   {
+    title: 'Spin Cycle',
+    artist: 'jestR',
+    slug: 'spin-cycle',
+    file: 'Spin-Cycle.mp3',
+    year: 2025,
+    description: '',
+    artwork: null
+  },
+  {
     title: 'Mile High',
     artist: 'jestR',
     slug: 'mile-high',
