@@ -7,6 +7,11 @@ function isMob() {
   return window.innerWidth < 768;
 }
 
+function isIOS() {
+  return /iPad|iPhone|iPod/.test(navigator.userAgent) ||
+         (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+}
+
 /* ── Z-INDEX MANAGEMENT ── */
 let _zBase = 300;
 

@@ -337,6 +337,15 @@ document.getElementById('vol-icon-wrap').addEventListener('click', () => {
 
 setVolume(80);
 
+// Hide volume controls on iOS (and optionally other mobile) because
+// audio.volume is ignored by the browser. Users must use hardware volume buttons.
+if (isIOS()) {
+  const volRow = document.querySelector('#player-win .vol-row');
+  if (volRow) {
+    volRow.style.display = 'none';
+  }
+}
+
 /* ── DOWNLOAD ── */
 document.getElementById('btn-download').addEventListener('click', () => {
   const t = TRACKS[currentIndex]; if (!t) return;
