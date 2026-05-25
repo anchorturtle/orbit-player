@@ -358,18 +358,38 @@ function renderTracklist(filter) {
         <p class="track-title" style="font-size:11px;font-weight:700;color:rgba(233,225,222,.82);margin:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${t.title}</p>
         <p class="track-artist" style="font-size:8px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:rgba(0,200,150,.5);margin:0">${t.artist}</p>
       </div>
-      <button class="track-share-btn ctrl-btn" style="padding:3px 6px;margin-left:6px;flex-shrink:0;" title="Share">
+      <button class="track-info-btn ctrl-btn" style="padding:3px 6px;margin-left:6px;flex-shrink:0;" title="More details">
+        <span class="material-symbols-outlined" style="font-size:14px">info</span>
+      </button>
+      <button class="track-share-btn ctrl-btn" style="padding:3px 6px;margin-left:2px;flex-shrink:0;" title="Copy share link">
         <span class="material-symbols-outlined" style="font-size:14px">share</span>
       </button>
       <span class="material-symbols-outlined" style="font-size:13px;color:rgba(150,100,255,.3);flex-shrink:0;font-variation-settings:'FILL' 1">music_note</span>`;
-    el.addEventListener('click', e => { if (e.target.closest('.drag-handle') || e.target.closest('.track-share-btn')) return; loadTrack(origIdx, true); });
+    el.addEventListener('click', e => { 
+      if (e.target.closest('.drag-handle') || e.target.closest('.track-info-btn') || e.target.closest('.track-share-btn')) return; 
+      loadTrack(origIdx, true); 
+    });
 
-    // Wire share button
+    // Wire Info button → open details
+    const infoBtn = el.querySelector('.track-info-btn');
+    if (infoBtn) {
+      infoBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        openSongDetail(t.slug);
+      });
+    }
+
+    // Wire Share button → copy link + toast
     const shareBtn = el.querySelector('.track-share-btn');
     if (shareBtn) {
       shareBtn.addEventListener('click', (e) => {
         e.stopPropagation();
-        openSongDetail(t.slug);
+        const url = `${location.origin}${location.pathname}#song/${t.slug}`;
+        navigator.clipboard.writeText(url).then(() => {
+          showToast('Link copied');
+        }).catch(() => {
+          prompt('Copy link:', url);
+        });
       });
     }
 
@@ -591,12 +611,35 @@ function showToast(message, duration = 1800) {
   }, duration);
 }
 
-// Wire player share button (in main player header)
-document.getElementById('btn-share')?.addEventListener('click', () => {
+// Wire player header buttons
+const playerShareBtn = document.getElementById('btn-share');
+if (playerShareBtn) {
+  playerShareBtn.addEventListener('click', () => {
+    if (currentIndex >= 0 && TRACKS[currentIndex]) {
+      const slug = TRACKS[currentIndex].slug;
+      const url = `${location.origin}${location.pathname}#song/${slug}`;
+      navigator.clipboard.writeText(url).then(() => {
+        showToast('Link copied to clipboard');
+      }).catch(() => {
+        prompt('Copy this link:', url);
+      });
+    }
+  });
+}
+
+// Make player title/artist clickable to open details
+const fpTitle = document.getElementById('fp-title');
+const fpArtist = document.getElementById('fp-artist');
+if (fpTitle) fpTitle.style.cursor = 'pointer';
+if (fpArtist) fpArtist.style.cursor = 'pointer';
+
+function openCurrentSongDetail() {
   if (currentIndex >= 0 && TRACKS[currentIndex]) {
     openSongDetail(TRACKS[currentIndex].slug);
   }
-});
+}
+if (fpTitle) fpTitle.addEventListener('click', openCurrentSongDetail);
+if (fpArtist) fpArtist.addEventListener('click', openCurrentSongDetail);
 
 
 
