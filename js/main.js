@@ -124,7 +124,18 @@ function makeWindowDraggable(winId, barId) {
     }
   }
 
-  function onUp() { mode = null; }
+  function onUp() {
+    mode = null;
+    // Ensure scrollbars recalculate properly after the window has been resized
+    const scrollers = win.querySelectorAll('.win-body, #sidebar-tracklist');
+    scrollers.forEach(el => {
+      const prev = el.style.overflowY;
+      el.style.overflowY = 'hidden';
+      // force reflow
+      void el.offsetHeight;
+      el.style.overflowY = prev || 'auto';
+    });
+  }
 
   bar.addEventListener('mousedown', e => startOp(e, 'drag'));
   bar.addEventListener('touchstart', e => {

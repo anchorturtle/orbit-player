@@ -169,10 +169,24 @@ body { font-family: 'Plus Jakarta Sans', sans-serif; background: #06040f; color:
 .win-resize.se { bottom: 0; right: 0; width: 20px; height: 20px; cursor: se-resize; }
 .win-resize.n { top: 0; left: 20px; right: 20px; height: 6px; cursor: n-resize; }
 .win-resize.s { bottom: 0; left: 20px; right: 20px; height: 6px; cursor: s-resize; }
-.win-resize.e { top: 20px; right: 0; width: 6px; bottom: 20px; cursor: e-resize; }
+.win-resize.e { top: 20px; right: 0; width: 4px; bottom: 20px; cursor: e-resize; }
 .win-resize.w { top: 20px; left: 0; width: 6px; bottom: 20px; cursor: w-resize; }
 
-.win-body { flex: 1; overflow: hidden; position: relative; z-index: 1; display: flex; flex-direction: column; }
+.win-body {
+  flex: 1;
+  overflow: hidden;
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  /* Keep scrollbar away from the right edge resize handle */
+  padding-right: 10px;
+}
+
+#sidebar-tracklist {
+  padding-right: 8px;
+}
+
 #player-win { min-height: 270px; min-width: 360px; }
 #player-win .win-body { overflow-y: auto; }
 
