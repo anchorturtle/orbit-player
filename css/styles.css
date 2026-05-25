@@ -70,39 +70,42 @@ body { font-family: 'Plus Jakarta Sans', sans-serif; background: #06040f; color:
 }
 
 /* ============ THEMED SCROLLBARS ============ */
-/* Subtle glassmorphism/analog aesthetic. Matches the purple-blue-green palette and button chrome.
-   Thin on desktop, minimal or hidden on most mobile browsers. */
+/* Thicker + more reliable for desktop mouse interaction.
+   Matches the glassmorphism / analog button aesthetic.
+   More visible by default and stronger on hover so it doesn't feel fidgety or disappear too fast. */
 .no-scrollbar::-webkit-scrollbar,
 .win-body::-webkit-scrollbar {
-  width: 5px;
-  height: 5px;
+  width: 8px;
+  height: 8px;
 }
 
 .no-scrollbar::-webkit-scrollbar-track,
 .win-body::-webkit-scrollbar-track {
-  background: rgba(255,255,255,0.035);
-  border-radius: 999px;
+  background: rgba(255,255,255,0.07);
+  border-radius: 4px;
 }
 
 .no-scrollbar::-webkit-scrollbar-thumb,
 .win-body::-webkit-scrollbar-thumb {
   background: linear-gradient(var(--jestr-purple), var(--jestr-blue));
-  border-radius: 999px;
-  border: 1px solid rgba(255,255,255,0.08);
-  box-shadow: 0 1px 3px rgba(0,0,0,0.3);
+  border-radius: 4px;
+  border: 1px solid rgba(255,255,255,0.15);
+  box-shadow: 0 1px 4px rgba(0,0,0,0.35);
+  min-height: 40px; /* ensures a decent clickable/grabbable area */
 }
 
 .no-scrollbar::-webkit-scrollbar-thumb:hover,
 .win-body::-webkit-scrollbar-thumb:hover {
   background: linear-gradient(var(--jestr-blue), var(--jestr-green));
-  border-color: rgba(255,255,255,0.15);
+  border-color: rgba(255,255,255,0.3);
+  box-shadow: 0 0 8px rgba(123,47,255,0.5);
 }
 
-/* Firefox */
+/* Firefox — 'auto' gives a thicker, more reliable scrollbar for clicking */
 .no-scrollbar,
 .win-body {
-  scrollbar-width: thin;
-  scrollbar-color: rgba(123,47,255,0.55) rgba(255,255,255,0.035);
+  scrollbar-width: auto;
+  scrollbar-color: rgba(123,47,255,0.65) rgba(255,255,255,0.07);
 }
 
 /* ============ WINDOW CHROME ============ */
