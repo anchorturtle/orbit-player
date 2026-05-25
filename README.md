@@ -17,7 +17,6 @@ orbit-player/
 │   ├── player.js       # Audio engine, tracklist, controls, drag-reorder, volume
 │   └── gallery.js      # Gallery data + image viewer with swipe/keyboard nav
 ├── gallery/            # Optional extra images (currently unused by array)
-├── netlify.toml
 ├── wrangler.jsonc
 └── README.md
 ```
@@ -26,7 +25,7 @@ orbit-player/
 
 - **index.html** is now tiny (~180 lines) — fast to edit even with AI
 - Each concern lives in its own file (CSS / player logic / gallery / windowing)
-- Still 100% static — works on GitHub Pages, Cloudflare Pages, Netlify, etc.
+- Still 100% static — works on GitHub Pages, Cloudflare Pages, etc.
 - No bundler, no npm, no build step
 
 ## Quick Start (Local)
@@ -46,8 +45,8 @@ Then visit http://localhost:8000
 
 ## Deployment
 
-- **Cloudflare Pages / GitHub Pages / Netlify**: Just push. The `css/` and `js/` folders are served automatically.
-- No special config changes needed (existing `netlify.toml` / `wrangler.jsonc` continue to work).
+- **Cloudflare Pages / GitHub Pages**: Just push. The `css/` and `js/` folders are served automatically.
+- The only config file needed is `wrangler.jsonc` (for Cloudflare).
 
 ## Editing Tips
 
