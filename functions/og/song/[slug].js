@@ -22,7 +22,7 @@ export async function onRequest(context) {
 
   const track = tracks[slug] || { title: 'Track', artist: 'jestR' };
 
-  // Clean, minimal, appealing OG image for song shares
+  // Simple but appealing OG image - dark cosmic background with strong readable text
   const svg = `
 <svg width="1200" height="630" viewBox="0 0 1200 630" xmlns="http://www.w3.org/2000/svg">
   <defs>
@@ -31,35 +31,35 @@ export async function onRequest(context) {
       <stop offset="100%" style="stop-color:#0a0620"/>
     </linearGradient>
     <linearGradient id="titleGrad" x1="0%" y1="0%" x2="100%" y2="0%">
-      <stop offset="0%" style="stop-color:#f0e9ff"/>
-      <stop offset="100%" style="stop-color:#c8b8ff"/>
+      <stop offset="0%" style="stop-color:#ffffff"/>
+      <stop offset="100%" style="stop-color:#d4c3ff"/>
     </linearGradient>
   </defs>
 
-  <!-- Background -->
+  <!-- Dark background -->
   <rect width="1200" height="630" fill="url(#bg)"/>
   
-  <!-- Very subtle cosmic glow -->
-  <circle cx="400" cy="280" r="380" fill="#7B2FFF" opacity="0.05"/>
+  <!-- Subtle purple glow behind text area for better contrast -->
+  <rect x="60" y="160" width="1080" height="280" rx="20" fill="#1a1035" opacity="0.75"/>
   
-  <!-- Song Title -->
+  <!-- Song Title - large and prominent -->
   <text 
-    x="120" 
-    y="270" 
+    x="100" 
+    y="280" 
     font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" 
-    font-size="78" 
+    font-size="82" 
     font-weight="800" 
     fill="url(#titleGrad)" 
-    letter-spacing="-1.8">
+    letter-spacing="-1.5">
     ${escapeXml(track.title)}
   </text>
   
-  <!-- Artist -->
+  <!-- Artist - clean and readable -->
   <text 
-    x="120" 
-    y="355" 
+    x="100" 
+    y="365" 
     font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" 
-    font-size="44" 
+    font-size="46" 
     font-weight="600" 
     fill="#00C896">
     ${escapeXml(track.artist)}
