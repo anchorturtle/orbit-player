@@ -172,7 +172,10 @@ function toggleWin(winId, btnId) {
   } else {
     win.style.display = 'flex'; btn.classList.add('win-open');
     bringToFront(winId);
-    if (winId === 'gallery-win') renderGallery();
+    if (winId === 'gallery-win') {
+      renderGallery();
+      if (window.updateGalleryScrollbar) window.updateGalleryScrollbar();
+    }
   }
 }
 
@@ -200,7 +203,10 @@ function mobToggle(winId, btnId) {
     win.style.display = 'flex';
     setMobActive(btnId, true);
     bringToFront(winId);
-    if (winId === 'gallery-win') renderGallery();
+    if (winId === 'gallery-win') {
+      renderGallery();
+      if (window.updateGalleryScrollbar) window.updateGalleryScrollbar();
+    }
   }
   updateMobPlayerHeight();
 }

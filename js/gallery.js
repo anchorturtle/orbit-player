@@ -249,17 +249,27 @@ document.addEventListener('keydown', e => {
     };
   }
 
-  // Also update when the gallery window is shown
+  // Force multiple updates when the gallery window becomes visible
   const galleryWin = document.getElementById('gallery-win');
   if (galleryWin) {
     const observer2 = new MutationObserver(() => {
       if (galleryWin.style.display === 'flex') {
+        // Call multiple times to handle layout timing
+        requestAnimationFrame(() => requestAnimationFrame(updateThumb));
         setTimeout(updateThumb, 80);
+        setTimeout(updateThumb, 200);
+        setTimeout(updateThumb, 500);
       }
     });
     observer2.observe(galleryWin, { attributes: true, attributeFilter: ['style'] });
   }
 
-  // First run
-  setTimeout(updateThumb, 100);
+  // Very defensive initial calls
+  requestAnimationFrame(() => requestAnimationFrame(updateThumb));
+  setTimeout(updateThumb, 150);
+  setTimeout(updateThumb, 400);
+  setTimeout(updateThumb, 800);
+
+  // Expose for main.js to call when opening the gallery
+  window.updateGalleryScrollbar = updateThumb;
 })();
