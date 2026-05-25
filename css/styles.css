@@ -69,49 +69,47 @@ body { font-family: 'Plus Jakarta Sans', sans-serif; background: #06040f; color:
   color: rgba(0,200,150,.65); font-weight: 700; text-transform: uppercase;
 }
 
-/* ============ THEMED SCROLLBARS (persistent, non-overlay on desktop) ============ */
-/* Goal: Stop the "hiding / popping up" behavior, especially when zoomed or resizing.
-   Always reserves space + more stable visibility. */
+/* ============ THEMED SCROLLBARS - Always visible & thick (classic style) ============ */
+/* Permanently shown, no hiding/popping. Thicker for easy clicking on desktop.
+   Matches the glassmorphism / analog aesthetic. */
 .no-scrollbar,
 .win-body {
-  /* This is the key property to prevent auto-hiding / overlay scrollbar flickering */
   scrollbar-gutter: stable both-edges;
 }
 
-/* WebKit (Chrome, Edge, etc.) */
+/* WebKit (Chrome/Edge) - thick permanent scrollbar */
 .no-scrollbar::-webkit-scrollbar,
 .win-body::-webkit-scrollbar {
-  width: 9px;
-  height: 9px;
+  width: 12px;
+  height: 12px;
 }
 
 .no-scrollbar::-webkit-scrollbar-track,
 .win-body::-webkit-scrollbar-track {
-  background: rgba(255,255,255,0.08);
-  border-radius: 4px;
+  background: rgba(255,255,255,0.12);
+  border-radius: 6px;
 }
 
 .no-scrollbar::-webkit-scrollbar-thumb,
 .win-body::-webkit-scrollbar-thumb {
   background: linear-gradient(var(--jestr-purple), var(--jestr-blue));
-  border-radius: 4px;
-  border: 1px solid rgba(255,255,255,0.18);
-  box-shadow: 0 1px 4px rgba(0,0,0,0.4);
-  min-height: 50px;
+  border-radius: 6px;
+  border: 1px solid rgba(255,255,255,0.25);
+  box-shadow: 0 1px 4px rgba(0,0,0,0.45);
+  min-height: 60px;
 }
 
 .no-scrollbar::-webkit-scrollbar-thumb:hover,
 .win-body::-webkit-scrollbar-thumb:hover {
   background: linear-gradient(var(--jestr-blue), var(--jestr-green));
-  border-color: rgba(255,255,255,0.35);
-  box-shadow: 0 0 10px rgba(123,47,255,0.6);
+  border-color: rgba(255,255,255,0.4);
 }
 
-/* Firefox */
+/* Firefox - thick permanent scrollbar */
 .no-scrollbar,
 .win-body {
   scrollbar-width: auto;
-  scrollbar-color: rgba(123,47,255,0.7) rgba(255,255,255,0.08);
+  scrollbar-color: rgba(123,47,255,0.75) rgba(255,255,255,0.12);
 }
 
 /* ============ WINDOW CHROME ============ */
