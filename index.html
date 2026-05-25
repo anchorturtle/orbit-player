@@ -127,6 +127,9 @@
         <button id="btn-download" class="ctrl-btn" style="padding:5px;flex-shrink:0" title="Download">
           <span class="material-symbols-outlined" style="font-size:15px">download</span>
         </button>
+        <button id="btn-share" class="ctrl-btn" style="padding:5px;flex-shrink:0" title="Share this track">
+          <span class="material-symbols-outlined" style="font-size:15px">share</span>
+        </button>
       </div>
       <div class="player-controls">
         <button id="btn-shuffle" class="ctrl-btn" title="Shuffle"><span class="material-symbols-outlined" style="font-size:16px">shuffle</span></button>
@@ -176,6 +179,50 @@
       <img id="image-win-img" src="" alt="" style="max-width:100%;max-height:100%;border-radius:8px;object-fit:contain;display:block;position:relative;z-index:1"/>
       <div class="img-nav img-nav-prev" id="img-nav-prev"><span class="material-symbols-outlined img-nav-icon">chevron_left</span></div>
       <div class="img-nav img-nav-next" id="img-nav-next"><span class="material-symbols-outlined img-nav-icon">chevron_right</span></div>
+    </div>
+  </div>
+
+  <!-- SONG DETAIL WINDOW -->
+  <div id="song-detail-win" class="win" style="display:none; min-width:320px; min-height:380px; z-index:340">
+    <div class="win-resize nw" data-dir="nw"></div><div class="win-resize ne" data-dir="ne"></div>
+    <div class="win-resize sw" data-dir="sw"></div><div class="win-resize se" data-dir="se"></div>
+    <div class="win-resize n" data-dir="n"></div><div class="win-resize s" data-dir="s"></div>
+    <div class="win-resize e" data-dir="e"></div><div class="win-resize w" data-dir="w"></div>
+    <div class="win-bar" id="song-detail-bar">
+      <div class="win-bar-left">
+        <span class="material-symbols-outlined" style="font-size:12px;color:rgba(150,100,255,.5)">drag_indicator</span>
+        <span class="win-title" id="song-detail-title-bar">Track Info</span>
+      </div>
+      <div class="win-bar-right">
+        <button class="win-close" id="close-song-detail" title="Close"><span class="material-symbols-outlined" style="font-size:11px">close</span></button>
+      </div>
+    </div>
+    <div class="win-body" style="padding:16px; overflow-y:auto; display:flex; flex-direction:column; gap:16px;">
+      <div style="text-align:center;">
+        <div id="song-detail-art" style="width:120px;height:120px;margin:0 auto 12px;border-radius:16px;background:rgba(123,47,255,.15);border:1px solid rgba(123,47,255,.3);display:flex;align-items:center;justify-content:center;">
+          <span class="material-symbols-outlined" style="font-size:48px;color:var(--jestr-purple);font-variation-settings:'FILL' 1">music_note</span>
+        </div>
+        <h2 id="song-detail-title" style="font-size:18px;font-weight:800;margin:0 0 4px;color:#e9e1de;"></h2>
+        <p id="song-detail-artist" class="phosphor" style="font-size:11px;font-weight:700;letter-spacing:.2em;text-transform:uppercase;color:var(--jestr-green);margin:0;"></p>
+      </div>
+
+      <div style="display:flex;gap:8px;justify-content:center;">
+        <button id="song-detail-play" class="play-btn" style="width:52px;height:52px;border-radius:50%;display:flex;align-items:center;justify-content:center;">
+          <span class="material-symbols-outlined text-white" style="font-size:28px;font-variation-settings:'FILL' 1">play_arrow</span>
+        </button>
+        <button id="song-detail-download" class="ctrl-btn" style="padding:8px 14px;" title="Download">
+          <span class="material-symbols-outlined" style="font-size:18px;margin-right:6px;">download</span>
+          <span style="font-size:11px;font-weight:700;">Download</span>
+        </button>
+        <button id="song-detail-share" class="ctrl-btn" style="padding:8px 14px;" title="Copy share link">
+          <span class="material-symbols-outlined" style="font-size:18px;margin-right:6px;">share</span>
+          <span style="font-size:11px;font-weight:700;">Share</span>
+        </button>
+      </div>
+
+      <div id="song-detail-meta" style="font-size:10px;color:rgba(233,225,222,.6);text-align:center;line-height:1.4;">
+        <!-- Populated by JS -->
+      </div>
     </div>
   </div>
 

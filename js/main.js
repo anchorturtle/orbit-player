@@ -215,12 +215,17 @@ function mobToggle(winId, btnId) {
 document.getElementById('close-tracklist').addEventListener('click', () => closeWin('tracklist-win', 'btn-tracklist', 'btn-mob-tracks'));
 document.getElementById('close-gallery').addEventListener('click', () => closeWin('gallery-win', 'btn-gallery', 'btn-mob-gallery'));
 document.getElementById('close-player').addEventListener('click', () => closeWin('player-win', 'btn-player', 'btn-mob-player'));
+document.getElementById('close-song-detail').addEventListener('click', () => {
+  const w = document.getElementById('song-detail-win');
+  if (w) w.style.display = 'none';
+});
 
 /* Make all windows draggable/resizable */
 makeWindowDraggable('tracklist-win', 'tracklist-bar');
 makeWindowDraggable('gallery-win', 'gallery-bar');
 makeWindowDraggable('player-win', 'player-bar');
 makeWindowDraggable('image-win', 'image-win-bar');
+makeWindowDraggable('song-detail-win', 'song-detail-bar');
 
 /* ── INIT ── */
 (function init() {

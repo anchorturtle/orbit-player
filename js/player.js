@@ -4,20 +4,20 @@
    ============================================ */
 
 const TRACKS = [
-  {title:'Geronimo',                  artist:'jestR', file:'11 - Geronimo- jestR - 2020.mp3'},
-  {title:'Mile High',                 artist:'jestR', file:'3 - Mile High- jestR - 2020.mp3'},
-  {title:'Follow The Flow',           artist:'jestR', file:'Mp3-FollowTheFlow.mp3'},
-  {title:'Soul Seer',                 artist:'jestR', file:'Mp3-SoulSeer.mp3'},
-  {title:'Peace',                     artist:'jestR', file:'Peace.mp3'},
-  {title:'Strider',                   artist:'jestR', file:'Strider.mp3'},
-  {title:'Insane Membrane',           artist:'jestR', file:'Insane_membrane.mp3'},
-  {title:'Wavy',                      artist:'jestR', file:'wavy.mp3'},
-  {title:'Boa Constrictor',           artist:'jestR', file:'boaconstrictor.mp3'},
-  {title:'News',                      artist:'jestR', file:'Newsss.mp3'},
-  {title:'Wheels',                    artist:'jestR', file:'mp3Wheels-36.mp3'},
-  {title:'Pop',                       artist:'jestR', file:'pop.mp3'},
-  {title:'The Sum Of Hippy Thoughts', artist:'jestR', file:'the sum of hippy thoughts - Output - Stereo Out.mp3'},
-  {title:'What Dreams May Come',      artist:'jestR', file:'what_dreams_may_comewavy.wav'},
+  {title:'Geronimo',                  artist:'jestR', slug:'geronimo',                  file:'11 - Geronimo- jestR - 2020.mp3'},
+  {title:'Mile High',                 artist:'jestR', slug:'mile-high',                 file:'3 - Mile High- jestR - 2020.mp3'},
+  {title:'Follow The Flow',           artist:'jestR', slug:'follow-the-flow',           file:'Mp3-FollowTheFlow.mp3'},
+  {title:'Soul Seer',                 artist:'jestR', slug:'soul-seer',                 file:'Mp3-SoulSeer.mp3'},
+  {title:'Peace',                     artist:'jestR', slug:'peace',                     file:'Peace.mp3'},
+  {title:'Strider',                   artist:'jestR', slug:'strider',                   file:'Strider.mp3'},
+  {title:'Insane Membrane',           artist:'jestR', slug:'insane-membrane',           file:'Insane_membrane.mp3'},
+  {title:'Wavy',                      artist:'jestR', slug:'wavy',                      file:'wavy.mp3'},
+  {title:'Boa Constrictor',           artist:'jestR', slug:'boa-constrictor',           file:'boaconstrictor.mp3'},
+  {title:'News',                      artist:'jestR', slug:'news',                      file:'Newsss.mp3'},
+  {title:'Wheels',                    artist:'jestR', slug:'wheels',                    file:'mp3Wheels-36.mp3'},
+  {title:'Pop',                       artist:'jestR', slug:'pop',                       file:'pop.mp3'},
+  {title:'The Sum Of Hippy Thoughts', artist:'jestR', slug:'the-sum-of-hippy-thoughts', file:'the sum of hippy thoughts - Output - Stereo Out.mp3'},
+  {title:'What Dreams May Come',      artist:'jestR', slug:'what-dreams-may-come',      file:'what_dreams_may_comewavy.wav'},
 ];
 
 const audio = document.getElementById('audio-player');
@@ -246,8 +246,21 @@ function renderTracklist(filter) {
         <p class="track-title" style="font-size:11px;font-weight:700;color:rgba(233,225,222,.82);margin:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${t.title}</p>
         <p class="track-artist" style="font-size:8px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:rgba(0,200,150,.5);margin:0">${t.artist}</p>
       </div>
+      <button class="track-share-btn ctrl-btn" style="padding:3px 6px;margin-left:6px;flex-shrink:0;" title="Share">
+        <span class="material-symbols-outlined" style="font-size:14px">share</span>
+      </button>
       <span class="material-symbols-outlined" style="font-size:13px;color:rgba(150,100,255,.3);flex-shrink:0;font-variation-settings:'FILL' 1">music_note</span>`;
-    el.addEventListener('click', e => { if (e.target.closest('.drag-handle')) return; loadTrack(origIdx, true); });
+    el.addEventListener('click', e => { if (e.target.closest('.drag-handle') || e.target.closest('.track-share-btn')) return; loadTrack(origIdx, true); });
+
+    // Wire share button
+    const shareBtn = el.querySelector('.track-share-btn');
+    if (shareBtn) {
+      shareBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        openSongDetail(t.slug);
+      });
+    }
+
     container.appendChild(el);
   });
 }
@@ -349,3 +362,112 @@ function renderTracklist(filter) {
 document.getElementById('search-input').addEventListener('input', function () {
   renderTracklist(this.value);
 });
+
+/* ── SONG DETAIL / SHARE SYSTEM ── */
+let currentSongSlug = null;
+
+function findTrackBySlug(slug) {
+  return TRACKS.findIndex(t => t.slug === slug);
+}
+
+function openSongDetail(slug) {
+  const idx = findTrackBySlug(slug);
+  if (idx === -1) return;
+
+  const track = TRACKS[idx];
+  currentSongSlug = slug;
+
+  // Populate UI
+  document.getElementById('song-detail-title').textContent = track.title;
+  document.getElementById('song-detail-artist').textContent = track.artist;
+  document.getElementById('song-detail-title-bar').textContent = track.title;
+
+  // Meta info
+  const metaEl = document.getElementById('song-detail-meta');
+  metaEl.innerHTML = `
+    <div>Track ${idx + 1} of ${TRACKS.length}</div>
+    <div style="margin-top:4px;opacity:0.6;">Click play to listen • Shareable link ready</div>
+  `;
+
+  const win = document.getElementById('song-detail-win');
+  win.style.display = 'flex';
+  bringToFront('song-detail-win');
+
+  // Wire buttons
+  const playBtn = document.getElementById('song-detail-play');
+  const downloadBtn = document.getElementById('song-detail-download');
+  const shareBtn = document.getElementById('song-detail-share');
+
+  // Update play icon based on current state
+  function syncPlayIcon() {
+    const icon = playBtn.querySelector('.material-symbols-outlined');
+    if (currentIndex === idx && isPlaying) {
+      icon.textContent = 'pause';
+    } else {
+      icon.textContent = 'play_arrow';
+    }
+  }
+  syncPlayIcon();
+
+  playBtn.onclick = () => {
+    if (currentIndex === idx && isPlaying) {
+      // pause current
+      document.getElementById('audio-player').pause();
+      isPlaying = false;
+      updatePlayUI();
+    } else {
+      loadTrack(idx, true);
+    }
+    syncPlayIcon();
+  };
+
+  downloadBtn.onclick = () => {
+    const a = document.createElement('a');
+    a.href = track.file;
+    a.download = track.file;
+    a.click();
+  };
+
+  shareBtn.onclick = () => {
+    const url = `${location.origin}${location.pathname}#song/${slug}`;
+    navigator.clipboard.writeText(url).then(() => {
+      const origText = shareBtn.innerHTML;
+      shareBtn.innerHTML = `<span class="material-symbols-outlined" style="font-size:15px">check</span>`;
+      setTimeout(() => { shareBtn.innerHTML = origText; }, 1400);
+    }).catch(() => {
+      // Fallback
+      prompt('Copy this link:', url);
+    });
+  };
+}
+
+// Wire player share button (in main player header)
+document.getElementById('btn-share')?.addEventListener('click', () => {
+  if (currentIndex >= 0 && TRACKS[currentIndex]) {
+    openSongDetail(TRACKS[currentIndex].slug);
+  }
+});
+
+
+
+// Handle hash routing for direct song links
+function handleSongHash() {
+  const hash = location.hash;
+  if (hash.startsWith('#song/')) {
+    const slug = hash.replace('#song/', '');
+    // Small delay to ensure everything is initialized
+    setTimeout(() => {
+      openSongDetail(slug);
+      // Also load the track (but don't auto-play)
+      const idx = findTrackBySlug(slug);
+      if (idx !== -1) {
+        loadTrack(idx, false);
+      }
+    }, 300);
+  }
+}
+
+window.addEventListener('hashchange', handleSongHash);
+
+// Run on initial load
+setTimeout(handleSongHash, 800);
