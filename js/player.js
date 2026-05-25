@@ -402,7 +402,7 @@ function renderTracklist(filter) {
 (function () {
   const container = document.getElementById('sidebar-tracklist');
   const dropLine = document.getElementById('drop-line');
-  let dragging = null, dragOrigIdx = -1, insertBefore = null;
+  let dragging = null, dragOrigIdx = -1, insertBefore = null, dragMoved = false;
 
   function getTrackItems() { return Array.from(container.querySelectorAll('.track-item')); }
 
@@ -440,6 +440,7 @@ function renderTracklist(filter) {
     if (!item) return;
     dragOrigIdx = +item.dataset.idx;
     dragging = item;
+    dragMoved = false;
     item.classList.add('is-dragging');
     handle.classList.add('grabbing');
     e.preventDefault();
@@ -447,6 +448,7 @@ function renderTracklist(filter) {
 
   function onMove(clientY) {
     if (!dragging) return;
+    dragMoved = true;
     insertBefore = getInsertTarget(clientY);
     positionDropLine(insertBefore);
   }
@@ -457,23 +459,27 @@ function renderTracklist(filter) {
     dragging.querySelector('.drag-handle')?.classList.remove('grabbing');
     dropLine.style.display = 'none';
 
-    if (insertBefore !== dragging && insertBefore !== null) {
-      const targetIdx = +insertBefore.dataset.idx;
-      const moved = TRACKS.splice(dragOrigIdx, 1)[0];
-      const newIdx = targetIdx > dragOrigIdx ? targetIdx - 1 : targetIdx;
-      TRACKS.splice(newIdx, 0, moved);
-      if (currentIndex === dragOrigIdx) currentIndex = newIdx;
-      else if (dragOrigIdx < currentIndex && newIdx >= currentIndex) currentIndex--;
-      else if (dragOrigIdx > currentIndex && newIdx <= currentIndex) currentIndex++;
-    } else if (insertBefore === null && dragging) {
-      /* dropped at end */
-      const moved = TRACKS.splice(dragOrigIdx, 1)[0];
-      TRACKS.push(moved);
-      if (currentIndex === dragOrigIdx) currentIndex = TRACKS.length - 1;
-      else if (dragOrigIdx < currentIndex) currentIndex--;
+    // Only reorder if the user actually dragged (moved the mouse while holding the handle)
+    if (dragMoved) {
+      if (insertBefore !== dragging && insertBefore !== null) {
+        const targetIdx = +insertBefore.dataset.idx;
+        const moved = TRACKS.splice(dragOrigIdx, 1)[0];
+        const newIdx = targetIdx > dragOrigIdx ? targetIdx - 1 : targetIdx;
+        TRACKS.splice(newIdx, 0, moved);
+        if (currentIndex === dragOrigIdx) currentIndex = newIdx;
+        else if (dragOrigIdx < currentIndex && newIdx >= currentIndex) currentIndex--;
+        else if (dragOrigIdx > currentIndex && newIdx <= currentIndex) currentIndex++;
+      } else if (insertBefore === null && dragging) {
+        /* dropped at end (after actual drag) */
+        const moved = TRACKS.splice(dragOrigIdx, 1)[0];
+        TRACKS.push(moved);
+        if (currentIndex === dragOrigIdx) currentIndex = TRACKS.length - 1;
+        else if (dragOrigIdx < currentIndex) currentIndex--;
+      }
     }
+    // If no movement happened, do nothing (just a click on the handle)
 
-    dragging = null; dragOrigIdx = -1; insertBefore = null;
+    dragging = null; dragOrigIdx = -1; insertBefore = null; dragMoved = false;
     renderTracklist(document.getElementById('search-input').value);
   }
 
@@ -505,87 +511,121 @@ function findTrackBySlug(slug) {
 
 function openSongDetail(slug) {
   const idx = findTrackBySlug(slug);
-  if (idx === -1) return;
+  if (idx === -1) {
+    console.warn('[Song Detail] Track not found for slug:', slug);
+    return;
+  }
 
   const track = TRACKS[idx];
   currentSongSlug = slug;
 
-  // Basic info
-  document.getElementById('song-detail-title').textContent = track.title;
-  document.getElementById('song-detail-artist').textContent = track.artist;
-  document.getElementById('song-detail-title-bar').textContent = track.title;
-  document.getElementById('song-detail-year').textContent = track.year ? track.year : '';
+  try {
+    // Basic info
+    const titleEl = document.getElementById('song-detail-title');
+    const artistEl = document.getElementById('song-detail-artist');
+    const titleBarEl = document.getElementById('song-detail-title-bar');
+    const yearEl = document.getElementById('song-detail-year');
 
-  // Artwork
-  const artContainer = document.getElementById('song-detail-art');
-  artContainer.innerHTML = '';
-  if (track.artwork) {
-    const img = document.createElement('img');
-    img.src = track.artwork;
-    img.style.cssText = 'width:100%;height:100%;object-fit:cover;border-radius:14px;';
-    artContainer.appendChild(img);
-  } else {
-    const icon = document.createElement('span');
-    icon.className = 'material-symbols-outlined';
-    icon.style.cssText = 'font-size:42px;color:var(--jestr-purple);font-variation-settings:"FILL" 1';
-    icon.textContent = 'music_note';
-    artContainer.appendChild(icon);
-  }
+    if (titleEl) titleEl.textContent = track.title;
+    if (artistEl) artistEl.textContent = track.artist;
+    if (titleBarEl) titleBarEl.textContent = track.title;
+    if (yearEl) yearEl.textContent = track.year ? track.year : '';
 
-  // Description
-  const descEl = document.getElementById('song-detail-description');
-  descEl.textContent = track.description || 'No description available.';
-
-  // Meta / Credits
-  const metaEl = document.getElementById('song-detail-meta');
-  metaEl.innerHTML = `
-    <div><strong>Track</strong> ${idx + 1} / ${TRACKS.length}</div>
-    ${track.year ? `<div><strong>Year</strong> ${track.year}</div>` : ''}
-    <div style="flex:1 1 100%; height:1px; background:rgba(255,255,255,0.06); margin:4px 0;"></div>
-    <div style="opacity:0.6;">Dedicated link ready to share</div>
-  `;
-
-  const win = document.getElementById('song-detail-win');
-  win.style.display = 'flex';
-  bringToFront('song-detail-win');
-
-  // Buttons
-  const playBtn = document.getElementById('song-detail-play');
-  const downloadBtn = document.getElementById('song-detail-download');
-  const shareBtn = document.getElementById('song-detail-share');
-
-  function syncPlayIcon() {
-    const icon = playBtn.querySelector('.material-symbols-outlined');
-    icon.textContent = (currentIndex === idx && isPlaying) ? 'pause' : 'play_arrow';
-  }
-  syncPlayIcon();
-
-  playBtn.onclick = () => {
-    if (currentIndex === idx && isPlaying) {
-      document.getElementById('audio-player').pause();
-      isPlaying = false;
-      updatePlayUI();
-    } else {
-      loadTrack(idx, true);
+    // Artwork
+    const artContainer = document.getElementById('song-detail-art');
+    if (artContainer) {
+      artContainer.innerHTML = '';
+      if (track.artwork) {
+        const img = document.createElement('img');
+        img.src = track.artwork;
+        img.style.cssText = 'width:100%;height:100%;object-fit:cover;border-radius:14px;';
+        artContainer.appendChild(img);
+      } else {
+        const icon = document.createElement('span');
+        icon.className = 'material-symbols-outlined';
+        icon.style.cssText = 'font-size:42px;color:var(--jestr-purple);font-variation-settings:"FILL" 1';
+        icon.textContent = 'music_note';
+        artContainer.appendChild(icon);
+      }
     }
-    syncPlayIcon();
-  };
 
-  downloadBtn.onclick = () => {
-    const a = document.createElement('a');
-    a.href = track.file;
-    a.download = track.file;
-    a.click();
-  };
+    // Description
+    const descEl = document.getElementById('song-detail-description');
+    if (descEl) {
+      descEl.textContent = track.description || 'No description available.';
+    }
 
-  shareBtn.onclick = () => {
-    const url = `${location.origin}${location.pathname}#song/${slug}`;
-    navigator.clipboard.writeText(url).then(() => {
-      showToast('Link copied to clipboard');
-    }).catch(() => {
-      prompt('Copy this link:', url);
-    });
-  };
+    // Meta / Credits
+    const metaEl = document.getElementById('song-detail-meta');
+    if (metaEl) {
+      metaEl.innerHTML = `
+        <div><strong>Track</strong> ${idx + 1} / ${TRACKS.length}</div>
+        ${track.year ? `<div><strong>Year</strong> ${track.year}</div>` : ''}
+        <div style="flex:1 1 100%; height:1px; background:rgba(255,255,255,0.06); margin:4px 0;"></div>
+        <div style="opacity:0.6;">Dedicated link ready to share</div>
+      `;
+    }
+
+    // Show the window
+    const win = document.getElementById('song-detail-win');
+    if (win) {
+      win.style.display = 'flex';
+      if (typeof bringToFront === 'function') {
+        bringToFront('song-detail-win');
+      }
+    } else {
+      console.error('[Song Detail] #song-detail-win not found in DOM');
+    }
+
+    // Wire dynamic buttons inside the window
+    const playBtn = document.getElementById('song-detail-play');
+    const downloadBtn = document.getElementById('song-detail-download');
+    const shareBtn = document.getElementById('song-detail-share');
+
+    if (playBtn) {
+      function syncPlayIcon() {
+        const icon = playBtn.querySelector('.material-symbols-outlined');
+        if (icon) {
+          icon.textContent = (currentIndex === idx && isPlaying) ? 'pause' : 'play_arrow';
+        }
+      }
+      syncPlayIcon();
+
+      playBtn.onclick = () => {
+        if (currentIndex === idx && isPlaying) {
+          document.getElementById('audio-player').pause();
+          isPlaying = false;
+          updatePlayUI();
+        } else {
+          loadTrack(idx, true);
+        }
+        syncPlayIcon();
+      };
+    }
+
+    if (downloadBtn) {
+      downloadBtn.onclick = () => {
+        const a = document.createElement('a');
+        a.href = track.file;
+        a.download = track.file;
+        a.click();
+      };
+    }
+
+    if (shareBtn) {
+      shareBtn.onclick = () => {
+        const url = `${location.origin}${location.pathname}#song/${slug}`;
+        navigator.clipboard.writeText(url).then(() => {
+          showToast('Link copied to clipboard');
+        }).catch(() => {
+          prompt('Copy this link:', url);
+        });
+      };
+    }
+
+  } catch (err) {
+    console.error('[Song Detail] Error opening song detail:', err);
+  }
 }
 
 // Simple toast system
