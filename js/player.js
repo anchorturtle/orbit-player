@@ -554,8 +554,8 @@ function openSongDetail(slug) {
       console.error('[Song Detail] #song-detail-win not found in DOM');
     }
 
-    // Update browser tab / bookmark title for better sharing and bookmarking
-    document.title = `${track.title} — Orbit • jestR`;
+    // Update browser tab / bookmark title — clean "Title - Artist" format for song shares
+    document.title = `${track.title} - ${track.artist}`;
 
     // Wire dynamic buttons inside the window
     const playBtn = document.getElementById('song-detail-play');
