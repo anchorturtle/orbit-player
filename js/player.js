@@ -358,41 +358,11 @@ function renderTracklist(filter) {
         <p class="track-title" style="font-size:11px;font-weight:700;color:rgba(233,225,222,.82);margin:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${t.title}</p>
         <p class="track-artist" style="font-size:8px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:rgba(0,200,150,.5);margin:0">${t.artist}</p>
       </div>
-      <button class="track-info-btn ctrl-btn" style="padding:3px 6px;margin-left:6px;flex-shrink:0;" title="More details">
-        <span class="material-symbols-outlined" style="font-size:14px">info</span>
-      </button>
-      <button class="track-share-btn ctrl-btn" style="padding:3px 6px;margin-left:2px;flex-shrink:0;" title="Copy share link">
-        <span class="material-symbols-outlined" style="font-size:14px">share</span>
-      </button>
       <span class="material-symbols-outlined" style="font-size:13px;color:rgba(150,100,255,.3);flex-shrink:0;font-variation-settings:'FILL' 1">music_note</span>`;
     el.addEventListener('click', e => { 
-      if (e.target.closest('.drag-handle') || e.target.closest('.track-info-btn') || e.target.closest('.track-share-btn')) return; 
+      if (e.target.closest('.drag-handle')) return; 
       loadTrack(origIdx, true); 
     });
-
-    // Wire Info button → open details
-    const infoBtn = el.querySelector('.track-info-btn');
-    if (infoBtn) {
-      infoBtn.addEventListener('click', (e) => {
-        e.stopPropagation();
-        openSongDetail(t.slug);
-      });
-    }
-
-    // Wire Share button → open dedicated song page + copy link + toast
-    const shareBtn = el.querySelector('.track-share-btn');
-    if (shareBtn) {
-      shareBtn.addEventListener('click', (e) => {
-        e.stopPropagation();
-        const url = `${location.origin}${location.pathname}#song/${t.slug}`;
-        openSongDetail(t.slug); // Show the dedicated song page
-        navigator.clipboard.writeText(url).then(() => {
-          showToast('Link copied');
-        }).catch(() => {
-          prompt('Copy link:', url);
-        });
-      });
-    }
 
     container.appendChild(el);
   });
@@ -570,9 +540,16 @@ function openSongDetail(slug) {
     const win = document.getElementById('song-detail-win');
     if (win) {
       win.style.display = 'flex';
-      if (typeof bringToFront === 'function') {
-        bringToFront('song-detail-win');
-      }
+      // Aggressively bring to front, especially important for hash links on initial load
+      const bring = () => {
+        if (typeof bringToFront === 'function') {
+          bringToFront('song-detail-win');
+        }
+      };
+      bring();
+      requestAnimationFrame(bring);
+      setTimeout(bring, 50);
+      setTimeout(bring, 150);
     } else {
       console.error('[Song Detail] #song-detail-win not found in DOM');
     }
@@ -709,9 +686,10 @@ function handleSongHash() {
         }
       }, delay);
     };
-    tryOpen(200);
-    tryOpen(600);
-    tryOpen(1200);
+    tryOpen(150);
+    tryOpen(400);
+    tryOpen(800);
+    tryOpen(1400);
   }
 }
 
