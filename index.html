@@ -91,8 +91,12 @@
         <button class="win-close" id="close-gallery" title="Close"><span class="material-symbols-outlined" style="font-size:11px">close</span></button>
       </div>
     </div>
-    <div class="win-body" style="overflow-y:auto;padding:10px">
+    <div class="win-body" style="overflow-y:auto;padding:10px; position: relative;">
       <div class="gallery-grid" id="gw-grid"></div>
+      <!-- Custom always-visible thick scrollbar for gallery -->
+      <div class="custom-scrollbar" id="gallery-scrollbar">
+        <div class="custom-scrollbar-thumb" id="gallery-scrollbar-thumb"></div>
+      </div>
     </div>
   </div>
 

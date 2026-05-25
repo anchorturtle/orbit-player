@@ -170,3 +170,96 @@ document.addEventListener('keydown', e => {
   else if (e.key === 'ArrowRight') { e.preventDefault(); imgNavGo(1); }
   else if (e.key === 'Escape') { win.style.display = 'none'; }
 });
+
+/* ── CUSTOM ALWAYS-VISIBLE THICK SCROLLBAR FOR GALLERY ── */
+(function initGalleryCustomScrollbar() {
+  const container = document.getElementById('gallery-win')?.querySelector('.win-body');
+  const thumb = document.getElementById('gallery-scrollbar-thumb');
+  const track = document.getElementById('gallery-scrollbar');
+
+  if (!container || !thumb || !track) return;
+
+  let isDragging = false;
+  let startY = 0;
+  let startScrollTop = 0;
+
+  function updateThumb() {
+    const scrollHeight = container.scrollHeight;
+    const clientHeight = container.clientHeight;
+
+    if (scrollHeight <= clientHeight) {
+      track.style.display = 'none';
+      return;
+    }
+
+    track.style.display = 'block';
+
+    const trackHeight = track.clientHeight;
+    const thumbHeight = Math.max(40, (clientHeight / scrollHeight) * trackHeight);
+    const scrollRatio = container.scrollTop / (scrollHeight - clientHeight);
+    const thumbTop = scrollRatio * (trackHeight - thumbHeight);
+
+    thumb.style.height = thumbHeight + 'px';
+    thumb.style.top = thumbTop + 'px';
+  }
+
+  // Sync on scroll
+  container.addEventListener('scroll', updateThumb, { passive: true });
+
+  // Make thumb draggable
+  thumb.addEventListener('mousedown', e => {
+    isDragging = true;
+    startY = e.clientY;
+    startScrollTop = container.scrollTop;
+    document.body.style.userSelect = 'none';
+  });
+
+  window.addEventListener('mousemove', e => {
+    if (!isDragging) return;
+
+    const trackHeight = track.clientHeight;
+    const thumbHeight = thumb.clientHeight;
+    const scrollableHeight = container.scrollHeight - container.clientHeight;
+
+    const deltaY = e.clientY - startY;
+    const scrollDelta = (deltaY / (trackHeight - thumbHeight)) * scrollableHeight;
+
+    container.scrollTop = Math.max(0, Math.min(scrollableHeight, startScrollTop + scrollDelta));
+  });
+
+  window.addEventListener('mouseup', () => {
+    if (isDragging) {
+      isDragging = false;
+      document.body.style.userSelect = '';
+    }
+  });
+
+  // Update when gallery content changes or window resizes
+  const observer = new MutationObserver(updateThumb);
+  observer.observe(container, { childList: true, subtree: true });
+
+  window.addEventListener('resize', updateThumb);
+
+  // Initial update + when gallery is opened
+  const originalRender = window.renderGallery;
+  if (originalRender) {
+    window.renderGallery = function() {
+      originalRender.apply(this, arguments);
+      setTimeout(updateThumb, 50);
+    };
+  }
+
+  // Also update when the gallery window is shown
+  const galleryWin = document.getElementById('gallery-win');
+  if (galleryWin) {
+    const observer2 = new MutationObserver(() => {
+      if (galleryWin.style.display === 'flex') {
+        setTimeout(updateThumb, 80);
+      }
+    });
+    observer2.observe(galleryWin, { attributes: true, attributeFilter: ['style'] });
+  }
+
+  // First run
+  setTimeout(updateThumb, 100);
+})();

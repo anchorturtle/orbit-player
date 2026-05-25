@@ -69,44 +69,53 @@ body { font-family: 'Plus Jakarta Sans', sans-serif; background: #06040f; color:
   color: rgba(0,200,150,.65); font-weight: 700; text-transform: uppercase;
 }
 
-/* ============ THEMED SCROLLBARS - PERMANENTLY VISIBLE & THICK ============ */
-/* These rules try very hard to prevent fading/hiding on desktop Chrome/Edge.
-   The scrollbar should stay visible at all times. */
-
-/* Force the gallery (and other windows) to always show the scrollbar */
-#gallery-win .win-body,
-.win-body {
-  overflow-y: scroll !important;           /* forces scrollbar to exist */
-  scrollbar-gutter: stable both-edges;
+/* Hide native scrollbars for the gallery (we use custom one below) */
+#gallery-win .win-body {
+  scrollbar-width: none;
+}
+#gallery-win .win-body::-webkit-scrollbar {
+  display: none;
 }
 
-/* Thick, always-visible scrollbar styling */
-.no-scrollbar::-webkit-scrollbar,
-.win-body::-webkit-scrollbar {
-  width: 14px !important;
-  height: 14px !important;
+/* ============ CUSTOM GALLERY SCROLLBAR (always visible, thick, no fading) ============ */
+#gallery-win .win-body {
+  position: relative;
 }
 
-.no-scrollbar::-webkit-scrollbar-track,
-.win-body::-webkit-scrollbar-track {
-  background: rgba(255,255,255,0.18) !important;   /* always visible track */
-  border-radius: 4px;
+.custom-scrollbar {
+  position: absolute;
+  top: 8px;
+  right: 4px;
+  bottom: 8px;
+  width: 14px;
+  background: rgba(255,255,255,0.08);
+  border-radius: 8px;
+  border: 1px solid rgba(255,255,255,0.12);
+  z-index: 10;
+  pointer-events: auto;
 }
 
-.no-scrollbar::-webkit-scrollbar-thumb,
-.win-body::-webkit-scrollbar-thumb {
-  background: linear-gradient(var(--jestr-purple), var(--jestr-blue)) !important;
-  border-radius: 4px;
-  border: 1px solid rgba(255,255,255,0.35) !important;
-  box-shadow: 0 1px 5px rgba(0,0,0,0.5);
-  min-height: 80px;
+.custom-scrollbar-thumb {
+  position: absolute;
+  left: 2px;
+  right: 2px;
+  background: linear-gradient(var(--jestr-purple), var(--jestr-blue));
+  border-radius: 6px;
+  border: 1px solid rgba(255,255,255,0.25);
+  box-shadow: 0 1px 4px rgba(0,0,0,0.4);
+  min-height: 40px;
+  cursor: grab;
+  transition: background 0.1s;
 }
 
-/* Firefox */
-.no-scrollbar,
-.win-body {
-  scrollbar-width: auto !important;
-  scrollbar-color: rgba(123,47,255,0.85) rgba(255,255,255,0.18) !important;
+.custom-scrollbar-thumb:hover {
+  background: linear-gradient(var(--jestr-blue), var(--jestr-green));
+  border-color: rgba(255,255,255,0.4);
+}
+
+.custom-scrollbar-thumb:active {
+  cursor: grabbing;
+  box-shadow: 0 0 8px rgba(123,47,255,0.6);
 }
 
 /* ============ WINDOW CHROME ============ */
