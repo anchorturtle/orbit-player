@@ -30,22 +30,22 @@ export async function onRequest(context) {
   const imageUrl = `${siteUrl}/og/song/${slug}.svg`;
   const appUrl = `${siteUrl}/#song/${slug}`;
 
-  const title = `${track.title} - ${track.artist} | AnchorTurtle`;
-  const description = `Listen to ${track.title} by ${track.artist} on AnchorTurtle — Cosmic High-Fidelity Music Player.`;
+  const title = `${track.title} - ${track.artist}`;
+  const description = `AnchorTurtle`;
 
   // Fetch the real index.html and inject dynamic meta tags
   let html = await context.env.ASSETS.fetch('/index.html').then(r => r.text());
 
   const metaTags = `
   <title>${title}</title>
-  <meta property="og:title" content="${track.title} - ${track.artist}">
+  <meta property="og:title" content="${title}">
   <meta property="og:description" content="${description}">
   <meta property="og:image" content="${imageUrl}">
   <meta property="og:url" content="${siteUrl}/song/${slug}">
   <meta property="og:type" content="music.song">
   <meta property="og:site_name" content="AnchorTurtle">
   <meta name="twitter:card" content="summary_large_image">
-  <meta name="twitter:title" content="${track.title} - ${track.artist}">
+  <meta name="twitter:title" content="${title}">
   <meta name="twitter:description" content="${description}">
   <meta name="twitter:image" content="${imageUrl}">
   `;
