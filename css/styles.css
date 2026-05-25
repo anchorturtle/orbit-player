@@ -69,19 +69,25 @@ body { font-family: 'Plus Jakarta Sans', sans-serif; background: #06040f; color:
   color: rgba(0,200,150,.65); font-weight: 700; text-transform: uppercase;
 }
 
-/* ============ THEMED SCROLLBARS ============ */
-/* Thicker + more reliable for desktop mouse interaction.
-   Matches the glassmorphism / analog button aesthetic.
-   More visible by default and stronger on hover so it doesn't feel fidgety or disappear too fast. */
+/* ============ THEMED SCROLLBARS (persistent, non-overlay on desktop) ============ */
+/* Goal: Stop the "hiding / popping up" behavior, especially when zoomed or resizing.
+   Always reserves space + more stable visibility. */
+.no-scrollbar,
+.win-body {
+  /* This is the key property to prevent auto-hiding / overlay scrollbar flickering */
+  scrollbar-gutter: stable both-edges;
+}
+
+/* WebKit (Chrome, Edge, etc.) */
 .no-scrollbar::-webkit-scrollbar,
 .win-body::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
+  width: 9px;
+  height: 9px;
 }
 
 .no-scrollbar::-webkit-scrollbar-track,
 .win-body::-webkit-scrollbar-track {
-  background: rgba(255,255,255,0.07);
+  background: rgba(255,255,255,0.08);
   border-radius: 4px;
 }
 
@@ -89,23 +95,23 @@ body { font-family: 'Plus Jakarta Sans', sans-serif; background: #06040f; color:
 .win-body::-webkit-scrollbar-thumb {
   background: linear-gradient(var(--jestr-purple), var(--jestr-blue));
   border-radius: 4px;
-  border: 1px solid rgba(255,255,255,0.15);
-  box-shadow: 0 1px 4px rgba(0,0,0,0.35);
-  min-height: 40px; /* ensures a decent clickable/grabbable area */
+  border: 1px solid rgba(255,255,255,0.18);
+  box-shadow: 0 1px 4px rgba(0,0,0,0.4);
+  min-height: 50px;
 }
 
 .no-scrollbar::-webkit-scrollbar-thumb:hover,
 .win-body::-webkit-scrollbar-thumb:hover {
   background: linear-gradient(var(--jestr-blue), var(--jestr-green));
-  border-color: rgba(255,255,255,0.3);
-  box-shadow: 0 0 8px rgba(123,47,255,0.5);
+  border-color: rgba(255,255,255,0.35);
+  box-shadow: 0 0 10px rgba(123,47,255,0.6);
 }
 
-/* Firefox — 'auto' gives a thicker, more reliable scrollbar for clicking */
+/* Firefox */
 .no-scrollbar,
 .win-body {
   scrollbar-width: auto;
-  scrollbar-color: rgba(123,47,255,0.65) rgba(255,255,255,0.07);
+  scrollbar-color: rgba(123,47,255,0.7) rgba(255,255,255,0.08);
 }
 
 /* ============ WINDOW CHROME ============ */
@@ -179,12 +185,11 @@ body { font-family: 'Plus Jakarta Sans', sans-serif; background: #06040f; color:
   z-index: 1;
   display: flex;
   flex-direction: column;
-  /* Keep scrollbar away from the right edge resize handle */
-  padding-right: 10px;
 }
 
+/* Small right padding on the main scroll lists to keep content from touching the scrollbar */
 #sidebar-tracklist {
-  padding-right: 8px;
+  padding-right: 6px;
 }
 
 #player-win { min-height: 270px; min-width: 360px; }
