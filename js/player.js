@@ -145,6 +145,7 @@ const audio = document.getElementById('audio-player');
 let currentIndex = 0, isPlaying = false, isShuffle = false, repeatMode = 0;
 let seekOnReady = null, isSeeking = false, durationPollTimer = null;
 let isMuted = false, premuteVolume = 80;
+let wasPlayingBeforeMute = false;
 
 function tryUpdateDuration() {
   const dur = audio.duration;
@@ -251,6 +252,11 @@ audio.addEventListener('ended', () => {
 
 function updatePlayUI() {
   document.getElementById('play-icon').textContent = isPlaying ? 'pause' : 'play_arrow';
+
+  // On iOS, the mute icon state is tied to playback (soft mute = paused)
+  if (isIOS() && isMuted) {
+    updateVolumeIcon();
+  }
 }
 
 function loadTrack(idx, autoplay) {
@@ -314,36 +320,78 @@ const volIcon = document.getElementById('vol-icon');
 
 function setVolume(v) {
   v = Math.max(0, Math.min(100, v));
-  audio.volume = v / 100;
+  if (!isIOS()) {
+    audio.volume = v / 100;
+  }
   volSlider.value = v;
   volSlider.style.setProperty('--vol-pct', v + '%');
   document.getElementById('vol-pct').textContent = v + '%';
+
   if (!isMuted) {
-    volIcon.textContent = v === 0 ? 'volume_off' : v < 50 ? 'volume_down' : 'volume_up';
-    volIcon.classList.toggle('muted', false);
+    updateVolumeIcon();
+    volIcon.classList.remove('muted');
   }
+}
+
+function updateVolumeIcon() {
+  if (!volIcon || isMuted) return;
+  const v = +volSlider.value;
+  volIcon.textContent = v === 0 ? 'volume_off' : v < 50 ? 'volume_down' : 'volume_up';
 }
 
 volSlider.addEventListener('input', () => {
   if (isMuted) { isMuted = false; volIcon.classList.remove('muted'); }
   premuteVolume = +volSlider.value;
   setVolume(+volSlider.value);
+  updateVolumeIcon();
 });
 
 document.getElementById('vol-icon-wrap').addEventListener('click', () => {
-  if (isMuted) { isMuted = false; setVolume(premuteVolume || 80); volIcon.classList.remove('muted'); }
-  else { premuteVolume = +volSlider.value || 80; isMuted = true; audio.volume = 0; volIcon.textContent = 'volume_off'; volIcon.classList.add('muted'); }
+  if (isMuted) {
+    // Unmute
+    isMuted = false;
+
+    if (isIOS()) {
+      // On iOS we can't actually control volume, so resume playback if it was playing before mute
+      if (wasPlayingBeforeMute && !isPlaying) {
+        audio.play().catch(() => {});
+      }
+    } else {
+      setVolume(premuteVolume || 80);
+    }
+
+    volIcon.classList.remove('muted');
+    updateVolumeIcon();
+  } else {
+    // Mute
+    isMuted = true;
+    premuteVolume = +volSlider.value || 80;
+
+    if (isIOS()) {
+      // Soft mute on iOS: remember if we were playing, then pause
+      wasPlayingBeforeMute = isPlaying;
+      if (isPlaying) {
+        audio.pause();
+      }
+    } else {
+      audio.volume = 0;
+    }
+
+    volIcon.textContent = 'volume_off';
+    volIcon.classList.add('muted');
+  }
 });
 
 setVolume(80);
+updateVolumeIcon();
 
-// Hide volume controls on iOS (and optionally other mobile) because
-// audio.volume is ignored by the browser. Users must use hardware volume buttons.
-if (isIOS()) {
-  const volRow = document.querySelector('#player-win .vol-row');
-  if (volRow) {
-    volRow.style.display = 'none';
-  }
+// On mobile: hide the volume slider and percentage.
+// Keep only the mute/unmute icon (which still works on Android and acts as soft-mute on iOS).
+if (isMob()) {
+  const volSliderEl = document.getElementById('vol-slider');
+  const volPctEl = document.getElementById('vol-pct');
+  if (volSliderEl) volSliderEl.style.display = 'none';
+  if (volPctEl) volPctEl.style.display = 'none';
 }
 
 /* ── DOWNLOAD ── */
