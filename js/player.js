@@ -142,10 +142,41 @@ const TRACKS = [
 ];
 
 const audio = document.getElementById('audio-player');
+
+let audioContext = null;
+let gainNode = null;
+let sourceNode = null;
+
 let currentIndex = 0, isPlaying = false, isShuffle = false, repeatMode = 0;
 let seekOnReady = null, isSeeking = false, durationPollTimer = null;
 let isMuted = false, premuteVolume = 80;
-let wasPlayingBeforeMute = false;
+
+function initAudioContext() {
+  if (audioContext) {
+    // Resume context if it was suspended (required on iOS after user gesture)
+    if (audioContext.state === 'suspended') {
+      audioContext.resume().catch(() => {});
+    }
+    return;
+  }
+
+  try {
+    audioContext = new (window.AudioContext || window.webkitAudioContext)();
+    sourceNode = audioContext.createMediaElementSource(audio);
+    gainNode = audioContext.createGain();
+
+    sourceNode.connect(gainNode);
+    gainNode.connect(audioContext.destination);
+
+    // Set initial gain from current volume setting
+    gainNode.gain.value = (premuteVolume || 80) / 100;
+
+  } catch (e) {
+    console.warn('Web Audio API not supported or failed to initialize. Falling back to native volume.', e);
+    audioContext = null;
+    gainNode = null;
+  }
+}
 
 function tryUpdateDuration() {
   const dur = audio.duration;
@@ -287,6 +318,8 @@ function loadTrack(idx, autoplay) {
 
 /* ── PLAYER CONTROLS ── */
 document.getElementById('btn-play').addEventListener('click', () => {
+  initAudioContext(); // Ensure Web Audio is ready (required for iOS mute/volume)
+
   if (!audio.src || audio.src === window.location.href) { if (TRACKS.length) loadTrack(0, true); return; }
   if (isPlaying) { audio.pause(); isPlaying = false; }
   else { audio.play().then(() => { isPlaying = true; }).catch(() => { isPlaying = false; }); isPlaying = true; }
@@ -320,9 +353,15 @@ const volIcon = document.getElementById('vol-icon');
 
 function setVolume(v) {
   v = Math.max(0, Math.min(100, v));
-  if (!isIOS()) {
+
+  // Prefer Web Audio GainNode (works for real mute on iOS)
+  if (gainNode) {
+    gainNode.gain.value = v / 100;
+  } else {
+    // Fallback to native volume (doesn't work on iOS)
     audio.volume = v / 100;
   }
+
   volSlider.value = v;
   volSlider.style.setProperty('--vol-pct', v + '%');
   document.getElementById('vol-pct').textContent = v + '%';
@@ -340,6 +379,8 @@ function updateVolumeIcon() {
 }
 
 volSlider.addEventListener('input', () => {
+  initAudioContext();
+
   if (isMuted) { isMuted = false; volIcon.classList.remove('muted'); }
   premuteVolume = +volSlider.value;
   setVolume(+volSlider.value);
@@ -347,32 +388,21 @@ volSlider.addEventListener('input', () => {
 });
 
 document.getElementById('vol-icon-wrap').addEventListener('click', () => {
+  initAudioContext();
+
   if (isMuted) {
     // Unmute
     isMuted = false;
-
-    if (isIOS()) {
-      // On iOS we can't actually control volume, so resume playback if it was playing before mute
-      if (wasPlayingBeforeMute && !isPlaying) {
-        audio.play().catch(() => {});
-      }
-    } else {
-      setVolume(premuteVolume || 80);
-    }
-
+    setVolume(premuteVolume || 80);
     volIcon.classList.remove('muted');
     updateVolumeIcon();
   } else {
-    // Mute
+    // Mute (this now works properly even on iOS via GainNode)
     isMuted = true;
     premuteVolume = +volSlider.value || 80;
 
-    if (isIOS()) {
-      // Soft mute on iOS: remember if we were playing, then pause
-      wasPlayingBeforeMute = isPlaying;
-      if (isPlaying) {
-        audio.pause();
-      }
+    if (gainNode) {
+      gainNode.gain.value = 0;
     } else {
       audio.volume = 0;
     }
