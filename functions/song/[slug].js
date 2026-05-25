@@ -1,7 +1,8 @@
 export async function onRequest(context) {
   const { slug } = context.params;
-  
-  // Simple track lookup (in production you could fetch from KV or D1)
+  const env = context.env;
+
+  // Track data - keep this in sync with your TRACKS in js/player.js
   const tracks = {
     'geronimo': { title: 'Geronimo', artist: 'jestR' },
     'mile-high': { title: 'Mile High', artist: 'jestR' },
@@ -21,57 +22,42 @@ export async function onRequest(context) {
   };
 
   const track = tracks[slug] || { title: 'Track', artist: 'jestR' };
-  const siteUrl = 'https://orbit.anchorturtle.com'; // Update this to your actual domain
+
+  // Use the request URL to determine the correct origin (works for custom domains + preview deployments)
+  const url = new URL(context.request.url);
+  const siteUrl = `${url.protocol}//${url.host}`;
+
   const imageUrl = `${siteUrl}/og/song/${slug}.svg`;
+  const appUrl = `${siteUrl}/#song/${slug}`;
 
   const title = `${track.title} - ${track.artist} | AnchorTurtle`;
-  const description = `Listen to ${track.title} by ${track.artist} on Orbit — Cosmic High-Fidelity Music Player.`;
+  const description = `Listen to ${track.title} by ${track.artist} on AnchorTurtle — Cosmic High-Fidelity Music Player.`;
 
-  const html = `<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  // Fetch the real index.html and inject dynamic meta tags
+  let html = await context.env.ASSETS.fetch('/index.html').then(r => r.text());
+
+  const metaTags = `
   <title>${title}</title>
-  
-  <!-- Open Graph -->
   <meta property="og:title" content="${track.title} - ${track.artist}">
   <meta property="og:description" content="${description}">
   <meta property="og:image" content="${imageUrl}">
   <meta property="og:url" content="${siteUrl}/song/${slug}">
   <meta property="og:type" content="music.song">
   <meta property="og:site_name" content="AnchorTurtle">
-  
-  <!-- Twitter -->
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:title" content="${track.title} - ${track.artist}">
   <meta name="twitter:description" content="${description}">
   <meta name="twitter:image" content="${imageUrl}">
-  
-  <meta http-equiv="refresh" content="0;url=/#song/${slug}">
-  <style>
-    body { 
-      background: #06040f; 
-      color: #e9e1de; 
-      font-family: system-ui, -apple-system, sans-serif; 
-      display: flex; 
-      align-items: center; 
-      justify-content: center; 
-      height: 100vh; 
-      margin: 0;
-    }
-  </style>
-</head>
-<body>
-  <p>Redirecting to Orbit...</p>
-  <script>
-    // Fallback redirect
-    setTimeout(() => {
-      window.location.href = '/#song/${slug}';
-    }, 100);
-  </script>
-</body>
-</html>`;
+  `;
+
+  // Inject the meta tags right before </head>
+  html = html.replace('</head>', `${metaTags}\n</head>`);
+
+  // Make sure the SPA loads the correct song
+  html = html.replace(
+    '</body>',
+    `<script>window.location.replace('${appUrl}');</script>\n</body>`
+  );
 
   return new Response(html, {
     headers: {
