@@ -379,12 +379,13 @@ function renderTracklist(filter) {
       });
     }
 
-    // Wire Share button → copy link + toast
+    // Wire Share button → open dedicated song page + copy link + toast
     const shareBtn = el.querySelector('.track-share-btn');
     if (shareBtn) {
       shareBtn.addEventListener('click', (e) => {
         e.stopPropagation();
         const url = `${location.origin}${location.pathname}#song/${t.slug}`;
+        openSongDetail(t.slug); // Show the dedicated song page
         navigator.clipboard.writeText(url).then(() => {
           showToast('Link copied');
         }).catch(() => {
@@ -612,12 +613,22 @@ function showToast(message, duration = 1800) {
 }
 
 // Wire player header buttons
+const playerInfoBtn = document.getElementById('btn-info');
+if (playerInfoBtn) {
+  playerInfoBtn.addEventListener('click', () => {
+    if (currentIndex >= 0 && TRACKS[currentIndex]) {
+      openSongDetail(TRACKS[currentIndex].slug);
+    }
+  });
+}
+
 const playerShareBtn = document.getElementById('btn-share');
 if (playerShareBtn) {
   playerShareBtn.addEventListener('click', () => {
     if (currentIndex >= 0 && TRACKS[currentIndex]) {
       const slug = TRACKS[currentIndex].slug;
       const url = `${location.origin}${location.pathname}#song/${slug}`;
+      openSongDetail(slug); // Open the dedicated page
       navigator.clipboard.writeText(url).then(() => {
         showToast('Link copied to clipboard');
       }).catch(() => {
@@ -643,24 +654,33 @@ if (fpArtist) fpArtist.addEventListener('click', openCurrentSongDetail);
 
 
 
-// Handle hash routing for direct song links
+// Handle hash routing for direct song links (dedicated shareable links)
 function handleSongHash() {
   const hash = location.hash;
   if (hash.startsWith('#song/')) {
     const slug = hash.replace('#song/', '');
-    // Small delay to ensure everything is initialized
-    setTimeout(() => {
-      openSongDetail(slug);
-      // Also load the track (but don't auto-play)
-      const idx = findTrackBySlug(slug);
-      if (idx !== -1) {
-        loadTrack(idx, false);
-      }
-    }, 300);
+    // Multiple attempts to handle different load timings
+    const tryOpen = (delay) => {
+      setTimeout(() => {
+        openSongDetail(slug);
+        const idx = findTrackBySlug(slug);
+        if (idx !== -1) {
+          loadTrack(idx, false); // load the track without auto-playing
+        }
+      }, delay);
+    };
+    tryOpen(200);
+    tryOpen(600);
+    tryOpen(1200);
   }
 }
 
 window.addEventListener('hashchange', handleSongHash);
 
-// Run on initial load
-setTimeout(handleSongHash, 800);
+// Run on initial load (multiple attempts for reliability)
+window.addEventListener('load', () => {
+  handleSongHash();
+});
+setTimeout(handleSongHash, 400);
+setTimeout(handleSongHash, 900);
+setTimeout(handleSongHash, 1500);
