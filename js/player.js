@@ -415,14 +415,8 @@ document.getElementById('vol-icon-wrap').addEventListener('click', () => {
 setVolume(80);
 updateVolumeIcon();
 
-// On mobile: hide the volume slider and percentage.
-// Keep only the mute/unmute icon (which still works on Android and acts as soft-mute on iOS).
-if (isMob()) {
-  const volSliderEl = document.getElementById('vol-slider');
-  const volPctEl = document.getElementById('vol-pct');
-  if (volSliderEl) volSliderEl.style.display = 'none';
-  if (volPctEl) volPctEl.style.display = 'none';
-}
+// Full volume slider is now enabled on mobile thanks to Web Audio GainNode.
+// It provides the best possible volume control the browser allows (including proper muting on iOS).
 
 /* ── DOWNLOAD ── */
 document.getElementById('btn-download').addEventListener('click', () => {
