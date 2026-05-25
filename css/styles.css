@@ -69,8 +69,41 @@ body { font-family: 'Plus Jakarta Sans', sans-serif; background: #06040f; color:
   color: rgba(0,200,150,.65); font-weight: 700; text-transform: uppercase;
 }
 
-.no-scrollbar::-webkit-scrollbar { display: none; }
-.no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+/* ============ THEMED SCROLLBARS ============ */
+/* Subtle glassmorphism/analog aesthetic. Matches the purple-blue-green palette and button chrome.
+   Thin on desktop, minimal or hidden on most mobile browsers. */
+.no-scrollbar::-webkit-scrollbar,
+.win-body::-webkit-scrollbar {
+  width: 5px;
+  height: 5px;
+}
+
+.no-scrollbar::-webkit-scrollbar-track,
+.win-body::-webkit-scrollbar-track {
+  background: rgba(255,255,255,0.035);
+  border-radius: 999px;
+}
+
+.no-scrollbar::-webkit-scrollbar-thumb,
+.win-body::-webkit-scrollbar-thumb {
+  background: linear-gradient(var(--jestr-purple), var(--jestr-blue));
+  border-radius: 999px;
+  border: 1px solid rgba(255,255,255,0.08);
+  box-shadow: 0 1px 3px rgba(0,0,0,0.3);
+}
+
+.no-scrollbar::-webkit-scrollbar-thumb:hover,
+.win-body::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(var(--jestr-blue), var(--jestr-green));
+  border-color: rgba(255,255,255,0.15);
+}
+
+/* Firefox */
+.no-scrollbar,
+.win-body {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(123,47,255,0.55) rgba(255,255,255,0.035);
+}
 
 /* ============ WINDOW CHROME ============ */
 .win {
