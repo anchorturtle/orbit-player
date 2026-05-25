@@ -218,6 +218,7 @@ document.getElementById('close-player').addEventListener('click', () => closeWin
 document.getElementById('close-song-detail').addEventListener('click', () => {
   const w = document.getElementById('song-detail-win');
   if (w) w.style.display = 'none';
+  document.title = 'Orbit • jestR'; // Reset title when closing song detail
 });
 
 /* Make all windows draggable/resizable */
