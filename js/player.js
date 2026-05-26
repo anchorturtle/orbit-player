@@ -191,22 +191,26 @@ function ensureAudioContextRunning() {
 // Resume context aggressively for background playback (screen off, app switch)
 document.addEventListener('visibilitychange', () => {
   if (isPlaying) {
-    ensureAudioContextRunning();
-
     if (document.visibilityState === 'visible') {
-      // Returned to foreground
-      setTimeout(ensureAudioContextRunning, 20);
-      setTimeout(ensureAudioContextRunning, 100);
+      // User unlocked screen / returned to the page
+      if (isIOS() && iosBackgroundAudio) {
+        // We were using native background playback — sync back
+        exitIOSNativeBackgroundPlayback();
 
-      // Restore normal GainNode routing (if we bypassed it)
-      exitIOSBackgroundAudioMode();
-
-      stopBackgroundAudioKeepAlive();
+        // Resume our main player + Web Audio (GainNode)
+        if (audio) {
+          audio.play().catch(() => {});
+        }
+        ensureAudioContextRunning();
+      } else {
+        ensureAudioContextRunning();
+        stopBackgroundAudioKeepAlive();
+      }
     } else {
-      // Going to background (screen lock / pocket)
-      // On iOS, switch to direct audio path for reliable background playback
+      // Screen locked or app went to background
       if (isIOS()) {
-        enterIOSBackgroundAudioMode();
+        // Switch to native audio playback so it survives screen lock (like QuickTime does)
+        enterIOSNativeBackgroundPlayback();
       } else {
         startBackgroundAudioKeepAlive();
       }
@@ -214,6 +218,7 @@ document.addEventListener('visibilitychange', () => {
   } else {
     stopBackgroundAudioKeepAlive();
     if (isIOS()) {
+      exitIOSNativeBackgroundPlayback();
       exitIOSBackgroundAudioMode();
     }
   }
@@ -222,22 +227,29 @@ window.addEventListener('focus', ensureAudioContextRunning);
 document.addEventListener('pageshow', ensureAudioContextRunning);
 document.addEventListener('pagehide', () => {
   if (isPlaying && isIOS()) {
-    enterIOSBackgroundAudioMode();
+    enterIOSNativeBackgroundPlayback();
   }
 });
 
 // Also stop everything if the user pauses
 function pauseAndStopBackground() {
-  if (audio) audio.pause();
-  isPlaying = false;
-
+  // Fully stop any background logic first
   stopBackgroundAudioKeepAlive();
 
-  // Restore normal routing when pausing
+  if (isIOS() && iosBackgroundAudio) {
+    exitIOSNativeBackgroundPlayback();
+  }
+
   if (isIOS()) {
     exitIOSBackgroundAudioMode();
   }
 
+  // Now actually pause the main element cleanly
+  if (audio) {
+    audio.pause();
+  }
+
+  isPlaying = false;
   updatePlayUI();
 }
 
@@ -312,6 +324,7 @@ function stopSilentBackgroundSource() {
   When the page returns to foreground, we reconnect through the GainNode so volume control works again.
 */
 let isUsingDirectAudioPath = false;
+let iosBackgroundAudio = null; // temporary native audio element used for iOS background playback
 
 function enterIOSBackgroundAudioMode() {
   if (!isIOS() || !audioContext || !sourceNode || isUsingDirectAudioPath) return;
@@ -346,6 +359,69 @@ function exitIOSBackgroundAudioMode() {
 
     ensureAudioContextRunning();
   } catch (e) {}
+}
+
+/* 
+  Proper iOS Background Playback using Native Audio (the reliable way)
+
+  Observation: When the user clicks "download", the file opens in QuickTime 
+  and continues playing with the screen locked. This proves native media 
+  playback works fine in background on iOS.
+
+  Strategy:
+  - When going to background on iOS while playing:
+    - Pause our main audio + Web Audio setup.
+    - Create a hidden <audio> element pointing at the same file.
+    - Seek it to current position and play it natively (no AudioContext).
+    - This native element survives screen lock like QuickTime does.
+  - When returning to foreground:
+    - Pause the background element.
+    - Seek our main audio to the background element's currentTime.
+    - Resume our main player + Web Audio (GainNode) so volume works again.
+*/
+function enterIOSNativeBackgroundPlayback() {
+  if (!isIOS() || !isPlaying || iosBackgroundAudio) return;
+
+  try {
+    // Pause our main setup
+    audio.pause();
+
+    // Create a fresh native audio element for background
+    iosBackgroundAudio = new Audio();
+    iosBackgroundAudio.src = audio.src;           // same file
+    iosBackgroundAudio.currentTime = audio.currentTime || 0;
+    iosBackgroundAudio.preload = 'auto';
+    iosBackgroundAudio.playsInline = true;
+
+    // Play it natively — no Web Audio routing
+    iosBackgroundAudio.play().catch(() => {});
+
+    // When the user returns, we'll sync back in the visibility handler
+  } catch (e) {
+    // If anything fails, fall back to previous behavior
+    iosBackgroundAudio = null;
+  }
+}
+
+function exitIOSNativeBackgroundPlayback() {
+  if (!iosBackgroundAudio) return;
+
+  try {
+    const bgTime = iosBackgroundAudio.currentTime || 0;
+
+    // Stop the background player
+    iosBackgroundAudio.pause();
+    iosBackgroundAudio.src = '';
+    iosBackgroundAudio = null;
+
+    // Sync our main audio element back to where the background one was
+    if (audio) {
+      audio.currentTime = bgTime;
+      // The caller (visibility handler) will decide whether to resume
+    }
+  } catch (e) {
+    iosBackgroundAudio = null;
+  }
 }
 
 function tryUpdateDuration() {
