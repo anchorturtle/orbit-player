@@ -773,6 +773,32 @@ if (playerWinBody) {
   });
 }
 
+// Belt-and-suspenders: also attach directly to the Share button itself.
+// Combined with the large right padding (see CSS), this guarantees the click
+// fires on desktop even if any stacking/resize edge case remains.
+const directShareBtn = document.getElementById('btn-share');
+if (directShareBtn) {
+  directShareBtn.addEventListener('click', (e) => {
+    e.stopPropagation();
+    e.stopImmediatePropagation();
+
+    if (currentIndex >= 0 && TRACKS[currentIndex]) {
+      const slug = TRACKS[currentIndex].slug;
+      const url = `${location.origin}/song/${slug}`;
+
+      navigator.clipboard.writeText(url).then(() => {
+        const originalHTML = directShareBtn.innerHTML;
+        directShareBtn.innerHTML = `<span class="material-symbols-outlined" style="font-size:15px">check</span><span style="font-size:11px; margin-left:4px;">Copied</span>`;
+        setTimeout(() => {
+          directShareBtn.innerHTML = originalHTML;
+        }, 1600);
+      }).catch(() => {
+        prompt('Copy this link:', url);
+      });
+    }
+  });
+}
+
 // Make player title/artist clickable to open details
 const fpTitle = document.getElementById('fp-title');
 const fpArtist = document.getElementById('fp-artist');

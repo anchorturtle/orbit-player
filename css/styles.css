@@ -93,7 +93,16 @@ body { font-family: 'Plus Jakarta Sans', sans-serif; background: #06040f; color:
   border: 1px solid rgba(255,255,255,0.12);
   z-index: 10;
   pointer-events: auto;
-  display: block; /* always present */
+  display: block; /* always present and thick */
+}
+
+/* Aggressively hide native scrollbar in gallery so only the custom thick one is used */
+#gallery-win .win-body {
+  scrollbar-width: none !important;
+}
+#gallery-win .win-body::-webkit-scrollbar {
+  display: none !important;
+  width: 0 !important;
 }
 
 .custom-scrollbar-thumb {
@@ -214,10 +223,17 @@ body { font-family: 'Plus Jakarta Sans', sans-serif; background: #06040f; color:
 }
 #player-win .win-body { overflow-y: auto; }
 
-/* Extra right breathing room in the player header row so the labeled Share button
-   (icon + "Share" text) never gets cramped against the right resize handle on desktop */
+/* Strong right breathing room in the player header row so the labeled Share button
+   (icon + "Share" text) is well clear of the .win-resize.e handle (4px wide on right edge).
+   This is the main reason desktop clicks were hitting the resize handle instead of Share. */
 #player-win .win-body > div:first-of-type {
-  padding-right: 10px;
+  padding-right: 28px !important;
+}
+
+/* Also give the whole player content area extra right padding so nothing in the player
+   ever sits under the invisible east resize handle on desktop. */
+#player-win .win-body {
+  padding-right: 22px !important;
 }
 
 /* ============ ANALOG BUTTONS ============ */

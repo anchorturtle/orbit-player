@@ -187,12 +187,15 @@ document.addEventListener('keydown', e => {
     const scrollHeight = container.scrollHeight;
     const clientHeight = container.clientHeight;
 
-    if (scrollHeight <= clientHeight) {
-      track.style.display = 'none';
+    // Always show the thick custom track (user wants permanent visible scrollbar, never hides)
+    track.style.display = 'block';
+
+    if (scrollHeight <= clientHeight + 2) {
+      // Content fits: show a small "full" thumb but keep the track visible and thick
+      thumb.style.height = '28px';
+      thumb.style.top = '4px';
       return;
     }
-
-    track.style.display = 'block';
 
     const trackHeight = track.clientHeight;
     const thumbHeight = Math.max(40, (clientHeight / scrollHeight) * trackHeight);
@@ -203,8 +206,9 @@ document.addEventListener('keydown', e => {
     thumb.style.top = thumbTop + 'px';
   }
 
-  // Sync on scroll
+  // Sync on scroll + wheel (more reliable tracking for the custom thumb)
   container.addEventListener('scroll', updateThumb, { passive: true });
+  container.addEventListener('wheel', () => requestAnimationFrame(updateThumb), { passive: true });
 
   // Make thumb draggable
   thumb.addEventListener('mousedown', e => {
@@ -264,11 +268,13 @@ document.addEventListener('keydown', e => {
     observer2.observe(galleryWin, { attributes: true, attributeFilter: ['style'] });
   }
 
-  // Very defensive initial calls
+  // Very defensive initial + repeated calls (gallery layout is tricky after open/resize)
   requestAnimationFrame(() => requestAnimationFrame(updateThumb));
-  setTimeout(updateThumb, 150);
-  setTimeout(updateThumb, 400);
-  setTimeout(updateThumb, 800);
+  setTimeout(updateThumb, 80);
+  setTimeout(updateThumb, 180);
+  setTimeout(updateThumb, 350);
+  setTimeout(updateThumb, 700);
+  setTimeout(updateThumb, 1200);
 
   // Expose for main.js to call when opening the gallery
   window.updateGalleryScrollbar = updateThumb;
