@@ -194,22 +194,35 @@ document.addEventListener('visibilitychange', () => {
     ensureAudioContextRunning();
 
     if (document.visibilityState === 'visible') {
+      // Returned to foreground
       setTimeout(ensureAudioContextRunning, 20);
       setTimeout(ensureAudioContextRunning, 100);
+
+      // Restore normal GainNode routing (if we bypassed it)
+      exitIOSBackgroundAudioMode();
+
       stopBackgroundAudioKeepAlive();
     } else {
-      // Going to background on iOS → start keep-alive
-      startBackgroundAudioKeepAlive();
+      // Going to background (screen lock / pocket)
+      // On iOS, switch to direct audio path for reliable background playback
+      if (isIOS()) {
+        enterIOSBackgroundAudioMode();
+      } else {
+        startBackgroundAudioKeepAlive();
+      }
     }
   } else {
     stopBackgroundAudioKeepAlive();
+    if (isIOS()) {
+      exitIOSBackgroundAudioMode();
+    }
   }
 });
 window.addEventListener('focus', ensureAudioContextRunning);
 document.addEventListener('pageshow', ensureAudioContextRunning);
 document.addEventListener('pagehide', () => {
-  if (isPlaying) {
-    startBackgroundAudioKeepAlive();
+  if (isPlaying && isIOS()) {
+    enterIOSBackgroundAudioMode();
   }
 });
 
@@ -217,7 +230,14 @@ document.addEventListener('pagehide', () => {
 function pauseAndStopBackground() {
   if (audio) audio.pause();
   isPlaying = false;
+
   stopBackgroundAudioKeepAlive();
+
+  // Restore normal routing when pausing
+  if (isIOS()) {
+    exitIOSBackgroundAudioMode();
+  }
+
   updatePlayUI();
 }
 
@@ -278,6 +298,54 @@ function stopSilentBackgroundSource() {
     } catch (e) {}
     silentBackgroundSource = null;
   }
+}
+
+/* 
+  iOS Background Audio Bypass Strategy:
+  When the screen locks on iOS, Safari is very aggressive about suspending AudioContexts.
+  Even with silent sources, the GainNode path often stops outputting sound while the <audio> element keeps advancing time.
+
+  Solution: On iOS when going to background while playing, temporarily bypass the GainNode entirely.
+  Connect the MediaElementSource directly to the AudioContext destination.
+  This lets the native audio playback path handle background audio (which iOS respects better for lock screen / background).
+
+  When the page returns to foreground, we reconnect through the GainNode so volume control works again.
+*/
+let isUsingDirectAudioPath = false;
+
+function enterIOSBackgroundAudioMode() {
+  if (!isIOS() || !audioContext || !sourceNode || isUsingDirectAudioPath) return;
+
+  try {
+    // Disconnect from GainNode if currently connected
+    sourceNode.disconnect(gainNode);
+  } catch (e) {}
+
+  try {
+    // Connect directly to destination (bypass GainNode for background)
+    sourceNode.connect(audioContext.destination);
+    isUsingDirectAudioPath = true;
+
+    // Make sure context stays awake
+    ensureAudioContextRunning();
+  } catch (e) {}
+}
+
+function exitIOSBackgroundAudioMode() {
+  if (!isIOS() || !audioContext || !sourceNode || !isUsingDirectAudioPath) return;
+
+  try {
+    // Disconnect direct path
+    sourceNode.disconnect(audioContext.destination);
+  } catch (e) {}
+
+  try {
+    // Reconnect through GainNode for normal volume control
+    sourceNode.connect(gainNode);
+    isUsingDirectAudioPath = false;
+
+    ensureAudioContextRunning();
+  } catch (e) {}
 }
 
 function tryUpdateDuration() {
