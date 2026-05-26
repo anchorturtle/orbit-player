@@ -198,39 +198,7 @@ document.addEventListener('visibilitychange', () => {
       setTimeout(ensureAudioContextRunning, 100);
       stopBackgroundAudioKeepAlive();
     } else {
-      // Screen locked → do as much as possible *synchronously* before iOS suspends the context
-      ensureAudioContextRunning();
-
-      // Create the long silent looping buffer immediately
-      try {
-        stopSilentBackgroundSource();
-        if (audioContext) {
-          const bufferLength = Math.floor(audioContext.sampleRate * 5);
-          const buffer = audioContext.createBuffer(1, bufferLength, audioContext.sampleRate);
-          silentBackgroundSource = audioContext.createBufferSource();
-          silentBackgroundSource.buffer = buffer;
-          silentBackgroundSource.loop = true;
-          const dest = gainNode || audioContext.destination;
-          silentBackgroundSource.connect(dest);
-          silentBackgroundSource.start();
-        }
-      } catch (e) {}
-
-      // Start the low-freq oscillator heartbeat immediately
-      try {
-        if (audioContext && !window._bgOsc) {
-          const osc = audioContext.createOscillator();
-          osc.frequency.value = 0.0005;
-          const g = audioContext.createGain();
-          g.gain.value = 0.0001;
-          osc.connect(g);
-          g.connect(audioContext.destination);
-          osc.start();
-          window._bgOsc = osc;
-        }
-      } catch (e) {}
-
-      // Start the fast resume + nudge loop
+      // Going to background on iOS → start keep-alive
       startBackgroundAudioKeepAlive();
     }
   } else {
@@ -256,15 +224,12 @@ function pauseAndStopBackground() {
 function startBackgroundAudioKeepAlive() {
   if (!isIOS() || bgAudioKeepAlive) return;
 
-  // === Immediate synchronous work when screen locks ===
   ensureAudioContextRunning();
 
+  // Create the long silent looping source (this is what actually keeps the context alive)
   try {
-    stopSilentBackgroundSource();
-
-    if (audioContext) {
-      // Long silent looping buffer (keeps the graph "hot")
-      const bufferLength = Math.floor(audioContext.sampleRate * 4);
+    if (audioContext && !silentBackgroundSource) {
+      const bufferLength = Math.floor(audioContext.sampleRate * 5);
       const buffer = audioContext.createBuffer(1, bufferLength, audioContext.sampleRate);
       silentBackgroundSource = audioContext.createBufferSource();
       silentBackgroundSource.buffer = buffer;
@@ -276,22 +241,8 @@ function startBackgroundAudioKeepAlive() {
     }
   } catch (e) {}
 
-  // Also start a very low-frequency silent oscillator as extra heartbeat
-  // (this helps keep the context from suspending on iOS in background)
-  try {
-    if (audioContext && !window._bgOsc) {
-      const osc = audioContext.createOscillator();
-      osc.frequency.value = 0.001; // extremely low = basically silent
-      const g = audioContext.createGain();
-      g.gain.value = 0.0001;
-      osc.connect(g);
-      g.connect(audioContext.destination);
-      osc.start();
-      window._bgOsc = osc;
-    }
-  } catch (e) {}
-
-  // Very aggressive recursive loop while in background on iOS
+  // Simple fast loop — just resume the context and keep the audio element alive.
+  // This pattern was working before the more complex versions.
   function keepAliveLoop() {
     if (!isPlaying) {
       stopBackgroundAudioKeepAlive();
@@ -300,27 +251,14 @@ function startBackgroundAudioKeepAlive() {
 
     ensureAudioContextRunning();
 
-    // Nudge the <audio> element
     if (audio.paused) {
       audio.play().catch(() => {});
     }
 
-    // Temporary tiny gain nudge (sometimes helps re-attach the graph)
-    if (gainNode) {
-      const current = gainNode.gain.value;
-      gainNode.gain.value = Math.max(0.0001, current * 0.8);
-      setTimeout(() => {
-        if (gainNode && isPlaying) gainNode.gain.value = current;
-      }, 80);
-    }
-
-    // Next tick — faster while hidden
-    bgAudioKeepAlive = setTimeout(keepAliveLoop, 180);
+    bgAudioKeepAlive = setTimeout(keepAliveLoop, 300);
   }
 
-  // Start the loop with almost no delay
-  if (bgAudioKeepAlive) clearTimeout(bgAudioKeepAlive);
-  bgAudioKeepAlive = setTimeout(keepAliveLoop, 10);
+  bgAudioKeepAlive = setTimeout(keepAliveLoop, 0);
 }
 
 function stopBackgroundAudioKeepAlive() {
@@ -329,20 +267,6 @@ function stopBackgroundAudioKeepAlive() {
   if (bgAudioKeepAlive) {
     clearTimeout(bgAudioKeepAlive);
     bgAudioKeepAlive = null;
-  }
-
-  // Clean up the background oscillator
-  if (window._bgOsc) {
-    try {
-      window._bgOsc.stop();
-      window._bgOsc.disconnect();
-    } catch (e) {}
-    window._bgOsc = null;
-  }
-
-  // Restore normal gain if we nudged it
-  if (gainNode && isPlaying) {
-    // gain will be restored by normal volume logic when coming back
   }
 }
 
