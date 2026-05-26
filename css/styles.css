@@ -199,34 +199,6 @@ body { font-family: 'Plus Jakarta Sans', sans-serif; background: #06040f; color:
 
 #player-win { min-height: 270px; min-width: 360px; }
 
-/* Share button - clean and consistent across desktop + mobile player */
-.share-btn {
-  background: rgba(255,255,255,0.05);
-  border: 1px solid rgba(255,255,255,0.1);
-  border-radius: 10px;
-  color: var(--baby-blue);
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  font-weight: 600;
-  letter-spacing: 0.3px;
-  transition: all 0.15s ease;
-  box-shadow: 0 2px 6px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.08);
-}
-
-.share-btn:hover {
-  background: rgba(123,47,255,0.15);
-  border-color: rgba(123,47,255,0.4);
-  color: #fff;
-  transform: translateY(-1px);
-}
-
-.share-btn:active {
-  transform: translateY(0);
-  background: rgba(123,47,255,0.25);
-}
-
 /* Song Detail Window polish */
 #song-detail-win .win-body {
   font-family: inherit;
