@@ -125,63 +125,58 @@
         <button class="win-close" id="close-player" title="Close"><span class="material-symbols-outlined" style="font-size:11px">close</span></button>
       </div>
     </div>
-    <div class="win-body" style="padding:10px 14px 12px;overflow:visible">
-      <!-- Cleaner, better-centered metadata header -->
-      <div style="display:flex;align-items:center;gap:12px;margin-bottom:8px">
-        <div id="fp-art" style="width:42px;height:42px;border-radius:10px;flex-shrink:0;display:flex;align-items:center;justify-content:center;background:rgba(123,47,255,.22);border:1px solid rgba(123,47,255,.35);box-shadow:0 0 16px rgba(123,47,255,.25),inset 0 1px 0 rgba(255,255,255,.1)">
-          <span class="material-symbols-outlined" style="font-size:20px;color:var(--jestr-purple);font-variation-settings:'FILL' 1">music_note</span>
+    <div class="win-body player-faceplate" style="padding:12px 16px 14px;overflow:visible">
+      <!-- Pro trippy space analog glass header -->
+      <div class="player-header">
+        <div id="fp-art" class="player-art">
+          <span class="material-symbols-outlined">music_note</span>
         </div>
         
-        <!-- Centered track info -->
-        <div style="flex:1; min-width:0; text-align: center;">
-          <p id="fp-title" style="font-size:12px;font-weight:800;text-transform:uppercase;letter-spacing:.04em;color:#e9e1de;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin:0">No Track</p>
-          <p id="fp-artist" class="phosphor" style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.18em;color:var(--jestr-green);margin:1px 0 0">&mdash;</p>
+        <div class="player-meta">
+          <p id="fp-title" class="player-title">No Track</p>
+          <p id="fp-artist" class="player-artist phosphor">&mdash;</p>
         </div>
 
-        <!-- Action buttons (now compact icon-only) -->
-        <div style="display:flex; gap:4px; flex-shrink:0;">
-          <button id="btn-download" class="ctrl-btn" style="padding:6px" title="Download">
-            <span class="material-symbols-outlined" style="font-size:15px">download</span>
-          </button>
-          <button id="btn-info" class="ctrl-btn" style="padding:6px" title="More details / song page">
-            <span class="material-symbols-outlined" style="font-size:15px">info</span>
-          </button>
-          <button id="btn-share" class="ctrl-btn" style="padding:6px" title="Copy shareable link">
-            <span class="material-symbols-outlined" style="font-size:15px">share</span>
-          </button>
+        <div class="player-actions">
+          <button id="btn-download" class="ctrl-btn" title="Download"><span class="material-symbols-outlined">download</span></button>
+          <button id="btn-info" class="ctrl-btn" title="More details / song page"><span class="material-symbols-outlined">info</span></button>
+          <button id="btn-share" class="ctrl-btn" title="Copy shareable link"><span class="material-symbols-outlined">share</span></button>
         </div>
       </div>
-      <div class="player-controls">
-        <button id="btn-shuffle" class="ctrl-btn" title="Shuffle"><span class="material-symbols-outlined" style="font-size:16px">shuffle</span></button>
-        <button id="btn-prev" class="ctrl-btn" title="Prev"><span class="material-symbols-outlined" style="font-size:18px">skip_previous</span></button>
-        <button id="btn-back10" class="ctrl-btn" title="-10s"><span class="material-symbols-outlined" style="font-size:17px">replay_10</span></button>
-        <button id="btn-play" class="play-btn" style="width:46px;height:46px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0">
-          <span id="play-icon" class="material-symbols-outlined text-white" style="font-size:24px;font-variation-settings:'FILL' 1">play_arrow</span>
-        </button>
-        <button id="btn-fwd10" class="ctrl-btn" title="+10s"><span class="material-symbols-outlined" style="font-size:17px">forward_10</span></button>
-        <button id="btn-next" class="ctrl-btn" title="Next"><span class="material-symbols-outlined" style="font-size:18px">skip_next</span></button>
-        <button id="btn-repeat" class="ctrl-btn" title="Repeat"><span id="repeat-icon" class="material-symbols-outlined" style="font-size:16px">repeat</span></button>
-      </div>
-      <!-- Unified, better-centered timeline + volume area -->
-      <div style="display:flex;align-items:center;gap:8px;background:rgba(0,0,0,.2);border:1px solid rgba(255,255,255,.06);border-radius:10px;padding:6px 10px;margin-top:4px">
-        <span id="time-current" class="tape-counter" style="width:28px;flex-shrink:0;font-size:8px">0:00</span>
+
+      <!-- Analog transport deck - centered and popping -->
+      <div class="player-transport">
+        <button id="btn-shuffle" class="ctrl-btn" title="Shuffle"><span class="material-symbols-outlined">shuffle</span></button>
+        <button id="btn-prev" class="ctrl-btn" title="Prev"><span class="material-symbols-outlined">skip_previous</span></button>
+        <button id="btn-back10" class="ctrl-btn" title="-10s"><span class="material-symbols-outlined">replay_10</span></button>
         
-        <div class="progress-wrap" id="progress-rail" style="flex:1">
+        <button id="btn-play" class="play-btn">
+          <span id="play-icon" class="material-symbols-outlined text-white">play_arrow</span>
+        </button>
+        
+        <button id="btn-fwd10" class="ctrl-btn" title="+10s"><span class="material-symbols-outlined">forward_10</span></button>
+        <button id="btn-next" class="ctrl-btn" title="Next"><span class="material-symbols-outlined">skip_next</span></button>
+        <button id="btn-repeat" class="ctrl-btn" title="Repeat"><span id="repeat-icon" class="material-symbols-outlined">repeat</span></button>
+      </div>
+
+      <!-- Cosmic timeline + mix section (unified, centered, analog) -->
+      <div class="player-timeline">
+        <div class="time-label time-current" id="time-current">0:00</div>
+        
+        <div class="progress-wrap" id="progress-rail">
           <div class="progress-track-bg"></div>
-          <div class="progress-fill-bar" id="progress-fill" style="width:0%"></div>
+          <div class="progress-fill-bar" id="progress-fill"></div>
           <div class="progress-thumb" id="progress-thumb"></div>
         </div>
         
-        <span id="time-total" class="tape-counter" style="width:28px;flex-shrink:0;text-align:right;font-size:8px">0:00</span>
-        
-        <div style="width:1px;height:14px;background:rgba(255,255,255,.12);margin:0 4px;"></div>
-        
-        <div class="vol-row" style="margin:0; padding:2px 6px; background:transparent; border:none;">
-          <div id="vol-icon-wrap" title="Mute/Unmute" style="width:26px;height:26px;">
-            <span id="vol-icon" class="material-symbols-outlined" style="font-size:13px">volume_up</span>
+        <div class="time-label time-total" id="time-total">0:00</div>
+
+        <div class="volume-module">
+          <div id="vol-icon-wrap" title="Mute/Unmute">
+            <span id="vol-icon" class="material-symbols-outlined">volume_up</span>
           </div>
-          <input type="range" id="vol-slider" min="0" max="100" value="80" step="1" style="width:90px;"/>
-          <span class="tape-counter" id="vol-pct" style="width:24px;font-size:7px;">80%</span>
+          <input type="range" id="vol-slider" min="0" max="100" value="80" step="1"/>
+          <span class="tape-counter vol-pct" id="vol-pct">80%</span>
         </div>
       </div>
     </div>
