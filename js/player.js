@@ -191,16 +191,21 @@ function ensureAudioContextRunning() {
 // Resume context aggressively for background playback (screen off, app switch)
 document.addEventListener('visibilitychange', () => {
   if (isPlaying) {
+    // Always try immediately
     ensureAudioContextRunning();
 
     if (document.visibilityState === 'visible') {
-      // Back to foreground → stop the heavy background work
-      setTimeout(ensureAudioContextRunning, 30);
-      setTimeout(ensureAudioContextRunning, 150);
+      // Came back to foreground
+      setTimeout(ensureAudioContextRunning, 20);
+      setTimeout(ensureAudioContextRunning, 100);
       stopBackgroundAudioKeepAlive();
     } else {
-      // Going to background (screen off / pocket) → start proper keep-alive
+      // Screen just locked / going to background → start keepalive *right now*
       startBackgroundAudioKeepAlive();
+      // Extra immediate resumes (sometimes the first one races with suspension)
+      setTimeout(ensureAudioContextRunning, 0);
+      setTimeout(ensureAudioContextRunning, 80);
+      setTimeout(ensureAudioContextRunning, 200);
     }
   } else {
     stopBackgroundAudioKeepAlive();
@@ -225,50 +230,79 @@ function pauseAndStopBackground() {
 function startBackgroundAudioKeepAlive() {
   if (!isIOS() || bgAudioKeepAlive) return;
 
-  // Start a persistent looping silent source + resume loop.
-  // This is more effective than short bursts for keeping AudioContext alive
-  // on iOS when the screen is locked.
+  // === Immediate synchronous work when screen locks ===
+  ensureAudioContextRunning();
+
   try {
     stopSilentBackgroundSource();
 
     if (audioContext) {
-      // Create a 3-second silent buffer and loop it.
-      const bufferLength = Math.floor(audioContext.sampleRate * 3);
+      // Long silent looping buffer (keeps the graph "hot")
+      const bufferLength = Math.floor(audioContext.sampleRate * 4);
       const buffer = audioContext.createBuffer(1, bufferLength, audioContext.sampleRate);
       silentBackgroundSource = audioContext.createBufferSource();
       silentBackgroundSource.buffer = buffer;
       silentBackgroundSource.loop = true;
 
-      if (gainNode) {
-        silentBackgroundSource.connect(gainNode);
-      } else {
-        silentBackgroundSource.connect(audioContext.destination);
-      }
+      const dest = gainNode || audioContext.destination;
+      silentBackgroundSource.connect(dest);
       silentBackgroundSource.start();
     }
   } catch (e) {}
 
-  // Also keep resuming the context on a timer (in case it still suspends).
-  bgAudioKeepAlive = setInterval(() => {
+  // Also start a very low-frequency silent oscillator as extra heartbeat
+  // (this helps keep the context from suspending on iOS in background)
+  try {
+    if (audioContext && !window._bgOsc) {
+      const osc = audioContext.createOscillator();
+      osc.frequency.value = 0.001; // extremely low = basically silent
+      const g = audioContext.createGain();
+      g.gain.value = 0.0001;
+      osc.connect(g);
+      g.connect(audioContext.destination);
+      osc.start();
+      window._bgOsc = osc;
+    }
+  } catch (e) {}
+
+  // Fast recursive loop (more reliable than setInterval against throttling)
+  function keepAliveLoop() {
     if (!isPlaying) {
       stopBackgroundAudioKeepAlive();
       return;
     }
+
     ensureAudioContextRunning();
 
-    // Keep the <audio> element alive too.
+    // Nudge the main audio element
     if (audio.paused) {
       audio.play().catch(() => {});
     }
-  }, 500);
+
+    // Schedule next tick quickly
+    bgAudioKeepAlive = setTimeout(keepAliveLoop, 220);
+  }
+
+  // Kick off the loop immediately
+  if (bgAudioKeepAlive) clearTimeout(bgAudioKeepAlive);
+  bgAudioKeepAlive = setTimeout(keepAliveLoop, 50);
 }
 
 function stopBackgroundAudioKeepAlive() {
   stopSilentBackgroundSource();
 
   if (bgAudioKeepAlive) {
-    clearInterval(bgAudioKeepAlive);
+    clearTimeout(bgAudioKeepAlive);
     bgAudioKeepAlive = null;
+  }
+
+  // Clean up the background oscillator
+  if (window._bgOsc) {
+    try {
+      window._bgOsc.stop();
+      window._bgOsc.disconnect();
+    } catch (e) {}
+    window._bgOsc = null;
   }
 }
 
