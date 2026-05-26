@@ -201,19 +201,15 @@ body { font-family: 'Plus Jakarta Sans', sans-serif; background: #06040f; color:
 #app-toast {
   transition: opacity 0.2s ease;
 }
-#player-win .win-body { overflow-y: auto; }
-
-/* Strong right breathing room in the player header row so the labeled Share button
-   (icon + "Share" text) is well clear of the .win-resize.e handle (4px wide on right edge).
-   This is the main reason desktop clicks were hitting the resize handle instead of Share. */
-#player-win .win-body > div:first-of-type {
-  padding-right: 28px !important;
+#player-win .win-body { 
+  overflow-y: auto; 
+  padding: 10px 16px 12px !important; /* tighter, cleaner internal padding */
+  gap: 6px; /* reduce vertical clutter between sections */
 }
 
-/* Also give the whole player content area extra right padding so nothing in the player
-   ever sits under the invisible east resize handle on desktop. */
-#player-win .win-body {
-  padding-right: 22px !important;
+/* The first child is now our improved metadata header */
+#player-win .win-body > div:first-of-type {
+  margin-bottom: 4px;
 }
 
 /* ============ ANALOG BUTTONS ============ */
@@ -253,19 +249,19 @@ body { font-family: 'Plus Jakarta Sans', sans-serif; background: #06040f; color:
 .play-btn:hover { box-shadow: 0 0 34px rgba(45,91,255,.75), 0 3px 12px rgba(0,0,0,.5), inset 0 1px 0 rgba(255,255,255,.25); }
 .play-btn:active { transform: scale(.93) translateY(1px); }
 
-/* Player transport controls row - prevent clipping, good touch targets */
+/* Player transport controls row - cleaner, better centered */
 .player-controls {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 6px;
-  margin-bottom: 10px;
+  gap: 8px; /* slightly more breathing room */
+  margin: 6px 0 8px;
   flex-wrap: nowrap;
 }
 
 /* ============ SCRUBBERS ============ */
 .progress-wrap {
-  position: relative; height: 22px; display: flex; align-items: center;
+  position: relative; height: 20px; display: flex; align-items: center;
   cursor: pointer; flex: 1; user-select: none; -webkit-user-select: none; touch-action: none;
 }
 .progress-track-bg {
@@ -287,11 +283,12 @@ body { font-family: 'Plus Jakarta Sans', sans-serif; background: #06040f; color:
 .progress-wrap.dragging .progress-track-bg, .progress-wrap.dragging .progress-fill-bar { height: 5px; }
 .progress-wrap.dragging .progress-thumb { transform: translate(-50%,-50%) scale(1.2); }
 
-/* ============ VOLUME ============ */
+/* ============ VOLUME (more compact & integrated) */
 .vol-row {
-  display: flex; align-items: center; gap: 7px;
+  display: flex; align-items: center; gap: 6px;
   background: rgba(0,0,0,.2); border: 1px solid rgba(255,255,255,.06);
-  border-radius: 10px; padding: 5px 10px;
+  border-radius: 10px; padding: 4px 8px;
+  margin-top: 2px;
 }
 #vol-icon-wrap {
   display: flex; align-items: center; justify-content: center;
