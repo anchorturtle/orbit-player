@@ -178,6 +178,22 @@ function initAudioContext() {
   }
 }
 
+/* ── Keep Web Audio context alive for background / screen-off playback on iOS ── */
+function ensureAudioContextRunning() {
+  if (audioContext && audioContext.state === 'suspended') {
+    audioContext.resume().catch(() => {});
+  }
+}
+
+// Resume context aggressively for background playback (screen off, app switch)
+document.addEventListener('visibilitychange', () => {
+  if (document.visibilityState === 'visible' && isPlaying) {
+    ensureAudioContextRunning();
+  }
+});
+window.addEventListener('focus', ensureAudioContextRunning);
+document.addEventListener('pageshow', ensureAudioContextRunning);
+
 function tryUpdateDuration() {
   const dur = audio.duration;
   if (isGoodDuration(dur)) {
@@ -207,6 +223,10 @@ function applySavedSeek() {
 audio.addEventListener('loadedmetadata', () => { tryUpdateDuration(); applySavedSeek(); });
 audio.addEventListener('canplay', () => { tryUpdateDuration(); applySavedSeek(); });
 audio.addEventListener('durationchange', () => { tryUpdateDuration(); applySavedSeek(); });
+
+// Critical for keeping music alive in background / when screen turns off on mobile
+audio.addEventListener('playing', ensureAudioContextRunning);
+audio.addEventListener('play', ensureAudioContextRunning);
 
 function setProgress(pct) {
   document.getElementById('progress-fill').style.width = pct + '%';
@@ -288,6 +308,11 @@ function updatePlayUI() {
   if (isIOS() && isMuted) {
     updateVolumeIcon();
   }
+
+  // Tell the system the current state (helps background / lock screen)
+  if ('mediaSession' in navigator) {
+    navigator.mediaSession.playbackState = isPlaying ? 'playing' : 'paused';
+  }
 }
 
 function loadTrack(idx, autoplay) {
@@ -309,7 +334,46 @@ function loadTrack(idx, autoplay) {
     el.classList.toggle('active', i === idx);
   });
 
+  // Media Session API — makes it behave like a real music player on mobile
+  // (lock screen controls, background playback, screen off, notification)
+  if ('mediaSession' in navigator) {
+    try {
+      navigator.mediaSession.metadata = new MediaMetadata({
+        title: t.title,
+        artist: t.artist || 'jestR',
+        album: 'AnchorTurtle',
+        artwork: [
+          { src: (t.artwork || 'images/at-sea-trans-256.png'), sizes: '256x256', type: 'image/png' }
+        ]
+      });
+
+      // Set action handlers (only need to do this once, but safe to re-set)
+      navigator.mediaSession.setActionHandler('play', () => {
+        if (audio.paused) {
+          initAudioContext();
+          audio.play().then(() => { isPlaying = true; updatePlayUI(); }).catch(() => {});
+        }
+      });
+      navigator.mediaSession.setActionHandler('pause', () => {
+        audio.pause();
+        isPlaying = false;
+        updatePlayUI();
+      });
+      navigator.mediaSession.setActionHandler('nexttrack', () => {
+        loadTrack((currentIndex + 1) % TRACKS.length, true);
+      });
+      navigator.mediaSession.setActionHandler('previoustrack', () => {
+        if (audio.currentTime > 3) {
+          audio.currentTime = 0;
+        } else {
+          loadTrack((currentIndex - 1 + TRACKS.length) % TRACKS.length, true);
+        }
+      });
+    } catch (e) {}
+  }
+
   if (autoplay) {
+    ensureAudioContextRunning();
     audio.play().then(() => { isPlaying = true; updatePlayUI(); }).catch(() => { isPlaying = false; updatePlayUI(); });
   } else {
     isPlaying = false; updatePlayUI();
@@ -318,7 +382,8 @@ function loadTrack(idx, autoplay) {
 
 /* ── PLAYER CONTROLS ── */
 document.getElementById('btn-play').addEventListener('click', () => {
-  initAudioContext(); // Ensure Web Audio is ready (required for iOS mute/volume)
+  initAudioContext();
+  ensureAudioContextRunning();
 
   if (!audio.src || audio.src === window.location.href) { if (TRACKS.length) loadTrack(0, true); return; }
   if (isPlaying) { audio.pause(); isPlaying = false; }
@@ -380,6 +445,7 @@ function updateVolumeIcon() {
 
 volSlider.addEventListener('input', () => {
   initAudioContext();
+  ensureAudioContextRunning();
 
   if (isMuted) { isMuted = false; volIcon.classList.remove('muted'); }
   premuteVolume = +volSlider.value;
@@ -389,6 +455,7 @@ volSlider.addEventListener('input', () => {
 
 document.getElementById('vol-icon-wrap').addEventListener('click', () => {
   initAudioContext();
+  ensureAudioContextRunning();
 
   if (isMuted) {
     // Unmute
