@@ -831,13 +831,14 @@ function handleSongRouting() {
   }
 
   if (slug) {
-    // Multiple attempts for reliability on initial load
+    // Multiple attempts for reliability on initial load.
+    // IMPORTANT: Only load/select the track so it plays. Do NOT open the song details window.
+    // Desktop: shows normal 3-window layout. Mobile: shows normal tracklist + player.
     const tryOpen = (delay) => {
       setTimeout(() => {
-        openSongDetail(slug);
         const idx = findTrackBySlug(slug);
         if (idx !== -1) {
-          loadTrack(idx, false);
+          loadTrack(idx, true);  // true = autoplay the shared song
         }
       }, delay);
     };
@@ -851,6 +852,5 @@ function handleSongRouting() {
 window.addEventListener('hashchange', handleSongRouting);
 window.addEventListener('load', handleSongRouting);
 
-// NOTE: handleSongRouting already handles both /song/slug (clean) and #song/slug paths
-// with multiple delayed openSongDetail + loadTrack retries for reliability on direct shares.
-// Do NOT add extra calls here — previous handleSongHash references were dead and threw on every load.
+// NOTE: handleSongRouting handles /song/slug and #song/slug paths.
+// It only does loadTrack(..., true) now — the song plays but the details window is never opened.
