@@ -197,7 +197,7 @@ body { font-family: 'Plus Jakarta Sans', sans-serif; background: #06040f; color:
   padding-right: 6px;
 }
 
-#player-win { min-height: 270px; min-width: 360px; }
+#player-win { min-height: 270px; min-width: 420px; }
 
 /* Song Detail Window polish */
 #song-detail-win .win-body {
@@ -213,6 +213,12 @@ body { font-family: 'Plus Jakarta Sans', sans-serif; background: #06040f; color:
   transition: opacity 0.2s ease;
 }
 #player-win .win-body { overflow-y: auto; }
+
+/* Extra right breathing room in the player header row so the labeled Share button
+   (icon + "Share" text) never gets cramped against the right resize handle on desktop */
+#player-win .win-body > div:first-of-type {
+  padding-right: 10px;
+}
 
 /* ============ ANALOG BUTTONS ============ */
 .ctrl-btn, .taskbar-btn, .m-tab {

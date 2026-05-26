@@ -730,38 +730,45 @@ function showToast(message, duration = 1800) {
   }, duration);
 }
 
-// Wire player header buttons
-const playerInfoBtn = document.getElementById('btn-info');
-if (playerInfoBtn) {
-  playerInfoBtn.addEventListener('click', () => {
-    if (currentIndex >= 0 && TRACKS[currentIndex]) {
-      openSongDetail(TRACKS[currentIndex].slug);
+// Wire player header buttons (desktop + mobile) using event delegation on the stable .win-body.
+// This is robust against resize handles, win mousedown capture for bringToFront, narrow window layouts,
+// and any stacking/pointer quirks that only appear on desktop windowed player.
+const playerWinBody = document.querySelector('#player-win .win-body');
+if (playerWinBody) {
+  playerWinBody.addEventListener('click', (e) => {
+    // SHARE: copy link + inline "Copied" animation ONLY. Never opens details.
+    const shareBtn = e.target.closest('#btn-share');
+    if (shareBtn) {
+      e.stopPropagation();
+      e.stopImmediatePropagation();
+      if (currentIndex >= 0 && TRACKS[currentIndex]) {
+        const slug = TRACKS[currentIndex].slug;
+        const url = `${location.origin}/song/${slug}`;
+
+        navigator.clipboard.writeText(url).then(() => {
+          // Liked behavior: temporary "Copied" state directly on the .ctrl-btn (matches mobile/desktop)
+          const originalHTML = shareBtn.innerHTML;
+          shareBtn.innerHTML = `<span class="material-symbols-outlined" style="font-size:15px">check</span><span style="font-size:11px; margin-left:4px;">Copied</span>`;
+          
+          setTimeout(() => {
+            shareBtn.innerHTML = originalHTML;
+          }, 1600);
+        }).catch(() => {
+          prompt('Copy this link:', url);
+        });
+      }
+      return;
     }
-  });
-}
 
-const playerShareBtn = document.getElementById('btn-share');
-if (playerShareBtn) {
-  // SHARE = copy link + quick inline "Copied" animation ONLY. Never opens details.
-  // (Info button and title/artist clicks are the paths that open song detail window.)
-  playerShareBtn.addEventListener('click', (e) => {
-    e.stopPropagation();
-    e.stopImmediatePropagation();
-    if (currentIndex >= 0 && TRACKS[currentIndex]) {
-      const slug = TRACKS[currentIndex].slug;
-      const url = `${location.origin}/song/${slug}`;
-
-      navigator.clipboard.writeText(url).then(() => {
-        // Liked behavior: temporary "Copied" state directly on the .ctrl-btn (matches mobile/desktop)
-        const originalHTML = playerShareBtn.innerHTML;
-        playerShareBtn.innerHTML = `<span class="material-symbols-outlined" style="font-size:15px">check</span><span style="font-size:11px; margin-left:4px;">Copied</span>`;
-        
-        setTimeout(() => {
-          playerShareBtn.innerHTML = originalHTML;
-        }, 1600);
-      }).catch(() => {
-        prompt('Copy this link:', url);
-      });
+    // INFO: opens the song details window (separate concern from Share)
+    const infoBtn = e.target.closest('#btn-info');
+    if (infoBtn) {
+      e.stopPropagation();
+      e.stopImmediatePropagation();
+      if (currentIndex >= 0 && TRACKS[currentIndex]) {
+        openSongDetail(TRACKS[currentIndex].slug);
+      }
+      return;
     }
   });
 }
