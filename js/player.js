@@ -386,6 +386,8 @@ function exitIOSBackgroundAudioMode() {
 function enterIOSNativeBackgroundPlayback() {
   if (!isIOS() || !isPlaying || iosBackgroundAudio) return;
 
+  stopBackgroundAudioKeepAlive(); // make sure old keep-alive is dead
+
   try {
     // Create the background player first (don't pause main audio yet)
     iosBackgroundAudio = new Audio();
@@ -621,13 +623,21 @@ function loadTrack(idx, autoplay) {
 
       // Set action handlers (only need to do this once, but safe to re-set)
       navigator.mediaSession.setActionHandler('play', () => {
-        if (audio.paused) {
+        if (isIOS() && iosBackgroundAudio) {
+          iosBackgroundAudio.play().catch(() => {});
+        } else if (audio.paused) {
           initAudioContext();
           audio.play().then(() => { isPlaying = true; updatePlayUI(); }).catch(() => {});
         }
+        isPlaying = true;
+        updatePlayUI();
       });
       navigator.mediaSession.setActionHandler('pause', () => {
-        audio.pause();
+        if (isIOS() && iosBackgroundAudio) {
+          iosBackgroundAudio.pause();
+        } else {
+          audio.pause();
+        }
         isPlaying = false;
         updatePlayUI();
       });
@@ -644,7 +654,16 @@ function loadTrack(idx, autoplay) {
     } catch (e) {}
   }
 
-  if (autoplay) {
+  if (isIOS() && iosBackgroundAudio) {
+    // We're currently in iOS native background handoff mode.
+    // Update the background player to the new track instead of the main one.
+    try {
+      iosBackgroundAudio.pause();
+      iosBackgroundAudio.src = t.file;
+      iosBackgroundAudio.currentTime = 0;
+      iosBackgroundAudio.play().catch(() => {});
+    } catch (e) {}
+  } else if (autoplay) {
     initAudioContext();
     ensureAudioContextRunning();
     audio.play().then(() => { isPlaying = true; updatePlayUI(); }).catch(() => { isPlaying = false; updatePlayUI(); });
