@@ -185,7 +185,7 @@ function toggleWin(winId, btnId) {
     bringToFront(winId);
     if (winId === 'gallery-win') {
       renderGallery();
-      if (window.updateGalleryScrollbar) window.updateGalleryScrollbar();
+      // Gallery now uses the same native scroller as tracklist — no custom update needed
     }
 
     // Same aggressive bring-to-front retries for reliability (desktop dock clicks)
@@ -223,11 +223,10 @@ function mobToggle(winId, btnId) {
 
     if (winId === 'gallery-win') {
       renderGallery();
-      if (window.updateGalleryScrollbar) window.updateGalleryScrollbar();
+      // Gallery now uses the same native scroller as tracklist — no custom update needed
     }
 
-    // Aggressive retries for gallery (and any window) on mobile — layout + custom scrollbar + player height
-    // can cause the first bringToFront z-index to not take effect immediately.
+    // Aggressive retries for gallery (and any window) on mobile for bringToFront reliability.
     const doBring = () => bringToFront(winId);
     requestAnimationFrame(doBring);
     requestAnimationFrame(() => requestAnimationFrame(doBring));

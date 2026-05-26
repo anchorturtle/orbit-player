@@ -102,11 +102,10 @@
         <button class="win-close" id="close-gallery" title="Close"><span class="material-symbols-outlined" style="font-size:11px">close</span></button>
       </div>
     </div>
-    <div class="win-body" style="overflow-y:auto;padding:10px; position: relative;">
-      <div class="gallery-grid" id="gw-grid"></div>
-      <!-- Custom always-visible thick scrollbar for gallery -->
-      <div class="custom-scrollbar" id="gallery-scrollbar">
-        <div class="custom-scrollbar-thumb" id="gallery-scrollbar-thumb"></div>
+    <div class="win-body" style="padding:10px;">
+      <!-- Use the exact same scroller pattern as the tracklist (#sidebar-tracklist) -->
+      <div style="flex:1; overflow-y:auto; display:block; padding:0 6px 0 0; position:relative" class="no-scrollbar" id="gallery-scroll-container">
+        <div class="gallery-grid" id="gw-grid"></div>
       </div>
     </div>
   </div>
