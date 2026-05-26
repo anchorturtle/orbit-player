@@ -686,7 +686,12 @@ function openSongDetail(slug) {
       shareBtn.onclick = () => {
         const url = `${location.origin}/song/${slug}`;
         navigator.clipboard.writeText(url).then(() => {
-          showToast('Link copied to clipboard');
+          const originalHTML = shareBtn.innerHTML;
+          shareBtn.innerHTML = `<span class="material-symbols-outlined" style="font-size:17px">check</span><span style="font-size:11px; margin-left:6px;">Copied</span>`;
+          
+          setTimeout(() => {
+            shareBtn.innerHTML = originalHTML;
+          }, 1600);
         }).catch(() => {
           prompt('Copy this link:', url);
         });
@@ -738,9 +743,15 @@ if (playerShareBtn) {
     if (currentIndex >= 0 && TRACKS[currentIndex]) {
       const slug = TRACKS[currentIndex].slug;
       const url = `${location.origin}/song/${slug}`;
-      openSongDetail(slug); // Open the dedicated page
+
       navigator.clipboard.writeText(url).then(() => {
-        showToast('Link copied to clipboard');
+        // Show temporary "Copied!" feedback right on the button
+        const originalHTML = playerShareBtn.innerHTML;
+        playerShareBtn.innerHTML = `<span class="material-symbols-outlined" style="font-size:15px">check</span><span style="font-size:11px; margin-left:4px;">Copied</span>`;
+        
+        setTimeout(() => {
+          playerShareBtn.innerHTML = originalHTML;
+        }, 1600);
       }).catch(() => {
         prompt('Copy this link:', url);
       });

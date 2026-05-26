@@ -199,6 +199,30 @@ body { font-family: 'Plus Jakarta Sans', sans-serif; background: #06040f; color:
 
 #player-win { min-height: 270px; min-width: 360px; }
 
+/* Nicer share button in player header */
+.share-btn {
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.08);
+  border-top-color: rgba(255,255,255,0.12);
+  border-left-color: rgba(255,255,255,0.10);
+  border-bottom-color: rgba(0,0,0,0.35);
+  border-right-color: rgba(0,0,0,0.2);
+  border-radius: 8px;
+  color: var(--baby-blue);
+  cursor: pointer;
+  transition: background 0.12s, border-color 0.12s;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.35), inset 0 1px 0 rgba(255,255,255,0.06);
+}
+
+.share-btn:hover {
+  background: rgba(123,47,255,0.12);
+  border-color: rgba(123,47,255,0.35);
+}
+
+.share-btn:active {
+  transform: translateY(1px);
+}
+
 /* Song Detail Window polish */
 #song-detail-win .win-body {
   font-family: inherit;
