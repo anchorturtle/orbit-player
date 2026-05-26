@@ -434,43 +434,41 @@ body { font-family: 'Plus Jakarta Sans', sans-serif; background: #06040f; color:
   transition: all .1s ease;
 }
 
-/* Simple, clean analog pause - light green bars, properly centered */
+/* Clean, perfectly centered analog pause using flex (two simple bars) */
 .play-btn.playing .play-icon {
-  border: none;
-  width: 5px;
+  width: 20px;
   height: 18px;
-  background: var(--jestr-green);
-  box-shadow: 0 1px 1px rgba(0,0,0,.5);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
   position: absolute;
   left: 50%;
   top: 50%;
   transform: translate(-50%, -50%);
-  margin-left: -9px; /* centers the pair of bars */
-  border-radius: 1px;
+  margin-left: 0;
+  filter: none;
 }
 
-.play-btn.playing .play-icon::before {
+.play-btn.playing .play-icon::before,
+.play-btn.playing .play-icon::after {
   content: '';
-  position: absolute;
-  left: 12px;
-  top: 0;
-  width: 5px;
+  width: 6px;
   height: 18px;
   background: var(--jestr-green);
-  box-shadow: 0 1px 1px rgba(0,0,0,.5);
   border-radius: 1px;
+  box-shadow: 0 1px 2px rgba(0,0,0,.55);
 }
 
-/* When playing, the button itself looks pressed/engaged (analog "on" state) */
+/* When playing, the button looks latched/engaged with deeper analog press effect */
 .play-btn.playing {
   background: linear-gradient(145deg, #18162a 0%, #0f0e1a 100%);
-  border-color: rgba(0,200,150,.35); /* subtle green ring when engaged */
+  border-color: rgba(0,200,150,.35);
   box-shadow: 
     0 1px 3px rgba(0,0,0,.75),
     inset 0 5px 8px rgba(0,0,0,.75),
     inset 0 -2px 2px rgba(255,255,255,.06),
-    0 0 10px rgba(0,200,150,.2); /* very subtle green glow when latched */
-  transform: translateY(1px);
+    0 0 10px rgba(0,200,150,.18);
+  /* No permanent translate — only :active moves it for a clean press */
 }
 
 .play-btn:hover:not(.playing) {
@@ -483,11 +481,12 @@ body { font-family: 'Plus Jakarta Sans', sans-serif; background: #06040f; color:
 }
 
 .play-btn:active {
-  transform: scale(0.93) translateY(2px);
+  transform: scale(0.92) translateY(2px);
   box-shadow: 
-    0 1px 2px rgba(0,0,0,.6),
-    inset 0 5px 7px rgba(0,0,0,.7),
-    inset 0 -1px 2px rgba(255,255,255,.06);
+    0 1px 2px rgba(0,0,0,.65),
+    inset 0 6px 9px rgba(0,0,0,.8),
+    inset 0 -1px 2px rgba(255,255,255,.05);
+  /* Strong analog press feel like the other ctrl-btns */
 }
 
 /* === TIMELINE + MIX (cosmic analog module) === */
