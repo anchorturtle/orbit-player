@@ -22,46 +22,76 @@ export async function onRequest(context) {
 
   const track = tracks[slug] || { title: 'Track', artist: 'jestR' };
 
-  // Clean, high-contrast OG image optimized for social previews
+  // Clean, high-contrast OG image matching the cosmic / glassmorphism aesthetic of the site.
+  // Uses reliable system fonts (no external font loading for OG unfurl reliability).
   const svg = `
 <svg width="1200" height="630" viewBox="0 0 1200 630" xmlns="http://www.w3.org/2000/svg">
   <defs>
-    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" style="stop-color:#06040f"/>
-      <stop offset="100%" style="stop-color:#0a0620"/>
-    </linearGradient>
     <linearGradient id="titleGrad" x1="0%" y1="0%" x2="100%" y2="0%">
       <stop offset="0%" style="stop-color:#ffffff"/>
-      <stop offset="100%" style="stop-color:#e0d4ff"/>
+      <stop offset="50%" style="stop-color:#e9e1de"/>
+      <stop offset="100%" style="stop-color:#c8b3ff"/>
+    </linearGradient>
+    <linearGradient id="ringGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#7B2FFF;stop-opacity:0.08"/>
+      <stop offset="100%" style="stop-color:#2D5BFF;stop-opacity:0.03"/>
     </linearGradient>
   </defs>
 
-  <!-- Solid dark background for reliable rendering -->
-  <rect width="1200" height="630" fill="#06040f"/>
+  <!-- Deep cosmic background -->
+  <rect width="1200" height="630" fill="#05040d"/>
   
-  <!-- Subtle accent glow -->
-  <circle cx="600" cy="315" r="420" fill="#7B2FFF" opacity="0.04"/>
+  <!-- Very subtle vignette / space depth -->
+  <rect width="1200" height="630" fill="url(#ringGrad)"/>
   
-  <!-- Song Title -->
+  <!-- Faint concentric rings (echo the planet visual in the app) -->
+  <circle cx="1050" cy="320" r="260" fill="none" stroke="#7B2FFF" stroke-width="1" opacity="0.06"/>
+  <circle cx="1050" cy="320" r="190" fill="none" stroke="#7B2FFF" stroke-width="1" opacity="0.09"/>
+  <circle cx="1050" cy="320" r="130" fill="none" stroke="#2D5BFF" stroke-width="1" opacity="0.07"/>
+  
+  <!-- Tiny starfield dots for texture -->
+  <circle cx="80" cy="80" r="1.5" fill="#fff" opacity="0.25"/>
+  <circle cx="160" cy="140" r="1" fill="#fff" opacity="0.18"/>
+  <circle cx="1120" cy="90" r="1.2" fill="#fff" opacity="0.22"/>
+  <circle cx="180" cy="520" r="1" fill="#fff" opacity="0.15"/>
+  <circle cx="1050" cy="540" r="1.3" fill="#fff" opacity="0.2"/>
+  <circle cx="950" cy="110" r="0.8" fill="#fff" opacity="0.3"/>
+  
+  <!-- Song Title (prominent, slightly italic-leaning weight) -->
   <text 
-    x="100" 
-    y="280" 
-    font-family="system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" 
-    font-size="78" 
+    x="90" 
+    y="265" 
+    font-family="system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif" 
+    font-size="82" 
     font-weight="800" 
+    letter-spacing="-0.02em"
     fill="url(#titleGrad)">
     ${escapeXml(track.title)}
   </text>
   
-  <!-- Artist -->
+  <!-- Artist (accent green matching --jestr-green in app) -->
   <text 
-    x="100" 
-    y="365" 
-    font-family="system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" 
-    font-size="44" 
-    font-weight="600" 
+    x="90" 
+    y="340" 
+    font-family="system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif" 
+    font-size="40" 
+    font-weight="700" 
+    letter-spacing="0.04em"
     fill="#00C896">
     ${escapeXml(track.artist)}
+  </text>
+  
+  <!-- Subtle divider line + site badge (professional touch for link previews) -->
+  <line x1="90" y1="380" x2="420" y2="380" stroke="#ffffff" stroke-width="1" opacity="0.12"/>
+  <text 
+    x="90" 
+    y="415" 
+    font-family="system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" 
+    font-size="18" 
+    font-weight="600" 
+    letter-spacing="0.08em"
+    fill="#7B2FFF">
+    ANCHORTURTLE — HI-FI
   </text>
 </svg>`;
 

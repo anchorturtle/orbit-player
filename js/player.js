@@ -683,7 +683,10 @@ function openSongDetail(slug) {
     }
 
     if (shareBtn) {
-      shareBtn.onclick = () => {
+      // SHARE inside detail = copy only + inline Copied anim. Does NOT re-open or toggle.
+      shareBtn.onclick = (e) => {
+        e.stopPropagation();
+        e.stopImmediatePropagation();
         const url = `${location.origin}/song/${slug}`;
         navigator.clipboard.writeText(url).then(() => {
           const originalHTML = shareBtn.innerHTML;
@@ -739,13 +742,17 @@ if (playerInfoBtn) {
 
 const playerShareBtn = document.getElementById('btn-share');
 if (playerShareBtn) {
-  playerShareBtn.addEventListener('click', () => {
+  // SHARE = copy link + quick inline "Copied" animation ONLY. Never opens details.
+  // (Info button and title/artist clicks are the paths that open song detail window.)
+  playerShareBtn.addEventListener('click', (e) => {
+    e.stopPropagation();
+    e.stopImmediatePropagation();
     if (currentIndex >= 0 && TRACKS[currentIndex]) {
       const slug = TRACKS[currentIndex].slug;
       const url = `${location.origin}/song/${slug}`;
 
       navigator.clipboard.writeText(url).then(() => {
-        // Show temporary "Copied!" feedback right on the button
+        // Liked behavior: temporary "Copied" state directly on the .ctrl-btn (matches mobile/desktop)
         const originalHTML = playerShareBtn.innerHTML;
         playerShareBtn.innerHTML = `<span class="material-symbols-outlined" style="font-size:15px">check</span><span style="font-size:11px; margin-left:4px;">Copied</span>`;
         
@@ -811,10 +818,6 @@ function handleSongRouting() {
 window.addEventListener('hashchange', handleSongRouting);
 window.addEventListener('load', handleSongRouting);
 
-// Run on initial load (multiple attempts for reliability)
-window.addEventListener('load', () => {
-  handleSongHash();
-});
-setTimeout(handleSongHash, 400);
-setTimeout(handleSongHash, 900);
-setTimeout(handleSongHash, 1500);
+// NOTE: handleSongRouting already handles both /song/slug (clean) and #song/slug paths
+// with multiple delayed openSongDetail + loadTrack retries for reliability on direct shares.
+// Do NOT add extra calls here — previous handleSongHash references were dead and threw on every load.
