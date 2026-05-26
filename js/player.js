@@ -724,10 +724,8 @@ function openSongDetail(slug) {
 
     if (playBtn) {
       function syncPlayIcon() {
-        const icon = playBtn.querySelector('.material-symbols-outlined');
-        if (icon) {
-          icon.textContent = (currentIndex === idx && isPlaying) ? 'pause' : 'play_arrow';
-        }
+        // Use the same .playing class system as the main player for consistent analog styling
+        playBtn.classList.toggle('playing', currentIndex === idx && isPlaying);
       }
       syncPlayIcon();
 

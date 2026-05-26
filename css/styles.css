@@ -422,50 +422,54 @@ body { font-family: 'Plus Jakarta Sans', sans-serif; background: #06040f; color:
   z-index: -1;
 }
 
-/* Analog play triangle - thick and chunky like the rest of the UI */
+/* Analog play triangle - baby blue to match other accent buttons */
 .play-icon {
   width: 0;
   height: 0;
   border-style: solid;
   border-width: 10px 0 10px 17px;
-  border-color: transparent transparent transparent #e8e1d8;
+  border-color: transparent transparent transparent var(--baby-blue);
   margin-left: 4px;
   filter: drop-shadow(0 1px 1px rgba(0,0,0,.5));
   transition: all .1s ease;
 }
 
-/* Simple, clean analog pause - two bars, matches play triangle weight and color */
+/* Simple, clean analog pause - light green bars, properly centered */
 .play-btn.playing .play-icon {
   border: none;
   width: 5px;
   height: 18px;
-  background: #e8e1d8;
-  margin-left: 0;
+  background: var(--jestr-green);
   box-shadow: 0 1px 1px rgba(0,0,0,.5);
-  position: relative;
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  margin-left: -9px; /* centers the pair of bars */
   border-radius: 1px;
 }
 
 .play-btn.playing .play-icon::before {
   content: '';
   position: absolute;
-  left: 8px;
+  left: 12px;
   top: 0;
   width: 5px;
   height: 18px;
-  background: #e8e1d8;
+  background: var(--jestr-green);
   box-shadow: 0 1px 1px rgba(0,0,0,.5);
   border-radius: 1px;
 }
 
 /* When playing, the button itself looks pressed/engaged (analog "on" state) */
 .play-btn.playing {
-  background: linear-gradient(145deg, #1a1828 0%, #12101f 100%);
-  border-color: rgba(150,100,255,.25);
+  background: linear-gradient(145deg, #18162a 0%, #0f0e1a 100%);
+  border-color: rgba(0,200,150,.35); /* subtle green ring when engaged */
   box-shadow: 
-    0 1px 3px rgba(0,0,0,.7),
-    inset 0 4px 6px rgba(0,0,0,.65),
-    inset 0 -2px 3px rgba(255,255,255,.08);
+    0 1px 3px rgba(0,0,0,.75),
+    inset 0 5px 8px rgba(0,0,0,.75),
+    inset 0 -2px 2px rgba(255,255,255,.06),
+    0 0 10px rgba(0,200,150,.2); /* very subtle green glow when latched */
   transform: translateY(1px);
 }
 
