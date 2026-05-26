@@ -244,6 +244,13 @@ function pauseAndStopBackground() {
     iosBackgroundAudio = null;
   }
 
+  if (isIOS() && precreatedIOSBackgroundAudio) {
+    try {
+      precreatedIOSBackgroundAudio.src = '';
+    } catch (e) {}
+    precreatedIOSBackgroundAudio = null;
+  }
+
   if (isIOS()) {
     exitIOSBackgroundAudioMode();
   }
@@ -329,6 +336,7 @@ function stopSilentBackgroundSource() {
 */
 let isUsingDirectAudioPath = false;
 let iosBackgroundAudio = null; // temporary native audio element used for iOS background playback
+let precreatedIOSBackgroundAudio = null; // pre-warmed native element for faster handoff on iOS
 
 function enterIOSBackgroundAudioMode() {
   if (!isIOS() || !audioContext || !sourceNode || isUsingDirectAudioPath) return;
@@ -389,32 +397,30 @@ function enterIOSNativeBackgroundPlayback() {
   stopBackgroundAudioKeepAlive(); // make sure old keep-alive is dead
 
   try {
-    // Create the background player first (don't pause main audio yet)
-    iosBackgroundAudio = new Audio();
-    iosBackgroundAudio.src = audio.src;
-    iosBackgroundAudio.currentTime = audio.currentTime || 0;
-    iosBackgroundAudio.preload = 'auto';
-    iosBackgroundAudio.playsInline = true;
+    // Prefer a pre-created element if we have one (much faster handoff)
+    if (precreatedIOSBackgroundAudio) {
+      iosBackgroundAudio = precreatedIOSBackgroundAudio;
+      precreatedIOSBackgroundAudio = null;
+      iosBackgroundAudio.currentTime = audio.currentTime || 0;
+    } else {
+      // Fallback: create on the fly
+      iosBackgroundAudio = new Audio();
+      iosBackgroundAudio.src = audio.src;
+      iosBackgroundAudio.currentTime = audio.currentTime || 0;
+      iosBackgroundAudio.preload = 'auto';
+      iosBackgroundAudio.playsInline = true;
+    }
 
-    // Start the native player immediately
+    // Start the native background player
     iosBackgroundAudio.play().catch(() => {});
 
-    // Once the background player is actually producing sound,
-    // safely pause the main audio. This greatly reduces the audible gap.
-    const onBgPlaying = () => {
-      iosBackgroundAudio.removeEventListener('playing', onBgPlaying);
-      if (audio && isPlaying) {
-        audio.pause();
-      }
-    };
-    iosBackgroundAudio.addEventListener('playing', onBgPlaying, { once: true });
-
-    // Fallback safety: if 'playing' event is slow, force the pause after a short delay
+    // Use a short fixed overlap instead of waiting for 'playing' event.
+    // This makes the audible gap consistently small (~120-180ms) instead of variable.
     setTimeout(() => {
       if (audio && isPlaying && iosBackgroundAudio) {
         audio.pause();
       }
-    }, 400);
+    }, 150);
 
   } catch (e) {
     iosBackgroundAudio = null;
@@ -432,13 +438,19 @@ function exitIOSNativeBackgroundPlayback() {
     iosBackgroundAudio.src = '';
     iosBackgroundAudio = null;
 
+    // Clean up any pre-created element too
+    if (precreatedIOSBackgroundAudio) {
+      precreatedIOSBackgroundAudio.src = '';
+      precreatedIOSBackgroundAudio = null;
+    }
+
     // Sync our main audio element back to where the background one was
     if (audio) {
       audio.currentTime = bgTime;
-      // The caller (visibility handler) will decide whether to resume
     }
   } catch (e) {
     iosBackgroundAudio = null;
+    precreatedIOSBackgroundAudio = null;
   }
 }
 
@@ -667,6 +679,20 @@ function loadTrack(idx, autoplay) {
     initAudioContext();
     ensureAudioContextRunning();
     audio.play().then(() => { isPlaying = true; updatePlayUI(); }).catch(() => { isPlaying = false; updatePlayUI(); });
+
+    // On iOS, pre-warm a background audio element so the handoff when the user locks the screen is much faster (less gap)
+    if (isIOS()) {
+      try {
+        if (precreatedIOSBackgroundAudio) {
+          precreatedIOSBackgroundAudio.src = '';
+        }
+        precreatedIOSBackgroundAudio = new Audio();
+        precreatedIOSBackgroundAudio.src = t.file;
+        precreatedIOSBackgroundAudio.preload = 'auto';
+        precreatedIOSBackgroundAudio.playsInline = true;
+        precreatedIOSBackgroundAudio.load(); // start loading early
+      } catch (e) {}
+    }
   } else {
     isPlaying = false; updatePlayUI();
   }
