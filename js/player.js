@@ -8,16 +8,16 @@ const TRACKS = [
     title: 'Geronimo',
     artist: 'jestR',
     slug: 'geronimo',
-    file: '11 - Geronimo- jestR - 2020.mp3',
+    file: 'audio/11 - Geronimo- jestR - 2020.mp3',
     year: 2020,
     description: 'Explosive opener with raw energy and sharp lyricism.',
-    artwork: 'Jesterdaze.png'
+    artwork: 'images/Jesterdaze.png'
   },
   {
     title: 'Spin Cycle',
     artist: 'jestR',
     slug: 'spin-cycle',
-    file: 'Spin-Cycle_.mp3',
+    file: 'audio/Spin-Cycle_.mp3',
     year: 2025,
     description: '',
     artwork: null
@@ -26,7 +26,7 @@ const TRACKS = [
     title: 'Mile High',
     artist: 'jestR',
     slug: 'mile-high',
-    file: '3 - Mile High- jestR - 2020.mp3',
+    file: 'audio/3 - Mile High- jestR - 2020.mp3',
     year: 2020,
     description: 'Atmospheric and introspective with soaring melodies.',
     artwork: null
@@ -35,7 +35,7 @@ const TRACKS = [
     title: 'Follow The Flow',
     artist: 'jestR',
     slug: 'follow-the-flow',
-    file: 'Mp3-FollowTheFlow.mp3',
+    file: 'audio/Mp3-FollowTheFlow.mp3',
     year: 2021,
     description: 'Smooth, hypnotic groove exploring surrender and momentum.',
     artwork: null
@@ -44,7 +44,7 @@ const TRACKS = [
     title: 'Soul Seer',
     artist: 'jestR',
     slug: 'soul-seer',
-    file: 'Mp3-SoulSeer.mp3',
+    file: 'audio/Mp3-SoulSeer.mp3',
     year: 2021,
     description: 'Mystical and introspective journey through inner vision.',
     artwork: null
@@ -53,7 +53,7 @@ const TRACKS = [
     title: 'Peace',
     artist: 'jestR',
     slug: 'peace',
-    file: 'Peace.mp3',
+    file: 'audio/Peace.mp3',
     year: 2022,
     description: 'Minimal and meditative. A moment of stillness.',
     artwork: null
@@ -62,7 +62,7 @@ const TRACKS = [
     title: 'Strider',
     artist: 'jestR',
     slug: 'strider',
-    file: 'Strider.mp3',
+    file: 'audio/Strider.mp3',
     year: 2022,
     description: 'Dark, driving beat with determined, cinematic feel.',
     artwork: null
@@ -71,7 +71,7 @@ const TRACKS = [
     title: 'Insane Membrane',
     artist: 'jestR',
     slug: 'insane-membrane',
-    file: 'Insane_membrane.mp3',
+    file: 'audio/Insane_membrane.mp3',
     year: 2023,
     description: 'Chaotic, textured, and emotionally charged.',
     artwork: null
@@ -80,7 +80,7 @@ const TRACKS = [
     title: 'Wavy',
     artist: 'jestR',
     slug: 'wavy',
-    file: 'wavy.mp3',
+    file: 'audio/wavy.mp3',
     year: 2023,
     description: 'Liquid, dreamy production with fluid delivery.',
     artwork: 'wavy.mp3' // placeholder - can point to image later
@@ -89,7 +89,7 @@ const TRACKS = [
     title: 'Boa Constrictor',
     artist: 'jestR',
     slug: 'boa-constrictor',
-    file: 'boaconstrictor.mp3',
+    file: 'audio/boaconstrictor.mp3',
     year: 2024,
     description: 'Tense, coiled energy that slowly tightens.',
     artwork: null
@@ -98,7 +98,7 @@ const TRACKS = [
     title: 'News',
     artist: 'jestR',
     slug: 'news',
-    file: 'Newsss.mp3',
+    file: 'audio/Newsss.mp3',
     year: 2024,
     description: 'Sharp commentary wrapped in heavy, distorted beats.',
     artwork: null
@@ -107,7 +107,7 @@ const TRACKS = [
     title: 'Wheels',
     artist: 'jestR',
     slug: 'wheels',
-    file: 'mp3Wheels-36.mp3',
+    file: 'audio/mp3Wheels-36.mp3',
     year: 2020,
     description: 'Cyclic, hypnotic rhythm. Motion without destination.',
     artwork: null
@@ -116,7 +116,7 @@ const TRACKS = [
     title: 'Pop',
     artist: 'jestR',
     slug: 'pop',
-    file: 'pop.mp3',
+    file: 'audio/pop.mp3',
     year: 2024,
     description: 'Playful yet biting take on pop culture.',
     artwork: null
@@ -125,7 +125,7 @@ const TRACKS = [
     title: 'The Sum Of Hippy Thoughts',
     artist: 'jestR',
     slug: 'the-sum-of-hippy-thoughts',
-    file: 'the sum of hippy thoughts - Output - Stereo Out.mp3',
+    file: 'audio/the sum of hippy thoughts - Output - Stereo Out.mp3',
     year: 2025,
     description: 'Expansive, philosophical closer with lush textures.',
     artwork: null
@@ -134,7 +134,7 @@ const TRACKS = [
     title: 'What Dreams May Come',
     artist: 'jestR',
     slug: 'what-dreams-may-come',
-    file: 'what_dreams_may_comewavy.wav',
+    file: 'audio/what_dreams_may_comewavy.wav',
     year: 2020,
     description: 'Ethereal and cinematic. A dreamlike farewell.',
     artwork: 'wavy.mp3'
