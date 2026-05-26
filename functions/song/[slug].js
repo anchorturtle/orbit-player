@@ -1,6 +1,5 @@
 export async function onRequest(context) {
   const { slug } = context.params;
-  const env = context.env;
 
   // Track data - keep this in sync with your TRACKS in js/player.js
   const tracks = {
@@ -23,41 +22,50 @@ export async function onRequest(context) {
 
   const track = tracks[slug] || { title: 'Track', artist: 'jestR' };
 
-  // Use the request URL to determine the correct origin (works for custom domains + preview deployments)
   const url = new URL(context.request.url);
   const siteUrl = `${url.protocol}//${url.host}`;
-
   const imageUrl = `${siteUrl}/og/song/${slug}.svg`;
   const appUrl = `${siteUrl}/#song/${slug}`;
 
   const title = `${track.title} - ${track.artist}`;
-  const description = `AnchorTurtle`;
+  const description = `Listen on AnchorTurtle`;
 
-  // Fetch the real index.html and inject dynamic meta tags
-  let html = await context.env.ASSETS.fetch('/index.html').then(r => r.text());
+  // Return a clean HTML document with proper meta tags for social previews.
+  // This approach is more reliable for link unfurling than heavy string replacement.
+  const html = `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>${title} | AnchorTurtle</title>
 
-  const metaTags = `
-  <title>${title}</title>
+  <!-- Open Graph tags for rich link previews -->
   <meta property="og:title" content="${title}">
   <meta property="og:description" content="${description}">
   <meta property="og:image" content="${imageUrl}">
   <meta property="og:url" content="${siteUrl}/song/${slug}">
   <meta property="og:type" content="music.song">
   <meta property="og:site_name" content="AnchorTurtle">
+
+  <!-- Twitter / X Card -->
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:title" content="${title}">
   <meta name="twitter:description" content="${description}">
   <meta name="twitter:image" content="${imageUrl}">
-  `;
 
-  // Inject the meta tags right before </head>
-  html = html.replace('</head>', `${metaTags}\n</head>`);
-
-  // Make sure the SPA loads the correct song
-  html = html.replace(
-    '</body>',
-    `<script>window.location.replace('${appUrl}');</script>\n</body>`
-  );
+  <!-- Redirect users to the actual app experience -->
+  <meta http-equiv="refresh" content="0;url=${appUrl}">
+</head>
+<body>
+  <p>Redirecting to AnchorTurtle...</p>
+  <script>
+    // Client-side fallback redirect
+    setTimeout(() => {
+      window.location.href = '${appUrl}';
+    }, 100);
+  </script>
+</body>
+</html>`;
 
   return new Response(html, {
     headers: {
