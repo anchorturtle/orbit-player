@@ -162,21 +162,27 @@
         <button id="btn-next" class="ctrl-btn" title="Next"><span class="material-symbols-outlined" style="font-size:18px">skip_next</span></button>
         <button id="btn-repeat" class="ctrl-btn" title="Repeat"><span id="repeat-icon" class="material-symbols-outlined" style="font-size:16px">repeat</span></button>
       </div>
-      <div style="display:flex;align-items:center;gap:7px;background:rgba(0,0,0,.2);border:1px solid rgba(255,255,255,.06);border-radius:10px;padding:5px 10px;margin-bottom:6px">
-        <span id="time-current" class="tape-counter" style="width:30px;flex-shrink:0;font-size:8px">0:00</span>
-        <div class="progress-wrap" id="progress-rail">
+      <!-- Unified, better-centered timeline + volume area -->
+      <div style="display:flex;align-items:center;gap:8px;background:rgba(0,0,0,.2);border:1px solid rgba(255,255,255,.06);border-radius:10px;padding:6px 10px;margin-top:4px">
+        <span id="time-current" class="tape-counter" style="width:28px;flex-shrink:0;font-size:8px">0:00</span>
+        
+        <div class="progress-wrap" id="progress-rail" style="flex:1">
           <div class="progress-track-bg"></div>
           <div class="progress-fill-bar" id="progress-fill" style="width:0%"></div>
           <div class="progress-thumb" id="progress-thumb"></div>
         </div>
-        <span id="time-total" class="tape-counter" style="width:30px;flex-shrink:0;text-align:right;font-size:8px">0:00</span>
-      </div>
-      <div class="vol-row">
-        <div id="vol-icon-wrap" title="Mute/Unmute">
-          <span id="vol-icon" class="material-symbols-outlined">volume_up</span>
+        
+        <span id="time-total" class="tape-counter" style="width:28px;flex-shrink:0;text-align:right;font-size:8px">0:00</span>
+        
+        <div style="width:1px;height:14px;background:rgba(255,255,255,.12);margin:0 4px;"></div>
+        
+        <div class="vol-row" style="margin:0; padding:2px 6px; background:transparent; border:none;">
+          <div id="vol-icon-wrap" title="Mute/Unmute" style="width:26px;height:26px;">
+            <span id="vol-icon" class="material-symbols-outlined" style="font-size:13px">volume_up</span>
+          </div>
+          <input type="range" id="vol-slider" min="0" max="100" value="80" step="1" style="width:90px;"/>
+          <span class="tape-counter" id="vol-pct" style="width:24px;font-size:7px;">80%</span>
         </div>
-        <input type="range" id="vol-slider" min="0" max="100" value="80" step="1"/>
-        <span class="tape-counter" id="vol-pct">80%</span>
       </div>
     </div>
   </div>

@@ -283,12 +283,13 @@ body { font-family: 'Plus Jakarta Sans', sans-serif; background: #06040f; color:
 .progress-wrap.dragging .progress-track-bg, .progress-wrap.dragging .progress-fill-bar { height: 5px; }
 .progress-wrap.dragging .progress-thumb { transform: translate(-50%,-50%) scale(1.2); }
 
-/* ============ VOLUME (more compact & integrated) */
+/* ============ VOLUME (integrated into bottom bar for cleaner layout) */
 .vol-row {
-  display: flex; align-items: center; gap: 6px;
-  background: rgba(0,0,0,.2); border: 1px solid rgba(255,255,255,.06);
-  border-radius: 10px; padding: 4px 8px;
-  margin-top: 2px;
+  display: flex; align-items: center; gap: 4px;
+  padding: 0;
+  margin: 0;
+  background: transparent;
+  border: none;
 }
 #vol-icon-wrap {
   display: flex; align-items: center; justify-content: center;
@@ -314,7 +315,7 @@ body { font-family: 'Plus Jakarta Sans', sans-serif; background: #06040f; color:
   border: none; box-shadow: 0 0 0 3px rgba(0,200,150,.45), 0 2px 6px rgba(0,0,0,.6);
 }
 #vol-slider:active::-webkit-slider-thumb { transform: scale(1.25); }
-#vol-pct { width: 30px; flex-shrink: 0; text-align: right; font-size: 8px; }
+#vol-pct { width: 26px; flex-shrink: 0; text-align: right; font-size: 7px; }
 
 /* ============ SEARCH ============ */
 .search-wrap {
