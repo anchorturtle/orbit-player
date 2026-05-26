@@ -148,6 +148,7 @@ let gainNode = null;
 let sourceNode = null;
 
 let bgAudioKeepAlive = null;
+let silentBackgroundSource = null;
 
 let currentIndex = 0, isPlaying = false, isShuffle = false, repeatMode = 0;
 let seekOnReady = null, isSeeking = false, durationPollTimer = null;
@@ -193,13 +194,12 @@ document.addEventListener('visibilitychange', () => {
     ensureAudioContextRunning();
 
     if (document.visibilityState === 'visible') {
-      // User unlocked screen or returned to app
+      // Back to foreground → stop the heavy background work
       setTimeout(ensureAudioContextRunning, 30);
       setTimeout(ensureAudioContextRunning, 150);
-      setTimeout(ensureAudioContextRunning, 400);
       stopBackgroundAudioKeepAlive();
     } else {
-      // Screen locked or app went to background → start the keep-alive immediately
+      // Going to background (screen off / pocket) → start proper keep-alive
       startBackgroundAudioKeepAlive();
     }
   } else {
@@ -214,47 +214,71 @@ document.addEventListener('pagehide', () => {
   }
 });
 
+// Also stop everything if the user pauses
+function pauseAndStopBackground() {
+  if (audio) audio.pause();
+  isPlaying = false;
+  stopBackgroundAudioKeepAlive();
+  updatePlayUI();
+}
+
 function startBackgroundAudioKeepAlive() {
   if (!isIOS() || bgAudioKeepAlive) return;
 
-  // Aggressive keep-alive for iOS screen-off / background playback.
-  // This combination (fast resume + silent buffer) is the most reliable way
-  // to prevent AudioContext suspension when using GainNode on iOS.
+  // Start a persistent looping silent source + resume loop.
+  // This is more effective than short bursts for keeping AudioContext alive
+  // on iOS when the screen is locked.
+  try {
+    stopSilentBackgroundSource();
+
+    if (audioContext) {
+      // Create a 3-second silent buffer and loop it.
+      const bufferLength = Math.floor(audioContext.sampleRate * 3);
+      const buffer = audioContext.createBuffer(1, bufferLength, audioContext.sampleRate);
+      silentBackgroundSource = audioContext.createBufferSource();
+      silentBackgroundSource.buffer = buffer;
+      silentBackgroundSource.loop = true;
+
+      if (gainNode) {
+        silentBackgroundSource.connect(gainNode);
+      } else {
+        silentBackgroundSource.connect(audioContext.destination);
+      }
+      silentBackgroundSource.start();
+    }
+  } catch (e) {}
+
+  // Also keep resuming the context on a timer (in case it still suspends).
   bgAudioKeepAlive = setInterval(() => {
     if (!isPlaying) {
       stopBackgroundAudioKeepAlive();
       return;
     }
-
     ensureAudioContextRunning();
 
-    // Nudge the <audio> element
+    // Keep the <audio> element alive too.
     if (audio.paused) {
       audio.play().catch(() => {});
     }
-
-    // Play a tiny silent buffer through the context.
-    // This keeps the AudioContext "active" in background on iOS.
-    try {
-      if (audioContext && audioContext.state === 'running') {
-        const buffer = audioContext.createBuffer(1, 1, audioContext.sampleRate);
-        const source = audioContext.createBufferSource();
-        source.buffer = buffer;
-        if (gainNode) {
-          source.connect(gainNode);
-        } else {
-          source.connect(audioContext.destination);
-        }
-        source.start(0);
-      }
-    } catch (e) {}
-  }, 350); // 350ms is aggressive but necessary for reliable background on iOS
+  }, 500);
 }
 
 function stopBackgroundAudioKeepAlive() {
+  stopSilentBackgroundSource();
+
   if (bgAudioKeepAlive) {
     clearInterval(bgAudioKeepAlive);
     bgAudioKeepAlive = null;
+  }
+}
+
+function stopSilentBackgroundSource() {
+  if (silentBackgroundSource) {
+    try {
+      silentBackgroundSource.stop();
+      silentBackgroundSource.disconnect();
+    } catch (e) {}
+    silentBackgroundSource = null;
   }
 }
 
@@ -371,9 +395,7 @@ audio.addEventListener('ended', () => {
   } else if (repeatMode === 1) {
     loadTrack(0, true);
   } else {
-    isPlaying = false;
-    stopBackgroundAudioKeepAlive();
-    updatePlayUI();
+    pauseAndStopBackground();
   }
 });
 
@@ -480,9 +502,7 @@ document.getElementById('btn-play').addEventListener('click', () => {
 
   if (!audio.src || audio.src === window.location.href) { if (TRACKS.length) loadTrack(0, true); return; }
   if (isPlaying) {
-    audio.pause();
-    isPlaying = false;
-    stopBackgroundAudioKeepAlive();
+    pauseAndStopBackground();
   } else {
     ensureAudioContextRunning();
     audio.play().then(() => { isPlaying = true; }).catch(() => { isPlaying = false; });
