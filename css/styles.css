@@ -435,6 +435,25 @@ body { font-family: 'Plus Jakarta Sans', sans-serif; background: #06040f; color:
   position: relative;
 }
 
+/* Robust Material Symbols styling to prevent showing raw text on desktop */
+.material-symbols-outlined {
+  font-family: 'Material Symbols Outlined' !important;
+  font-weight: normal;
+  font-style: normal;
+  font-size: inherit;
+  line-height: 1;
+  letter-spacing: normal;
+  text-transform: none;
+  display: inline-block;
+  white-space: nowrap;
+  word-wrap: normal;
+  direction: ltr;
+  -webkit-font-feature-settings: 'liga';
+  -webkit-font-smoothing: antialiased;
+  font-feature-settings: 'liga';
+  font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+}
+
 /* Standard pause symbol (clean Material Symbols pause, green to match aesthetic) */
 .play-btn.playing .play-icon {
   position: absolute;
