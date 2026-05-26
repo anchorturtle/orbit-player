@@ -345,6 +345,14 @@ body { font-family: 'Plus Jakarta Sans', sans-serif; background: #06040f; color:
   flex-shrink: 0;
 }
 
+/* Extra strong analog press on the header action buttons */
+.player-actions .ctrl-btn:active {
+  transform: scale(0.88) translateY(2px) !important;
+  box-shadow: 
+    0 1px 2px rgba(0,0,0,.6),
+    inset 0 4px 6px rgba(0,0,0,.7) !important;
+}
+
 /* === TRANSPORT DECK (the star) === */
 .player-transport {
   display: flex;
@@ -367,100 +375,115 @@ body { font-family: 'Plus Jakarta Sans', sans-serif; background: #06040f; color:
   width: 36px;
   height: 36px;
   border-radius: 50%;
-  transition: all .1s cubic-bezier(0.23, 1, 0.32, 1);
+  transition: transform .08s cubic-bezier(0.23, 1, 0.32, 1), 
+              box-shadow .1s ease;
 }
 
-.player-transport .ctrl-btn:hover {
-  transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(0,0,0,.4);
+/* Strong visible analog press effect on all transport buttons (matching toolbar) */
+.player-transport .ctrl-btn:active {
+  transform: scale(0.9) translateY(2px) !important;
+  box-shadow: 
+    0 1px 2px rgba(0,0,0,.6),
+    inset 0 4px 6px rgba(0,0,0,.65),
+    inset 0 -1px 2px rgba(255,255,255,.08) !important;
+  border-top-color: rgba(0,0,0,.5) !important;
+  border-left-color: rgba(0,0,0,.4) !important;
 }
 
 .play-btn {
   width: 54px !important;
   height: 54px !important;
   border-radius: 50% !important;
-  /* More analog hi-fi / synth button look */
-  background: linear-gradient(145deg, #2a2740 0%, #1c1a2e 50%, #12101f 100%);
-  border: 1px solid rgba(150,100,255,.35);
+  /* Match the analog glass/ctrl-btn family more closely */
+  background: linear-gradient(145deg, #2a2740 0%, #1c1a2e 100%);
+  border: 1px solid rgba(150,100,255,.32);
   box-shadow: 
-    /* Outer soft equipment shadow */
-    0 3px 10px rgba(0,0,0,.65),
-    /* Subtle cosmic rim light */
-    0 0 14px rgba(123,47,255,.25),
-    /* Strong physical bevels for analog depth */
-    inset 0 3px 4px rgba(255,255,255,.18),
-    inset 0 -4px 6px rgba(0,0,0,.55),
-    inset 0 1px 0 rgba(255,255,255,.12);
+    0 2px 8px rgba(0,0,0,.6),
+    inset 0 2px 3px rgba(255,255,255,.16),
+    inset 0 -3px 5px rgba(0,0,0,.5);
   position: relative;
   z-index: 2;
   transition: transform .08s cubic-bezier(0.23, 1, 0.32, 1), 
-              box-shadow .1s ease;
+              box-shadow .1s ease,
+              background .1s ease;
   display: flex;
   align-items: center;
   justify-content: center;
 }
 
-/* Outer ring for that classic analog button housing */
+/* Subtle outer housing ring to match other button depth */
 .play-btn::before {
   content: '';
   position: absolute;
-  inset: -4px;
+  inset: -3px;
   border-radius: 50%;
-  background: linear-gradient(145deg, rgba(150,100,255,.18), rgba(8,5,22,.6));
+  background: transparent;
   border: 1px solid rgba(150,100,255,.22);
   z-index: -1;
-  box-shadow: inset 0 1px 0 rgba(255,255,255,.1);
 }
 
-/* The actual play/pause symbol - thicker, more analog 3D style */
+/* Analog play triangle - thick and chunky like the rest of the UI */
 .play-icon {
   width: 0;
   height: 0;
   border-style: solid;
-  border-width: 11px 0 11px 19px;
+  border-width: 10px 0 10px 17px;
   border-color: transparent transparent transparent #e8e1d8;
-  margin-left: 3px; /* optical centering for triangle */
-  filter: drop-shadow(0 1px 2px rgba(0,0,0,.5));
+  margin-left: 4px;
+  filter: drop-shadow(0 1px 1px rgba(0,0,0,.5));
   transition: all .1s ease;
 }
 
-/* When playing, turn it into a pause symbol with analog bars */
+/* Simple, clean analog pause - two bars, matches play triangle weight and color */
 .play-btn.playing .play-icon {
   border: none;
-  width: 17px;
+  width: 5px;
   height: 18px;
   background: #e8e1d8;
   margin-left: 0;
-  box-shadow: 0 1px 2px rgba(0,0,0,.5);
+  box-shadow: 0 1px 1px rgba(0,0,0,.5);
   position: relative;
+  border-radius: 1px;
 }
 
 .play-btn.playing .play-icon::before {
   content: '';
   position: absolute;
-  left: -6px;
+  left: 8px;
   top: 0;
-  width: 4px;
+  width: 5px;
   height: 18px;
   background: #e8e1d8;
-  box-shadow: 0 1px 2px rgba(0,0,0,.5);
+  box-shadow: 0 1px 1px rgba(0,0,0,.5);
+  border-radius: 1px;
 }
 
-.play-btn:hover {
+/* When playing, the button itself looks pressed/engaged (analog "on" state) */
+.play-btn.playing {
+  background: linear-gradient(145deg, #1a1828 0%, #12101f 100%);
+  border-color: rgba(150,100,255,.25);
   box-shadow: 
-    0 4px 14px rgba(0,0,0,.7),
-    0 0 18px rgba(123,47,255,.3),
-    inset 0 3px 5px rgba(255,255,255,.2),
-    inset 0 -5px 7px rgba(0,0,0,.6);
+    0 1px 3px rgba(0,0,0,.7),
+    inset 0 4px 6px rgba(0,0,0,.65),
+    inset 0 -2px 3px rgba(255,255,255,.08);
+  transform: translateY(1px);
+}
+
+.play-btn:hover:not(.playing) {
+  box-shadow: 
+    0 3px 10px rgba(0,0,0,.65),
+    0 0 12px rgba(123,47,255,.2),
+    inset 0 2px 4px rgba(255,255,255,.2),
+    inset 0 -4px 6px rgba(0,0,0,.55);
   transform: translateY(-1px);
 }
 
 .play-btn:active {
-  transform: scale(0.94) translateY(1px);
+  transform: scale(0.93) translateY(2px);
   box-shadow: 
-    0 1px 4px rgba(0,0,0,.6),
-    inset 0 5px 8px rgba(0,0,0,.65),
-    inset 0 -2px 3px rgba(255,255,255,.1);
+    0 1px 2px rgba(0,0,0,.6),
+    inset 0 5px 7px rgba(0,0,0,.7),
+    inset 0 -1px 2px rgba(255,255,255,.06);
 }
 
 /* === TIMELINE + MIX (cosmic analog module) === */
@@ -569,6 +592,14 @@ body { font-family: 'Plus Jakarta Sans', sans-serif; background: #06040f; color:
   align-items: center;
   justify-content: center;
   cursor: pointer;
+  border-radius: 6px;
+  transition: transform .08s ease, box-shadow .1s ease;
+}
+
+/* Analog press effect on volume mute button */
+#vol-icon-wrap:active {
+  transform: scale(0.9) translateY(1px);
+  box-shadow: inset 0 3px 5px rgba(0,0,0,.6);
 }
 
 #vol-icon {
