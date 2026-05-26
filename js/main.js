@@ -61,23 +61,30 @@ function applyDesktopLayout() {
   const tlH = Math.min(540, usableH - 2 * PAD);
   const gW = Math.min(280, Math.max(230, (vw - cx - PLANET_R - PAD) * 0.95));
   const gH = Math.min(480, usableH - 2 * PAD);
-  const plW = Math.min(460, Math.max(420, vw * 0.32));
-  const plH = Math.max(300, Math.min(360, usableH * 0.42));
+  const plW = Math.min(520, Math.max(420, vw * 0.34));  // more dynamic for player
+  const plH = Math.max(300, Math.min(380, usableH * 0.42));
 
-  tl.style.width = tlW + 'px'; tl.style.height = tlH + 'px';
-  g.style.width = gW + 'px'; g.style.height = gH + 'px';
-  pl.style.width = plW + 'px'; pl.style.height = plH + 'px';
+  // Only force sizes/positions for windows the user hasn't manually dragged or resized
+  if (tl.dataset.userPositioned !== 'true') {
+    tl.style.width = tlW + 'px'; tl.style.height = tlH + 'px';
+    tl.style.left = Math.max(PAD, cx - PLANET_R - tlW - 14) + 'px';
+    tl.style.top = Math.max(PAD, cy - tlH / 2 - 10) + 'px';
+    tl.style.bottom = ''; tl.style.right = '';
+  }
 
-  // Nicely balanced around the planet focal point with consistent breathing room
-  tl.style.left = Math.max(PAD, cx - PLANET_R - tlW - 14) + 'px';
-  tl.style.top = Math.max(PAD, cy - tlH / 2 - 10) + 'px';
-  g.style.left = Math.min(vw - gW - PAD, cx + PLANET_R + 14) + 'px';
-  g.style.top = Math.max(PAD, cy - gH / 2 - 10) + 'px';
-  pl.style.left = Math.max(PAD, cx - plW / 2) + 'px';
-  pl.style.top = Math.max(PAD, Math.min(usableH - plH - PAD - 8, cy + PLANET_R - 10)) + 'px';
+  if (g.dataset.userPositioned !== 'true') {
+    g.style.width = gW + 'px'; g.style.height = gH + 'px';
+    g.style.left = Math.min(vw - gW - PAD, cx + PLANET_R + 14) + 'px';
+    g.style.top = Math.max(PAD, cy - gH / 2 - 10) + 'px';
+    g.style.bottom = ''; g.style.right = '';
+  }
 
-  tl.style.bottom = g.style.bottom = pl.style.bottom = '';
-  tl.style.right = g.style.right = pl.style.right = '';
+  if (pl.dataset.userPositioned !== 'true') {
+    pl.style.width = plW + 'px'; pl.style.height = plH + 'px';
+    pl.style.left = Math.max(PAD, cx - plW / 2) + 'px';
+    pl.style.top = Math.max(PAD, Math.min(usableH - plH - PAD - 8, cy + PLANET_R - 10)) + 'px';
+    pl.style.bottom = ''; pl.style.right = '';
+  }
 
   renderGallery();
 
@@ -101,6 +108,7 @@ function makeWindowDraggable(winId, barId) {
     win.style.left = r.left + 'px'; win.style.top = r.top + 'px';
     win.style.width = r.width + 'px'; win.style.height = (r.height || win.offsetHeight) + 'px';
     win.style.bottom = ''; win.style.right = '';
+    win.dataset.userPositioned = 'true';  // prevent applyDesktopLayout from overriding user positions on zoom/resize
   }
 
   function startOp(e, m) {

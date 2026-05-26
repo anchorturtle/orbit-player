@@ -1020,6 +1020,23 @@ function openSongDetail(slug) {
     const win = document.getElementById('song-detail-win');
     if (win) {
       win.style.display = 'flex';
+
+      // Set a sensible default position on first open (avoid top-left "weird spot")
+      if (!win.style.left || win.style.left === '0px') {
+        const player = document.getElementById('player-win');
+        if (player && player.style.left) {
+          // Position to the right of the player
+          const plRect = player.getBoundingClientRect();
+          win.style.left = Math.min(plRect.right + 20, window.innerWidth - 380) + 'px';
+          win.style.top = Math.max(80, plRect.top) + 'px';
+        } else {
+          // Fallback: center-ish
+          win.style.left = Math.max(120, (window.innerWidth - 360) / 2) + 'px';
+          win.style.top = '120px';
+        }
+        win.style.transform = '';
+      }
+
       // Aggressively bring to front, especially important for hash links on initial load
       const bring = () => {
         if (typeof bringToFront === 'function') {
