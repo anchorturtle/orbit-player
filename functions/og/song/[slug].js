@@ -22,7 +22,7 @@ export async function onRequest(context) {
 
   const track = tracks[slug] || { title: 'Track', artist: 'jestR' };
 
-  // Simple but appealing OG image - dark cosmic background with strong readable text
+  // Clean, high-contrast OG image optimized for social previews
   const svg = `
 <svg width="1200" height="630" viewBox="0 0 1200 630" xmlns="http://www.w3.org/2000/svg">
   <defs>
@@ -32,34 +32,33 @@ export async function onRequest(context) {
     </linearGradient>
     <linearGradient id="titleGrad" x1="0%" y1="0%" x2="100%" y2="0%">
       <stop offset="0%" style="stop-color:#ffffff"/>
-      <stop offset="100%" style="stop-color:#d4c3ff"/>
+      <stop offset="100%" style="stop-color:#e0d4ff"/>
     </linearGradient>
   </defs>
 
-  <!-- Dark background -->
-  <rect width="1200" height="630" fill="url(#bg)"/>
+  <!-- Solid dark background for reliable rendering -->
+  <rect width="1200" height="630" fill="#06040f"/>
   
-  <!-- Subtle purple glow behind text area for better contrast -->
-  <rect x="60" y="160" width="1080" height="280" rx="20" fill="#1a1035" opacity="0.75"/>
+  <!-- Subtle accent glow -->
+  <circle cx="600" cy="315" r="420" fill="#7B2FFF" opacity="0.04"/>
   
-  <!-- Song Title - large and prominent -->
+  <!-- Song Title -->
   <text 
     x="100" 
     y="280" 
-    font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" 
-    font-size="82" 
+    font-family="system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" 
+    font-size="78" 
     font-weight="800" 
-    fill="url(#titleGrad)" 
-    letter-spacing="-1.5">
+    fill="url(#titleGrad)">
     ${escapeXml(track.title)}
   </text>
   
-  <!-- Artist - clean and readable -->
+  <!-- Artist -->
   <text 
     x="100" 
     y="365" 
-    font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" 
-    font-size="46" 
+    font-family="system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" 
+    font-size="44" 
     font-weight="600" 
     fill="#00C896">
     ${escapeXml(track.artist)}

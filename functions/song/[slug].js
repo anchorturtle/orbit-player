@@ -39,10 +39,16 @@ export async function onRequest(context) {
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>${title} | AnchorTurtle</title>
 
+  <!-- Favicon for previews / bookmarks -->
+  <link rel="icon" type="image/png" sizes="256x256" href="${siteUrl}/images/at-sea-trans-256.png">
+  <link rel="apple-touch-icon" href="${siteUrl}/images/at-sea-trans-256.png">
+
   <!-- Open Graph tags for rich link previews -->
   <meta property="og:title" content="${title}">
   <meta property="og:description" content="${description}">
   <meta property="og:image" content="${imageUrl}">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
   <meta property="og:url" content="${siteUrl}/song/${slug}">
   <meta property="og:type" content="music.song">
   <meta property="og:site_name" content="AnchorTurtle">
