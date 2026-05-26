@@ -302,7 +302,10 @@ audio.addEventListener('ended', () => {
 });
 
 function updatePlayUI() {
-  document.getElementById('play-icon').textContent = isPlaying ? 'pause' : 'play_arrow';
+  const playBtn = document.getElementById('btn-play');
+  if (playBtn) {
+    playBtn.classList.toggle('playing', isPlaying);
+  }
 
   // On iOS, the mute icon state is tied to playback (soft mute = paused)
   if (isIOS() && isMuted) {

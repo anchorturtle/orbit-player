@@ -379,43 +379,88 @@ body { font-family: 'Plus Jakarta Sans', sans-serif; background: #06040f; color:
   width: 54px !important;
   height: 54px !important;
   border-radius: 50% !important;
-  background: linear-gradient(145deg, #8a5cff, var(--jestr-blue));
-  border: 1px solid rgba(255,255,255,.25);
+  /* More analog hi-fi / synth button look */
+  background: linear-gradient(145deg, #2a2740 0%, #1c1a2e 50%, #12101f 100%);
+  border: 1px solid rgba(150,100,255,.35);
   box-shadow: 
-    0 0 32px rgba(123,47,255,.7),
-    0 0 64px rgba(45,91,255,.35),
-    0 6px 16px rgba(0,0,0,.5),
-    inset 0 2px 0 rgba(255,255,255,.35),
-    inset 0 -3px 6px rgba(0,0,0,.3);
+    /* Outer soft equipment shadow */
+    0 3px 10px rgba(0,0,0,.65),
+    /* Subtle cosmic rim light */
+    0 0 14px rgba(123,47,255,.25),
+    /* Strong physical bevels for analog depth */
+    inset 0 3px 4px rgba(255,255,255,.18),
+    inset 0 -4px 6px rgba(0,0,0,.55),
+    inset 0 1px 0 rgba(255,255,255,.12);
   position: relative;
   z-index: 2;
-  transition: all .1s cubic-bezier(0.23, 1, 0.32, 1);
+  transition: transform .08s cubic-bezier(0.23, 1, 0.32, 1), 
+              box-shadow .1s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
-.play-btn::after {
+/* Outer ring for that classic analog button housing */
+.play-btn::before {
   content: '';
   position: absolute;
-  inset: -3px;
+  inset: -4px;
   border-radius: 50%;
-  background: linear-gradient(transparent, rgba(123,47,255,.15));
+  background: linear-gradient(145deg, rgba(150,100,255,.18), rgba(8,5,22,.6));
+  border: 1px solid rgba(150,100,255,.22);
   z-index: -1;
-  opacity: 0.6;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.1);
+}
+
+/* The actual play/pause symbol - thicker, more analog 3D style */
+.play-icon {
+  width: 0;
+  height: 0;
+  border-style: solid;
+  border-width: 11px 0 11px 19px;
+  border-color: transparent transparent transparent #e8e1d8;
+  margin-left: 3px; /* optical centering for triangle */
+  filter: drop-shadow(0 1px 2px rgba(0,0,0,.5));
+  transition: all .1s ease;
+}
+
+/* When playing, turn it into a pause symbol with analog bars */
+.play-btn.playing .play-icon {
+  border: none;
+  width: 17px;
+  height: 18px;
+  background: #e8e1d8;
+  margin-left: 0;
+  box-shadow: 0 1px 2px rgba(0,0,0,.5);
+  position: relative;
+}
+
+.play-btn.playing .play-icon::before {
+  content: '';
+  position: absolute;
+  left: -6px;
+  top: 0;
+  width: 4px;
+  height: 18px;
+  background: #e8e1d8;
+  box-shadow: 0 1px 2px rgba(0,0,0,.5);
 }
 
 .play-btn:hover {
   box-shadow: 
-    0 0 42px rgba(123,47,255,.85),
-    0 0 80px rgba(45,91,255,.45),
-    0 8px 20px rgba(0,0,0,.5);
-  transform: scale(1.02);
+    0 4px 14px rgba(0,0,0,.7),
+    0 0 18px rgba(123,47,255,.3),
+    inset 0 3px 5px rgba(255,255,255,.2),
+    inset 0 -5px 7px rgba(0,0,0,.6);
+  transform: translateY(-1px);
 }
 
 .play-btn:active {
-  transform: scale(0.96);
+  transform: scale(0.94) translateY(1px);
   box-shadow: 
-    0 0 20px rgba(123,47,255,.6),
-    0 2px 8px rgba(0,0,0,.6),
-    inset 0 4px 8px rgba(0,0,0,.4);
+    0 1px 4px rgba(0,0,0,.6),
+    inset 0 5px 8px rgba(0,0,0,.65),
+    inset 0 -2px 3px rgba(255,255,255,.1);
 }
 
 /* === TIMELINE + MIX (cosmic analog module) === */
