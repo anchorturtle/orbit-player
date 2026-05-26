@@ -17,7 +17,7 @@ const TRACKS = [
     title: 'Spin Cycle',
     artist: 'jestR',
     slug: 'spin-cycle',
-    file: 'Spin-Cycle.mp3',
+    file: 'Spin-Cycle_.mp3',
     year: 2025,
     description: '',
     artwork: null

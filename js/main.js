@@ -41,7 +41,7 @@
   window.addEventListener('resize', () => { resize(); mkStars(); });
 })();
 
-/* ── DESKTOP LAYOUT (auto-position windows) ── */
+/* ── DESKTOP LAYOUT (auto-position windows) — tuned for good visual alignment around the central planet */
 function applyDesktopLayout() {
   if (isMob()) return;
   const vw = window.innerWidth, vh = window.innerHeight;
@@ -49,34 +49,45 @@ function applyDesktopLayout() {
   const dockH = dock ? dock.offsetHeight : 70;
   const usableH = vh - dockH - 20;
   const cx = vw / 2, cy = usableH / 2;
-  const PLANET_R = 200, PAD = 16;
+  // Match the visual planet size in index.html (~320-340px diameter area)
+  const PLANET_R = 220, PAD = 18;
 
   const tl = document.getElementById('tracklist-win');
   const g = document.getElementById('gallery-win');
   const pl = document.getElementById('player-win');
 
-  const tlW = Math.min(270, Math.max(220, (cx - PLANET_R - PAD) * 0.9));
-  const tlH = Math.min(520, usableH - 2 * PAD);
-  const gW = Math.min(300, Math.max(220, (vw - cx - PLANET_R - PAD) * 0.9));
-  const gH = Math.min(460, usableH - 2 * PAD);
-  const plW = Math.min(380, Math.max(360, vw * 0.28));
-  const plH = Math.max(270, Math.min(320, usableH * 0.38));
+  // Balanced sizes — player more prominent (respects the 420px CSS min-width)
+  const tlW = Math.min(260, Math.max(230, (cx - PLANET_R - PAD) * 0.95));
+  const tlH = Math.min(540, usableH - 2 * PAD);
+  const gW = Math.min(280, Math.max(230, (vw - cx - PLANET_R - PAD) * 0.95));
+  const gH = Math.min(480, usableH - 2 * PAD);
+  const plW = Math.min(460, Math.max(420, vw * 0.32));
+  const plH = Math.max(300, Math.min(360, usableH * 0.42));
 
   tl.style.width = tlW + 'px'; tl.style.height = tlH + 'px';
   g.style.width = gW + 'px'; g.style.height = gH + 'px';
   pl.style.width = plW + 'px'; pl.style.height = plH + 'px';
 
-  tl.style.left = Math.max(PAD, cx - PLANET_R - tlW - 12) + 'px';
-  tl.style.top = Math.max(PAD, cy - tlH / 2) + 'px';
-  g.style.left = Math.min(vw - gW - PAD, cx + PLANET_R + 12) + 'px';
-  g.style.top = Math.max(PAD, cy - gH / 2) + 'px';
+  // Nicely balanced around the planet focal point with consistent breathing room
+  tl.style.left = Math.max(PAD, cx - PLANET_R - tlW - 14) + 'px';
+  tl.style.top = Math.max(PAD, cy - tlH / 2 - 10) + 'px';
+  g.style.left = Math.min(vw - gW - PAD, cx + PLANET_R + 14) + 'px';
+  g.style.top = Math.max(PAD, cy - gH / 2 - 10) + 'px';
   pl.style.left = Math.max(PAD, cx - plW / 2) + 'px';
-  pl.style.top = Math.max(PAD, Math.min(usableH - plH - PAD, cy + PLANET_R - 20)) + 'px';
+  pl.style.top = Math.max(PAD, Math.min(usableH - plH - PAD - 8, cy + PLANET_R - 10)) + 'px';
 
   tl.style.bottom = g.style.bottom = pl.style.bottom = '';
   tl.style.right = g.style.right = pl.style.right = '';
 
   renderGallery();
+
+  // Initial z-order so everything feels aligned and player (main UI) is prominent
+  // (user clicks will still bring any window to front via the existing handlers)
+  requestAnimationFrame(() => {
+    bringToFront('player-win');
+    bringToFront('gallery-win');
+    bringToFront('tracklist-win');
+  });
 }
 
 /* ── WINDOW DRAG + RESIZE ── */
@@ -104,7 +115,7 @@ function makeWindowDraggable(winId, barId) {
   function onMove(e) {
     if (!mode) return;
     const dx = e.clientX - sx, dy = e.clientY - sy;
-    const mw = (winId === 'player-win' ? 360 : 240), mh = (winId === 'player-win' ? 270 : 200);
+    const mw = (winId === 'player-win' ? 420 : 240), mh = (winId === 'player-win' ? 270 : 200);
     const vw = window.innerWidth, vh = window.innerHeight;
 
     if (mode === 'drag') {
@@ -176,6 +187,12 @@ function toggleWin(winId, btnId) {
       renderGallery();
       if (window.updateGalleryScrollbar) window.updateGalleryScrollbar();
     }
+
+    // Same aggressive bring-to-front retries for reliability (desktop dock clicks)
+    const doBring = () => bringToFront(winId);
+    requestAnimationFrame(doBring);
+    setTimeout(doBring, 80);
+    setTimeout(doBring, 200);
   }
 }
 
@@ -203,10 +220,19 @@ function mobToggle(winId, btnId) {
     win.style.display = 'flex';
     setMobActive(btnId, true);
     bringToFront(winId);
+
     if (winId === 'gallery-win') {
       renderGallery();
       if (window.updateGalleryScrollbar) window.updateGalleryScrollbar();
     }
+
+    // Aggressive retries for gallery (and any window) on mobile — layout + custom scrollbar + player height
+    // can cause the first bringToFront z-index to not take effect immediately.
+    const doBring = () => bringToFront(winId);
+    requestAnimationFrame(doBring);
+    requestAnimationFrame(() => requestAnimationFrame(doBring));
+    setTimeout(doBring, 80);
+    setTimeout(doBring, 220);
   }
   updateMobPlayerHeight();
 }
