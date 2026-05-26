@@ -147,6 +147,8 @@ let audioContext = null;
 let gainNode = null;
 let sourceNode = null;
 
+let bgAudioKeepAlive = null;
+
 let currentIndex = 0, isPlaying = false, isShuffle = false, repeatMode = 0;
 let seekOnReady = null, isSeeking = false, durationPollTimer = null;
 let isMuted = false, premuteVolume = 80;
@@ -187,12 +189,47 @@ function ensureAudioContextRunning() {
 
 // Resume context aggressively for background playback (screen off, app switch)
 document.addEventListener('visibilitychange', () => {
-  if (document.visibilityState === 'visible' && isPlaying) {
+  if (isPlaying) {
     ensureAudioContextRunning();
+    // If we just became visible again after screen lock, give it an extra kick
+    if (document.visibilityState === 'visible') {
+      setTimeout(ensureAudioContextRunning, 50);
+      setTimeout(ensureAudioContextRunning, 300);
+    } else {
+      // Screen just turned off / went to background on iOS — start aggressive keepalive
+      startBackgroundAudioKeepAlive();
+    }
+  } else {
+    stopBackgroundAudioKeepAlive();
   }
 });
 window.addEventListener('focus', ensureAudioContextRunning);
 document.addEventListener('pageshow', ensureAudioContextRunning);
+
+function startBackgroundAudioKeepAlive() {
+  if (!isIOS() || bgAudioKeepAlive) return;
+
+  // On iOS, when the screen is off, we need to keep poking the AudioContext
+  // so the GainNode keeps passing audio.
+  bgAudioKeepAlive = setInterval(() => {
+    if (isPlaying) {
+      ensureAudioContextRunning();
+      // Nudge the element too in case something paused it at the HTML5 level
+      if (audio.paused) {
+        audio.play().catch(() => {});
+      }
+    } else {
+      stopBackgroundAudioKeepAlive();
+    }
+  }, 800); // every ~800ms is usually enough without draining battery too badly
+}
+
+function stopBackgroundAudioKeepAlive() {
+  if (bgAudioKeepAlive) {
+    clearInterval(bgAudioKeepAlive);
+    bgAudioKeepAlive = null;
+  }
+}
 
 function tryUpdateDuration() {
   const dur = audio.duration;
@@ -284,6 +321,13 @@ audio.addEventListener('timeupdate', () => {
   if (isGoodDuration(dur) && cur >= 0) {
     setProgress((cur / dur) * 100);
     document.getElementById('time-current').textContent = fmt(cur);
+  }
+
+  // Critical for iOS background/screen-off playback:
+  // Keep waking the AudioContext while the track is playing.
+  // This is the main thing that was missing — timeupdate keeps firing even with screen off.
+  if (isPlaying) {
+    ensureAudioContextRunning();
   }
 });
 
@@ -389,6 +433,7 @@ function loadTrack(idx, autoplay) {
   }
 
   if (autoplay) {
+    initAudioContext();
     ensureAudioContextRunning();
     audio.play().then(() => { isPlaying = true; updatePlayUI(); }).catch(() => { isPlaying = false; updatePlayUI(); });
   } else {
@@ -402,8 +447,15 @@ document.getElementById('btn-play').addEventListener('click', () => {
   ensureAudioContextRunning();
 
   if (!audio.src || audio.src === window.location.href) { if (TRACKS.length) loadTrack(0, true); return; }
-  if (isPlaying) { audio.pause(); isPlaying = false; }
-  else { audio.play().then(() => { isPlaying = true; }).catch(() => { isPlaying = false; }); isPlaying = true; }
+  if (isPlaying) {
+    audio.pause();
+    isPlaying = false;
+    stopBackgroundAudioKeepAlive();
+  } else {
+    ensureAudioContextRunning();
+    audio.play().then(() => { isPlaying = true; }).catch(() => { isPlaying = false; });
+    isPlaying = true;
+  }
   updatePlayUI();
 });
 
