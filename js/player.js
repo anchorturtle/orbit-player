@@ -233,18 +233,22 @@ document.addEventListener('pagehide', () => {
 
 // Also stop everything if the user pauses
 function pauseAndStopBackground() {
-  // Fully stop any background logic first
+  // Stop all background handoff / keep-alive logic first
   stopBackgroundAudioKeepAlive();
 
   if (isIOS() && iosBackgroundAudio) {
-    exitIOSNativeBackgroundPlayback();
+    try {
+      iosBackgroundAudio.pause();
+      iosBackgroundAudio.src = '';
+    } catch (e) {}
+    iosBackgroundAudio = null;
   }
 
   if (isIOS()) {
     exitIOSBackgroundAudioMode();
   }
 
-  // Now actually pause the main element cleanly
+  // Final authoritative pause
   if (audio) {
     audio.pause();
   }
@@ -383,22 +387,34 @@ function enterIOSNativeBackgroundPlayback() {
   if (!isIOS() || !isPlaying || iosBackgroundAudio) return;
 
   try {
-    // Pause our main setup
-    audio.pause();
-
-    // Create a fresh native audio element for background
+    // Create the background player first (don't pause main audio yet)
     iosBackgroundAudio = new Audio();
-    iosBackgroundAudio.src = audio.src;           // same file
+    iosBackgroundAudio.src = audio.src;
     iosBackgroundAudio.currentTime = audio.currentTime || 0;
     iosBackgroundAudio.preload = 'auto';
     iosBackgroundAudio.playsInline = true;
 
-    // Play it natively — no Web Audio routing
+    // Start the native player immediately
     iosBackgroundAudio.play().catch(() => {});
 
-    // When the user returns, we'll sync back in the visibility handler
+    // Once the background player is actually producing sound,
+    // safely pause the main audio. This greatly reduces the audible gap.
+    const onBgPlaying = () => {
+      iosBackgroundAudio.removeEventListener('playing', onBgPlaying);
+      if (audio && isPlaying) {
+        audio.pause();
+      }
+    };
+    iosBackgroundAudio.addEventListener('playing', onBgPlaying, { once: true });
+
+    // Fallback safety: if 'playing' event is slow, force the pause after a short delay
+    setTimeout(() => {
+      if (audio && isPlaying && iosBackgroundAudio) {
+        audio.pause();
+      }
+    }, 400);
+
   } catch (e) {
-    // If anything fails, fall back to previous behavior
     iosBackgroundAudio = null;
   }
 }
