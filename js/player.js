@@ -304,7 +304,20 @@ audio.addEventListener('ended', () => {
 function updatePlayUI() {
   const playBtn = document.getElementById('btn-play');
   if (playBtn) {
+    const icon = playBtn.querySelector('#play-icon');
     playBtn.classList.toggle('playing', isPlaying);
+
+    if (icon) {
+      if (isPlaying) {
+        icon.textContent = 'pause';
+        icon.classList.add('material-symbols-outlined');
+        icon.style.fontSize = '28px';
+      } else {
+        icon.textContent = '';
+        icon.classList.remove('material-symbols-outlined');
+        icon.style.fontSize = '';
+      }
+    }
   }
 
   // On iOS, the mute icon state is tied to playback (soft mute = paused)
@@ -724,8 +737,20 @@ function openSongDetail(slug) {
 
     if (playBtn) {
       function syncPlayIcon() {
-        // Use the same .playing class system as the main player for consistent analog styling
         playBtn.classList.toggle('playing', currentIndex === idx && isPlaying);
+
+        const icon = playBtn.querySelector('#song-detail-play-icon');
+        if (icon) {
+          if (currentIndex === idx && isPlaying) {
+            icon.textContent = 'pause';
+            icon.classList.add('material-symbols-outlined');
+            icon.style.fontSize = '32px';
+          } else {
+            icon.textContent = '';
+            icon.classList.remove('material-symbols-outlined');
+            icon.style.fontSize = '';
+          }
+        }
       }
       syncPlayIcon();
 
