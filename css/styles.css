@@ -17,7 +17,7 @@
   --win-shadow: 0 8px 48px rgba(0,0,0,.7),0 0 0 1px rgba(45,91,255,.07),inset 0 1px 0 rgba(255,255,255,.08),inset 0 -1px 0 rgba(0,0,0,.3);
   --win-radius: 18px;
   --mob-dock-h: 70px;
-  --mob-player-h: 190px;
+  --mob-player-h: 160px;
 }
 
 * { box-sizing: border-box; }
@@ -186,7 +186,7 @@ body { font-family: 'Plus Jakarta Sans', sans-serif; background: #06040f; color:
   padding-right: 6px;
 }
 
-#player-win { min-height: 270px; min-width: 420px; }
+#player-win { min-height: 240px; min-width: 380px; }
 
 /* Song Detail Window polish */
 #song-detail-win .win-body {
@@ -196,6 +196,12 @@ body { font-family: 'Plus Jakarta Sans', sans-serif; background: #06040f; color:
   font-style: italic;
   letter-spacing: -0.02em;
 }
+/* Ensure info window has reasonable default size before any JS positioning */
+#song-detail-win {
+  min-width: 320px;
+  min-height: 360px;
+  max-height: 560px;
+}
 
 /* Toast */
 #app-toast {
@@ -203,8 +209,9 @@ body { font-family: 'Plus Jakarta Sans', sans-serif; background: #06040f; color:
 }
 #player-win .win-body { 
   overflow-y: auto; 
-  padding: 10px 16px 12px !important; /* tighter, cleaner internal padding */
-  gap: 6px; /* reduce vertical clutter between sections */
+  overflow-x: hidden;
+  padding: 6px 10px 8px !important; /* tighter for compact player */
+  gap: 4px; /* reduce vertical clutter between sections */
 }
 
 /* The first child is now our improved metadata header */
@@ -266,6 +273,10 @@ body { font-family: 'Plus Jakarta Sans', sans-serif; background: #06040f; color:
     0 4px 20px rgba(0,0,0,.5);
   position: relative;
   overflow: hidden;
+  padding: 10px 12px 10px !important;
+  display: flex;
+  flex-direction: column;
+  gap: 8px; /* better spacing between top, transport, timeline, bottom */
 }
 
 /* Subtle cosmic nebula texture inside the faceplate */
@@ -281,21 +292,12 @@ body { font-family: 'Plus Jakarta Sans', sans-serif; background: #06040f; color:
   z-index: 0;
 }
 
-/* === HEADER: Now Playing module === */
-.player-header {
-  display: grid;
-  grid-template-columns: auto 1fr auto;
-  align-items: center;
-  gap: 14px;
-  margin-bottom: 10px;
-  position: relative;
-  z-index: 1;
-}
+/* (old top-row styles removed; new centered focus layout below) */
 
 .player-art {
-  width: 48px;
-  height: 48px;
-  border-radius: 12px;
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
   background: linear-gradient(145deg, rgba(123,47,255,.35), rgba(45,91,255,.18));
   border: 1px solid rgba(123,47,255,.45);
   box-shadow: 
@@ -308,17 +310,14 @@ body { font-family: 'Plus Jakarta Sans', sans-serif; background: #06040f; color:
   flex-shrink: 0;
 }
 .player-art .material-symbols-outlined {
-  font-size: 24px;
+  font-size: 20px;
   color: var(--jestr-purple);
   filter: drop-shadow(0 0 6px rgba(123,47,255,.6));
 }
 
-.player-meta {
-  text-align: center;
-  min-width: 0;
-}
+/* (old .player-meta removed; titles now in .player-song-header) */
 .player-title {
-  font-size: 13px;
+  font-size: 12px;
   font-weight: 800;
   text-transform: uppercase;
   letter-spacing: .05em;
@@ -328,6 +327,7 @@ body { font-family: 'Plus Jakarta Sans', sans-serif; background: #06040f; color:
   text-overflow: ellipsis;
   text-shadow: 0 0 12px rgba(123,47,255,.25);
   margin: 0;
+  line-height: 1.1;
 }
 .player-artist {
   font-size: 9px;
@@ -337,6 +337,7 @@ body { font-family: 'Plus Jakarta Sans', sans-serif; background: #06040f; color:
   color: var(--jestr-green);
   margin: 2px 0 0;
   opacity: .9;
+  line-height: 1;
 }
 
 .player-actions {
@@ -353,14 +354,113 @@ body { font-family: 'Plus Jakarta Sans', sans-serif; background: #06040f; color:
     inset 0 4px 6px rgba(0,0,0,.7) !important;
 }
 
+/* Bottom row for download left / share right (volume moved to timeline right for better layout) */
+.player-bottom-row {
+  display: flex;
+  align-items: center;
+  justify-content: center; /* center the download + volume + share group together */
+  margin-top: 4px;
+  gap: 16px; /* proper spacing between the three */
+  width: 100%;
+}
+
+.player-bottom-row .ctrl-btn {
+  width: 28px;
+  height: 28px;
+  font-size: 14px;
+  padding: 4px;
+}
+
+/* When showing "Copied", expand the share button temporarily so the text fits inside (to the left of icon).
+   Text is placed left via HTML order + flex-end so it grows inward (left) not outside the player. */
+.player-bottom-row .ctrl-btn.copied {
+  width: auto;
+  min-width: 68px;
+  padding: 2px 6px;
+  justify-content: flex-end; /* pushes the (text | icon) content to the right edge of the now-wider button, so text appears to the left of the icon, inside the player */
+  white-space: nowrap;
+  overflow: visible;
+  transition: width 0.1s ease, min-width 0.1s ease, padding 0.1s ease;
+}
+
+/* Detail share can naturally grow in its flex container when .copied (content changes to "Copied" + icon).
+   The .copied class is still added for consistency / future styling if needed. */
+#song-detail-share.copied {
+  /* no fixed size override needed; it will size to its new content */
+}
+
+.player-bottom-row .volume-module {
+  /* sized to content for the centered group with download and share */
+}
+
+.player-bottom-row #vol-slider {
+  width: 60px;
+  height: 2.5px;
+}
+
+.player-bottom-row #vol-pct {
+  font-size: 8px;
+  min-width: 18px;
+}
+
+.player-art-side {
+  flex: 0 0 48px; /* sized for breathing room next to title */
+  width: 48px;
+  height: 48px;
+  border-radius: 10px;
+  background: linear-gradient(145deg, rgba(123,47,255,.35), rgba(45,91,255,.18));
+  border: 1px solid rgba(123,47,255,.45);
+  box-shadow: 0 0 20px rgba(123,47,255,.3), inset 0 1px 0 rgba(255,255,255,.15), inset 0 -2px 4px rgba(0,0,0,.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  overflow: hidden;
+}
+
+.player-art-side .material-symbols-outlined {
+  font-size: 22px;
+  color: var(--jestr-purple);
+  filter: drop-shadow(0 0 6px rgba(123,47,255,.6));
+}
+
+/* Top row: art (music symbol), title, info button -- all at same y-position, properly spaced */
+.player-top {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: 12px; /* space properly for breathing room */
+  width: 100%;
+}
+
+.player-song-header {
+  text-align: center;
+  min-width: 0;
+  padding: 4px 12px; /* more horizontal breathing room for title */
+}
+
+.player-song-header .player-title {
+  font-size: 14px;
+  margin: 0 0 2px;
+}
+
+.player-song-header .player-artist {
+  font-size: 9px;
+  margin: 0;
+}
+
+.player-info-side {
+  /* grid child, auto sized */
+}
+
 /* === TRANSPORT DECK (the star) === */
 .player-transport {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 10px;
-  margin: 8px 0 10px;
-  padding: 8px 12px;
+  gap: 8px; /* better spacing around play button */
+  margin: 0;  /* no extra margin; spacing handled by parent column gap */
+  padding: 6px 10px;
   background: rgba(4,3,12,.55);
   border-radius: 999px;
   border: 1px solid rgba(150,100,255,.18);
@@ -372,8 +472,8 @@ body { font-family: 'Plus Jakarta Sans', sans-serif; background: #06040f; color:
 }
 
 .player-transport .ctrl-btn {
-  width: 36px;
-  height: 36px;
+  width: 32px;
+  height: 32px;
   border-radius: 50%;
   transition: transform .08s cubic-bezier(0.23, 1, 0.32, 1), 
               box-shadow .1s ease;
@@ -391,8 +491,8 @@ body { font-family: 'Plus Jakarta Sans', sans-serif; background: #06040f; color:
 }
 
 .play-btn {
-  width: 54px !important;
-  height: 54px !important;
+  width: 46px !important;
+  height: 46px !important;
   border-radius: 50% !important;
   /* Match the analog glass/ctrl-btn family more closely */
   background: linear-gradient(145deg, #2a2740 0%, #1c1a2e 100%);
@@ -427,9 +527,9 @@ body { font-family: 'Plus Jakarta Sans', sans-serif; background: #06040f; color:
   width: 0;
   height: 0;
   border-style: solid;
-  border-width: 10px 0 10px 17px;
+  border-width: 8px 0 8px 14px;
   border-color: transparent transparent transparent var(--baby-blue);
-  margin-left: 4px;
+  margin-left: 3px;
   filter: drop-shadow(0 1px 2px rgba(0,0,0,.6));
   transition: all .12s ease;
   position: relative;
@@ -460,7 +560,7 @@ body { font-family: 'Plus Jakarta Sans', sans-serif; background: #06040f; color:
   left: 50%;
   top: 50%;
   transform: translate(-50%, -50%);
-  font-size: 28px;
+  font-size: 24px;
   color: var(--jestr-green);
   line-height: 1;
   margin: 0;
@@ -500,10 +600,9 @@ body { font-family: 'Plus Jakarta Sans', sans-serif; background: #06040f; color:
 
 /* === TIMELINE + MIX (cosmic analog module) === */
 .player-timeline {
-  display: grid;
-  grid-template-columns: auto 1fr auto auto;
+  display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 10px; /* better breathing in the progress row */
   background: rgba(3,2,10,.65);
   border: 1px solid rgba(150,100,255,.15);
   border-radius: 12px;
@@ -511,7 +610,10 @@ body { font-family: 'Plus Jakarta Sans', sans-serif; background: #06040f; color:
   position: relative;
   z-index: 1;
   box-shadow: inset 0 1px 0 rgba(255,255,255,.04);
+  width: 100%;
 }
+
+/* (duplicate removed) */
 
 .time-label {
   font-size: 8px;
@@ -521,11 +623,12 @@ body { font-family: 'Plus Jakarta Sans', sans-serif; background: #06040f; color:
   font-family: 'Plus Jakarta Sans', monospace;
   min-width: 28px;
   text-align: center;
+  flex-shrink: 0;
 }
 
 .progress-wrap {
   position: relative;
-  height: 18px;
+  height: 28px;
   display: flex;
   align-items: center;
   cursor: pointer;
@@ -536,13 +639,32 @@ body { font-family: 'Plus Jakarta Sans', sans-serif; background: #06040f; color:
   min-width: 80px;
 }
 
+.waveform-canvas {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 100%;
+  height: 28px;
+  opacity: 0.85;
+  pointer-events: none;
+  z-index: 1;
+  image-rendering: crisp-edges;
+  /* make the waveform stand out more against the background bar */
+}
+
+/* (volume relocated to bottom-row; old timeline volume styles removed) */
+
 .progress-track-bg {
   position: absolute;
   left: 0; right: 0;
-  height: 4px;
+  height: 2px;
   border-radius: 999px;
   background: rgba(255,255,255,.08);
   box-shadow: inset 0 1px 2px rgba(0,0,0,.5);
+  z-index: 2;
+  opacity: 0.4; /* less obtrusive so the actual waveform bars stand out */
 }
 
 .progress-fill-bar {
@@ -550,11 +672,13 @@ body { font-family: 'Plus Jakarta Sans', sans-serif; background: #06040f; color:
   left: 0;
   top: 50%;
   transform: translateY(-50%);
-  height: 4px;
+  height: 2px;
   border-radius: 999px;
   background: linear-gradient(90deg, var(--jestr-purple), var(--jestr-blue), var(--jestr-green));
-  box-shadow: 0 0 12px rgba(123,47,255,.4);
+  box-shadow: 0 0 8px rgba(123,47,255,.3);
   pointer-events: none;
+  z-index: 4;
+  opacity: 0.25; /* subtle line over the bar waveform; the colored bars provide the main played visual */
 }
 
 .progress-thumb {
@@ -586,16 +710,38 @@ body { font-family: 'Plus Jakarta Sans', sans-serif; background: #06040f; color:
   transform: translate(-50%, -50%) scale(1.15);
 }
 
+/* Seek time preview tooltip (shows on hover/drag over slider) */
+.seek-preview {
+  position: absolute;
+  bottom: 100%;
+  left: 0;
+  background: rgba(10,6,30,.95);
+  color: #e9e1de;
+  font-size: 9px;
+  font-weight: 700;
+  padding: 1px 5px;
+  border-radius: 3px;
+  border: 1px solid rgba(150,100,255,.4);
+  pointer-events: none;
+  white-space: nowrap;
+  z-index: 10;
+  transform: translateX(-50%);
+  box-shadow: 0 2px 4px rgba(0,0,0,.5);
+}
+
 /* Volume module - analog fader style */
 .volume-module {
   display: flex;
   align-items: center;
-  gap: 5px;
+  gap: 4px;
   background: rgba(0,0,0,.35);
   border-radius: 999px;
-  padding: 3px 7px 3px 4px;
+  padding: 2px 5px 2px 3px;
   border: 1px solid rgba(150,100,255,.12);
+  font-size: 10px;
 }
+
+/* (old duplicate volume styles removed; using the consolidated bottom-row ones above) */
 
 #vol-icon-wrap {
   width: 26px;
@@ -717,8 +863,15 @@ body { font-family: 'Plus Jakarta Sans', sans-serif; background: #06040f; color:
 .drag-handle.grabbing { cursor: grabbing; color: var(--jestr-purple); }
 
 /* ============ GALLERY ============ */
-.gallery-grid { display: grid; grid-template-columns: repeat(2,1fr); gap: 8px; padding: 2px; }
+.gallery-grid { 
+  display: grid; 
+  /* responsive columns based on available gallery window width on desktop */
+  grid-template-columns: repeat(auto-fit, minmax(90px, 1fr)); 
+  gap: 8px; 
+  padding: 2px; 
+}
 .gallery-item {
+  position: relative;
   border-radius: 10px; overflow: hidden; cursor: pointer;
   border: 1px solid rgba(123,47,255,.18); background: rgba(15,10,35,.5);
   transition: transform .18s, box-shadow .18s, border-color .18s;
@@ -727,7 +880,41 @@ body { font-family: 'Plus Jakarta Sans', sans-serif; background: #06040f; color:
 .gallery-item:hover { transform: scale(1.03); box-shadow: 0 0 18px rgba(123,47,255,.4); border-color: rgba(123,47,255,.5); }
 .gallery-item img { width: 100%; height: 100%; object-fit: cover; display: block; }
 
-/* ============ IMAGE VIEWER WINDOW ============ */
+/* Viewer button — explicit affordance to open the enlarged viewer (lightbox) */
+.gallery-view-btn {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.5);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: #e9e1de;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  line-height: 1;
+  opacity: 0;
+  transition: opacity 0.15s ease, background 0.15s ease, transform 0.15s ease;
+  z-index: 3;
+  cursor: pointer;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.4);
+}
+.gallery-item:hover .gallery-view-btn {
+  opacity: 1;
+}
+.gallery-view-btn:hover {
+  background: rgba(123, 47, 255, 0.65);
+  border-color: rgba(123, 47, 255, 0.8);
+  transform: scale(1.1);
+}
+.gallery-view-btn:active {
+  transform: scale(0.95);
+}
+
+/* ============ IMAGE VIEWER / LIGHTBOX ("Viewer" enlarged window) ============ */
 #image-win { display: none; }
 #image-win .win-body {
   align-items: center; justify-content: center; background: rgba(3,2,10,.5);
@@ -845,7 +1032,59 @@ body { font-family: 'Plus Jakarta Sans', sans-serif; background: #06040f; color:
     width: 100% !important; max-width: 100% !important; min-width: 0 !important;
     border-radius: 16px 16px 0 0 !important;
     border-left: none !important; border-right: none !important; border-bottom: none !important;
+    height: 22vh !important;
+    min-height: 120px !important;
+    max-height: 160px !important;
   }
+  #player-win .win-bar {
+    padding: 2px 6px 1px !important;
+  }
+  .win-title { font-size: 6px !important; letter-spacing: .05em !important; }
+  #player-win .player-faceplate {
+    padding: 4px 6px 5px !important;
+    gap: 2px !important;
+  }
+  .player-top {
+    gap: 4px !important;
+    padding: 1px 4px !important;
+  }
+  .player-art-side {
+    width: 28px !important; height: 28px !important; flex: 0 0 28px !important;
+  }
+  .player-art-side .material-symbols-outlined { font-size: 14px !important; }
+  .player-song-header { padding: 0 2px !important; }
+  .player-title { font-size: 9px !important; }
+  .player-artist { font-size: 6px !important; }
+  .player-info-side .ctrl-btn { width: 16px !important; height: 16px !important; }
+  .player-info-side .material-symbols-outlined { font-size: 11px !important; }
+  .player-transport { padding: 0 !important; gap: 0 !important; }
+  .player-transport .ctrl-btn { width: 20px !important; height: 20px !important; }
+  .player-transport .play-btn { width: 26px !important; height: 26px !important; }
+  .player-timeline { padding: 1px 3px !important; gap: 2px !important; }
+  .time-label { font-size: 5px !important; min-width: 16px !important; }
+  .progress-wrap { height: 14px !important; min-width: 36px !important; }
+  .waveform-canvas { height: 14px !important; }
+  .player-bottom-row { gap: 3px !important; }
+  .player-bottom-row .ctrl-btn { width: 16px !important; height: 16px !important; font-size: 9px !important; }
+  .player-bottom-row #vol-slider { width: 32px !important; }
+  .player-bottom-row #vol-pct { font-size: 5px !important; min-width: 10px !important; }
+
+  #tracklist-win .win-body { padding: 3px !important; }
+  .track-item { padding: 4px 5px !important; gap: 4px !important; }
+  .track-title { font-size: 9px !important; }
+  .track-artist { font-size: 6px !important; }
+
+  .gallery-grid {
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 3px !important;
+  }
+  .gallery-item { border-radius: 6px; }
+  .gallery-view-btn {
+    width: 16px !important; height: 16px !important;
+    top: 3px !important; right: 3px !important;
+    font-size: 10px !important;
+  }
+
   #tracklist-win, #gallery-win {
     position: fixed !important; left: 0 !important; right: 0 !important; top: 0 !important;
     bottom: calc(var(--mob-dock-h) + var(--mob-player-h)) !important;
@@ -857,6 +1096,29 @@ body { font-family: 'Plus Jakarta Sans', sans-serif; background: #06040f; color:
     position: fixed !important; left: 0 !important; top: 0 !important;
     width: 100vw !important; height: 100dvh !important;
     border-radius: 0 !important; z-index: 9000 !important;
+  }
+
+  /* SONG DETAIL / INFO WINDOW: good overlay on mobile (not full strip like lists) */
+  #song-detail-win {
+    position: fixed !important;
+    left: 4vw !important;
+    top: 5vh !important;
+    width: 92vw !important;
+    max-width: 460px !important;
+    min-width: 0 !important;
+    height: auto !important;
+    max-height: min(82dvh, 620px) !important;
+    border-radius: 16px !important;
+    z-index: 6200 !important;
+    box-shadow: 0 12px 48px rgba(0,0,0,.65) !important;
+  }
+  #song-detail-win .win-bar {
+    border-bottom-color: rgba(150,100,255,.18);
+  }
+  #song-detail-win .win-body {
+    padding: 14px !important;
+    gap: 14px !important;
+    overflow-y: auto !important;
   }
 }
 

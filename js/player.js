@@ -83,7 +83,7 @@ const TRACKS = [
     file: 'audio/wavy.mp3',
     year: 2023,
     description: 'Liquid, dreamy production with fluid delivery.',
-    artwork: 'wavy.mp3' // placeholder - can point to image later
+    artwork: null
   },
   {
     title: 'Boa Constrictor',
@@ -137,7 +137,7 @@ const TRACKS = [
     file: 'audio/what_dreams_may_comewavy.wav',
     year: 2020,
     description: 'Ethereal and cinematic. A dreamlike farewell.',
-    artwork: 'wavy.mp3'
+    artwork: null
   }
 ];
 
@@ -153,6 +153,9 @@ let silentBackgroundSource = null;
 let currentIndex = 0, isPlaying = false, isShuffle = false, repeatMode = 0;
 let seekOnReady = null, isSeeking = false, durationPollTimer = null;
 let isMuted = false, premuteVolume = 80;
+let currentWaveform = null;
+let waveformCanvas = null;
+let waveformCache = {}; // per-slug real waveform peaks cache
 
 function initAudioContext() {
   if (audioContext) {
@@ -491,6 +494,8 @@ audio.addEventListener('play', ensureAudioContextRunning);
 function setProgress(pct) {
   document.getElementById('progress-fill').style.width = pct + '%';
   document.getElementById('progress-thumb').style.left = pct + '%';
+  // update waveform played portion live
+  if (currentWaveform) drawWaveform(pct / 100);
 }
 
 function seekToPct(pct) {
@@ -515,9 +520,127 @@ function clientXToFraction(clientX, rail) {
   return Math.max(0, Math.min(1, (clientX - r.left) / r.width));
 }
 
+/* ── COOL SOUNDCLOUD-STYLE WAVEFORM (peaks from audio decode) ── */
+async function generateWaveform(track) {
+  if (waveformCache[track.slug]) {
+    return waveformCache[track.slug];
+  }
+  try {
+    // Use a dedicated AudioContext just for decoding (more reliable, doesn't depend on main player context/gesture)
+    const decodeCtx = new (window.AudioContext || window.webkitAudioContext)();
+    // encode to handle spaces/special chars in filenames like "the sum of hippy thoughts..."
+    const fileUrl = encodeURI(track.file);
+    const resp = await fetch(fileUrl, { cache: 'force-cache' });
+    if (!resp.ok) throw new Error('fetch failed');
+    const arrBuf = await resp.arrayBuffer();
+    const audioBuf = await decodeCtx.decodeAudioData(arrBuf);
+    // close the temp context to free resources
+    if (decodeCtx.state !== 'closed') decodeCtx.close().catch(() => {});
+    const data = audioBuf.getChannelData(0); // first channel for peaks
+    const numPeaks = 160; // more detail for actual waveform
+    const blockSize = Math.floor(data.length / numPeaks);
+    const peaks = new Array(numPeaks).fill(0);
+    for (let i = 0; i < numPeaks; i++) {
+      let sum = 0;
+      let count = 0;
+      for (let j = 0; j < blockSize; j++) {
+        const idx = i * blockSize + j;
+        if (idx < data.length) {
+          sum += Math.abs(data[idx]);
+          count++;
+        }
+      }
+      peaks[i] = count > 0 ? sum / count : 0;
+    }
+    const maxPeak = Math.max(...peaks) || 1;
+    const normalized = peaks.map(p => Math.min(1, p / maxPeak));
+    waveformCache[track.slug] = normalized;
+    return normalized;
+  } catch (e) {
+    console.warn('[Waveform] real decode failed for', track.slug, e, '- using fallback (check if served via http, not file://)');
+    // Make fallback unique and "song-like" per track using slug hash for variation (so they don't look identical)
+    const len = 160;
+    let hash = 0;
+    for (let i = 0; i < track.slug.length; i++) {
+      hash = (hash * 31 + track.slug.charCodeAt(i)) | 0;
+    }
+    const baseFreq = 7 + (Math.abs(hash) % 9); // 7-15
+    const modFreq = 30 + (Math.abs(hash >> 8) % 15); // 30-44
+    const noiseAmp = 0.05 + (Math.abs(hash >> 16) % 10) / 100; // small variation
+    const fb = Array.from({length: len}, (_, i) => {
+      const t = i / len;
+      const main = Math.sin(t * baseFreq * 2 * Math.PI) * 0.35;
+      const mod = Math.sin(t * modFreq * 2 * Math.PI) * 0.18;
+      const noise = (Math.sin((hash + i) * 12.9898) * 43758.5453 % 1 - 0.5) * noiseAmp * 2;
+      // envelope to make it more wave-like, not flat
+      const env = 0.3 + Math.sin(t * Math.PI * 3) * 0.2 + Math.abs(Math.sin(t * Math.PI * 7)) * 0.15;
+      return Math.max(0, Math.min(1, 0.15 + (main + mod + noise) * env ));
+    });
+    waveformCache[track.slug] = fb;
+    return fb;
+  }
+}
+
+function drawWaveform(playedFrac = 0) {
+  const canvas = document.getElementById('waveform-canvas');
+  if (!canvas || !currentWaveform || currentWaveform.length === 0) return;
+  waveformCanvas = canvas;
+
+  // make canvas match current CSS size for sharpness (handles the compact player width)
+  const rect = canvas.getBoundingClientRect();
+  const dpr = window.devicePixelRatio || 1;
+  const cssW = Math.max(120, rect.width || 300);
+  const cssH = 26; // taller for more visible waveform
+  if (canvas.width !== Math.floor(cssW * dpr) || canvas.height !== Math.floor(cssH * dpr)) {
+    canvas.width = Math.floor(cssW * dpr);
+    canvas.height = Math.floor(cssH * dpr);
+    canvas.style.width = cssW + 'px';
+    canvas.style.height = cssH + 'px';
+  }
+  const ctx = canvas.getContext('2d');
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0); // reset + scale
+  const w = cssW;
+  const h = cssH;
+  ctx.clearRect(0, 0, w, h);
+
+  const num = currentWaveform.length;
+  // Classic vertical bar waveform (more distinct per song, looks pro like audio editors / SoundCloud)
+  const barW = Math.max(1.2, w / (num * 1.15));
+  const gap = barW * 0.3;
+
+  const centerY = h / 2;
+  const maxAmp = h * 0.48;
+
+  for (let i = 0; i < num; i++) {
+    const peak = currentWaveform[i];
+    const barH = peak * maxAmp;
+    const x = i * (barW + gap);
+    const isPlayed = i < (playedFrac * num);
+
+    // more visible distinct waveform
+    ctx.fillStyle = isPlayed 
+      ? 'rgba(0, 220, 170, 0.98)'   // bright teal/green for played
+      : 'rgba(140, 80, 255, 0.55)'; // more visible purple for unplayed
+
+    // upper bar
+    ctx.fillRect(x, centerY - barH, barW, barH);
+    // lower bar (mirror for full wave look)
+    ctx.fillRect(x, centerY, barW, barH);
+
+    // subtle outline for definition (makes it pop more, less flat)
+    if (barH > 1) {
+      ctx.strokeStyle = isPlayed ? 'rgba(255,255,255,0.3)' : 'rgba(255,255,255,0.15)';
+      ctx.lineWidth = 0.5;
+      ctx.strokeRect(x, centerY - barH, barW, barH);
+      ctx.strokeRect(x, centerY, barW, barH);
+    }
+  }
+}
+
 /* ── PROGRESS SCRUBBER ── */
 (function () {
   const rail = document.getElementById('progress-rail');
+  const preview = document.getElementById('seek-preview');
   let active = false;
 
   function apply(e) {
@@ -525,17 +648,66 @@ function clientXToFraction(clientX, rail) {
     seekToPct(clientXToFraction(e.clientX, rail));
   }
 
+  function showPreview(e) {
+    if (!preview) return;
+    const frac = clientXToFraction(e.clientX, rail);
+    const dur = audio.duration;
+    let txt = '--:--';
+    if (isGoodDuration(dur)) {
+      txt = fmt(frac * dur);
+    }
+    preview.textContent = txt;
+    const r = rail.getBoundingClientRect();
+    const x = e.clientX - r.left;
+    preview.style.left = x + 'px';
+    preview.style.display = 'block';
+  }
+
+  function hidePreview() {
+    if (preview) preview.style.display = 'none';
+  }
+
   rail.addEventListener('pointerdown', e => {
     active = true;
     rail.setPointerCapture(e.pointerId);
     rail.classList.add('dragging');
     apply(e);
+    showPreview(e);
     e.preventDefault();
   }, { passive: false });
 
-  rail.addEventListener('pointermove', e => { if (!active) return; apply(e); }, { passive: false });
-  rail.addEventListener('pointerup', () => { active = false; rail.classList.remove('dragging'); setTimeout(() => isSeeking = false, 80); });
-  rail.addEventListener('pointercancel', () => { active = false; rail.classList.remove('dragging'); isSeeking = false; });
+  rail.addEventListener('pointermove', e => {
+    if (active) {
+      apply(e);
+      showPreview(e);
+    } else {
+      // hover preview
+      showPreview(e);
+    }
+  }, { passive: false });
+
+  rail.addEventListener('pointerup', () => {
+    active = false;
+    rail.classList.remove('dragging');
+    setTimeout(() => isSeeking = false, 80);
+    // keep preview a moment or hide on leave
+  });
+  rail.addEventListener('pointercancel', () => {
+    active = false;
+    rail.classList.remove('dragging');
+    isSeeking = false;
+    hidePreview();
+  });
+
+  rail.addEventListener('mouseleave', () => {
+    if (!active) hidePreview();
+  });
+
+  // also show on simple mousemove (for non-pointer)
+  rail.addEventListener('mousemove', e => {
+    if (!active) showPreview(e);
+  });
+  rail.addEventListener('mouseleave', hidePreview);
 })();
 
 audio.addEventListener('timeupdate', () => {
@@ -599,6 +771,30 @@ function updatePlayUI() {
   if ('mediaSession' in navigator) {
     navigator.mediaSession.playbackState = isPlaying ? 'playing' : 'paused';
   }
+
+  // Sync the play icon in the open song detail window if it's visible
+  syncDetailPlayIcon();
+}
+
+function syncDetailPlayIcon() {
+  const playBtn = document.getElementById('song-detail-play');
+  const win = document.getElementById('song-detail-win');
+  if (!playBtn || !win || win.style.display !== 'flex' || !currentSongSlug) return;
+  const detailIdx = findTrackBySlug(currentSongSlug);
+  if (detailIdx === -1) return;
+  playBtn.classList.toggle('playing', currentIndex === detailIdx && isPlaying);
+  const icon = playBtn.querySelector('#song-detail-play-icon');
+  if (icon) {
+    if (currentIndex === detailIdx && isPlaying) {
+      icon.textContent = 'pause';
+      icon.classList.add('material-symbols-outlined');
+      icon.style.fontSize = '32px';
+    } else {
+      icon.textContent = '';
+      icon.classList.remove('material-symbols-outlined');
+      icon.style.fontSize = '';
+    }
+  }
 }
 
 function loadTrack(idx, autoplay) {
@@ -616,9 +812,32 @@ function loadTrack(idx, autoplay) {
   seekOnReady = null;
   startDurationPoll();
 
+  // always use default music symbol in the small player header art (uniform/cleaner for now)
+  const artDiv = document.getElementById('fp-art');
+  if (artDiv) {
+    artDiv.innerHTML = '<span class="material-symbols-outlined">music_note</span>';
+  }
+
+  // async load waveform for this track (non-blocking)
+  currentWaveform = null;
+  generateWaveform(t).then(wf => {
+    currentWaveform = wf;
+    // draw initial (will be updated by timeupdate/setProgress)
+    const initialPct = (audio.duration && isGoodDuration(audio.duration)) ? (audio.currentTime / audio.duration) : 0;
+    drawWaveform(initialPct);
+  }).catch(() => {});
+
   document.querySelectorAll('.track-item').forEach((el, i) => {
     el.classList.toggle('active', i === idx);
   });
+
+  // If the song detail/info window is open, update its content in real-time to the new song
+  const detailWin = document.getElementById('song-detail-win');
+  if (detailWin && detailWin.style.display === 'flex') {
+    populateSongDetail(currentIndex);
+    // also ensure the detail play icon reflects any autoplay state change
+    syncDetailPlayIcon();
+  }
 
   // Media Session API — makes it behave like a real music player on mobile
   // (lock screen controls, background playback, screen off, notification)
@@ -954,20 +1173,15 @@ document.getElementById('search-input').addEventListener('input', function () {
 
 /* ── SONG DETAIL / SHARE SYSTEM ── */
 let currentSongSlug = null;
+let _songDetailBackdrop = null;
 
 function findTrackBySlug(slug) {
   return TRACKS.findIndex(t => t.slug === slug);
 }
 
-function openSongDetail(slug) {
-  const idx = findTrackBySlug(slug);
-  if (idx === -1) {
-    console.warn('[Song Detail] Track not found for slug:', slug);
-    return;
-  }
-
+function populateSongDetail(idx) {
   const track = TRACKS[idx];
-  currentSongSlug = slug;
+  currentSongSlug = track.slug;
 
   try {
     // Basic info
@@ -1016,42 +1230,8 @@ function openSongDetail(slug) {
       `;
     }
 
-    // Show the window
-    const win = document.getElementById('song-detail-win');
-    if (win) {
-      win.style.display = 'flex';
-
-      // Set a sensible default position on first open (avoid top-left "weird spot")
-      if (!win.style.left || win.style.left === '0px') {
-        const player = document.getElementById('player-win');
-        if (player && player.style.left) {
-          // Position to the right of the player
-          const plRect = player.getBoundingClientRect();
-          win.style.left = Math.min(plRect.right + 20, window.innerWidth - 380) + 'px';
-          win.style.top = Math.max(80, plRect.top) + 'px';
-        } else {
-          // Fallback: center-ish
-          win.style.left = Math.max(120, (window.innerWidth - 360) / 2) + 'px';
-          win.style.top = '120px';
-        }
-        win.style.transform = '';
-      }
-
-      // Aggressively bring to front, especially important for hash links on initial load
-      const bring = () => {
-        if (typeof bringToFront === 'function') {
-          bringToFront('song-detail-win');
-        }
-      };
-      bring();
-      requestAnimationFrame(bring);
-      setTimeout(bring, 50);
-      setTimeout(bring, 150);
-    } else {
-      console.error('[Song Detail] #song-detail-win not found in DOM');
-    }
-
     // Update browser tab / bookmark title — clean "Title - Artist" format for song shares
+    // (this will also update on live track change while window is open)
     document.title = `${track.title} - ${track.artist}`;
 
     // Wire dynamic buttons inside the window
@@ -1060,23 +1240,7 @@ function openSongDetail(slug) {
     const shareBtn = document.getElementById('song-detail-share');
 
     if (playBtn) {
-      function syncPlayIcon() {
-        playBtn.classList.toggle('playing', currentIndex === idx && isPlaying);
-
-        const icon = playBtn.querySelector('#song-detail-play-icon');
-        if (icon) {
-          if (currentIndex === idx && isPlaying) {
-            icon.textContent = 'pause';
-            icon.classList.add('material-symbols-outlined');
-            icon.style.fontSize = '32px';
-          } else {
-            icon.textContent = '';
-            icon.classList.remove('material-symbols-outlined');
-            icon.style.fontSize = '';
-          }
-        }
-      }
-      syncPlayIcon();
+      syncDetailPlayIcon();
 
       playBtn.onclick = () => {
         if (currentIndex === idx && isPlaying) {
@@ -1086,7 +1250,7 @@ function openSongDetail(slug) {
         } else {
           loadTrack(idx, true);
         }
-        syncPlayIcon();
+        syncDetailPlayIcon();
       };
     }
 
@@ -1104,13 +1268,16 @@ function openSongDetail(slug) {
       shareBtn.onclick = (e) => {
         e.stopPropagation();
         e.stopImmediatePropagation();
-        const url = `${location.origin}/song/${slug}`;
+        const url = `${location.origin}/song/${track.slug}`;
         navigator.clipboard.writeText(url).then(() => {
           const originalHTML = shareBtn.innerHTML;
-          shareBtn.innerHTML = `<span class="material-symbols-outlined" style="font-size:17px">check</span><span style="font-size:11px; margin-left:6px;">Copied</span>`;
+          shareBtn.classList.add('copied');
+          // Text "Copied" to the left inside, then check icon. Button can grow naturally in the detail window.
+          shareBtn.innerHTML = `<span style="font-size:11px; margin-right:4px;">Copied</span><span class="material-symbols-outlined" style="font-size:17px">check</span>`;
           
           setTimeout(() => {
             shareBtn.innerHTML = originalHTML;
+            shareBtn.classList.remove('copied');
           }, 1600);
         }).catch(() => {
           prompt('Copy this link:', url);
@@ -1119,7 +1286,87 @@ function openSongDetail(slug) {
     }
 
   } catch (err) {
-    console.error('[Song Detail] Error opening song detail:', err);
+    console.error('[Song Detail] Error populating song detail:', err);
+  }
+}
+
+function openSongDetail(slug) {
+  const idx = findTrackBySlug(slug);
+  if (idx === -1) {
+    console.warn('[Song Detail] Track not found for slug:', slug);
+    return;
+  }
+
+  populateSongDetail(idx);
+
+  // Show the window (only when explicitly opening; live updates via populate don't re-show/position)
+  const win = document.getElementById('song-detail-win');
+  if (win) {
+    win.style.display = 'flex';
+    win.style.bottom = '';
+    win.style.right = '';
+
+    if (isMob()) {
+      // Mobile: centered card/overlay that fits nicely above player dock area
+      win.style.left = '4vw';
+      win.style.top = '5vh';
+      win.style.width = '92vw';
+      win.style.maxWidth = '460px';
+      win.style.height = 'auto';
+      win.style.maxHeight = 'min(82dvh, 620px)';
+      win.style.transform = '';
+      win.style.zIndex = '6200';
+
+      // Add a dismissible backdrop (only while this win is the top modal)
+      if (!_songDetailBackdrop || !_songDetailBackdrop.parentNode) {
+        _songDetailBackdrop = document.createElement('div');
+        _songDetailBackdrop.id = 'song-detail-backdrop';
+        _songDetailBackdrop.style.cssText = 'position:fixed;inset:0;background:rgba(2,1,8,.52);z-index:6100;backdrop-filter:blur(3px);-webkit-backdrop-filter:blur(3px);';
+        _songDetailBackdrop.onclick = (e) => {
+          e.stopPropagation();
+          const w = document.getElementById('song-detail-win');
+          if (w) w.style.display = 'none';
+          if (_songDetailBackdrop && _songDetailBackdrop.parentNode) {
+            _songDetailBackdrop.parentNode.removeChild(_songDetailBackdrop);
+          }
+          _songDetailBackdrop = null;
+        };
+        document.body.appendChild(_songDetailBackdrop);
+      }
+
+      // ensure fully on screen (handles very small phones / safe areas)
+      requestAnimationFrame(() => {
+        if (typeof clampWindowToViewport === 'function') clampWindowToViewport(win, 6);
+      });
+    } else {
+      win.style.zIndex = '';
+      const userMoved = win.dataset.userPositioned === 'true';
+      if (userMoved) {
+        if (typeof clampWindowToViewport === 'function') clampWindowToViewport(win, 10);
+      } else {
+        if (typeof positionDetailWindow === 'function') positionDetailWindow(win);
+      }
+    }
+
+    // Aggressively bring to front (desktop dock clicks + initial loads)
+    const bring = () => {
+      if (typeof bringToFront === 'function') {
+        bringToFront('song-detail-win');
+      }
+    };
+    bring();
+    requestAnimationFrame(bring);
+    setTimeout(bring, 50);
+    setTimeout(bring, 150);
+
+    // Final safety clamp after content settles (long descriptions etc) so it never ends up offscreen
+    setTimeout(() => {
+      if (win && win.style.display === 'flex' && typeof clampWindowToViewport === 'function') {
+        clampWindowToViewport(win, isMob() ? 6 : 12);
+      }
+    }, 180);
+  } else {
+    console.error('[Song Detail] #song-detail-win not found in DOM');
   }
 }
 
@@ -1163,12 +1410,15 @@ if (playerWinBody) {
         const url = `${location.origin}/song/${slug}`;
 
         navigator.clipboard.writeText(url).then(() => {
-          // Liked behavior: temporary "Copied" state directly on the .ctrl-btn (matches mobile/desktop)
           const originalHTML = shareBtn.innerHTML;
-          shareBtn.innerHTML = `<span class="material-symbols-outlined" style="font-size:15px">check</span><span style="font-size:11px; margin-left:4px;">Copied</span>`;
+          shareBtn.classList.add('copied');
+          // "Copied" text to the left of the check icon (inside the button).
+          // The .copied CSS expands the button width so it doesn't clip.
+          shareBtn.innerHTML = `<span style="font-size:11px; margin-right:4px;">Copied</span><span class="material-symbols-outlined" style="font-size:15px">check</span>`;
           
           setTimeout(() => {
             shareBtn.innerHTML = originalHTML;
+            shareBtn.classList.remove('copied');
           }, 1600);
         }).catch(() => {
           prompt('Copy this link:', url);
@@ -1190,31 +1440,8 @@ if (playerWinBody) {
   });
 }
 
-// Belt-and-suspenders: also attach directly to the Share button itself.
-// Combined with the large right padding (see CSS), this guarantees the click
-// fires on desktop even if any stacking/resize edge case remains.
-const directShareBtn = document.getElementById('btn-share');
-if (directShareBtn) {
-  directShareBtn.addEventListener('click', (e) => {
-    e.stopPropagation();
-    e.stopImmediatePropagation();
-
-    if (currentIndex >= 0 && TRACKS[currentIndex]) {
-      const slug = TRACKS[currentIndex].slug;
-      const url = `${location.origin}/song/${slug}`;
-
-      navigator.clipboard.writeText(url).then(() => {
-        const originalHTML = directShareBtn.innerHTML;
-        directShareBtn.innerHTML = `<span class="material-symbols-outlined" style="font-size:15px">check</span><span style="font-size:11px; margin-left:4px;">Copied</span>`;
-        setTimeout(() => {
-          directShareBtn.innerHTML = originalHTML;
-        }, 1600);
-      }).catch(() => {
-        prompt('Copy this link:', url);
-      });
-    }
-  });
-}
+// Note: direct listener on #btn-share removed to prevent double-firing with the delegated handler on .win-body.
+// The delegated click handler above covers it reliably. If click area needs expansion in future, we can increase padding on the share button in .player-bottom-row.
 
 // Make player title/artist clickable to open details
 const fpTitle = document.getElementById('fp-title');
@@ -1264,6 +1491,8 @@ function handleSongRouting() {
     tryOpen(800);
     tryOpen(1400);
   }
+  // Note: default "Geronimo ready" (no autoplay) is handled early in main.js init()
+  // for non-share visits so the player UI is populated before windows are shown.
 }
 
 window.addEventListener('hashchange', handleSongRouting);

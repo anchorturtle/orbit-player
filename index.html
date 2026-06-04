@@ -125,26 +125,24 @@
         <button class="win-close" id="close-player" title="Close"><span class="material-symbols-outlined" style="font-size:11px">close</span></button>
       </div>
     </div>
-    <div class="win-body player-faceplate" style="padding:12px 16px 14px;overflow:visible">
-      <!-- Pro trippy space analog glass header -->
-      <div class="player-header">
-        <div id="fp-art" class="player-art">
+    <div class="win-body player-faceplate">
+      <!-- Top row: art (music symbol) | title (centered) | info button -- all at same vertical position, properly spaced for breathing room -->
+      <div class="player-top">
+        <div id="fp-art" class="player-art-side">
           <span class="material-symbols-outlined">music_note</span>
         </div>
-        
-        <div class="player-meta">
+
+        <div class="player-song-header">
           <p id="fp-title" class="player-title">No Track</p>
           <p id="fp-artist" class="player-artist phosphor">&mdash;</p>
         </div>
 
-        <div class="player-actions">
-          <button id="btn-download" class="ctrl-btn" title="Download"><span class="material-symbols-outlined">download</span></button>
+        <div class="player-info-side">
           <button id="btn-info" class="ctrl-btn" title="More details / song page"><span class="material-symbols-outlined">info</span></button>
-          <button id="btn-share" class="ctrl-btn" title="Copy shareable link"><span class="material-symbols-outlined">share</span></button>
         </div>
       </div>
 
-      <!-- Analog transport deck - centered and popping -->
+      <!-- Transport: other buttons around the central play button (below the title/art row) -->
       <div class="player-transport">
         <button id="btn-shuffle" class="ctrl-btn" title="Shuffle"><span class="material-symbols-outlined">shuffle</span></button>
         <button id="btn-prev" class="ctrl-btn" title="Prev"><span class="material-symbols-outlined">skip_previous</span></button>
@@ -160,18 +158,28 @@
         <button id="btn-repeat" class="ctrl-btn" title="Repeat"><span id="repeat-icon" class="material-symbols-outlined">repeat</span></button>
       </div>
 
-      <!-- Cosmic timeline + mix section (unified, centered, analog) -->
+      <!-- Cosmic timeline + mix section (unified, centered, analog) - progress takes most of the width. Supporting, around the focus. -->
       <div class="player-timeline">
         <div class="time-label time-current" id="time-current">0:00</div>
         
         <div class="progress-wrap" id="progress-rail">
+          <!-- Actual music waveform (real peaks from audio decode, not generic) -->
+          <canvas id="waveform-canvas" class="waveform-canvas" width="800" height="26"></canvas>
           <div class="progress-track-bg"></div>
           <div class="progress-fill-bar" id="progress-fill"></div>
           <div class="progress-thumb" id="progress-thumb"></div>
+          <!-- Hover/drag time preview -->
+          <div id="seek-preview" class="seek-preview" style="display:none;"></div>
         </div>
         
         <div class="time-label time-total" id="time-total">0:00</div>
+      </div>
 
+      <!-- Bottom row: download left, volume (relocated here for breathing room), share right (supporting actions) -->
+      <div class="player-bottom-row">
+        <button id="btn-download" class="ctrl-btn" title="Download"><span class="material-symbols-outlined">download</span></button>
+
+        <!-- Volume relocated here for better overall spacing and breathing room in the player -->
         <div class="volume-module">
           <div id="vol-icon-wrap" title="Mute/Unmute">
             <span id="vol-icon" class="material-symbols-outlined">volume_up</span>
@@ -179,6 +187,8 @@
           <input type="range" id="vol-slider" min="0" max="100" value="80" step="1"/>
           <span class="tape-counter vol-pct" id="vol-pct">80%</span>
         </div>
+
+        <button id="btn-share" class="ctrl-btn" title="Copy shareable link"><span class="material-symbols-outlined">share</span></button>
       </div>
     </div>
   </div>
@@ -192,6 +202,7 @@
     <div class="win-bar" id="image-win-bar">
       <div class="win-bar-left">
         <span class="material-symbols-outlined" style="font-size:12px;color:rgba(150,100,255,.5)">drag_indicator</span>
+        <span class="win-title">Viewer</span>
       </div>
       <div class="win-bar-right">
         <button class="win-close" id="close-image-win" title="Close"><span class="material-symbols-outlined" style="font-size:11px">close</span></button>
@@ -205,7 +216,7 @@
   </div>
 
   <!-- SONG DETAIL WINDOW -->
-  <div id="song-detail-win" class="win" style="display:none; min-width:320px; min-height:380px; z-index:340">
+  <div id="song-detail-win" class="win" style="display:none; z-index:340">
     <div class="win-resize nw" data-dir="nw"></div><div class="win-resize ne" data-dir="ne"></div>
     <div class="win-resize sw" data-dir="sw"></div><div class="win-resize se" data-dir="se"></div>
     <div class="win-resize n" data-dir="n"></div><div class="win-resize s" data-dir="s"></div>

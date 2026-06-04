@@ -6,6 +6,9 @@
 
 /* ── STARS CANVAS ── */
 (function () {
+  // On the clay site we use Three.js blobs instead
+  if (window.__CLAY_MODE) return;
+
   const c = document.getElementById('stars-canvas'), ctx = c.getContext('2d');
   let W, H, stars = [];
 
@@ -41,7 +44,9 @@
   window.addEventListener('resize', () => { resize(); mkStars(); });
 })();
 
-/* ── DESKTOP LAYOUT (auto-position windows) — tuned for good visual alignment around the central planet */
+/* ── DESKTOP LAYOUT (auto-position windows) — tuned for good visual alignment around the central planet.
+   Player is intentionally compact + low so the big glowing planet + overlaid "NOW PLAYING" focal
+   title/artist remain the hero visual and are not covered by the media player. */
 function applyDesktopLayout() {
   if (isMob()) return;
   const vw = window.innerWidth, vh = window.innerHeight;
@@ -49,52 +54,47 @@ function applyDesktopLayout() {
   const dockH = dock ? dock.offsetHeight : 70;
   const usableH = vh - dockH - 20;
   const cx = vw / 2, cy = usableH / 2;
-  // Match the visual planet size in index.html (~320-340px diameter area)
-  const PLANET_R = 220, PAD = 18;
+  // Larger clearance to ensure windows (tracklist, gallery, player) do not overlap the central planet glow or focal "NOW PLAYING" text by default.
+  // Previous values were too tight, causing visual overlap in the screenshot.
+  const PLANET_CLEARANCE = 205, PAD = 20;
 
   const tl = document.getElementById('tracklist-win');
   const g = document.getElementById('gallery-win');
   const pl = document.getElementById('player-win');
 
-  // Balanced sizes — player more prominent (respects the 420px CSS min-width)
-  const tlW = Math.min(260, Math.max(230, (cx - PLANET_R - PAD) * 0.95));
-  const tlH = Math.min(540, usableH - 2 * PAD);
-  const gW = Math.min(280, Math.max(230, (vw - cx - PLANET_R - PAD) * 0.95));
-  const gH = Math.min(480, usableH - 2 * PAD);
-  const plW = Math.min(520, Math.max(420, vw * 0.34));  // more dynamic for player
-  const plH = Math.max(300, Math.min(380, usableH * 0.42));
+  // More generous side panels on wide screens, player much more compact by default
+  // so it doesn't dominate or cover the central planet + "NOW PLAYING" focal title.
+  const tlW = Math.min(280, Math.max(220, (cx - PLANET_CLEARANCE - PAD) * 0.92));
+  const tlH = Math.min(560, usableH - 2 * PAD);
+  const gW = Math.min(300, Math.max(220, (vw - cx - PLANET_CLEARANCE - PAD) * 0.92));
+  const gH = Math.min(620, usableH - 2 * PAD);
+  const plW = Math.min(420, Math.max(380, Math.floor(vw * 0.30)));
+  const plH = Math.max(240, Math.min(280, Math.floor(usableH * 0.32)));
 
   // Only force sizes/positions for windows the user hasn't manually dragged or resized
   if (tl.dataset.userPositioned !== 'true') {
     tl.style.width = tlW + 'px'; tl.style.height = tlH + 'px';
-    tl.style.left = Math.max(PAD, cx - PLANET_R - tlW - 14) + 'px';
-    tl.style.top = Math.max(PAD, cy - tlH / 2 - 10) + 'px';
+    tl.style.left = Math.max(PAD, cx - PLANET_CLEARANCE - tlW - 20) + 'px';
+    tl.style.top = Math.max(PAD, cy - tlH / 2 - 20) + 'px';
     tl.style.bottom = ''; tl.style.right = '';
   }
 
   if (g.dataset.userPositioned !== 'true') {
     g.style.width = gW + 'px'; g.style.height = gH + 'px';
-    g.style.left = Math.min(vw - gW - PAD, cx + PLANET_R + 14) + 'px';
-    g.style.top = Math.max(PAD, cy - gH / 2 - 10) + 'px';
+    g.style.left = Math.min(vw - gW - PAD, cx + PLANET_CLEARANCE + 20) + 'px';
+    g.style.top = Math.max(PAD, cy - gH / 2 - 20) + 'px';
     g.style.bottom = ''; g.style.right = '';
   }
 
   if (pl.dataset.userPositioned !== 'true') {
     pl.style.width = plW + 'px'; pl.style.height = plH + 'px';
     pl.style.left = Math.max(PAD, cx - plW / 2) + 'px';
-    pl.style.top = Math.max(PAD, Math.min(usableH - plH - PAD - 8, cy + PLANET_R - 10)) + 'px';
+    // Place the compact player much lower so the entire central planet (including its large glowing
+    // rings and the overlaid "NOW PLAYING" + big focal track title) stays completely unobstructed.
+    // Player now hugs lower in the space, leaving the hero visual planet dominant.
+    pl.style.top = Math.max(PAD + 20, Math.min(usableH - plH - PAD - 10, cy + 300)) + 'px';
     pl.style.bottom = ''; pl.style.right = '';
   }
-
-  renderGallery();
-
-  // Initial z-order so everything feels aligned and player (main UI) is prominent
-  // (user clicks will still bring any window to front via the existing handlers)
-  requestAnimationFrame(() => {
-    bringToFront('player-win');
-    bringToFront('gallery-win');
-    bringToFront('tracklist-win');
-  });
 }
 
 /* ── WINDOW DRAG + RESIZE ── */
@@ -123,12 +123,13 @@ function makeWindowDraggable(winId, barId) {
   function onMove(e) {
     if (!mode) return;
     const dx = e.clientX - sx, dy = e.clientY - sy;
-    const mw = (winId === 'player-win' ? 420 : 240), mh = (winId === 'player-win' ? 270 : 200);
+    const mw = (winId === 'player-win' ? 380 : 240), mh = (winId === 'player-win' ? 240 : 200);
     const vw = window.innerWidth, vh = window.innerHeight;
+    const margin = 8;
 
     if (mode === 'drag') {
-      win.style.left = clamp(sl + dx, 0, vw - sw) + 'px';
-      win.style.top = clamp(st + dy, 0, vh - sh) + 'px';
+      win.style.left = clamp(sl + dx, margin, vw - sw - margin) + 'px';
+      win.style.top = clamp(st + dy, margin, vh - sh - margin) + 'px';
     } else {
       let l = sl, t = st, w = sw, h = sh;
       if (mode === 'se') { w = clamp(sw + dx, mw, 1200); h = clamp(sh + dy, mh, 900); }
@@ -139,6 +140,15 @@ function makeWindowDraggable(winId, barId) {
       else if (mode === 's') { h = clamp(sh + dy, mh, 900); }
       else if (mode === 'e') { w = clamp(sw + dx, mw, 1200); }
       else if (mode === 'w') { const nw = clamp(sw - dx, mw, 1200); l = sl + sw - nw; w = nw; }
+
+      // Prevent the window from going off-screen or causing cut-off during live resize.
+      // Shrink size on the far edges rather than shifting the opposite edge unexpectedly.
+      l = Math.max(margin, l);
+      t = Math.max(margin, t);
+      if (l + w > vw - margin) w = vw - margin - l;
+      if (t + h > vh - margin) h = vh - margin - t;
+      w = Math.max(mw, Math.min(w, vw - 2 * margin));
+      h = Math.max(mh, Math.min(h, vh - 2 * margin));
       win.style.left = l + 'px'; win.style.top = t + 'px'; win.style.width = w + 'px'; win.style.height = h + 'px';
     }
   }
@@ -154,6 +164,22 @@ function makeWindowDraggable(winId, barId) {
       void el.offsetHeight;
       el.style.overflowY = prev || 'auto';
     });
+
+    // Clamp after manual resize/drag so the window can't end up partially off-screen or cut off.
+    if (typeof clampWindowToViewport === 'function') {
+      clampWindowToViewport(win, 4);
+    }
+
+    // For the player, force a waveform + progress refresh immediately after resize so the
+    // canvas and bars match the new width right away (otherwise looks stretched/cut off
+    // until the next audio timeupdate).
+    if (winId === 'player-win') {
+      const prog = document.getElementById('progress');
+      if (prog && typeof setProgress === 'function') {
+        const val = parseFloat(prog.value) || 0;
+        setProgress(val);
+      }
+    }
   }
 
   bar.addEventListener('mousedown', e => startOp(e, 'drag'));
@@ -251,6 +277,9 @@ document.getElementById('close-player').addEventListener('click', () => closeWin
 document.getElementById('close-song-detail').addEventListener('click', () => {
   const w = document.getElementById('song-detail-win');
   if (w) w.style.display = 'none';
+  // Clean up mobile backdrop if present
+  const bd = document.getElementById('song-detail-backdrop');
+  if (bd && bd.parentNode) bd.parentNode.removeChild(bd);
   document.title = 'AnchorTurtle'; // Reset title when closing song detail
 });
 
@@ -266,15 +295,26 @@ makeWindowDraggable('song-detail-win', 'song-detail-bar');
   // Player module must be loaded first so TRACKS + renderTracklist exist
   renderTracklist();
 
+  // Make Geronimo (TRACKS[0]) ready to play by default on normal visits:
+  // populates player title/artist/focal, sets audio src (no autoplay), marks active in list, etc.
+  // We deliberately skip this for /song/ or #song/ links so the share target loads clean (no wrong-track flash).
+  const isDirectShare = window.location.pathname.startsWith('/song/') ||
+                        (location.hash && location.hash.startsWith('#song/'));
+  if (!isDirectShare && typeof loadTrack === 'function' && typeof TRACKS !== 'undefined' && TRACKS.length) {
+    loadTrack(0, false);
+  }
+
   if (!isMob()) {
+    // Apply layout *before* setting display:flex so windows appear in correct
+    // places immediately (no top-left flash + jump on first paint).
+    applyDesktopLayout();
     ['tracklist-win', 'gallery-win', 'player-win'].forEach(id => {
       const w = document.getElementById(id);
       if (w) w.style.display = 'flex';
       const btn = id === 'tracklist-win' ? 'btn-tracklist' : id === 'gallery-win' ? 'btn-gallery' : 'btn-player';
       const b = document.getElementById(btn); if (b) b.classList.add('win-open');
     });
-    /* layout then gallery in one shot */
-    requestAnimationFrame(() => requestAnimationFrame(applyDesktopLayout));
+    renderGallery();  // populate gallery grid on initial desktop layout
   } else {
     ['tracklist-win', 'player-win'].forEach(id => {
       const w = document.getElementById(id); if (w) w.style.display = 'flex';
@@ -284,5 +324,109 @@ makeWindowDraggable('song-detail-win', 'song-detail-bar');
     updateMobPlayerHeight();
   }
 
-  window.addEventListener('resize', () => { if (!isMob()) applyDesktopLayout(); });
+  window.addEventListener('resize', () => {
+    if (!isMob()) applyDesktopLayout();
+
+    // If we crossed from mobile to desktop (or rotated), clean up any detail backdrop
+    if (!isMob()) {
+      const bd = document.getElementById('song-detail-backdrop');
+      if (bd && bd.parentNode) bd.parentNode.removeChild(bd);
+    }
+
+    // Keep song detail nicely placed on resizes/rotates if user hasn't manually positioned it.
+    const sd = document.getElementById('song-detail-win');
+    if (sd && sd.style.display === 'flex' && sd.dataset.userPositioned !== 'true') {
+      if (isMob()) {
+        sd.style.left = '4vw';
+        sd.style.top = '5vh';
+        sd.style.width = '92vw';
+        sd.style.maxWidth = '460px';
+        sd.style.height = 'auto';
+        sd.style.maxHeight = 'min(82dvh, 620px)';
+        sd.style.bottom = '';
+        sd.style.right = '';
+        sd.style.transform = '';
+        if (typeof clampWindowToViewport === 'function') {
+          requestAnimationFrame(() => clampWindowToViewport(sd, 6));
+        }
+      } else if (typeof positionDetailWindow === 'function') {
+        positionDetailWindow(sd);
+      } else if (typeof clampWindowToViewport === 'function') {
+        clampWindowToViewport(sd, 10);
+      }
+    }
+
+    // Image Viewer (enlarged gallery lightbox): keep front + center on zoom/resize.
+    // If user never dragged it, re-center with good size. Always clamp to stay fully visible.
+    const iw = document.getElementById('image-win');
+    if (iw && iw.style.display === 'flex') {
+      if (iw.dataset.userPositioned !== 'true') {
+        const vw = window.innerWidth, vh = window.innerHeight;
+        const w = Math.min(560, vw - 80), h = Math.min(520, vh - 120);
+        iw.style.width = w + 'px';
+        iw.style.height = h + 'px';
+        iw.style.left = ((vw - w) / 2) + 'px';
+        iw.style.top = ((vh - h) / 2) + 'px';
+        iw.style.bottom = ''; iw.style.right = '';
+      }
+      if (typeof clampWindowToViewport === 'function') {
+        requestAnimationFrame(() => clampWindowToViewport(iw, 8));
+      }
+    }
+
+    // Clamp only non-user-positioned core windows on browser/viewport resize (incl. zoom).
+    // This prevents the gallery (or tracklist/player) from getting moved around when you
+    // have manually positioned it (userPositioned=true). Auto-positioned ones still follow
+    // the layout. User windows stay exactly where you left them (may overhang on heavy zoom-in;
+    // re-drag if desired).
+    ['tracklist-win', 'gallery-win', 'player-win'].forEach(id => {
+      const w = document.getElementById(id);
+      if (w && w.style.display === 'flex' && w.dataset.userPositioned !== 'true') {
+        if (typeof clampWindowToViewport === 'function') {
+          requestAnimationFrame(() => clampWindowToViewport(w, 8));
+        }
+      }
+    });
+
+    // For *user-positioned* windows (e.g. gallery you dragged): never change their
+    // left/top on zoom/resize (so it doesn't "get moved around"). But cap size if the
+    // viewport shrunk a lot, so it doesn't become bigger than the screen.
+    ['tracklist-win', 'gallery-win', 'player-win'].forEach(id => {
+      const w = document.getElementById(id);
+      if (w && w.style.display === 'flex' && w.dataset.userPositioned === 'true') {
+        const rect = w.getBoundingClientRect();
+        const vw = window.innerWidth;
+        const vh = window.innerHeight;
+        let newW = rect.width;
+        let newH = rect.height;
+        const minW = (id === 'player-win' ? 380 : 240);
+        const minH = (id === 'player-win' ? 240 : 200);
+        const maxW = Math.max(minW, vw - 16);
+        const maxH = Math.max(minH, vh - 16);
+        let changed = false;
+        if (newW > maxW) { newW = maxW; changed = true; }
+        if (newH > maxH) { newH = maxH; changed = true; }
+        if (changed) {
+          w.style.width = Math.round(newW) + 'px';
+          w.style.height = Math.round(newH) + 'px';
+        }
+      }
+    });
+
+    // Refresh player waveform after browser resize (layout or clamp may have changed width)
+    const pl = document.getElementById('player-win');
+    if (pl && pl.style.display === 'flex') {
+      const prog = document.getElementById('progress');
+      if (prog && typeof setProgress === 'function') {
+        const val = parseFloat(prog.value) || 0;
+        setProgress(val);
+      }
+    }
+
+    // On mobile, re-measure player height (which is now relative vh) so the
+    // tracklist/gallery bottom calc updates on rotate/resize/zoom.
+    if (isMob() && typeof updateMobPlayerHeight === 'function') {
+      updateMobPlayerHeight();
+    }
+  });
 })();
