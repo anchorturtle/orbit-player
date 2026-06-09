@@ -1032,42 +1032,54 @@ body { font-family: 'Plus Jakarta Sans', sans-serif; background: #06040f; color:
     width: 100% !important; max-width: 100% !important; min-width: 0 !important;
     border-radius: 16px 16px 0 0 !important;
     border-left: none !important; border-right: none !important; border-bottom: none !important;
-    height: 22vh !important;
-    min-height: 120px !important;
-    max-height: 160px !important;
+    height: 27vh !important;
+    min-height: 145px !important;
+    max-height: 190px !important;
   }
   #player-win .win-bar {
-    padding: 2px 6px 1px !important;
+    padding: 3px 8px 2px !important;
   }
   .win-title { font-size: 6px !important; letter-spacing: .05em !important; }
   #player-win .player-faceplate {
-    padding: 4px 6px 5px !important;
-    gap: 2px !important;
+    padding: 6px 8px 6px !important;
+    gap: 4px !important;
   }
   .player-top {
-    gap: 4px !important;
-    padding: 1px 4px !important;
+    gap: 6px !important;
+    padding: 2px 5px !important;
+    grid-template-columns: 30px 1fr 30px !important; /* keep title/artist perfectly centered with 1.5x side buttons */
   }
   .player-art-side {
-    width: 28px !important; height: 28px !important; flex: 0 0 28px !important;
+    width: 30px !important; height: 30px !important; flex: 0 0 30px !important;
   }
-  .player-art-side .material-symbols-outlined { font-size: 14px !important; }
-  .player-song-header { padding: 0 2px !important; }
+  .player-art-side .material-symbols-outlined { font-size: 15px !important; }
+  .player-song-header { padding: 0 3px !important; }
   .player-title { font-size: 9px !important; }
   .player-artist { font-size: 6px !important; }
-  .player-info-side .ctrl-btn { width: 16px !important; height: 16px !important; }
-  .player-info-side .material-symbols-outlined { font-size: 11px !important; }
-  .player-transport { padding: 0 !important; gap: 0 !important; }
-  .player-transport .ctrl-btn { width: 20px !important; height: 20px !important; }
-  .player-transport .play-btn { width: 26px !important; height: 26px !important; }
-  .player-timeline { padding: 1px 3px !important; gap: 2px !important; }
-  .time-label { font-size: 5px !important; min-width: 16px !important; }
-  .progress-wrap { height: 14px !important; min-width: 36px !important; }
-  .waveform-canvas { height: 14px !important; }
-  .player-bottom-row { gap: 3px !important; }
-  .player-bottom-row .ctrl-btn { width: 16px !important; height: 16px !important; font-size: 9px !important; }
-  .player-bottom-row #vol-slider { width: 32px !important; }
-  .player-bottom-row #vol-pct { font-size: 5px !important; min-width: 10px !important; }
+  .player-info-side .ctrl-btn { width: 24px !important; height: 24px !important; }
+  .player-info-side .material-symbols-outlined { font-size: 15px !important; }
+  .player-transport { padding: 3px 6px !important; gap: 4px !important; }
+  .player-transport .ctrl-btn { width: 30px !important; height: 30px !important; }
+  .player-transport .play-btn { width: 39px !important; height: 39px !important; }
+  /* scale play triangle + pause icon to match 1.5x larger play button (no clip, good visual weight) */
+  .player-transport .play-icon:not(.material-symbols-outlined) {
+    border-width: 11px 0 11px 19px !important;
+    margin-left: 4px !important;
+  }
+  .player-transport .play-btn.playing .play-icon {
+    font-size: 30px !important;
+  }
+  .player-timeline { padding: 2px 4px !important; gap: 3px !important; }
+  .time-label { font-size: 6px !important; min-width: 18px !important; }
+  .progress-wrap { height: 18px !important; min-width: 42px !important; }
+  .waveform-canvas { height: 18px !important; }
+  .player-bottom-row { gap: 6px !important; }
+  .player-bottom-row .ctrl-btn { width: 24px !important; height: 24px !important; font-size: 12px !important; }
+  .player-bottom-row #vol-slider { width: 46px !important; }
+  .player-bottom-row #vol-pct { font-size: 6px !important; min-width: 12px !important; }
+  /* larger tap target for player close X (mobile) while keeping exact same closeWin + wireup as gallery/tracklist */
+  #player-win .win-close { width: 28px !important; height: 28px !important; }
+  #player-win .win-close .material-symbols-outlined { font-size: 14px !important; }
 
   #tracklist-win .win-body { padding: 3px !important; }
   .track-item { padding: 4px 5px !important; gap: 4px !important; }
