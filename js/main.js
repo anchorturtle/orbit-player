@@ -232,6 +232,9 @@ function toggleWin(winId, btnId) {
   if (!win || !btn) return;
   if (win.style.display === 'flex') {
     win.style.display = 'none'; btn.classList.remove('win-open');
+    if (!isMob() && typeof saveCurrentWindowPosition === 'function') {
+      saveCurrentWindowPosition(winId);
+    }
   } else {
     win.style.display = 'flex'; btn.classList.add('win-open');
     bringToFront(winId);
@@ -259,6 +262,9 @@ function closeWin(winId, dockId, mobId) {
   if (dockId) { const b = document.getElementById(dockId); if (b) b.classList.remove('win-open'); }
   if (mobId) setMobActive(mobId, false);
   if (isMob()) updateMobPlayerHeight();
+  if (!isMob() && typeof saveCurrentWindowPosition === 'function') {
+    saveCurrentWindowPosition(winId);
+  }
 }
 
 /* Mobile toggle with smart "always bring to front + second tap to dismiss" behavior */

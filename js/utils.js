@@ -138,6 +138,22 @@ function restoreSavedWindowPositions() {
   ['tracklist-win', 'gallery-win', 'player-win'].forEach(restoreSavedWindowPosition);
 }
 
+function saveCurrentWindowPosition(winId) {
+  const w = document.getElementById(winId);
+  if (!w) return;
+  const rect = w.getBoundingClientRect();
+  if (rect.width > 0 && rect.height > 0) {
+    const pos = {
+      left: Math.round(rect.left) + 'px',
+      top: Math.round(rect.top) + 'px',
+      width: Math.round(rect.width) + 'px',
+      height: Math.round(rect.height) + 'px'
+    };
+    localStorage.setItem('orbit_winpos_' + winId, JSON.stringify(pos));
+    w.dataset.userPositioned = 'true';
+  }
+}
+
 function positionDetailWindow(win) {
   if (!win) return;
   const vw = window.innerWidth;
