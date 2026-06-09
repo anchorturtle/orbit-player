@@ -50,14 +50,6 @@
 function applyDesktopLayout() {
   if (isMob()) return;
 
-  // Ensure any persisted user positions from localStorage are restored and
-  // flagged before we decide what to auto-position. This guarantees that
-  // close/reopen (and resizes while closed) don't lose the saved locations
-  // and fall back to the default left-side stacking.
-  if (typeof restoreSavedWindowPositions === 'function') {
-    restoreSavedWindowPositions();
-  }
-
   const vw = window.innerWidth, vh = window.innerHeight;
   const dock = document.getElementById('dock-win');
   const dockH = dock ? dock.offsetHeight : 70;
@@ -359,16 +351,9 @@ makeWindowDraggable('song-detail-win', 'song-detail-bar');
   }
 
   if (!isMob()) {
-    // Restore any previously saved user-dragged positions from localStorage first.
-    // This makes close/reopen (and reloads) remember where you left the windows
-    // instead of always resetting to the default auto layout (which stacks them
-    // awkwardly toward the left).
-    if (typeof restoreSavedWindowPositions === 'function') {
-      restoreSavedWindowPositions();
-    }
-    // Apply layout *before* setting display:flex so windows appear in correct
-    // places immediately (no top-left flash + jump on first paint).
-    // Note: applyDesktopLayout will skip any that have userPositioned (from drag or restore).
+    // Always apply the standard/default layout on fresh load or refresh.
+    // Do NOT restore from localStorage here — user wants standard alignment after refresh.
+    // (Session close/reopen via nav bar will restore the position from when it was closed.)
     applyDesktopLayout();
     ['tracklist-win', 'gallery-win', 'player-win'].forEach(id => {
       const w = document.getElementById(id);
