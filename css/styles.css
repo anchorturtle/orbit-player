@@ -65,7 +65,7 @@ body { font-family: 'Plus Jakarta Sans', sans-serif; background: #06040f; color:
 .vhs-flicker { animation: vhs-flicker 5s infinite; }
 
 .tape-counter {
-  font-variant-numeric: tabular-nums; letter-spacing: .15em; font-size: 9px;
+  font-variant-numeric: tabular-nums; letter-spacing: .15em; font-size: 11px;
   color: rgba(0,200,150,.65); font-weight: 700; text-transform: uppercase;
 }
 
@@ -143,7 +143,7 @@ body { font-family: 'Plus Jakarta Sans', sans-serif; background: #06040f; color:
 .win-bar-right { display: flex; align-items: center; gap: 4px; }
 
 .win-title {
-  font-size: 8px; font-weight: 700; letter-spacing: .18em; text-transform: uppercase;
+  font-size: 10px; font-weight: 700; letter-spacing: .18em; text-transform: uppercase;
   color: rgba(0,200,150,.65);
 }
 
@@ -317,7 +317,7 @@ body { font-family: 'Plus Jakarta Sans', sans-serif; background: #06040f; color:
 
 /* (old .player-meta removed; titles now in .player-song-header) */
 .player-title {
-  font-size: 12px;
+  font-size: 15px;
   font-weight: 800;
   text-transform: uppercase;
   letter-spacing: .05em;
@@ -330,7 +330,7 @@ body { font-family: 'Plus Jakarta Sans', sans-serif; background: #06040f; color:
   line-height: 1.1;
 }
 .player-artist {
-  font-size: 9px;
+  font-size: 11px;
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: .22em;
@@ -399,7 +399,7 @@ body { font-family: 'Plus Jakarta Sans', sans-serif; background: #06040f; color:
 }
 
 .player-bottom-row #vol-pct {
-  font-size: 8px;
+  font-size: 10px;
   min-width: 18px;
 }
 
@@ -445,7 +445,7 @@ body { font-family: 'Plus Jakarta Sans', sans-serif; background: #06040f; color:
 }
 
 .player-song-header .player-artist {
-  font-size: 9px;
+  font-size: 11px;
   margin: 0;
 }
 
@@ -616,7 +616,7 @@ body { font-family: 'Plus Jakarta Sans', sans-serif; background: #06040f; color:
 /* (duplicate removed) */
 
 .time-label {
-  font-size: 8px;
+  font-size: 10px;
   font-weight: 700;
   letter-spacing: .12em;
   color: rgba(0,200,150,.7);
@@ -717,7 +717,7 @@ body { font-family: 'Plus Jakarta Sans', sans-serif; background: #06040f; color:
   left: 0;
   background: rgba(10,6,30,.95);
   color: #e9e1de;
-  font-size: 9px;
+  font-size: 11px;
   font-weight: 700;
   padding: 1px 5px;
   border-radius: 3px;
@@ -819,7 +819,7 @@ body { font-family: 'Plus Jakarta Sans', sans-serif; background: #06040f; color:
 .search-wrap .material-symbols-outlined { font-size: 15px; color: rgba(110,104,117,.6); flex-shrink: 0; }
 .search-wrap input {
   background: transparent !important; border: none !important; outline: none !important;
-  color: #e9e1de; font-size: 11px; font-family: inherit; width: 100%; padding: 0;
+  color: #e9e1de; font-size: 14px; font-family: inherit; width: 100%; padding: 0;
 }
 .search-wrap input::placeholder { color: rgba(110,104,117,.45); }
 
@@ -966,13 +966,13 @@ body { font-family: 'Plus Jakarta Sans', sans-serif; background: #06040f; color:
   gap: 8px; padding: 6px 14px;
 }
 .dock-logo-wrap { display: flex; flex-direction: column; align-items: center; margin-right: 6px; flex-shrink: 0; }
-.dock-logo-main { font-size: 15px; font-weight: 900; font-style: italic; color: var(--jestr-purple); letter-spacing: -.03em; }
-.dock-logo-sub { font-size: 7px; font-weight: 700; letter-spacing: .25em; color: rgba(0,200,150,.5); text-transform: uppercase; }
+.dock-logo-main { font-size: 19px; font-weight: 900; font-style: italic; color: var(--jestr-purple); letter-spacing: -.03em; }
+.dock-logo-sub { font-size: 9px; font-weight: 700; letter-spacing: .25em; color: rgba(0,200,150,.5); text-transform: uppercase; }
 .dock-divider { width: 1px; height: 30px; background: rgba(100,60,200,.2); margin: 0 4px; flex-shrink: 0; }
 
 .taskbar-btn {
   flex-direction: column; align-items: center; gap: 3px;
-  min-width: 60px; padding: 6px 10px; font-size: 9px; font-weight: 700;
+  min-width: 60px; padding: 6px 10px; font-size: 11px; font-weight: 700;
   letter-spacing: .1em; text-transform: uppercase; color: var(--baby-blue);
 }
 .taskbar-btn .material-symbols-outlined { font-size: 18px; }
@@ -1000,7 +1000,7 @@ body { font-family: 'Plus Jakarta Sans', sans-serif; background: #06040f; color:
   border: 1px solid rgba(255,255,255,.07);
   border-top-color: rgba(255,255,255,.13); border-left-color: rgba(255,255,255,.10);
   border-bottom-color: rgba(0,0,0,.38); border-right-color: rgba(0,0,0,.22);
-  color: var(--baby-blue); font-size: 8px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase;
+  color: var(--baby-blue); font-size: 10px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase;
   transition: background .12s, box-shadow .12s, transform .07s, color .12s, border-color .12s;
   box-shadow: 0 2px 5px rgba(0,0,0,.45), inset 0 1px 0 rgba(255,255,255,.08);
   -webkit-tap-highlight-color: transparent;
@@ -1029,7 +1029,7 @@ body { font-family: 'Plus Jakarta Sans', sans-serif; background: #06040f; color:
   /* Homogenized larger mobile nav buttons (consistent with enlarged player controls) */
   .mob-btn {
     padding: 11px 20px !important;
-    font-size: 9px !important;
+    font-size: 11px !important;
   }
   .mob-btn .material-symbols-outlined { font-size: 26px !important; }
 
@@ -1047,7 +1047,7 @@ body { font-family: 'Plus Jakarta Sans', sans-serif; background: #06040f; color:
   #player-win .win-bar {
     padding: 4px 10px 3px !important;
   }
-  .win-title { font-size: 8px !important; letter-spacing: .08em !important; }
+  .win-title { font-size: 10px !important; letter-spacing: .08em !important; }
   #player-win .player-faceplate {
     padding: 8px 10px 8px !important;
     gap: 6px !important;
@@ -1063,8 +1063,8 @@ body { font-family: 'Plus Jakarta Sans', sans-serif; background: #06040f; color:
   }
   .player-art-side .material-symbols-outlined { font-size: 15px !important; }
   .player-song-header { padding: 0 4px !important; }
-  .player-title { font-size: 10px !important; }
-  .player-artist { font-size: 7px !important; }
+  .player-title { font-size: 13px !important; }
+  .player-artist { font-size: 9px !important; }
   .player-info-side .ctrl-btn { width: 24px !important; height: 24px !important; }
   .player-info-side .material-symbols-outlined { font-size: 15px !important; }
   .player-transport { padding: 4px 8px !important; gap: 6px !important; }
@@ -1079,25 +1079,25 @@ body { font-family: 'Plus Jakarta Sans', sans-serif; background: #06040f; color:
     font-size: 30px !important;
   }
   .player-timeline { padding: 3px 5px !important; gap: 4px !important; }
-  .time-label { font-size: 7px !important; min-width: 18px !important; }
+  .time-label { font-size: 9px !important; min-width: 18px !important; }
   .progress-wrap { height: 20px !important; min-width: 48px !important; }
   .waveform-canvas { height: 20px !important; }
   .player-bottom-row { gap: 8px !important; }
-  .player-bottom-row .ctrl-btn { width: 24px !important; height: 24px !important; font-size: 12px !important; }
+  .player-bottom-row .ctrl-btn { width: 24px !important; height: 24px !important; font-size: 15px !important; }
   .player-bottom-row #vol-slider { width: 50px !important; }
-  .player-bottom-row #vol-pct { font-size: 7px !important; min-width: 12px !important; }
+  .player-bottom-row #vol-pct { font-size: 9px !important; min-width: 12px !important; }
   /* larger tap target for player close X (mobile) while keeping exact same closeWin + wireup as gallery/tracklist */
   #player-win .win-close { width: 28px !important; height: 28px !important; }
-  #player-win .win-close .material-symbols-outlined { font-size: 14px !important; }
+  #player-win .win-close .material-symbols-outlined { font-size: 18px !important; }
 
   /* Homogenized mobile buttons + readable text across the whole site (not just player).
      Consistent tap targets ~24-28px, bumped micro fonts. Dock will measure taller via existing updateMobPlayerHeight. */
-  .win-close { width: 26px !important; height: 26px !important; font-size: 13px !important; }
+  .win-close { width: 26px !important; height: 26px !important; font-size: 16px !important; }
 
   #tracklist-win .win-body { padding: 6px !important; }
   .track-item { padding: 7px 8px !important; gap: 6px !important; }
-  .track-title { font-size: 11px !important; }
-  .track-artist { font-size: 8px !important; }
+  .track-title { font-size: 14px !important; }
+  .track-artist { font-size: 10px !important; }
 
   .gallery-grid {
     grid-template-columns: repeat(2, 1fr) !important;
@@ -1107,7 +1107,7 @@ body { font-family: 'Plus Jakarta Sans', sans-serif; background: #06040f; color:
   .gallery-view-btn {
     width: 20px !important; height: 20px !important;
     top: 4px !important; right: 4px !important;
-    font-size: 12px !important;
+    font-size: 15px !important;
   }
 
   #tracklist-win {
@@ -1160,20 +1160,20 @@ body { font-family: 'Plus Jakarta Sans', sans-serif; background: #06040f; color:
   .ctrl-btn .material-symbols-outlined,
   .taskbar-btn .material-symbols-outlined,
   .mob-btn .material-symbols-outlined { font-size: 22px !important; }
-  .win-title { font-size: 10px !important; }
+  .win-title { font-size: 13px !important; }
   .win-bar { padding: 11px 14px 10px !important; }
-  .win-close { width: 26px !important; height: 26px !important; font-size: 13px !important; }
-  .track-title { font-size: 13px !important; }
-  .track-artist { font-size: 10px !important; }
+  .win-close { width: 26px !important; height: 26px !important; font-size: 16px !important; }
+  .track-title { font-size: 16px !important; }
+  .track-artist { font-size: 13px !important; }
   .vol-row { padding: 7px 12px !important; }
   #vol-slider::-webkit-slider-thumb { width: 20px !important; height: 20px !important; }
-  #vol-pct { font-size: 10px !important; }
-  .taskbar-btn { font-size: 11px !important; padding: 8px 12px !important; min-width: 72px !important; }
+  #vol-pct { font-size: 13px !important; }
+  .taskbar-btn { font-size: 14px !important; padding: 8px 12px !important; min-width: 72px !important; }
   .taskbar-btn .material-symbols-outlined { font-size: 22px !important; }
-  .mob-btn { padding: 10px 22px !important; font-size: 10px !important; }
+  .mob-btn { padding: 10px 22px !important; font-size: 13px !important; }
   .mob-btn .material-symbols-outlined { font-size: 26px !important; }
-  #fp-title { font-size: 13px !important; }
-  #fp-artist { font-size: 10px !important; }
+  #fp-title { font-size: 16px !important; }
+  #fp-artist { font-size: 13px !important; }
 }
 
 /* ============ BUTTON PRESS FIX (global) ============ */
