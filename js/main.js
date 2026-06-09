@@ -49,6 +49,15 @@
    title/artist remain the hero visual and are not covered by the media player. */
 function applyDesktopLayout() {
   if (isMob()) return;
+
+  // Ensure any persisted user positions from localStorage are restored and
+  // flagged before we decide what to auto-position. This guarantees that
+  // close/reopen (and resizes while closed) don't lose the saved locations
+  // and fall back to the default left-side stacking.
+  if (typeof restoreSavedWindowPositions === 'function') {
+    restoreSavedWindowPositions();
+  }
+
   const vw = window.innerWidth, vh = window.innerHeight;
   const dock = document.getElementById('dock-win');
   const dockH = dock ? dock.offsetHeight : 70;
@@ -109,6 +118,9 @@ function makeWindowDraggable(winId, barId) {
     win.style.width = r.width + 'px'; win.style.height = (r.height || win.offsetHeight) + 'px';
     win.style.bottom = ''; win.style.right = '';
     win.dataset.userPositioned = 'true';  // prevent applyDesktopLayout from overriding user positions on zoom/resize
+    if (typeof saveWindowPosition === 'function') {
+      saveWindowPosition(winId);
+    }
   }
 
   function startOp(e, m) {
