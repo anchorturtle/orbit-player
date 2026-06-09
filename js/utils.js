@@ -94,62 +94,34 @@ function clampWindowToViewport(win, margin = 8) {
   win.style.right = '';
 }
 
-/* ── PERSIST USER WINDOW POSITIONS (localStorage) ──
-   So that when you close a window and reopen it (or reload the page),
-   it comes back where you left it instead of resetting to the default
-   left-corner stack on desktop.
+let _sessionWindowPositions = {};
+
+/* Session-only memory for close/reopen via nav bar (dies on refresh).
+   This gives "remember the position it had when closed" for the same page load,
+   while refresh always gets the standard layout from applyDesktopLayout().
 */
-function saveWindowPosition(winId) {
+function saveSessionWindowPosition(winId) {
   const w = document.getElementById(winId);
-  if (!w || w.dataset.userPositioned !== 'true') return;
-  const pos = {
+  if (!w) return;
+  _sessionWindowPositions[winId] = {
     left: w.style.left,
     top: w.style.top,
     width: w.style.width,
     height: w.style.height
   };
+}
+
+function restoreSessionWindowPosition(winId) {
+  const w = document.getElementById(winId);
+  const pos = _sessionWindowPositions[winId];
+  if (!w || !pos) return;
   if (pos.left && pos.top) {
-    localStorage.setItem('orbit_winpos_' + winId, JSON.stringify(pos));
-  }
-}
-
-function restoreSavedWindowPosition(winId) {
-  const w = document.getElementById(winId);
-  if (!w) return;
-  const saved = localStorage.getItem('orbit_winpos_' + winId);
-  if (!saved) return;
-  try {
-    const pos = JSON.parse(saved);
-    if (pos.left && pos.top) {
-      w.style.left = pos.left;
-      w.style.top = pos.top;
-      if (pos.width) w.style.width = pos.width;
-      if (pos.height) w.style.height = pos.height;
-      w.style.bottom = '';
-      w.style.right = '';
-      w.dataset.userPositioned = 'true';
-    }
-  } catch (e) {
-    localStorage.removeItem('orbit_winpos_' + winId);
-  }
-}
-
-function restoreSavedWindowPositions() {
-  ['tracklist-win', 'gallery-win', 'player-win'].forEach(restoreSavedWindowPosition);
-}
-
-function saveCurrentWindowPosition(winId) {
-  const w = document.getElementById(winId);
-  if (!w) return;
-  const rect = w.getBoundingClientRect();
-  if (rect.width > 0 && rect.height > 0) {
-    const pos = {
-      left: Math.round(rect.left) + 'px',
-      top: Math.round(rect.top) + 'px',
-      width: Math.round(rect.width) + 'px',
-      height: Math.round(rect.height) + 'px'
-    };
-    localStorage.setItem('orbit_winpos_' + winId, JSON.stringify(pos));
+    w.style.left = pos.left;
+    w.style.top = pos.top;
+    if (pos.width) w.style.width = pos.width;
+    if (pos.height) w.style.height = pos.height;
+    w.style.bottom = '';
+    w.style.right = '';
     w.dataset.userPositioned = 'true';
   }
 }

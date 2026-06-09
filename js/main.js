@@ -223,40 +223,19 @@ function toggleWin(winId, btnId) {
   const win = document.getElementById(winId), btn = document.getElementById(btnId);
   if (!win || !btn) return;
   if (win.style.display === 'flex') {
-    if (!isMob() && typeof saveCurrentWindowPosition === 'function') {
-      saveCurrentWindowPosition(winId);
+    if (!isMob() && typeof saveSessionWindowPosition === 'function') {
+      saveSessionWindowPosition(winId);
     }
     win.style.display = 'none'; btn.classList.remove('win-open');
   } else {
-    // Restore saved position (from previous close or prior session) *before* making visible.
-    // This ensures the window reappears at the exact location it had when closed,
-    // instead of falling back to default layout (which puts things in the left/corner).
-    if (!isMob() && typeof restoreSavedWindowPosition === 'function') {
-      restoreSavedWindowPosition(winId);
-    }
     win.style.display = 'flex'; btn.classList.add('win-open');
-    bringToFront(winId);
-    if (!isMob() && typeof restoreSavedWindowPosition === 'function') {
-      // Double-ensure after the display change and layout: re-apply the saved position
-      // in a rAF so it sticks even if any intermediate layout or other code touched it.
-      const saved = localStorage.getItem('orbit_winpos_' + winId);
-      if (saved) {
-        try {
-          const pos = JSON.parse(saved);
-          requestAnimationFrame(() => {
-            if (win.style.display === 'flex' && pos.left && pos.top) {
-              win.style.left = pos.left;
-              win.style.top = pos.top;
-              if (pos.width) win.style.width = pos.width;
-              if (pos.height) win.style.height = pos.height;
-              win.style.bottom = '';
-              win.style.right = '';
-              win.dataset.userPositioned = 'true';
-            }
-          });
-        } catch (e) {}
-      }
+    if (!isMob() && typeof restoreSessionWindowPosition === 'function') {
+      // Restore the position from when this window was last closed in this session.
+      // This makes nav-bar close/reopen remember the exact location.
+      // On full page refresh we do NOT restore (standard layout is applied in init).
+      restoreSessionWindowPosition(winId);
     }
+    bringToFront(winId);
     if (winId === 'gallery-win') {
       renderGallery();
       // Gallery now uses the same native scroller as tracklist — no custom update needed
@@ -273,8 +252,8 @@ function toggleWin(winId, btnId) {
 function closeWin(winId, dockId, mobId) {
   const w = document.getElementById(winId);
   if (w) {
-    if (!isMob() && typeof saveCurrentWindowPosition === 'function') {
-      saveCurrentWindowPosition(winId);
+    if (!isMob() && typeof saveSessionWindowPosition === 'function') {
+      saveSessionWindowPosition(winId);
     }
     w.style.display = 'none';
   }
