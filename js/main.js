@@ -236,13 +236,34 @@ function toggleWin(winId, btnId) {
     }
     win.style.display = 'none'; btn.classList.remove('win-open');
   } else {
+    // Restore saved position (from previous close or prior session) *before* making visible.
+    // This ensures the window reappears at the exact location it had when closed,
+    // instead of falling back to default layout (which puts things in the left/corner).
+    if (!isMob() && typeof restoreSavedWindowPosition === 'function') {
+      restoreSavedWindowPosition(winId);
+    }
     win.style.display = 'flex'; btn.classList.add('win-open');
     bringToFront(winId);
     if (!isMob() && typeof restoreSavedWindowPosition === 'function') {
-      // Ensure saved position is applied on runtime reopen (close then dock-click).
-      // Covers the case where inline styles might not have been present or for
-      // persisted positions across reloads. Skips if already userPositioned.
-      restoreSavedWindowPosition(winId);
+      // Double-ensure after the display change and layout: re-apply the saved position
+      // in a rAF so it sticks even if any intermediate layout or other code touched it.
+      const saved = localStorage.getItem('orbit_winpos_' + winId);
+      if (saved) {
+        try {
+          const pos = JSON.parse(saved);
+          requestAnimationFrame(() => {
+            if (win.style.display === 'flex' && pos.left && pos.top) {
+              win.style.left = pos.left;
+              win.style.top = pos.top;
+              if (pos.width) win.style.width = pos.width;
+              if (pos.height) win.style.height = pos.height;
+              win.style.bottom = '';
+              win.style.right = '';
+              win.dataset.userPositioned = 'true';
+            }
+          });
+        } catch (e) {}
+      }
     }
     if (winId === 'gallery-win') {
       renderGallery();
