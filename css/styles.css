@@ -1023,8 +1023,15 @@ body { font-family: 'Plus Jakarta Sans', sans-serif; background: #06040f; color:
 /* ============ MOBILE LAYOUT ============ */
 @media (max-width: 767px) {
   #dock-win { display: none; }
-  #mobile-dock { display: flex; }
+  #mobile-dock { display: flex; padding: 10px 16px calc(10px + env(safe-area-inset-bottom)) !important; }
   #planet-bg { display: none; }
+
+  /* Homogenized larger mobile nav buttons (consistent with enlarged player controls) */
+  .mob-btn {
+    padding: 11px 20px !important;
+    font-size: 9px !important;
+  }
+  .mob-btn .material-symbols-outlined { font-size: 26px !important; }
 
   #player-win {
     position: fixed !important; left: 0 !important; right: 0 !important;
@@ -1039,7 +1046,7 @@ body { font-family: 'Plus Jakarta Sans', sans-serif; background: #06040f; color:
   #player-win .win-bar {
     padding: 3px 8px 2px !important;
   }
-  .win-title { font-size: 6px !important; letter-spacing: .05em !important; }
+  .win-title { font-size: 8px !important; letter-spacing: .08em !important; }
   #player-win .player-faceplate {
     padding: 6px 8px 6px !important;
     gap: 4px !important;
@@ -1054,8 +1061,8 @@ body { font-family: 'Plus Jakarta Sans', sans-serif; background: #06040f; color:
   }
   .player-art-side .material-symbols-outlined { font-size: 15px !important; }
   .player-song-header { padding: 0 3px !important; }
-  .player-title { font-size: 9px !important; }
-  .player-artist { font-size: 6px !important; }
+  .player-title { font-size: 10px !important; }
+  .player-artist { font-size: 7px !important; }
   .player-info-side .ctrl-btn { width: 24px !important; height: 24px !important; }
   .player-info-side .material-symbols-outlined { font-size: 15px !important; }
   .player-transport { padding: 3px 6px !important; gap: 4px !important; }
@@ -1070,31 +1077,35 @@ body { font-family: 'Plus Jakarta Sans', sans-serif; background: #06040f; color:
     font-size: 30px !important;
   }
   .player-timeline { padding: 2px 4px !important; gap: 3px !important; }
-  .time-label { font-size: 6px !important; min-width: 18px !important; }
+  .time-label { font-size: 7px !important; min-width: 18px !important; }
   .progress-wrap { height: 18px !important; min-width: 42px !important; }
   .waveform-canvas { height: 18px !important; }
   .player-bottom-row { gap: 6px !important; }
   .player-bottom-row .ctrl-btn { width: 24px !important; height: 24px !important; font-size: 12px !important; }
   .player-bottom-row #vol-slider { width: 46px !important; }
-  .player-bottom-row #vol-pct { font-size: 6px !important; min-width: 12px !important; }
+  .player-bottom-row #vol-pct { font-size: 7px !important; min-width: 12px !important; }
   /* larger tap target for player close X (mobile) while keeping exact same closeWin + wireup as gallery/tracklist */
   #player-win .win-close { width: 28px !important; height: 28px !important; }
   #player-win .win-close .material-symbols-outlined { font-size: 14px !important; }
 
-  #tracklist-win .win-body { padding: 3px !important; }
-  .track-item { padding: 4px 5px !important; gap: 4px !important; }
-  .track-title { font-size: 9px !important; }
-  .track-artist { font-size: 6px !important; }
+  /* Homogenized mobile buttons + readable text across the whole site (not just player).
+     Consistent tap targets ~24-28px, bumped micro fonts. Dock will measure taller via existing updateMobPlayerHeight. */
+  .win-close { width: 26px !important; height: 26px !important; font-size: 13px !important; }
+
+  #tracklist-win .win-body { padding: 6px !important; }
+  .track-item { padding: 7px 8px !important; gap: 6px !important; }
+  .track-title { font-size: 11px !important; }
+  .track-artist { font-size: 8px !important; }
 
   .gallery-grid {
     grid-template-columns: repeat(2, 1fr) !important;
-    gap: 3px !important;
+    gap: 4px !important;
   }
   .gallery-item { border-radius: 6px; }
   .gallery-view-btn {
-    width: 16px !important; height: 16px !important;
-    top: 3px !important; right: 3px !important;
-    font-size: 10px !important;
+    width: 20px !important; height: 20px !important;
+    top: 4px !important; right: 4px !important;
+    font-size: 12px !important;
   }
 
   #tracklist-win, #gallery-win {
