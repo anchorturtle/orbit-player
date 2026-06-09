@@ -18,7 +18,21 @@ let _zBase = 300;
 function bringToFront(winId) {
   _zBase++;
   const w = document.getElementById(winId);
-  if (w) w.style.zIndex = _zBase + 10;
+  if (w) {
+    let z = _zBase + 10;
+    // On mobile, the tracklist element is now full-height to the nav bar (to give "entire screen").
+    // Always keep it below the player sheet in z-order. This stops the tracklist from
+    // randomly coming to the front when tapping the (overlaid) media player, and ensures
+    // clicks cannot pass through / hit the wrong window.
+    if (isMob() && winId === 'tracklist-win') {
+      const pl = document.getElementById('player-win');
+      if (pl && pl.style.display === 'flex') {
+        const pz = parseInt(pl.style.zIndex) || 600;
+        z = Math.max(300, pz - 5); // stay below player
+      }
+    }
+    w.style.zIndex = z;
+  }
 }
 
 /* ── MOBILE HEIGHT HELPERS ── */

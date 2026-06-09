@@ -322,6 +322,8 @@ makeWindowDraggable('song-detail-win', 'song-detail-bar');
     setMobActive('btn-mob-tracks', true);
     setMobActive('btn-mob-player', true);
     updateMobPlayerHeight();
+    // Ensure player sheet starts above the full-height tracklist (prevents z fighting / click-through on mobile).
+    if (typeof bringToFront === 'function') bringToFront('player-win');
   }
 
   window.addEventListener('resize', () => {

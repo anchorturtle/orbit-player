@@ -1042,6 +1042,7 @@ body { font-family: 'Plus Jakarta Sans', sans-serif; background: #06040f; color:
     height: 36vh !important;
     min-height: 200px !important;
     max-height: 260px !important;
+    z-index: 600 !important; /* ensure player sheet is always above tracklist on mobile */
   }
   #player-win .win-bar {
     padding: 4px 10px 3px !important;
@@ -1114,6 +1115,7 @@ body { font-family: 'Plus Jakarta Sans', sans-serif; background: #06040f; color:
     bottom: var(--mob-dock-h) !important;
     width: 100% !important; max-width: 100% !important;
     border-radius: 0 !important; border-left: none !important; border-right: none !important; border-top: none !important;
+    z-index: 350 !important; /* below player sheet on mobile to prevent click-through and z fighting */
   }
   #gallery-win {
     position: fixed !important; left: 0 !important; right: 0 !important; top: 0 !important;
