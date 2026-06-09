@@ -1109,7 +1109,13 @@ body { font-family: 'Plus Jakarta Sans', sans-serif; background: #06040f; color:
     font-size: 12px !important;
   }
 
-  #tracklist-win, #gallery-win {
+  #tracklist-win {
+    position: fixed !important; left: 0 !important; right: 0 !important; top: 0 !important;
+    bottom: var(--mob-dock-h) !important;
+    width: 100% !important; max-width: 100% !important;
+    border-radius: 0 !important; border-left: none !important; border-right: none !important; border-top: none !important;
+  }
+  #gallery-win {
     position: fixed !important; left: 0 !important; right: 0 !important; top: 0 !important;
     bottom: calc(var(--mob-dock-h) + var(--mob-player-h)) !important;
     width: 100% !important; max-width: 100% !important;

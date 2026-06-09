@@ -1443,19 +1443,8 @@ if (playerWinBody) {
 // Note: direct listener on #btn-share removed to prevent double-firing with the delegated handler on .win-body.
 // The delegated click handler above covers it reliably. If click area needs expansion in future, we can increase padding on the share button in .player-bottom-row.
 
-// Make player title/artist clickable to open details
-const fpTitle = document.getElementById('fp-title');
-const fpArtist = document.getElementById('fp-artist');
-if (fpTitle) fpTitle.style.cursor = 'pointer';
-if (fpArtist) fpArtist.style.cursor = 'pointer';
-
-function openCurrentSongDetail() {
-  if (currentIndex >= 0 && TRACKS[currentIndex]) {
-    openSongDetail(TRACKS[currentIndex].slug);
-  }
-}
-if (fpTitle) fpTitle.addEventListener('click', openCurrentSongDetail);
-if (fpArtist) fpArtist.addEventListener('click', openCurrentSongDetail);
+// Title/artist in player no longer open song details (only the info icon does, per request).
+// The elements remain for display only.
 
 
 
