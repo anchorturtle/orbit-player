@@ -170,6 +170,12 @@ function makeWindowDraggable(winId, barId) {
       clampWindowToViewport(win, 4);
     }
 
+    // Persist the final user position so close/reopen (and page reloads) restore it
+    // instead of defaulting to the left-corner auto layout.
+    if (typeof saveWindowPosition === 'function') {
+      saveWindowPosition(winId);
+    }
+
     // For the player, force a waveform + progress refresh immediately after resize so the
     // canvas and bars match the new width right away (otherwise looks stretched/cut off
     // until the next audio timeupdate).
@@ -217,6 +223,12 @@ function toggleWin(winId, btnId) {
   } else {
     win.style.display = 'flex'; btn.classList.add('win-open');
     bringToFront(winId);
+    if (!isMob() && typeof restoreSavedWindowPosition === 'function') {
+      // Ensure saved position is applied on runtime reopen (close then dock-click).
+      // Covers the case where inline styles might not have been present or for
+      // persisted positions across reloads. Skips if already userPositioned.
+      restoreSavedWindowPosition(winId);
+    }
     if (winId === 'gallery-win') {
       renderGallery();
       // Gallery now uses the same native scroller as tracklist — no custom update needed
@@ -305,8 +317,16 @@ makeWindowDraggable('song-detail-win', 'song-detail-bar');
   }
 
   if (!isMob()) {
+    // Restore any previously saved user-dragged positions from localStorage first.
+    // This makes close/reopen (and reloads) remember where you left the windows
+    // instead of always resetting to the default auto layout (which stacks them
+    // awkwardly toward the left).
+    if (typeof restoreSavedWindowPositions === 'function') {
+      restoreSavedWindowPositions();
+    }
     // Apply layout *before* setting display:flex so windows appear in correct
     // places immediately (no top-left flash + jump on first paint).
+    // Note: applyDesktopLayout will skip any that have userPositioned (from drag or restore).
     applyDesktopLayout();
     ['tracklist-win', 'gallery-win', 'player-win'].forEach(id => {
       const w = document.getElementById(id);
@@ -411,6 +431,9 @@ makeWindowDraggable('song-detail-win', 'song-detail-bar');
         if (changed) {
           w.style.width = Math.round(newW) + 'px';
           w.style.height = Math.round(newH) + 'px';
+          if (typeof saveWindowPosition === 'function') {
+            saveWindowPosition(id);
+          }
         }
       }
     });
