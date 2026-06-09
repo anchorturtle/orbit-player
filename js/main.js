@@ -231,10 +231,10 @@ function toggleWin(winId, btnId) {
   const win = document.getElementById(winId), btn = document.getElementById(btnId);
   if (!win || !btn) return;
   if (win.style.display === 'flex') {
-    win.style.display = 'none'; btn.classList.remove('win-open');
     if (!isMob() && typeof saveCurrentWindowPosition === 'function') {
       saveCurrentWindowPosition(winId);
     }
+    win.style.display = 'none'; btn.classList.remove('win-open');
   } else {
     win.style.display = 'flex'; btn.classList.add('win-open');
     bringToFront(winId);
@@ -258,13 +258,16 @@ function toggleWin(winId, btnId) {
 }
 
 function closeWin(winId, dockId, mobId) {
-  const w = document.getElementById(winId); if (w) w.style.display = 'none';
+  const w = document.getElementById(winId);
+  if (w) {
+    if (!isMob() && typeof saveCurrentWindowPosition === 'function') {
+      saveCurrentWindowPosition(winId);
+    }
+    w.style.display = 'none';
+  }
   if (dockId) { const b = document.getElementById(dockId); if (b) b.classList.remove('win-open'); }
   if (mobId) setMobActive(mobId, false);
   if (isMob()) updateMobPlayerHeight();
-  if (!isMob() && typeof saveCurrentWindowPosition === 'function') {
-    saveCurrentWindowPosition(winId);
-  }
 }
 
 /* Mobile toggle with smart "always bring to front + second tap to dismiss" behavior */
