@@ -1409,7 +1409,7 @@ body { font-family: 'Plus Jakarta Sans', sans-serif; background: #06040f; color:
 
 .lyric-line.current {
   color: #f0e9e2;
-  font-size: 1.1em; /* +10% for currently playing lyric */
+  font-size: 1.892rem; /* +10% larger than base 1.72rem for currently playing lyric */
   text-shadow: 0 2px 12px rgba(0, 0, 0, 0.5),
                0 0 28px rgba(123, 47, 255, 0.45);
   opacity: 1;
