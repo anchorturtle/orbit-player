@@ -1365,6 +1365,7 @@ body { font-family: 'Plus Jakarta Sans', sans-serif; background: #06040f; color:
   letter-spacing: .18em;
   text-transform: uppercase;
   color: rgba(0,200,150,0.65);
+  text-align: center;
 }
 
 .lyrics-container {
