@@ -74,6 +74,12 @@
       </div>
     </div>
     <div class="win-body" style="padding:10px 8px 10px;gap:8px">
+      <!-- Category tabs for tracklist -->
+      <div class="tracklist-tabs">
+        <button class="tab active" data-category="all">All</button>
+        <button class="tab" data-category="rap">Raps</button>
+        <button class="tab" data-category="instrumental">Instrumentals</button>
+      </div>
       <div style="padding:0 4px">
         <div class="search-wrap">
           <span class="material-symbols-outlined">search</span>
@@ -138,6 +144,7 @@
         </div>
 
         <div class="player-info-side">
+          <button id="btn-lyrics" class="ctrl-btn" title="Lyrics"><span class="material-symbols-outlined">lyrics</span></button>
           <button id="btn-info" class="ctrl-btn" title="More details / song page"><span class="material-symbols-outlined">info</span></button>
         </div>
       </div>
@@ -274,6 +281,38 @@
         <!-- Populated dynamically by JS -->
       </div>
 
+    </div>
+  </div>
+
+  <!-- LYRICS VIEWER -->
+  <div id="lyrics-win" class="win" style="display:none; z-index: 580">
+    <div class="win-resize nw" data-dir="nw"></div>
+    <div class="win-resize ne" data-dir="ne"></div>
+    <div class="win-resize sw" data-dir="sw"></div>
+    <div class="win-resize se" data-dir="se"></div>
+    <div class="win-resize n" data-dir="n"></div>
+    <div class="win-resize s" data-dir="s"></div>
+    <div class="win-resize e" data-dir="e"></div>
+    <div class="win-resize w" data-dir="w"></div>
+    <div class="win-bar" id="lyrics-bar">
+      <div class="win-bar-left">
+        <span class="material-symbols-outlined" style="font-size:12px;color:rgba(150,100,255,.5)">drag_indicator</span>
+        <span class="win-title">Lyrics</span>
+      </div>
+      <div class="win-bar-right">
+        <button class="win-close" id="close-lyrics" title="Close"><span class="material-symbols-outlined" style="font-size:11px">close</span></button>
+      </div>
+    </div>
+    <div class="win-body lyrics-body">
+      <div class="lyrics-meta">
+        <div id="lyrics-title" class="lyrics-track-title"></div>
+        <div id="lyrics-artist" class="lyrics-track-artist"></div>
+      </div>
+      <div class="lyrics-container" id="lyrics-container">
+        <div class="lyrics-scroll" id="lyrics-scroll">
+          <div id="lyrics-lines" class="lyrics-lines"></div>
+        </div>
+      </div>
     </div>
   </div>
 

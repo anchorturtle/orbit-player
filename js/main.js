@@ -96,6 +96,19 @@ function applyDesktopLayout() {
     pl.style.top = Math.max(PAD + 20, Math.min(usableH - plH - PAD - 10, cy + 300)) + 'px';
     pl.style.bottom = ''; pl.style.right = '';
   }
+
+  // Lyrics viewer: center top middle, 30% more narrow, 10% shorter on bottom (to avoid cutting media player)
+  const ly = document.getElementById('lyrics-win');
+  if (ly && ly.dataset.userPositioned !== 'true') {
+    const lyW = Math.min(480, Math.max(340, vw * 0.406)); // 30% narrower (0.58*0.7)
+    const lyH = Math.min(520, usableH * 0.58); // ~15% shorter height for 10% less on bottom + clearance for player
+    ly.style.width = lyW + 'px';
+    ly.style.height = lyH + 'px';
+    ly.style.left = Math.max(PAD, (vw - lyW) / 2) + 'px';
+    ly.style.top = Math.max(28, Math.floor(vh * 0.045)) + 'px'; // top-ish center
+    ly.style.bottom = '';
+    ly.style.right = '';
+  }
 }
 
 /* ── WINDOW DRAG + RESIZE ── */
@@ -314,6 +327,7 @@ makeWindowDraggable('gallery-win', 'gallery-bar');
 makeWindowDraggable('player-win', 'player-bar');
 makeWindowDraggable('image-win', 'image-win-bar');
 makeWindowDraggable('song-detail-win', 'song-detail-bar');
+makeWindowDraggable('lyrics-win', 'lyrics-bar');
 
 /* ── INIT ── */
 (function init() {
@@ -336,10 +350,29 @@ makeWindowDraggable('song-detail-win', 'song-detail-bar');
     applyDesktopLayout();
     ['tracklist-win', 'gallery-win', 'player-win'].forEach(id => {
       const w = document.getElementById(id);
-      if (w) w.style.display = 'flex';
-      const btn = id === 'tracklist-win' ? 'btn-tracklist' : id === 'gallery-win' ? 'btn-gallery' : 'btn-player';
-      const b = document.getElementById(btn); if (b) b.classList.add('win-open');
+      if (w) {
+        w.style.display = 'flex';
+        w.style.visibility = 'visible';
+        w.style.opacity = '1';
+      }
+      let btnId;
+      if (id === 'tracklist-win') btnId = 'btn-tracklist';
+      else if (id === 'gallery-win') btnId = 'btn-gallery';
+      else if (id === 'player-win') btnId = 'btn-player';
+      if (btnId) {
+        const b = document.getElementById(btnId);
+        if (b) b.classList.add('win-open');
+      }
     });
+    // Ensure lyrics-win starts hidden (only shown via button click, never on refresh/load)
+    const lyricsW = document.getElementById('lyrics-win');
+    if (lyricsW) {
+      lyricsW.style.display = 'none';
+      lyricsW.style.visibility = '';
+      lyricsW.style.opacity = '';
+    }
+    const lyricsBtn = document.getElementById('btn-lyrics');
+    if (lyricsBtn) lyricsBtn.classList.remove('win-open');
     renderGallery();  // populate gallery grid on initial desktop layout
   } else {
     ['tracklist-win', 'player-win'].forEach(id => {

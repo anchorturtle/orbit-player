@@ -11,7 +11,8 @@ const TRACKS = [
     file: 'audio/11 - Geronimo- jestR - 2020.mp3',
     year: 2020,
     description: 'Explosive opener with raw energy and sharp lyricism.',
-    artwork: 'images/Jesterdaze.png'
+    artwork: 'images/Jesterdaze.png',
+    category: 'instrumental'
   },
   {
     title: 'Spin Cycle',
@@ -20,7 +21,8 @@ const TRACKS = [
     file: 'audio/Spin-Cycle_.mp3',
     year: 2025,
     description: '',
-    artwork: null
+    artwork: null,
+    category: 'instrumental'
   },
   {
     title: 'Mile High',
@@ -29,7 +31,8 @@ const TRACKS = [
     file: 'audio/3 - Mile High- jestR - 2020.mp3',
     year: 2020,
     description: 'Atmospheric and introspective with soaring melodies.',
-    artwork: null
+    artwork: null,
+    category: 'instrumental'
   },
   {
     title: 'Follow The Flow',
@@ -38,7 +41,8 @@ const TRACKS = [
     file: 'audio/Mp3-FollowTheFlow.mp3',
     year: 2021,
     description: 'Smooth, hypnotic groove exploring surrender and momentum.',
-    artwork: null
+    artwork: null,
+    category: 'instrumental'
   },
   {
     title: 'Soul Seer',
@@ -47,7 +51,8 @@ const TRACKS = [
     file: 'audio/Mp3-SoulSeer.mp3',
     year: 2021,
     description: 'Mystical and introspective journey through inner vision.',
-    artwork: null
+    artwork: null,
+    category: 'instrumental'
   },
   {
     title: 'Peace',
@@ -56,7 +61,8 @@ const TRACKS = [
     file: 'audio/Peace.mp3',
     year: 2022,
     description: 'Minimal and meditative. A moment of stillness.',
-    artwork: null
+    artwork: null,
+    category: 'instrumental'
   },
   {
     title: 'Strider',
@@ -65,7 +71,8 @@ const TRACKS = [
     file: 'audio/Strider.mp3',
     year: 2022,
     description: 'Dark, driving beat with determined, cinematic feel.',
-    artwork: null
+    artwork: null,
+    category: 'instrumental'
   },
   {
     title: 'Insane Membrane',
@@ -74,7 +81,8 @@ const TRACKS = [
     file: 'audio/Insane_membrane.mp3',
     year: 2023,
     description: 'Chaotic, textured, and emotionally charged.',
-    artwork: null
+    artwork: null,
+    category: 'instrumental'
   },
   {
     title: 'Wavy',
@@ -83,7 +91,8 @@ const TRACKS = [
     file: 'audio/wavy.mp3',
     year: 2023,
     description: 'Liquid, dreamy production with fluid delivery.',
-    artwork: null
+    artwork: null,
+    category: 'instrumental'
   },
   {
     title: 'Boa Constrictor',
@@ -92,7 +101,8 @@ const TRACKS = [
     file: 'audio/boaconstrictor.mp3',
     year: 2024,
     description: 'Tense, coiled energy that slowly tightens.',
-    artwork: null
+    artwork: null,
+    category: 'instrumental'
   },
   {
     title: 'News',
@@ -101,7 +111,8 @@ const TRACKS = [
     file: 'audio/Newsss.mp3',
     year: 2024,
     description: 'Sharp commentary wrapped in heavy, distorted beats.',
-    artwork: null
+    artwork: null,
+    category: 'instrumental'
   },
   {
     title: 'Wheels',
@@ -110,7 +121,8 @@ const TRACKS = [
     file: 'audio/mp3Wheels-36.mp3',
     year: 2020,
     description: 'Cyclic, hypnotic rhythm. Motion without destination.',
-    artwork: null
+    artwork: null,
+    category: 'instrumental'
   },
   {
     title: 'Pop',
@@ -119,7 +131,8 @@ const TRACKS = [
     file: 'audio/pop.mp3',
     year: 2024,
     description: 'Playful yet biting take on pop culture.',
-    artwork: null
+    artwork: null,
+    category: 'instrumental'
   },
   {
     title: 'The Sum Of Hippy Thoughts',
@@ -128,7 +141,8 @@ const TRACKS = [
     file: 'audio/the sum of hippy thoughts - Output - Stereo Out.mp3',
     year: 2025,
     description: 'Expansive, philosophical closer with lush textures.',
-    artwork: null
+    artwork: null,
+    category: 'instrumental'
   },
   {
     title: 'What Dreams May Come',
@@ -137,9 +151,66 @@ const TRACKS = [
     file: 'audio/what_dreams_may_comewavy.wav',
     year: 2020,
     description: 'Ethereal and cinematic. A dreamlike farewell.',
-    artwork: null
+    artwork: null,
+    category: 'instrumental'
+  },
+  {
+    title: 'Jazzpot',
+    artist: 'jestR',
+    slug: 'jazzpot',
+    file: 'audio/jazzpot3.mp3',
+    year: 2026,
+    description: 'Jazz pot session.',
+    artwork: null,
+    category: 'rap',
+    // lyrics hardcoded for reliable loading (dynamic fetch often fails when opening index.html directly via file://)
+    // To regenerate: run the sync script, then copy the array here (or serve the site with a web server for dynamic load)
+    lyrics: [
+      {"time":24.0,"text":"No stress when i flex"},
+      {"time":25.59,"text":"Feel it in the back of ya necks"},
+      {"time":27.179,"text":"Spit straight shots i got next"},
+      {"time":28.769,"text":"Wrist watches stop for this text"},
+      {"time":30.359,"text":"The tip top cream of the crop"},
+      {"time":31.949,"text":"Swept off ya feet for this bop"},
+      {"time":33.538,"text":"I Split seven seas when i rock"},
+      {"time":35.128,"text":"Cooking up steez like a crackshot"},
+      {"time":36.718,"text":"I’m The mascot of hittin’ the jackpot"},
+      {"time":38.308,"text":"A Sasquatch laughing his ass off"},
+      {"time":39.897,"text":"A mothman trippin off bathsalts"},
+      {"time":41.487,"text":"The sugar cane drippin on ya windowpane"},
+      {"time":43.077,"text":"The Profane finger point on both hands to stay sane"},
+      {"time":44.667,"text":"Folks it’s the Ace in the hole"},
+      {"time":46.256,"text":"The best kept secret since Coke"},
+      {"time":47.846,"text":"Slept on and treated like I’m slow"},
+      {"time":49.436,"text":"Cuz I take my time when I line up these flows"},
+      {"time":51.026,"text":"As soon as it enters ya soul"},
+      {"time":52.615,"text":"Everything shiny as gold"},
+      {"time":54.205,"text":"Feelings that I can’t control"},
+      {"time":55.795,"text":"No prophets have ever foretold"},
+      {"time":57.385,"text":"The raps that shattered the mold"},
+      {"time":58.974,"text":"Real talk that matters the most"},
+      {"time":60.564,"text":"The worm inside of the host"},
+      {"time":62.154,"text":"Make puppets out of holy ghosts"},
+      {"time":63.744,"text":"Cuz I swear that ya doing the most"},
+      {"time":65.333,"text":"On the twos and the fours"},
+      {"time":66.923,"text":"Ain’t looking for boos or applause"},
+      {"time":68.513,"text":"Just tryna find who wit the cause"},
+      {"time":70.103,"text":"Pursuit of the finest of awes"},
+      {"time":71.692,"text":"My mind is a pilot got mileage"},
+      {"time":73.282,"text":"But they say that no man an island"},
+      {"time":74.872,"text":"I feel like I died in asylum"},
+      {"time":76.462,"text":"Came back and grew a new phylum"},
+      {"time":78.051,"text":"Got fat off stacks"},
+      {"time":79.641,"text":"And still I’m unrivaled"},
+      {"time":81.231,"text":"Like hot wax spilling on vinyl"},
+      {"time":82.821,"text":"Turn a black sheep into an albino"},
+      {"time":84.41,"text":"Murder I reap blood with the spinal"},
+      {"time":86.0,"text":"And judgment is final"}
+    ],
   }
 ];
+
+let currentTracklistCategory = 'all';
 
 const audio = document.getElementById('audio-player');
 
@@ -806,6 +877,12 @@ function loadTrack(idx, autoplay) {
   document.getElementById('fp-artist').textContent = t.artist;
   document.getElementById('focal-title').textContent = t.title;
   document.getElementById('focal-artist').textContent = t.artist;
+
+  // Lyrics button only for rap category tracks (more intuitive)
+  const lyricsBtn = document.getElementById('btn-lyrics');
+  if (lyricsBtn) {
+    lyricsBtn.style.display = (t.category === 'rap') ? 'flex' : 'none';
+  }
   document.getElementById('time-total').textContent = '0:00';
   document.getElementById('time-current').textContent = '0:00';
   setProgress(0);
@@ -1042,8 +1119,15 @@ function renderTracklist(filter) {
   Array.from(container.children).forEach(el => { if (el.id !== 'drop-line') el.remove(); });
 
   const q = (filter || '').toLowerCase();
-  const items = TRACKS.map((t, i) => ({ t, origIdx: i }))
-    .filter(({ t }) => !q || t.title.toLowerCase().includes(q) || t.artist.toLowerCase().includes(q));
+  let items = TRACKS.map((t, i) => ({ t, origIdx: i }));
+
+  // Apply category filter (tabs)
+  if (currentTracklistCategory !== 'all') {
+    items = items.filter(({ t }) => (t.category || 'instrumental') === currentTracklistCategory);
+  }
+
+  // Apply search filter
+  items = items.filter(({ t }) => !q || t.title.toLowerCase().includes(q) || t.artist.toLowerCase().includes(q));
 
   document.getElementById('track-count').textContent = `${items.length}/${TRACKS.length}`;
 
@@ -1170,6 +1254,272 @@ function renderTracklist(filter) {
 document.getElementById('search-input').addEventListener('input', function () {
   renderTracklist(this.value);
 });
+
+/* ── TRACKLIST CATEGORY TABS ── */
+document.querySelectorAll('.tracklist-tabs .tab').forEach(tab => {
+  tab.addEventListener('click', () => {
+    document.querySelectorAll('.tracklist-tabs .tab').forEach(t => t.classList.remove('active'));
+    tab.classList.add('active');
+    currentTracklistCategory = tab.dataset.category;
+    renderTracklist(document.getElementById('search-input').value);
+  });
+});
+
+/* ── PREMIUM LYRICS VIEWER ── */
+let lyricsRafId = null;
+let lyricsDesiredScroll = 0;
+let lyricsCurrentScroll = 0;
+
+async function openLyricsViewer() {
+  const win = document.getElementById('lyrics-win');
+  if (!win) return;
+  win.style.display = 'flex';
+  bringToFront('lyrics-win');
+  // Ensure centered top + tall layout on desktop (if user hasn't manually dragged it yet).
+  // This also re-clamps on open/resize scenarios.
+  if (typeof applyDesktopLayout === 'function') {
+    applyDesktopLayout();
+  }
+  await updateLyricsViewer();
+  startLyricsSyncLoop();
+}
+
+function closeLyricsViewer() {
+  const win = document.getElementById('lyrics-win');
+  if (win) win.style.display = 'none';
+  stopLyricsSyncLoop();
+}
+
+async function updateLyricsViewer() {
+  const titleEl = document.getElementById('lyrics-title');
+  const artistEl = document.getElementById('lyrics-artist');
+  const linesEl = document.getElementById('lyrics-lines');
+
+  if (!titleEl || !artistEl || !linesEl) return;
+
+  if (currentIndex < 0 || !TRACKS[currentIndex]) {
+    titleEl.textContent = '—';
+    artistEl.textContent = '';
+    linesEl.innerHTML = '<div class="lyric-line" style="color:rgba(233,225,222,0.4); font-size:1.1rem;">No track selected.</div>';
+    return;
+  }
+
+  const track = TRACKS[currentIndex];
+  titleEl.textContent = track.title || '—';
+  artistEl.textContent = track.artist || '';
+
+  // Support dynamic load from lyricsFile (for the workflow: run script -> json -> auto load)
+  if (track.lyricsFile && !track.lyrics) {
+    try {
+      const resp = await fetch(track.lyricsFile);
+      track.lyrics = await resp.json();
+    } catch (e) {
+      console.warn('Could not load lyrics json via fetch (common when opening index.html directly as file:// — CORS). Lyrics should be hardcoded in TRACKS for local use. Error:', e);
+    }
+  }
+
+  linesEl.innerHTML = '';
+
+  const lyrics = track.lyrics || [];
+  if (lyrics.length === 0) {
+    linesEl.innerHTML = '<div class="lyric-line" style="color:rgba(233,225,222,0.4); font-size:1.1rem;">Lyrics not available for this track yet.<br>(For local file:// open, lyrics must be embedded in js/player.js TRACKS.)</div>';
+    return;
+  }
+
+  const lyricsData = lyrics; // for closure in click handler
+
+  lyrics.forEach((line, idx) => {
+    const div = document.createElement('div');
+    div.className = 'lyric-line';
+    div.textContent = line.text || ' ';
+    div.dataset.time = line.time;
+    div.dataset.index = idx;
+    linesEl.appendChild(div);
+  });
+
+  // Attach smart click handler to the lines container for "click any part to seek"
+  // Supports interpolation between lines for precise playback control.
+  // Shows subtle precision indicator animation at click location.
+  linesEl.onclick = function(e) {
+    if (!audio || !lyricsData || lyricsData.length === 0) return;
+
+    const containerRect = linesEl.getBoundingClientRect();
+    const clickY = e.clientY - containerRect.top + document.getElementById('lyrics-scroll').scrollTop;
+
+    const lineEls = linesEl.querySelectorAll('.lyric-line');
+    let targetTime = 0;
+    let clickedLineEl = null;
+
+    for (let i = 0; i < lineEls.length; i++) {
+      const el = lineEls[i];
+      const elTop = el.offsetTop;
+      const elBottom = elTop + el.offsetHeight;
+
+      if (clickY >= elTop && clickY <= elBottom) {
+        // Direct hit on a line
+        const idx = parseInt(el.dataset.index);
+        targetTime = lyricsData[idx].time;
+        clickedLineEl = el;
+        break;
+      } else if (clickY < elTop) {
+        // Clicked in the space before this line - interpolate with previous
+        if (i > 0) {
+          const prevEl = lineEls[i - 1];
+          const prevIdx = parseInt(prevEl.dataset.index);
+          const prevTop = prevEl.offsetTop;
+          const frac = (clickY - prevTop) / (elTop - prevTop);
+          targetTime = lyricsData[prevIdx].time + frac * (lyricsData[i].time - lyricsData[prevIdx].time);
+        } else {
+          targetTime = lyricsData[0].time;
+        }
+        clickedLineEl = lineEls[i];
+        break;
+      }
+    }
+
+    if (clickedLineEl === null && lineEls.length > 0) {
+      // Clicked after the last line
+      const lastIdx = parseInt(lineEls[lineEls.length - 1].dataset.index);
+      targetTime = lyricsData[lastIdx].time;
+      clickedLineEl = lineEls[lineEls.length - 1];
+    }
+
+    // Seek
+    audio.currentTime = Math.max(0, targetTime);
+
+    // Subtle, precise click location indicator (not invasive)
+    if (clickedLineEl) {
+      const indicator = document.createElement('div');
+      indicator.className = 'click-indicator';
+      // Position relative to the clicked line for precision feel
+      const lineRect = clickedLineEl.getBoundingClientRect();
+      const clickOffsetInLine = (e.clientY - lineRect.top) / lineRect.height;
+      indicator.style.top = `${clickedLineEl.offsetTop + (clickOffsetInLine * clickedLineEl.offsetHeight) - 1}px`;
+      indicator.style.height = '2px';
+      linesEl.appendChild(indicator);
+
+      // Flash the line itself for extra subtle feedback
+      clickedLineEl.classList.add('seek-flash');
+      setTimeout(() => {
+        clickedLineEl.classList.remove('seek-flash');
+        if (indicator.parentNode) indicator.parentNode.removeChild(indicator);
+      }, 520);
+    }
+
+    // Immediate visual update
+    syncLyrics();
+  };
+
+  // initial sync
+  syncLyrics();
+}
+
+function syncLyrics() {
+  if (!audio || currentIndex < 0) return;
+  const track = TRACKS[currentIndex];
+  const lyrics = track.lyrics || [];
+  if (lyrics.length === 0) return;
+
+  const time = audio.currentTime;
+  let currentIdx = 0;
+  for (let i = 0; i < lyrics.length; i++) {
+    if (time >= lyrics[i].time) currentIdx = i;
+    else break;
+  }
+
+  const lineEls = document.querySelectorAll('#lyrics-lines .lyric-line');
+  lineEls.forEach((el, i) => {
+    el.classList.remove('current', 'past', 'future');
+    const dist = i - currentIdx;
+    if (i === currentIdx) {
+      el.classList.add('current');
+    } else if (i < currentIdx) {
+      el.classList.add('past');
+    } else {
+      el.classList.add('future');
+    }
+    // depth
+    const absDist = Math.abs(dist);
+    el.style.opacity = (i === currentIdx) ? '1' : Math.max(0.22, 1 - absDist * 0.22);
+  });
+
+  // set desired scroll for continuous smooth follow
+  // Use fractional position between current and next line for perfect continuous sync
+  const currentLine = lineEls[currentIdx];
+  const scrollEl = document.getElementById('lyrics-scroll');
+  if (currentLine && scrollEl) {
+    let targetScroll;
+    if (currentIdx < lyrics.length - 1) {
+      const nextLine = lineEls[currentIdx + 1];
+      const progress = (time - lyrics[currentIdx].time) / (lyrics[currentIdx + 1].time - lyrics[currentIdx].time);
+      const currTop = currentLine.offsetTop;
+      const nextTop = nextLine.offsetTop;
+      const lineCenterOffset = currentLine.offsetHeight / 2;
+      targetScroll = currTop + progress * (nextTop - currTop) - (scrollEl.clientHeight / 2) + lineCenterOffset;
+    } else {
+      const lineCenter = currentLine.offsetTop + (currentLine.offsetHeight / 2);
+      targetScroll = lineCenter - (scrollEl.clientHeight / 2);
+    }
+    lyricsDesiredScroll = targetScroll;
+  }
+}
+
+function startLyricsSyncLoop() {
+  stopLyricsSyncLoop();
+  const scrollEl = document.getElementById('lyrics-scroll');
+  if (!scrollEl) return;
+
+  lyricsCurrentScroll = scrollEl.scrollTop;
+  lyricsDesiredScroll = lyricsCurrentScroll;
+
+  const tick = () => {
+    if (scrollEl) {
+      // smooth easing towards desired
+      lyricsCurrentScroll += (lyricsDesiredScroll - lyricsCurrentScroll) * 0.085;
+      scrollEl.scrollTop = lyricsCurrentScroll;
+    }
+    syncLyrics();
+    lyricsRafId = requestAnimationFrame(tick);
+  };
+  lyricsRafId = requestAnimationFrame(tick);
+}
+
+function stopLyricsSyncLoop() {
+  if (lyricsRafId) {
+    cancelAnimationFrame(lyricsRafId);
+    lyricsRafId = null;
+  }
+}
+
+// Wire lyrics button and close
+document.getElementById('btn-lyrics').addEventListener('click', openLyricsViewer);
+document.getElementById('close-lyrics').addEventListener('click', closeLyricsViewer);
+
+// Keep lyrics in sync when track changes or audio events
+const originalLoadTrackForLyrics = loadTrack;
+loadTrack = async function(idx, autoplay) {
+  const result = originalLoadTrackForLyrics.apply(this, arguments);
+  const lyricsWin = document.getElementById('lyrics-win');
+  if (lyricsWin && lyricsWin.style.display === 'flex') {
+    await updateLyricsViewer();
+  }
+  return result;
+};
+
+if (audio) {
+  audio.addEventListener('timeupdate', () => {
+    const lyricsWin = document.getElementById('lyrics-win');
+    if (lyricsWin && lyricsWin.style.display === 'flex') {
+      syncLyrics();
+    }
+  });
+  audio.addEventListener('seeked', () => {
+    const lyricsWin = document.getElementById('lyrics-win');
+    if (lyricsWin && lyricsWin.style.display === 'flex') {
+      syncLyrics();
+    }
+  });
+}
 
 /* ── SONG DETAIL / SHARE SYSTEM ── */
 let currentSongSlug = null;

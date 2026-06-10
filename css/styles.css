@@ -451,6 +451,13 @@ body { font-family: 'Plus Jakarta Sans', sans-serif; background: #06040f; color:
 
 .player-info-side {
   /* grid child, auto sized */
+  display: flex;
+  gap: 6px;
+  align-items: center;
+}
+
+#btn-lyrics {
+  display: none;
 }
 
 /* === TRANSPORT DECK (the star) === */
@@ -852,6 +859,35 @@ body { font-family: 'Plus Jakarta Sans', sans-serif; background: #06040f; color:
 #drop-line::before { left: 4px; }
 #drop-line::after { right: 4px; background: var(--jestr-green); box-shadow: 0 0 8px var(--jestr-green); }
 
+/* ============ TRACKLIST TABS ============ */
+.tracklist-tabs {
+  display: flex;
+  gap: 4px;
+  padding: 0 4px;
+  flex-shrink: 0;
+}
+.tracklist-tabs .tab {
+  background: rgba(255,255,255,.04);
+  border: 1px solid rgba(255,255,255,.07);
+  color: var(--baby-blue);
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  padding: 4px 10px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background .12s, color .12s, border-color .12s;
+}
+.tracklist-tabs .tab.active {
+  background: rgba(10,6,30,.78);
+  border-color: rgba(123,47,255,.3);
+  color: var(--jestr-green);
+}
+.tracklist-tabs .tab:hover:not(.active) {
+  background: rgba(126,200,227,.12);
+}
+
 /* Drag handle */
 .drag-handle {
   cursor: grab; display: flex; align-items: center; flex-shrink: 0;
@@ -1065,8 +1101,18 @@ body { font-family: 'Plus Jakarta Sans', sans-serif; background: #06040f; color:
   .player-song-header { padding: 0 4px !important; }
   .player-title { font-size: 13px !important; }
   .player-artist { font-size: 9px !important; }
-  .player-info-side .ctrl-btn { width: 24px !important; height: 24px !important; }
-  .player-info-side .material-symbols-outlined { font-size: 15px !important; }
+  .player-info-side {
+    display: flex;
+    gap: 4px;
+    align-items: center;
+  }
+  .player-info-side .ctrl-btn {
+    width: 20px !important;
+    height: 20px !important;
+  }
+  .player-info-side .material-symbols-outlined {
+    font-size: 13px !important;
+  }
   .player-transport { padding: 4px 8px !important; gap: 6px !important; }
   .player-transport .ctrl-btn { width: 30px !important; height: 30px !important; }
   .player-transport .play-btn { width: 39px !important; height: 39px !important; }
@@ -1152,6 +1198,33 @@ body { font-family: 'Plus Jakarta Sans', sans-serif; background: #06040f; color:
     gap: 14px !important;
     overflow-y: auto !important;
   }
+
+  /* Lyrics viewer on mobile */
+  .lyrics-lines {
+    padding-top: 22vh;
+    padding-bottom: 22vh;
+    gap: 1.05em;
+    font-size: 1.32rem;
+  }
+  .lyric-line {
+    font-size: 1.32rem;
+  }
+  .lyric-line.current {
+    font-size: 1.6rem;
+  }
+
+  /* Lyrics win on mobile: 30% more narrow, 10% shorter on bottom to not cut the media player */
+  #lyrics-win {
+    position: fixed !important;
+    left: 15vw !important;
+    right: 15vw !important;
+    top: 3vh !important;
+    height: 48vh !important;
+    max-height: 50vh !important;
+    width: auto !important;
+    border-radius: 10px !important;
+    z-index: 420 !important;
+  }
 }
 
 /* ============ TABLET / IPAD (768-1180px) ============ */
@@ -1176,11 +1249,182 @@ body { font-family: 'Plus Jakarta Sans', sans-serif; background: #06040f; color:
   #fp-artist { font-size: 13px !important; }
 }
 
+/* ============ LYRICS VIEWER (Premium Immersive Experience) ============ */
+#lyrics-win .win-body.lyrics-body {
+  display: flex;
+  flex-direction: column;
+  background: 
+    linear-gradient(145deg, rgba(8,5,22,0.98) 0%, rgba(4,3,12,0.97) 50%, rgba(5,4,15,0.98) 100%);
+  padding: 0;
+  overflow: hidden;
+  position: relative;
+}
+/* Base desktop hint for lyrics win before/when JS applies the center-top-tall layout */
+#lyrics-win {
+  /* will be overridden by applyDesktopLayout to center-top + tall y, leaving player visible */
+}
+
+#lyrics-win .win-body.lyrics-body::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: 
+    radial-gradient(circle at 30% 20%, rgba(123,47,255,0.06) 0%, transparent 50%),
+    radial-gradient(circle at 70% 80%, rgba(0,200,150,0.04) 0%, transparent 55%);
+  pointer-events: none;
+  z-index: 0;
+}
+
+.lyrics-meta {
+  text-align: center;
+  padding: 18px 24px 8px;
+  flex-shrink: 0;
+  position: relative;
+  z-index: 2;
+  border-bottom: 1px solid rgba(255,255,255,0.06);
+}
+
+.lyrics-track-title {
+  font-size: 1.05rem;
+  font-weight: 700;
+  letter-spacing: -.01em;
+  color: #e9e1de;
+  margin-bottom: 2px;
+}
+
+.lyrics-track-artist {
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: .18em;
+  text-transform: uppercase;
+  color: rgba(0,200,150,0.65);
+}
+
+.lyrics-container {
+  flex: 1;
+  position: relative;
+  overflow: hidden;
+  z-index: 1;
+}
+
+.lyrics-scroll {
+  height: 100%;
+  overflow-y: auto;
+  padding: 0 28px;
+  scroll-behavior: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.lyrics-lines {
+  padding-top: 32vh;
+  padding-bottom: 32vh;
+  display: flex;
+  flex-direction: column;
+  gap: 1.35em;
+  max-width: 720px;
+  margin: 0 auto;
+  text-align: center;
+}
+
+.lyric-line {
+  font-size: 1.72rem;
+  line-height: 1.38;
+  font-weight: 400;
+  color: rgba(233, 225, 222, 0.42);
+  transition: color 280ms cubic-bezier(0.23, 1, 0.32, 1),
+              font-size 280ms cubic-bezier(0.23, 1, 0.32, 1),
+              opacity 280ms cubic-bezier(0.23, 1, 0.32, 1),
+              transform 280ms cubic-bezier(0.23, 1, 0.32, 1);
+  cursor: pointer;
+  padding: 2px 12px;
+  border-radius: 4px;
+}
+
+.lyric-line:hover {
+  color: rgba(233, 225, 222, 0.75);
+}
+
+.lyric-line.current {
+  color: #f0e9e2;
+  font-size: 2.15rem;
+  font-weight: 600;
+  text-shadow: 0 2px 12px rgba(0, 0, 0, 0.5),
+               0 0 28px rgba(123, 47, 255, 0.35);
+  opacity: 1;
+  transform: scale(1.01);
+}
+
+.lyric-line.past {
+  color: rgba(233, 225, 222, 0.22);
+  font-size: 1.38rem;
+  opacity: 0.65;
+}
+
+.lyric-line.future {
+  color: rgba(233, 225, 222, 0.55);
+  font-size: 1.52rem;
+  opacity: 0.9;
+}
+
+
+
 /* ============ BUTTON PRESS FIX (global) ============ */
 .ctrl-btn, .taskbar-btn, .mob-btn {
   box-shadow: 0 3px 6px rgba(0,0,0,.45), 0 1px 0 rgba(0,0,0,.3), inset 0 1px 0 rgba(255,255,255,.10);
   border-top-color: rgba(255,255,255,.15); border-left-color: rgba(255,255,255,.12);
   border-bottom-color: rgba(0,0,0,.45); border-right-color: rgba(0,0,0,.28);
+}
+
+/* Additional motion & click feedback for lyrics (premium feel) */
+.lyric-line {
+  transition: color 260ms cubic-bezier(0.23, 1, 0.32, 1),
+              font-size 260ms cubic-bezier(0.23, 1, 0.32, 1),
+              opacity 260ms cubic-bezier(0.23, 1, 0.32, 1),
+              transform 260ms cubic-bezier(0.23, 1, 0.32, 1),
+              text-shadow 260ms cubic-bezier(0.23, 1, 0.32, 1);
+}
+
+.lyric-line.current {
+  text-shadow: 0 0 18px rgba(123, 47, 255, 0.45),
+               0 2px 8px rgba(0, 0, 0, 0.4);
+}
+
+.click-indicator {
+  position: absolute;
+  height: 1px;
+  background: linear-gradient(
+    to right,
+    transparent 0%,
+    rgba(123, 47, 255, 0.6) 50%,
+    transparent 100%
+  );
+  pointer-events: none;
+  z-index: 30;
+  animation: lyricClickPrecision 480ms ease-out forwards;
+}
+
+@keyframes lyricClickPrecision {
+  0% {
+    opacity: 0.9;
+    transform: scaleX(0.15);
+  }
+  25% {
+    opacity: 0.75;
+    transform: scaleX(1);
+  }
+  100% {
+    opacity: 0;
+    transform: scaleX(1.4);
+  }
+}
+
+.lyric-line.seek-flash {
+  animation: lyricSeekFlash 380ms ease;
+}
+
+@keyframes lyricSeekFlash {
+  0% { background-color: rgba(123, 47, 255, 0.18); }
+  100% { background-color: transparent; }
 }
 .ctrl-btn:active, .taskbar-btn:active, .mob-btn:active {
   transform: scale(.95) translateY(2px) !important;
