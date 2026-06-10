@@ -652,59 +652,98 @@ async function generateWaveform(track) {
   }
 }
 
+function cssVar(name, fallback) {
+  const v = getComputedStyle(document.documentElement).getPropertyValue(name).trim();
+  return v || fallback;
+}
+function hexToRgba(hex, a) {
+  let h = hex.replace('#', '');
+  if (h.length === 3) h = h.split('').map(c => c + c).join('');
+  const n = parseInt(h, 16);
+  if (isNaN(n)) return `rgba(140,80,255,${a})`;
+  return `rgba(${(n >> 16) & 255},${(n >> 8) & 255},${n & 255},${a})`;
+}
+function roundBar(ctx, x, y, w, h, r) {
+  if (ctx.roundRect) {
+    ctx.beginPath();
+    ctx.roundRect(x, y, w, h, Math.min(r, h / 2, w / 2));
+    ctx.fill();
+  } else {
+    ctx.fillRect(x, y, w, h);
+  }
+}
+
 function drawWaveform(playedFrac = 0) {
   const canvas = document.getElementById('waveform-canvas');
   if (!canvas || !currentWaveform || currentWaveform.length === 0) return;
   waveformCanvas = canvas;
 
-  // make canvas match current CSS size for sharpness (handles the compact player width)
+  // size the backing buffer to the CSS layout box (CSS owns layout — never
+  // fight it with inline styles; this is what kept mis-sizing the waveform)
   const rect = canvas.getBoundingClientRect();
   const dpr = window.devicePixelRatio || 1;
-  const cssW = Math.max(120, rect.width || 300);
-  const cssH = 26; // taller for more visible waveform
-  if (canvas.width !== Math.floor(cssW * dpr) || canvas.height !== Math.floor(cssH * dpr)) {
-    canvas.width = Math.floor(cssW * dpr);
-    canvas.height = Math.floor(cssH * dpr);
-    canvas.style.width = cssW + 'px';
-    canvas.style.height = cssH + 'px';
+  const cssW = Math.max(48, rect.width || 300);
+  const cssH = Math.max(14, rect.height || 28);
+  const bufW = Math.round(cssW * dpr);
+  const bufH = Math.round(cssH * dpr);
+  if (canvas.width !== bufW || canvas.height !== bufH) {
+    canvas.width = bufW;
+    canvas.height = bufH;
   }
   const ctx = canvas.getContext('2d');
-  ctx.setTransform(dpr, 0, 0, dpr, 0, 0); // reset + scale
-  const w = cssW;
-  const h = cssH;
-  ctx.clearRect(0, 0, w, h);
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  ctx.clearRect(0, 0, cssW, cssH);
 
-  const num = currentWaveform.length;
-  // Classic vertical bar waveform (more distinct per song, looks pro like audio editors / SoundCloud)
-  const barW = Math.max(1.2, w / (num * 1.15));
-  const gap = barW * 0.3;
+  const peaks = currentWaveform;
+  // adaptive bar count: bars stay chunky and readable at any width,
+  // and the layout always fills the rail exactly (no overflow / clipping)
+  const numBars = Math.max(36, Math.min(peaks.length, Math.floor(cssW / 3.4)));
+  const step = cssW / numBars;
+  const barW = Math.max(1.4, step * 0.62);
 
-  const centerY = h / 2;
-  const maxAmp = h * 0.48;
+  // per-song palette (set by the 3D scene) so the wave rides the theme.
+  // B = mid-brightness swirl color (readable when unplayed), C = bright accent.
+  const colB = cssVar('--track-b', '#7B2FFF');
+  const colC = cssVar('--track-c', '#00DCAA');
 
-  for (let i = 0; i < num; i++) {
-    const peak = currentWaveform[i];
-    const barH = peak * maxAmp;
-    const x = i * (barW + gap);
-    const isPlayed = i < (playedFrac * num);
+  const centerY = cssH * 0.42;            // asymmetric: tape-style reflection below
+  const maxAmp = cssH * 0.40;
+  const playedX = playedFrac * cssW;
 
-    // more visible distinct waveform
-    ctx.fillStyle = isPlayed 
-      ? 'rgba(0, 220, 170, 0.98)'   // bright teal/green for played
-      : 'rgba(140, 80, 255, 0.55)'; // more visible purple for unplayed
+  for (let i = 0; i < numBars; i++) {
+    // bucket max keeps transients punchy when downsampling
+    const a0 = Math.floor(i * peaks.length / numBars);
+    const a1 = Math.max(a0 + 1, Math.floor((i + 1) * peaks.length / numBars));
+    let pk = 0;
+    for (let j = a0; j < a1; j++) pk = Math.max(pk, peaks[j]);
+    const barH = Math.max(1.5, pk * maxAmp);
+    const x = i * step + (step - barW) / 2;
+    const played = (x + barW * 0.5) <= playedX;
 
-    // upper bar
-    ctx.fillRect(x, centerY - barH, barW, barH);
-    // lower bar (mirror for full wave look)
-    ctx.fillRect(x, centerY, barW, barH);
-
-    // subtle outline for definition (makes it pop more, less flat)
-    if (barH > 1) {
-      ctx.strokeStyle = isPlayed ? 'rgba(255,255,255,0.3)' : 'rgba(255,255,255,0.15)';
-      ctx.lineWidth = 0.5;
-      ctx.strokeRect(x, centerY - barH, barW, barH);
-      ctx.strokeRect(x, centerY, barW, barH);
+    // main bar — played glows in the song's accent, rest sits back in the haze
+    if (played) {
+      ctx.shadowBlur = 5;
+      ctx.shadowColor = hexToRgba(colC, 0.6);
+      ctx.fillStyle = hexToRgba(colC, 0.95);
+    } else {
+      ctx.shadowBlur = 0;
+      ctx.fillStyle = hexToRgba(colB, 0.55);
     }
+    roundBar(ctx, x, centerY - barH, barW, barH, barW / 2);
+    ctx.shadowBlur = 0;
+
+    // mirrored reflection — dimmer and shorter, analog tape-deck feel
+    ctx.fillStyle = played ? hexToRgba(colC, 0.30) : hexToRgba(colB, 0.20);
+    roundBar(ctx, x, centerY + 1.5, barW, barH * 0.55, barW / 2);
+  }
+
+  // glowing playhead needle at the play boundary
+  if (playedFrac > 0.001 && playedFrac < 0.999) {
+    ctx.shadowBlur = 7;
+    ctx.shadowColor = hexToRgba(colC, 0.9);
+    ctx.fillStyle = 'rgba(245,250,255,.92)';
+    ctx.fillRect(playedX - 0.6, 1, 1.2, cssH - 2);
+    ctx.shadowBlur = 0;
   }
 }
 
