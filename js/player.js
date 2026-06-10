@@ -138,7 +138,7 @@ const TRACKS = [
     title: 'The Sum Of Hippy Thoughts',
     artist: 'jestR',
     slug: 'the-sum-of-hippy-thoughts',
-    file: 'audio/the sum of hippy thoughts - Output - Stereo Out.mp3',
+    file: 'audio/the sum of hippy thoughts.mp3',
     year: 2025,
     description: 'Expansive, philosophical closer with lush textures.',
     artwork: null,
