@@ -24,6 +24,10 @@
   --win-radius: 20px;
   --spring: cubic-bezier(.34, 1.56, .64, 1);
   --ease-out: cubic-bezier(.22, 1, .36, 1);
+  /* Per-song accent colors — live-updated by the 3D scene on track change */
+  --track-a: #7B2FFF;
+  --track-b: #2D5BFF;
+  --track-c: #00C896;
   --mob-dock-h: 70px;
   --mob-player-h: 160px;
 }
@@ -71,8 +75,9 @@ body { font-family: 'Plus Jakarta Sans', sans-serif; background: #06040f; color:
   color: #f2ece6;
   text-shadow:
     0 2px 24px rgba(3,2,10,.9),
-    0 0 44px rgba(123,47,255,.65),
-    0 0 90px rgba(45,91,255,.4);
+    0 0 44px var(--track-a, rgba(123,47,255,.65)),
+    0 0 90px var(--track-b, rgba(45,91,255,.4));
+  transition: text-shadow 1.4s ease;
 }
 .focal-artist {
   font-size: 9px; font-weight: 700; letter-spacing: .5em;
@@ -769,8 +774,8 @@ body { font-family: 'Plus Jakarta Sans', sans-serif; background: #06040f; color:
   transform: translateY(-50%);
   height: 2px;
   border-radius: 999px;
-  background: linear-gradient(90deg, var(--jestr-purple), var(--jestr-blue), var(--jestr-green));
-  box-shadow: 0 0 12px rgba(123,47,255,.5);
+  background: linear-gradient(90deg, var(--track-a, var(--jestr-purple)), var(--track-b, var(--jestr-blue)), var(--track-c, var(--jestr-green)));
+  box-shadow: 0 0 12px var(--track-a, rgba(123,47,255,.5));
   pointer-events: none;
   z-index: 4;
   opacity: 0.35; /* subtle line over the bar waveform; the colored bars provide the main played visual */

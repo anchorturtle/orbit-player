@@ -1,12 +1,15 @@
 /* ============================================
    ORBIT PLAYER — space3d.js
    Real-time 3D cosmic background (Three.js):
-   • Shader-driven living planet w/ swirling nebula surface + atmosphere
-   • Tilted orbiting particle ring system
-   • Deep parallax starfield (thousands of stars, twinkle, depth)
-   • Volumetric-style nebula clouds
-   • Shooting stars
-   • Audio-reactive: the whole scene breathes with the music
+   • Living planet that is itself an audio visualizer — the live waveform
+     physically ripples the sphere in sync with the sound
+   • Per-song planet palettes (deep maroons, purples, turquoise, pinks)
+     that bleed into the UI accent colors
+   • Sparse, elegant orbiting dust (less is more)
+   • Rare ambient events on long random timers — comets, rogue moons,
+     tumbling asteroids, supernovae, satellites. The longer you drift
+     on the site, the more you might witness.
+   • Lazy drifting camera + deep parallax starfield + galaxy band
    Falls back silently to the classic 2D star canvas when WebGL or
    the Three.js CDN is unavailable (e.g. fully offline file:// open).
    ============================================ */
@@ -43,13 +46,59 @@
   renderer.outputEncoding = THREE.sRGBEncoding;
 
   const scene = new THREE.Scene();
-  const camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 400);
+  const camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 500);
+
+  // Soft lighting only for physical props (asteroids / moons)
+  const keyLight = new THREE.DirectionalLight(0xd9ccff, 0.95);
+  keyLight.position.set(-5, 4, 7);
+  scene.add(keyLight);
+  scene.add(new THREE.AmbientLight(0x241a3a, 1.1));
 
   /* Brand palette (matches CSS custom props) */
   const COL_PURPLE = new THREE.Color('#7B2FFF');
   const COL_BLUE   = new THREE.Color('#2D5BFF');
   const COL_GREEN  = new THREE.Color('#00C896');
   const COL_BABY   = new THREE.Color('#7EC8E3');
+
+  /* ── PER-SONG PLANET PALETTES ──
+     Deep, dark, psychedelic-but-precise. [surface, swirl, energy] */
+  const PALETTES = [
+    ['#7B2FFF', '#2D5BFF', '#00C896'], // royal violet (brand / default)
+    ['#6E1230', '#B02458', '#FF4D88'], // void maroon → hot pink veins
+    ['#0A5C6E', '#1240A0', '#19E3C2'], // deep turquoise abyss
+    ['#4A1B7A', '#8A2BE2', '#FF3D9A'], // ultraviolet orchid
+    ['#5C0F2E', '#7B2FFF', '#C2275A'], // wine nebula
+    ['#16216E', '#4D6BFF', '#B14DFF'], // indigo abyss
+    ['#0B3B4C', '#0E7C7B', '#06D6A0'], // abyssal teal
+    ['#3B0E45', '#A2196E', '#FF6FB7'], // dark magenta dream
+    ['#241054', '#5B1FA8', '#19B8E3'], // midnight iris
+    ['#54123B', '#933B8B', '#E84FBF']  // plum haze
+  ];
+
+  function hashStr(s) {
+    let h = 0;
+    for (let i = 0; i < s.length; i++) h = (h * 31 + s.charCodeAt(i)) >>> 0;
+    return h;
+  }
+  function paletteFor(slug) {
+    if (!slug) return PALETTES[0];
+    return PALETTES[hashStr(slug) % PALETTES.length];
+  }
+
+  /* Live palette state (lerped smoothly toward targets on track change) */
+  const palA = COL_PURPLE.clone(), palB = COL_BLUE.clone(), palC = COL_GREEN.clone();
+  const tgtA = palA.clone(), tgtB = palB.clone(), tgtC = palC.clone();
+
+  function setPaletteTargets(p) {
+    tgtA.set(p[0]); tgtB.set(p[1]); tgtC.set(p[2]);
+    // Bleed the song color into the UI (focal glow, progress fill)
+    try {
+      const root = document.documentElement.style;
+      root.setProperty('--track-a', p[0]);
+      root.setProperty('--track-b', p[1]);
+      root.setProperty('--track-c', p[2]);
+    } catch (e) {}
+  }
 
   /* ── Shared GLSL noise (compact 3D value-noise + fbm) ── */
   const NOISE_GLSL = `
@@ -78,31 +127,58 @@
     }
   `;
 
-  /* ════════════════ PLANET ════════════════ */
+  /* ════════════════ AUDIO WAVEFORM TEXTURE ════════════════
+     The live time-domain waveform, uploaded every frame and wrapped
+     around the planet's equator as physical vertex displacement. */
+  const WAVE_W = 128;
+  const waveArr = new Uint8Array(WAVE_W * 4);
+  for (let i = 0; i < WAVE_W; i++) waveArr[i * 4] = 128; // silence = center
+  const waveTex = new THREE.DataTexture(waveArr, WAVE_W, 1, THREE.RGBAFormat);
+  waveTex.magFilter = THREE.LinearFilter;
+  waveTex.minFilter = THREE.LinearFilter;
+  waveTex.needsUpdate = true;
+
+  /* ════════════════ PLANET (audio-reactive visualizer) ════════════════ */
   const PLANET_R = 1.25;
   const planetUniforms = {
-    uTime:  { value: 0 },
-    uAudio: { value: 0 },
-    uBass:  { value: 0 },
-    uColA:  { value: COL_PURPLE },
-    uColB:  { value: COL_BLUE },
-    uColC:  { value: COL_GREEN }
+    uTime:    { value: 0 },
+    uAudio:   { value: 0 },
+    uBass:    { value: 0 },
+    uWaveTex: { value: waveTex },
+    uWaveAmp: { value: 0 },
+    uColA:    { value: palA },
+    uColB:    { value: palB },
+    uColC:    { value: palC }
   };
 
   const planet = new THREE.Mesh(
-    new THREE.SphereGeometry(PLANET_R, 96, 96),
+    new THREE.SphereGeometry(PLANET_R, 144, 96),
     new THREE.ShaderMaterial({
       uniforms: planetUniforms,
       vertexShader: `
         uniform float uBass;
+        uniform float uWaveAmp;
+        uniform sampler2D uWaveTex;
         varying vec3 vNormal;
         varying vec3 vPos;
         varying vec3 vView;
+        varying float vWave;
         void main(){
           vNormal = normalize(normalMatrix * normal);
           vPos = position;
-          // subtle breathing with the low end
-          vec3 p = position * (1.0 + uBass * 0.025);
+
+          // ── THE VISUALIZER ──
+          // longitude maps the live waveform around the sphere,
+          // strongest at the equator, fading toward the poles.
+          vec3 n = normalize(position);
+          float lon = atan(n.z, n.x) / 6.2831853 + 0.5;
+          float lat = n.y;
+          float wave = texture2D(uWaveTex, vec2(lon, 0.5)).r - 0.502;
+          float band = exp(-lat * lat * 3.5);
+          float disp = wave * uWaveAmp * band;
+          vWave = abs(wave) * band;
+
+          vec3 p = position * (1.0 + uBass * 0.02) + normal * disp;
           vec4 mv = modelViewMatrix * vec4(p, 1.0);
           vView = -mv.xyz;
           gl_Position = projectionMatrix * mv;
@@ -118,6 +194,7 @@
         varying vec3 vNormal;
         varying vec3 vPos;
         varying vec3 vView;
+        varying float vWave;
         ${NOISE_GLSL}
         void main(){
           vec3 n = normalize(vPos);
@@ -130,16 +207,20 @@
           float swirl = fbm(p2 + bands * 1.4);
           float storms = fbm(n * 7.0 - vec3(0.0, t * 2.2, 0.0) + swirl * 2.0);
 
-          // deep-space base → purple → blue, green energy veins on the peaks
-          vec3 col = mix(vec3(0.015, 0.008, 0.05), uColA * 0.7, smoothstep(0.18, 0.62, bands));
-          col = mix(col, uColB * 0.75, smoothstep(0.42, 0.85, swirl) * 0.8);
-          col += uColC * smoothstep(0.68, 0.95, storms) * (0.35 + uAudio * 0.85);
-          col += uColA * smoothstep(0.75, 1.0, swirl) * 0.45;
+          // deep-space base → surface → swirl, energy veins on the peaks
+          vec3 col = mix(vec3(0.012, 0.006, 0.04), uColA * 0.62, smoothstep(0.18, 0.62, bands));
+          col = mix(col, uColB * 0.68, smoothstep(0.42, 0.85, swirl) * 0.8);
+          col += uColC * smoothstep(0.68, 0.95, storms) * (0.30 + uAudio * 0.85);
+          col += uColA * smoothstep(0.75, 1.0, swirl) * 0.4;
+
+          // the waveform itself glows where it deforms the surface
+          col += uColC * vWave * 2.6;
+          col += uColB * vWave * 1.2;
 
           // simple key light from upper-left + soft terminator
           vec3 L = normalize(vec3(-0.55, 0.5, 0.7));
           float diff = clamp(dot(normalize(vNormal), L), 0.0, 1.0);
-          col *= 0.32 + diff * 0.9;
+          col *= 0.30 + diff * 0.9;
 
           // fresnel rim — electric atmosphere edge, audio-charged
           float fr = pow(1.0 - clamp(dot(normalize(vNormal), normalize(vView)), 0.0, 1.0), 2.6);
@@ -157,8 +238,8 @@
   const atmoUniforms = {
     uTime: { value: 0 },
     uBass: { value: 0 },
-    uColA: { value: COL_PURPLE },
-    uColB: { value: COL_BLUE }
+    uColA: { value: palA },
+    uColB: { value: palB }
   };
   const atmosphere = new THREE.Mesh(
     new THREE.SphereGeometry(PLANET_R * 1.32, 64, 64),
@@ -184,20 +265,20 @@
         void main(){
           float glow = pow(0.66 - dot(vNormal, vec3(0.0, 0.0, -1.0)), 3.4);
           vec3 col = mix(uColA, uColB, 0.5 + 0.5 * sin(uTime * 0.12));
-          gl_FragColor = vec4(col, glow * (0.55 + uBass * 0.65));
+          gl_FragColor = vec4(col, glow * (0.5 + uBass * 0.6));
         }
       `
     })
   );
   scene.add(atmosphere);
 
-  /* ════════════════ ORBITING PARTICLE RINGS ════════════════ */
+  /* ════════════════ SPARSE ORBITING DUST (less is more) ════════════════ */
   const ringGroup = new THREE.Group();
   ringGroup.rotation.x = Math.PI * 0.46;
   ringGroup.rotation.y = -0.22;
   scene.add(ringGroup);
 
-  const RING_COUNT = MOBILE ? 1100 : 2200;
+  const RING_COUNT = MOBILE ? 320 : 620;
   const ringGeo = new THREE.BufferGeometry();
   {
     const pos = new Float32Array(RING_COUNT * 3);
@@ -207,18 +288,17 @@
     const tmp = new THREE.Color();
     for (let i = 0; i < RING_COUNT; i++) {
       const band = Math.random();
-      // two main bands with a visible gap, gaussian-ish thickness
-      const base = band < 0.62 ? 1.95 : 2.65;
-      const spread = band < 0.62 ? 0.34 : 0.22;
+      const base = band < 0.62 ? 1.98 : 2.7;
+      const spread = band < 0.62 ? 0.26 : 0.16;
       const r = base + (Math.random() + Math.random() + Math.random() - 1.5) * spread;
       const a = Math.random() * Math.PI * 2;
       pos[i * 3]     = Math.cos(a) * r;
-      pos[i * 3 + 1] = (Math.random() - 0.5) * 0.05;
+      pos[i * 3 + 1] = (Math.random() - 0.5) * 0.04;
       pos[i * 3 + 2] = Math.sin(a) * r;
-      tmp.copy(Math.random() < 0.6 ? COL_PURPLE : (Math.random() < 0.5 ? COL_BLUE : COL_GREEN));
-      tmp.multiplyScalar(0.55 + Math.random() * 0.6);
+      tmp.copy(Math.random() < 0.6 ? COL_PURPLE : (Math.random() < 0.5 ? COL_BLUE : COL_BABY));
+      tmp.multiplyScalar(0.45 + Math.random() * 0.5);
       col[i * 3] = tmp.r; col[i * 3 + 1] = tmp.g; col[i * 3 + 2] = tmp.b;
-      sz[i] = 0.5 + Math.random() * 1.6;
+      sz[i] = 0.4 + Math.random() * 1.1;
       ph[i] = Math.random() * Math.PI * 2;
     }
     ringGeo.setAttribute('position', new THREE.BufferAttribute(pos, 3));
@@ -247,10 +327,10 @@
       varying float vTw;
       void main(){
         vColor = aColor;
-        vTw = 0.55 + 0.45 * sin(uTime * 1.4 + aPhase);
+        vTw = 0.5 + 0.5 * sin(uTime * 1.1 + aPhase);
         vec4 mv = modelViewMatrix * vec4(position, 1.0);
-        float size = aSize * (1.0 + uAudio * 0.8);
-        gl_PointSize = size * uScale * 0.035 / max(0.1, -mv.z);
+        float size = aSize * (1.0 + uAudio * 0.6);
+        gl_PointSize = size * uScale * 0.03 / max(0.1, -mv.z);
         gl_Position = projectionMatrix * mv;
       }
     `,
@@ -260,13 +340,13 @@
       void main(){
         vec2 d = gl_PointCoord - 0.5;
         float a = smoothstep(0.5, 0.05, length(d));
-        gl_FragColor = vec4(vColor * vTw, a * 0.9);
+        gl_FragColor = vec4(vColor * vTw, a * 0.55);
       }
     `
   }));
   ringGroup.add(ringPoints);
 
-  /* ════════════════ STARFIELD (deep, 3 layers in one buffer) ════════════════ */
+  /* ════════════════ STARFIELD (deep parallax, twinkle) ════════════════ */
   const STAR_COUNT = MOBILE ? 1600 : 3200;
   const starGeo = new THREE.BufferGeometry();
   {
@@ -276,8 +356,7 @@
     const ph  = new Float32Array(STAR_COUNT);
     const tmp = new THREE.Color();
     for (let i = 0; i < STAR_COUNT; i++) {
-      // random point in a thick spherical shell biased behind the planet
-      const r = 26 + Math.pow(Math.random(), 0.55) * 120;
+      const r = 26 + Math.pow(Math.random(), 0.55) * 130;
       const th = Math.random() * Math.PI * 2;
       const cph = (Math.random() * 2 - 1);
       const sph = Math.sqrt(1 - cph * cph);
@@ -332,7 +411,6 @@
         vec2 d = gl_PointCoord - 0.5;
         float r = length(d);
         float core = smoothstep(0.5, 0.0, r);
-        // 4-point diffraction sparkle on the brighter twinkle phase
         float spike = max(0.0, 1.0 - abs(d.x) * 14.0) + max(0.0, 1.0 - abs(d.y) * 14.0);
         float a = core * (0.35 + 0.65 * vTw) + spike * 0.10 * vTw;
         gl_FragColor = vec4(vColor, a);
@@ -340,6 +418,49 @@
     `
   }));
   scene.add(stars);
+
+  /* ════════════════ GALAXY BAND (far depth layer) ════════════════ */
+  const galaxyU = {
+    uTime: { value: 0 },
+    uC1: { value: COL_PURPLE.clone().multiplyScalar(0.8) },
+    uC2: { value: COL_BABY.clone().multiplyScalar(0.7) }
+  };
+  const galaxy = new THREE.Mesh(
+    new THREE.PlaneGeometry(420, 110),
+    new THREE.ShaderMaterial({
+      uniforms: galaxyU,
+      transparent: true,
+      depthWrite: false,
+      blending: THREE.AdditiveBlending,
+      vertexShader: `
+        varying vec2 vUv;
+        void main(){
+          vUv = uv;
+          gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+        }
+      `,
+      fragmentShader: `
+        uniform float uTime;
+        uniform vec3 uC1;
+        uniform vec3 uC2;
+        varying vec2 vUv;
+        ${NOISE_GLSL}
+        void main(){
+          vec2 q = vUv - 0.5;
+          float t = uTime * 0.004;
+          float n = fbm(vec3(q.x * 9.0 + t, q.y * 26.0, 3.7));
+          float lane = exp(-q.y * q.y * 26.0);
+          float wisps = smoothstep(0.3, 0.9, n) * lane;
+          float edge = smoothstep(0.5, 0.2, abs(q.x));
+          vec3 col = mix(uC1, uC2, n);
+          gl_FragColor = vec4(col, wisps * edge * 0.085);
+        }
+      `
+    })
+  );
+  galaxy.position.set(0, 28, -150);
+  galaxy.rotation.z = -0.35;
+  scene.add(galaxy);
 
   /* ════════════════ NEBULA CLOUDS ════════════════ */
   const NEB_DEFS = [
@@ -353,8 +474,8 @@
     const u = {
       uTime: { value: 0 },
       uAudio: { value: 0 },
-      uC1: { value: d.c1 },
-      uC2: { value: d.c2 },
+      uC1: { value: d.c1.clone() },
+      uC2: { value: d.c2.clone() },
       uOpacity: { value: d.o },
       uSeed: { value: i * 13.7 + 3.1 }
     };
@@ -398,7 +519,7 @@
     );
     m.position.set(d.x, d.y, d.z);
     m.rotation.z = Math.random() * Math.PI;
-    nebulae.push({ mesh: m, u, rs: (Math.random() - 0.5) * 0.0035 });
+    nebulae.push({ mesh: m, u, rs: (Math.random() - 0.5) * 0.0035, tint: i < 2 });
     scene.add(m);
   });
 
@@ -417,7 +538,7 @@
     scene.add(m);
     shooters.push({ line: m, active: false, t: 0, dur: 1, from: new THREE.Vector3(), dir: new THREE.Vector3() });
   }
-  let nextShoot = 4;
+  let nextShoot = 7;
 
   function spawnShooter(s) {
     s.active = true;
@@ -427,10 +548,280 @@
     s.dir.set(-(0.5 + Math.random()), -(0.35 + Math.random() * 0.4), 0).normalize().multiplyScalar(34 + Math.random() * 20);
   }
 
-  /* ════════════════ AUDIO REACTIVITY ════════════════ */
-  // Taps the player's existing Web Audio graph (gainNode) with an analyser.
-  // player.js loads after this file; bindings exist by the time the loop runs.
-  let analyser = null, freqData = null;
+  /* ════════════════ SOFT GLOW SPRITE TEXTURE (for events) ════════════════ */
+  function makeGlowTexture() {
+    const c = document.createElement('canvas');
+    c.width = c.height = 64;
+    const g = c.getContext('2d');
+    const grad = g.createRadialGradient(32, 32, 0, 32, 32, 32);
+    grad.addColorStop(0, 'rgba(255,255,255,1)');
+    grad.addColorStop(0.35, 'rgba(255,255,255,.55)');
+    grad.addColorStop(1, 'rgba(255,255,255,0)');
+    g.fillStyle = grad;
+    g.fillRect(0, 0, 64, 64);
+    const tex = new THREE.CanvasTexture(c);
+    return tex;
+  }
+  const glowTex = makeGlowTexture();
+
+  /* ════════════════ RARE AMBIENT EVENTS ════════════════
+     Long randomized timers. Drift long enough and you might see:
+     a comet, a rogue moon slipping behind the planet, a tumbling
+     asteroid, a distant supernova, or a tiny blinking satellite. */
+  const activeEvents = [];
+  let nextEventAt = 16 + Math.random() * 22; // first encounter 16–38s in
+
+  function scheduleNextEvent(t) {
+    nextEventAt = t + 24 + Math.random() * 66; // then every 24–90s
+  }
+
+  /* — Comet: bright head + long fading tail, slow majestic crossing — */
+  function spawnComet() {
+    const dirLeft = Math.random() < 0.5;
+    const z = -(26 + Math.random() * 30);
+    const from = new THREE.Vector3(dirLeft ? 46 : -46, 6 + Math.random() * 20, z);
+    const vel = new THREE.Vector3(dirLeft ? -1 : 1, -(0.12 + Math.random() * 0.2), 0).normalize()
+      .multiplyScalar(2.6 + Math.random() * 2.2);
+    const dur = 22 + Math.random() * 12;
+
+    const head = new THREE.Sprite(new THREE.SpriteMaterial({
+      map: glowTex, color: 0xd8f4ff, transparent: true, opacity: 0,
+      blending: THREE.AdditiveBlending, depthWrite: false
+    }));
+    head.scale.setScalar(1.7);
+    scene.add(head);
+
+    const TAIL_N = 26;
+    const tailGeo = new THREE.BufferGeometry();
+    tailGeo.setAttribute('position', new THREE.BufferAttribute(new Float32Array(TAIL_N * 3), 3));
+    const tail = new THREE.Line(tailGeo, new THREE.LineBasicMaterial({
+      color: 0x9fd8ff, transparent: true, opacity: 0,
+      blending: THREE.AdditiveBlending, depthWrite: false
+    }));
+    scene.add(tail);
+
+    const hist = [];
+    let t0 = 0;
+    return {
+      update(dt) {
+        t0 += dt;
+        const k = t0 / dur;
+        if (k >= 1) return false;
+        const p = from.clone().addScaledVector(vel, t0);
+        p.y += Math.sin(t0 * 0.4) * 0.6; // gentle arc
+        head.position.copy(p);
+        const fade = Math.sin(Math.min(1, k) * Math.PI);
+        head.material.opacity = fade * 0.9;
+        hist.unshift(p.clone());
+        if (hist.length > TAIL_N) hist.pop();
+        const a = tailGeo.attributes.position.array;
+        for (let i = 0; i < TAIL_N; i++) {
+          const hp = hist[Math.min(i, hist.length - 1)] || p;
+          // tail stretches opposite to travel + slight solar-wind lift
+          const back = vel.clone().normalize().multiplyScalar(-i * 0.34);
+          a[i * 3] = hp.x + back.x;
+          a[i * 3 + 1] = hp.y + back.y + i * 0.05;
+          a[i * 3 + 2] = hp.z;
+        }
+        tailGeo.attributes.position.needsUpdate = true;
+        tail.material.opacity = fade * 0.5;
+        return true;
+      },
+      dispose() {
+        scene.remove(head); scene.remove(tail);
+        head.material.dispose(); tail.material.dispose(); tailGeo.dispose();
+      }
+    };
+  }
+
+  /* — Rogue moon: small pale sphere drifting behind the planet — */
+  function spawnMoon() {
+    const dirLeft = Math.random() < 0.5;
+    const r = 0.22 + Math.random() * 0.22;
+    const moon = new THREE.Mesh(
+      new THREE.SphereGeometry(r, 32, 32),
+      new THREE.MeshStandardMaterial({
+        color: new THREE.Color().setHSL(0.7 + Math.random() * 0.12, 0.12, 0.52),
+        roughness: 0.95, metalness: 0.05
+      })
+    );
+    const y = -1.2 + Math.random() * 2.6;
+    const z = -(5.5 + Math.random() * 5);
+    moon.position.set(dirLeft ? 13 : -13, y, z);
+    const speed = (dirLeft ? -1 : 1) * (0.45 + Math.random() * 0.35);
+    const dur = 28 / Math.abs(speed) ;
+    scene.add(moon);
+    let t0 = 0;
+    return {
+      update(dt) {
+        t0 += dt;
+        if (t0 >= dur) return false;
+        moon.position.x += speed * dt;
+        moon.position.y += Math.sin(t0 * 0.25) * 0.0035;
+        moon.rotation.y += dt * 0.3;
+        return true;
+      },
+      dispose() {
+        scene.remove(moon);
+        moon.geometry.dispose(); moon.material.dispose();
+      }
+    };
+  }
+
+  /* — Asteroid: dark jagged rock tumbling slowly past, mid-depth — */
+  function spawnAsteroid() {
+    const geo = new THREE.IcosahedronGeometry(0.28 + Math.random() * 0.3, 1);
+    const pa = geo.attributes.position;
+    for (let i = 0; i < pa.count; i++) {
+      const v = new THREE.Vector3().fromBufferAttribute(pa, i);
+      v.multiplyScalar(0.78 + Math.random() * 0.45);
+      pa.setXYZ(i, v.x, v.y, v.z);
+    }
+    geo.computeVertexNormals();
+    const rock = new THREE.Mesh(geo, new THREE.MeshStandardMaterial({
+      color: 0x2c2438, roughness: 1, metalness: 0.12, flatShading: true
+    }));
+    const dirLeft = Math.random() < 0.5;
+    rock.position.set(dirLeft ? 16 : -16, -4 + Math.random() * 9, -(9 + Math.random() * 9));
+    const speed = (dirLeft ? -1 : 1) * (0.5 + Math.random() * 0.4);
+    const spin = { x: (Math.random() - 0.5) * 0.7, y: (Math.random() - 0.5) * 0.7, z: (Math.random() - 0.5) * 0.4 };
+    const dur = 34 / Math.abs(speed);
+    scene.add(rock);
+    let t0 = 0;
+    return {
+      update(dt) {
+        t0 += dt;
+        if (t0 >= dur) return false;
+        rock.position.x += speed * dt;
+        rock.rotation.x += spin.x * dt;
+        rock.rotation.y += spin.y * dt;
+        rock.rotation.z += spin.z * dt;
+        return true;
+      },
+      dispose() {
+        scene.remove(rock);
+        rock.geometry.dispose(); rock.material.dispose();
+      }
+    };
+  }
+
+  /* — Supernova: a distant star blooms violently, then dies back down — */
+  function spawnSupernova() {
+    const sprite = new THREE.Sprite(new THREE.SpriteMaterial({
+      map: glowTex,
+      color: new THREE.Color().copy(palC).lerp(new THREE.Color('#ffffff'), 0.6),
+      transparent: true, opacity: 0,
+      blending: THREE.AdditiveBlending, depthWrite: false
+    }));
+    sprite.position.set((Math.random() - 0.5) * 90, (Math.random() - 0.3) * 50, -(60 + Math.random() * 60));
+    scene.add(sprite);
+    const dur = 7;
+    let t0 = 0;
+    return {
+      update(dt) {
+        t0 += dt;
+        if (t0 >= dur) return false;
+        // fast violent attack, long elegant decay
+        const k = t0 / dur;
+        const env = k < 0.08 ? (k / 0.08) : Math.pow(1 - (k - 0.08) / 0.92, 1.8);
+        sprite.material.opacity = env * 0.95;
+        sprite.scale.setScalar(2 + env * 9 + k * 3);
+        return true;
+      },
+      dispose() {
+        scene.remove(sprite);
+        sprite.material.dispose();
+      }
+    };
+  }
+
+  /* — Satellite: tiny blinking light gliding across the upper sky — */
+  function spawnSatellite() {
+    const sprite = new THREE.Sprite(new THREE.SpriteMaterial({
+      map: glowTex, color: 0xffffff, transparent: true, opacity: 0,
+      blending: THREE.AdditiveBlending, depthWrite: false
+    }));
+    const dirLeft = Math.random() < 0.5;
+    const y = 6 + Math.random() * 12;
+    sprite.position.set(dirLeft ? 30 : -30, y, -(20 + Math.random() * 14));
+    sprite.scale.setScalar(0.5);
+    scene.add(sprite);
+    const speed = (dirLeft ? -1 : 1) * (1.1 + Math.random() * 0.7);
+    const dur = 60 / Math.abs(speed) * 0.55;
+    let t0 = 0;
+    return {
+      update(dt, t) {
+        t0 += dt;
+        if (t0 >= dur) return false;
+        sprite.position.x += speed * dt;
+        sprite.position.y += Math.sin(t0 * 0.18) * 0.004;
+        const fade = Math.sin(Math.min(1, t0 / dur) * Math.PI);
+        const blink = 0.35 + 0.65 * Math.pow(0.5 + 0.5 * Math.sin(t * 2.4), 6.0);
+        sprite.material.opacity = fade * blink * 0.85;
+        return true;
+      },
+      dispose() {
+        scene.remove(sprite);
+        sprite.material.dispose();
+      }
+    };
+  }
+
+  const EVENT_POOL = [
+    { fn: spawnComet,     w: 3 },
+    { fn: spawnMoon,      w: 3 },
+    { fn: spawnAsteroid,  w: 2.5 },
+    { fn: spawnSupernova, w: 1.5 },
+    { fn: spawnSatellite, w: 2 }
+  ];
+  function spawnRandomEvent() {
+    const total = EVENT_POOL.reduce((s, e) => s + e.w, 0);
+    let pick = Math.random() * total;
+    for (const e of EVENT_POOL) {
+      pick -= e.w;
+      if (pick <= 0) { activeEvents.push(e.fn()); return; }
+    }
+  }
+
+  /* ════════════════ TRACK-CHANGE SHOCKWAVE ════════════════ */
+  let shockwave = null;
+  function spawnShockwave() {
+    if (shockwave) { shockwave.dispose(); shockwave = null; }
+    const ring = new THREE.Mesh(
+      new THREE.RingGeometry(0.96, 1.0, 96),
+      new THREE.MeshBasicMaterial({
+        color: new THREE.Color().copy(tgtC),
+        transparent: true, opacity: 0.65,
+        side: THREE.DoubleSide,
+        blending: THREE.AdditiveBlending, depthWrite: false
+      })
+    );
+    ring.rotation.x = ringGroup.rotation.x;
+    ring.rotation.y = ringGroup.rotation.y;
+    ring.scale.setScalar(PLANET_R * 1.15);
+    scene.add(ring);
+    let t0 = 0;
+    shockwave = {
+      update(dt) {
+        t0 += dt;
+        const k = t0 / 1.5;
+        if (k >= 1) return false;
+        const s = PLANET_R * (1.15 + k * k * 5.2);
+        ring.scale.setScalar(s);
+        ring.material.opacity = 0.65 * (1 - k) * (1 - k);
+        return true;
+      },
+      dispose() {
+        scene.remove(ring);
+        ring.geometry.dispose(); ring.material.dispose();
+      }
+    };
+  }
+
+  /* ════════════════ AUDIO REACTIVITY ════════════════
+     Taps the player's existing Web Audio graph (gainNode) with an analyser.
+     player.js loads after this file; bindings exist by the time the loop runs. */
+  let analyser = null, freqData = null, timeData = null;
   let levelSm = 0, bassSm = 0;
 
   function tryHookAudio() {
@@ -439,10 +830,11 @@
       if (typeof audioContext !== 'undefined' && audioContext &&
           typeof gainNode !== 'undefined' && gainNode) {
         analyser = audioContext.createAnalyser();
-        analyser.fftSize = 256;
-        analyser.smoothingTimeConstant = 0.8;
+        analyser.fftSize = 512;
+        analyser.smoothingTimeConstant = 0.78;
         gainNode.connect(analyser); // parallel tap, does not affect output
         freqData = new Uint8Array(analyser.frequencyBinCount);
+        timeData = new Uint8Array(analyser.fftSize);
       }
     } catch (e) { /* audio graph not ready yet */ }
   }
@@ -451,18 +843,54 @@
     if (!analyser) { tryHookAudio(); return; }
     try {
       analyser.getByteFrequencyData(freqData);
+      analyser.getByteTimeDomainData(timeData);
+
       let bass = 0, all = 0;
-      const bassBins = 9;
+      const bassBins = 10;
       for (let i = 1; i < bassBins; i++) bass += freqData[i];
       for (let i = 0; i < freqData.length; i++) all += freqData[i];
       bass = bass / (bassBins - 1) / 255;
       all = all / freqData.length / 255;
       bassSm += (bass - bassSm) * 0.18;
       levelSm += (all - levelSm) * 0.12;
+
+      // upload live waveform → planet displacement texture
+      const step = timeData.length / WAVE_W;
+      for (let i = 0; i < WAVE_W; i++) {
+        waveArr[i * 4] = timeData[Math.floor(i * step)];
+      }
+      // feather the seam so the wrap point doesn't crack the sphere
+      const FE = 9;
+      for (let i = 0; i < FE; i++) {
+        const k = i / FE;
+        const idx = (WAVE_W - FE + i) * 4;
+        waveArr[idx] = Math.round(waveArr[idx] * (1 - k) + waveArr[0] * k);
+      }
+      waveTex.needsUpdate = true;
     } catch (e) { /* context may be suspended */ }
   }
 
-  /* ════════════════ CAMERA + PARALLAX ════════════════ */
+  /* ════════════════ PER-SONG PALETTE WATCHER ════════════════ */
+  let lastSlug = null;
+  let trackPollAcc = 0;
+  function watchTrack(dt) {
+    trackPollAcc += dt;
+    if (trackPollAcc < 0.4) return;
+    trackPollAcc = 0;
+    try {
+      if (typeof TRACKS !== 'undefined' && typeof currentIndex !== 'undefined' && TRACKS[currentIndex]) {
+        const slug = TRACKS[currentIndex].slug;
+        if (slug !== lastSlug) {
+          const first = (lastSlug === null);
+          lastSlug = slug;
+          setPaletteTargets(paletteFor(slug));
+          if (!first) spawnShockwave(); // tactile pulse when the song changes
+        }
+      }
+    } catch (e) {}
+  }
+
+  /* ════════════════ CAMERA + DRIFT ════════════════ */
   const mouse = { x: 0, y: 0, has: false };
   window.addEventListener('pointermove', (e) => {
     mouse.x = (e.clientX / window.innerWidth) * 2 - 1;
@@ -470,12 +898,13 @@
     mouse.has = true;
   }, { passive: true });
 
+  let baseZ = 8;
   function fitCamera() {
     const h = window.innerHeight;
-    // Match the apparent planet size to the DOM focal circle (~340px, capped on small screens)
     const targetPx = Math.min(360, h * 0.46);
     const z = (PLANET_R * h) / (Math.tan(THREE.MathUtils.degToRad(camera.fov / 2)) * targetPx);
-    camera.position.z = Math.max(6.2, Math.min(13, z));
+    baseZ = Math.max(6.2, Math.min(13, z));
+    camera.position.z = baseZ;
   }
 
   function resize() {
@@ -500,40 +929,51 @@
     const t = clock.elapsedTime;
 
     sampleAudio();
+    watchTrack(dt);
+
+    // smooth palette flow (planet melts from one song's world to the next)
+    palA.lerp(tgtA, 0.022);
+    palB.lerp(tgtB, 0.022);
+    palC.lerp(tgtC, 0.022);
 
     // uniforms
     planetUniforms.uTime.value = t;
     planetUniforms.uAudio.value = levelSm;
     planetUniforms.uBass.value = bassSm;
+    planetUniforms.uWaveAmp.value = 0.14 * Math.min(1, levelSm * 3.2);
     atmoUniforms.uTime.value = t;
     atmoUniforms.uBass.value = bassSm;
     ringUniforms.uTime.value = t;
     ringUniforms.uAudio.value = levelSm;
     starUniforms.uTime.value = t;
     starUniforms.uAudio.value = levelSm;
+    galaxyU.uTime.value = t;
     nebulae.forEach(n => {
       n.u.uTime.value = t;
       n.u.uAudio.value = levelSm;
-      n.mesh.rotation.z += n.rs * dt * 60 * 0.016;
+      n.mesh.rotation.z += n.rs * dt;
+      if (n.tint) {
+        // the two nearest nebulae slowly absorb the song's palette
+        n.u.uC1.value.lerp(tgtA, 0.004);
+        n.u.uC2.value.lerp(tgtB, 0.004);
+      }
     });
 
     // motion
     planet.rotation.y += dt * (0.045 + bassSm * 0.08);
-    ringPoints.rotation.y += dt * (0.06 + levelSm * 0.12);
-    stars.rotation.y += dt * 0.0035;
-    stars.rotation.z += dt * 0.0012;
+    planet.rotation.x = Math.sin(t * 0.02) * 0.04; // slow axis precession
+    ringPoints.rotation.y += dt * (0.05 + levelSm * 0.1);
+    stars.rotation.y += dt * 0.0032;
+    stars.rotation.z += dt * 0.001;
 
-    // parallax: mouse on desktop, gentle auto-drift otherwise
-    let px, py;
-    if (mouse.has) {
-      px = mouse.x * 0.6;
-      py = -mouse.y * 0.38;
-    } else {
-      px = Math.sin(t * 0.07) * 0.25;
-      py = Math.cos(t * 0.05) * 0.16;
-    }
-    camera.position.x += (px - camera.position.x) * 0.03;
-    camera.position.y += (py - camera.position.y) * 0.03;
+    // ── adrift: layered slow lissajous + very lazy mouse parallax ──
+    const driftX = Math.sin(t * 0.031) * 0.55 + Math.sin(t * 0.011 + 2.0) * 0.35;
+    const driftY = Math.cos(t * 0.023) * 0.34 + Math.sin(t * 0.017 + 1.0) * 0.22;
+    const mx = mouse.has ? mouse.x * 0.5 : 0;
+    const my = mouse.has ? -mouse.y * 0.3 : 0;
+    camera.position.x += ((driftX + mx) - camera.position.x) * 0.012;
+    camera.position.y += ((driftY + my) - camera.position.y) * 0.012;
+    camera.position.z += ((baseZ + Math.sin(t * 0.013) * 0.45) - camera.position.z) * 0.008;
     camera.lookAt(0, 0, 0);
 
     // shooting stars
@@ -541,7 +981,7 @@
     if (nextShoot <= 0) {
       const free = shooters.find(s => !s.active);
       if (free) spawnShooter(free);
-      nextShoot = 5 + Math.random() * 9;
+      nextShoot = 8 + Math.random() * 14;
     }
     shooters.forEach(s => {
       if (!s.active) return;
@@ -560,6 +1000,24 @@
       s.line.geometry.attributes.position.needsUpdate = true;
       s.line.material.opacity = Math.sin(k * Math.PI) * 0.85;
     });
+
+    // rare ambient events — the longer you stay, the more you may see
+    if (t > nextEventAt) {
+      spawnRandomEvent();
+      scheduleNextEvent(t);
+    }
+    for (let i = activeEvents.length - 1; i >= 0; i--) {
+      if (!activeEvents[i].update(dt, t)) {
+        activeEvents[i].dispose();
+        activeEvents.splice(i, 1);
+      }
+    }
+
+    // track-change shockwave
+    if (shockwave && !shockwave.update(dt)) {
+      shockwave.dispose();
+      shockwave = null;
+    }
 
     renderer.render(scene, camera);
   }
