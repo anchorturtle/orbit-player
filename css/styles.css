@@ -752,7 +752,7 @@ body { font-family: 'Plus Jakarta Sans', sans-serif; background: #06040f; color:
     inset 0 1px 0 rgba(255,255,255,.05),
     inset 0 0 18px rgba(0,0,0,.5);
   width: 100%;
-  overflow: hidden;
+  /* no overflow:hidden — the seek-preview tooltip pops above this module */
 }
 /* faint CRT scanlines over the whole module — analog instrument glass */
 .player-timeline::before {
@@ -876,14 +876,15 @@ body { font-family: 'Plus Jakarta Sans', sans-serif; background: #06040f; color:
 /* Seek time preview tooltip (shows on hover/drag over slider) */
 .seek-preview {
   position: absolute;
-  bottom: 100%;
+  bottom: calc(100% + 6px);
   left: 0;
   background: rgba(10,6,30,.95);
   color: #e9e1de;
   font-size: 11px;
   font-weight: 700;
-  padding: 1px 5px;
-  border-radius: 3px;
+  font-variant-numeric: tabular-nums;
+  padding: 2px 7px;
+  border-radius: 5px;
   border: 1px solid rgba(150,100,255,.4);
   pointer-events: none;
   white-space: nowrap;

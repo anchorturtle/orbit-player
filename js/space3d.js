@@ -39,14 +39,51 @@
   document.documentElement.classList.add('space3d-on');
 
   const MOBILE = (typeof isMob === 'function') ? isMob() : (window.innerWidth < 768);
-  const DPR_CAP = MOBILE ? 1.35 : 1.5;
-  // Fill-rate budget: the fog shaders are heavy, so cap total rendered
-  // pixels. Big windows render slightly soft (it's fog) but stay smooth.
-  const PIXEL_BUDGET = MOBILE ? 1.0e6 : 1.35e6;
+  const DPR_CAP = MOBILE ? 1.5 : 1.75;
+
+  // ── Adaptive resolution governor ──
+  // Holds 60fps by trading render resolution (it's mostly fog and glow, so
+  // a softer buffer is invisible; dropped frames are not).
+  let renderScale = 1.0;
+  const SCALE_MIN = 0.5, SCALE_MAX = 1.0;
   function effectiveDPR() {
-    const dpr = Math.min(window.devicePixelRatio || 1, DPR_CAP);
-    const px = window.innerWidth * window.innerHeight * dpr * dpr;
-    return px > PIXEL_BUDGET ? dpr * Math.sqrt(PIXEL_BUDGET / px) : dpr;
+    return Math.min(window.devicePixelRatio || 1, DPR_CAP) * renderScale;
+  }
+  function applyRenderScale() {
+    renderer.setPixelRatio(effectiveDPR());
+    renderer.setSize(window.innerWidth, window.innerHeight);
+  }
+  let perfAccum = 0, perfFrames = 0, perfWindow = 0;
+  let fpsAtFullScale = 0, floorStrikes = 0, governorOff = false;
+  function governFps(dt) {
+    if (governorOff) return;
+    // ignore stalls (tab switches, decode hitches) so one spike doesn't downscale
+    if (dt > 0.25) return;
+    perfAccum += dt; perfFrames++; perfWindow += dt;
+    if (perfWindow < 0.8) return;
+    const avgFps = perfFrames / perfAccum;
+    perfAccum = 0; perfFrames = 0; perfWindow = 0;
+    if (avgFps < 55 && renderScale > SCALE_MIN) {
+      if (renderScale === SCALE_MAX) fpsAtFullScale = avgFps;
+      renderScale = Math.max(SCALE_MIN, renderScale * 0.88);
+      applyRenderScale();
+    } else if (avgFps < 55 && renderScale <= SCALE_MIN) {
+      // bottomed out and STILL slow → we're not fill-rate bound (e.g. a
+      // compositor-throttled webview or vsync cap). Blurring buys nothing,
+      // so give the pixels back and stop governing.
+      if (++floorStrikes >= 3 && (!fpsAtFullScale || avgFps < fpsAtFullScale * 1.25)) {
+        renderScale = SCALE_MAX;
+        applyRenderScale();
+        governorOff = true;
+      }
+    } else if (avgFps > 58.5 && renderScale < SCALE_MAX) {
+      // climb back slowly so we don't oscillate
+      floorStrikes = 0;
+      renderScale = Math.min(SCALE_MAX, renderScale * 1.05);
+      applyRenderScale();
+    } else {
+      floorStrikes = 0;
+    }
   }
 
   renderer.setPixelRatio(effectiveDPR());
@@ -142,6 +179,55 @@
     }
   `;
 
+  /* ── CPU value-noise + fbm (used to BAKE static noise fields once at
+     startup, so big background layers don't run fbm per-pixel per-frame) ── */
+  function makeNoise2D(seed) {
+    function h(ix, iy) {
+      let n = Math.imul(ix, 374761393) + Math.imul(iy, 668265263) + Math.imul(seed | 0, 144269504);
+      n = Math.imul(n ^ (n >>> 13), 1274126177);
+      return ((n ^ (n >>> 16)) >>> 0) / 4294967295;
+    }
+    return function (x, y) {
+      const ix = Math.floor(x), iy = Math.floor(y);
+      const fx = x - ix, fy = y - iy;
+      const ux = fx * fx * (3 - 2 * fx), uy = fy * fy * (3 - 2 * fy);
+      return h(ix, iy) * (1 - ux) * (1 - uy) + h(ix + 1, iy) * ux * (1 - uy) +
+             h(ix, iy + 1) * (1 - ux) * uy + h(ix + 1, iy + 1) * ux * uy;
+    };
+  }
+  function fbm2(noise, x, y, oct) {
+    let v = 0, a = 0.5;
+    for (let i = 0; i < oct; i++) {
+      v += a * noise(x, y);
+      x = x * 2.07 + 11.3; y = y * 2.07 + 7.7;
+      a *= 0.5;
+    }
+    return v;
+  }
+  // Bakes two independent fbm fields into R/G of a texture.
+  function bakeFbmTexture(w, h, sx1, sy1, sx2, sy2, seed) {
+    const n1 = makeNoise2D(seed), n2 = makeNoise2D(seed + 71);
+    const data = new Uint8Array(w * h * 4);
+    for (let y = 0; y < h; y++) {
+      for (let x = 0; x < w; x++) {
+        const u = x / w, v = y / h;
+        const a = fbm2(n1, u * sx1 + 10, v * sy1 + 10, 4);
+        const b = fbm2(n2, u * sx2 + 20 + a, v * sy2 + 20, 4); // warped by first field
+        const i = (y * w + x) * 4;
+        data[i] = Math.round(a * 255);
+        data[i + 1] = Math.round(b * 255);
+        data[i + 3] = 255;
+      }
+    }
+    const tex = new THREE.DataTexture(data, w, h, THREE.RGBAFormat);
+    tex.magFilter = THREE.LinearFilter;
+    tex.minFilter = THREE.LinearFilter;
+    tex.wrapS = THREE.MirroredRepeatWrapping;
+    tex.wrapT = THREE.MirroredRepeatWrapping;
+    tex.needsUpdate = true;
+    return tex;
+  }
+
   /* ════════════════ AUDIO TEXTURES ════════════════
      Live time-domain waveform + frequency spectrum, uploaded every frame
      and fed to the aurora shell — light, not geometry. */
@@ -175,6 +261,7 @@
     new THREE.SphereGeometry(PLANET_R, 96, 64),
     new THREE.ShaderMaterial({
       uniforms: planetUniforms,
+      defines: { FBM_OCT: 3 },
       vertexShader: `
         varying vec3 vNormal;
         varying vec3 vPos;
@@ -419,6 +506,7 @@
     new THREE.SphereGeometry(PLANET_R * 1.5, 64, 64),
     new THREE.ShaderMaterial({
       uniforms: atmoUniforms,
+      defines: { FBM_OCT: 2 },
       side: THREE.BackSide,
       transparent: true,
       depthWrite: false,
@@ -606,9 +694,12 @@
   }));
   scene.add(stars);
 
-  /* ════════════════ GALAXY BAND (far depth layer) ════════════════ */
+  /* ════════════════ GALAXY BAND (far depth layer) ════════════════
+     Noise field baked once — per-pixel cost is now a single texture tap. */
+  const galaxyTex = bakeFbmTexture(256, 64, 9, 26, 9, 26, 37);
   const galaxyU = {
     uTime: { value: 0 },
+    uTex: { value: galaxyTex },
     uC1: { value: COL_PURPLE.clone().multiplyScalar(0.8) },
     uC2: { value: COL_BABY.clone().multiplyScalar(0.7) }
   };
@@ -628,14 +719,13 @@
       `,
       fragmentShader: `
         uniform float uTime;
+        uniform sampler2D uTex;
         uniform vec3 uC1;
         uniform vec3 uC2;
         varying vec2 vUv;
-        ${NOISE_GLSL}
         void main(){
           vec2 q = vUv - 0.5;
-          float t = uTime * 0.004;
-          float n = fbm(vec3(q.x * 9.0 + t, q.y * 26.0, 3.7));
+          float n = texture2D(uTex, vUv + vec2(uTime * 0.0004, 0.0)).r;
           float lane = exp(-q.y * q.y * 26.0);
           float wisps = smoothstep(0.3, 0.9, n) * lane;
           float edge = smoothstep(0.5, 0.2, abs(q.x));
@@ -656,15 +746,39 @@
     { x:   6, y:  30, z: -95, s: 120, c1: COL_PURPLE, c2: COL_GREEN, o: 0.14 },
     { x: -14, y: -30, z: -75, s: 85,  c1: COL_BLUE,   c2: COL_PURPLE, o: 0.17 }
   ];
+  // Each nebula's two fbm fields are baked once; the shader animates by
+  // slowly counter-scrolling two taps of the same texture (living clouds,
+  // ~16x cheaper per pixel than live fbm).
+  const NEB_FRAG = `
+    uniform float uTime;
+    uniform float uAudio;
+    uniform sampler2D uTex;
+    uniform vec3 uC1;
+    uniform vec3 uC2;
+    uniform float uOpacity;
+    varying vec2 vUv;
+    void main(){
+      vec2 q = vUv - 0.5;
+      float dist = length(q);
+      float t = uTime * 0.0012;
+      float n  = texture2D(uTex, vUv + vec2(t, -t * 0.6)).r;
+      float n2 = texture2D(uTex, vUv * 0.85 - vec2(t * 1.4, t * 0.5)).g;
+      float cloud = smoothstep(0.25, 0.85, n * 0.7 + n2 * 0.5);
+      float falloff = smoothstep(0.5, 0.08, dist);
+      vec3 col = mix(uC1, uC2, n2);
+      float a = cloud * falloff * uOpacity * (1.0 + uAudio * 0.5);
+      gl_FragColor = vec4(col, a);
+    }
+  `;
   const nebulae = [];
   NEB_DEFS.slice(0, MOBILE ? 3 : 4).forEach((d, i) => {
     const u = {
       uTime: { value: 0 },
       uAudio: { value: 0 },
+      uTex: { value: bakeFbmTexture(192, 192, 3, 3, 6.5, 6.5, 100 + i * 17) },
       uC1: { value: d.c1.clone() },
       uC2: { value: d.c2.clone() },
-      uOpacity: { value: d.o },
-      uSeed: { value: i * 13.7 + 3.1 }
+      uOpacity: { value: d.o }
     };
     const m = new THREE.Mesh(
       new THREE.PlaneGeometry(d.s, d.s),
@@ -680,28 +794,7 @@
             gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
           }
         `,
-        fragmentShader: `
-          uniform float uTime;
-          uniform float uAudio;
-          uniform vec3 uC1;
-          uniform vec3 uC2;
-          uniform float uOpacity;
-          uniform float uSeed;
-          varying vec2 vUv;
-          ${NOISE_GLSL}
-          void main(){
-            vec2 q = vUv - 0.5;
-            float dist = length(q);
-            float t = uTime * 0.018;
-            float n = fbm(vec3(q * 3.0 + uSeed, t));
-            float n2 = fbm(vec3(q * 6.5 - uSeed, -t * 1.4 + n));
-            float cloud = smoothstep(0.25, 0.85, n * 0.7 + n2 * 0.5);
-            float falloff = smoothstep(0.5, 0.08, dist);
-            vec3 col = mix(uC1, uC2, n2);
-            float a = cloud * falloff * uOpacity * (1.0 + uAudio * 0.5);
-            gl_FragColor = vec4(col, a);
-          }
-        `
+        fragmentShader: NEB_FRAG
       })
     );
     m.position.set(d.x, d.y, d.z);
@@ -771,13 +864,21 @@
       .multiplyScalar(2.6 + Math.random() * 2.2);
     const dur = 22 + Math.random() * 12;
 
+    // bright nucleus + softer coma halo
     const head = new THREE.Sprite(new THREE.SpriteMaterial({
-      map: glowTex, color: 0xd8f4ff, transparent: true, opacity: 0,
+      map: glowTex, color: 0xeaf8ff, transparent: true, opacity: 0,
       blending: THREE.AdditiveBlending, depthWrite: false
     }));
-    head.scale.setScalar(1.7);
+    head.scale.setScalar(1.1);
     scene.add(head);
+    const coma = new THREE.Sprite(new THREE.SpriteMaterial({
+      map: glowTex, color: 0x86c8ef, transparent: true, opacity: 0,
+      blending: THREE.AdditiveBlending, depthWrite: false
+    }));
+    coma.scale.setScalar(2.6);
+    scene.add(coma);
 
+    // straight blue ion tail (gas, pushed directly anti-sunward)
     const TAIL_N = 26;
     const tailGeo = new THREE.BufferGeometry();
     tailGeo.setAttribute('position', new THREE.BufferAttribute(new Float32Array(TAIL_N * 3), 3));
@@ -786,6 +887,49 @@
       blending: THREE.AdditiveBlending, depthWrite: false
     }));
     scene.add(tail);
+
+    // curved dust tail: shimmering particles strewn behind the nucleus
+    const DUST_N = 70;
+    const dustGeo = new THREE.BufferGeometry();
+    const dustPos = new Float32Array(DUST_N * 3);
+    const dustSz = new Float32Array(DUST_N);
+    const dustJit = [];
+    for (let i = 0; i < DUST_N; i++) {
+      dustSz[i] = 1.0 - (i / DUST_N) * 0.8;
+      dustJit.push({
+        x: (Math.random() - 0.5) * 0.5 * (1 + i * 0.05),
+        y: (Math.random() - 0.5) * 0.5 * (1 + i * 0.05),
+        p: Math.random() * Math.PI * 2
+      });
+    }
+    dustGeo.setAttribute('position', new THREE.BufferAttribute(dustPos, 3));
+    dustGeo.setAttribute('aSize', new THREE.BufferAttribute(dustSz, 1));
+    const dustU = { uOpacity: { value: 0 }, uScale: { value: window.innerHeight * 0.5 } };
+    const dust = new THREE.Points(dustGeo, new THREE.ShaderMaterial({
+      uniforms: dustU,
+      transparent: true, depthWrite: false, blending: THREE.AdditiveBlending,
+      vertexShader: `
+        attribute float aSize;
+        uniform float uScale;
+        varying float vA;
+        void main(){
+          vA = aSize;
+          vec4 mv = modelViewMatrix * vec4(position, 1.0);
+          gl_PointSize = aSize * 5.5 * (uScale / -mv.z);
+          gl_Position = projectionMatrix * mv;
+        }
+      `,
+      fragmentShader: `
+        uniform float uOpacity;
+        varying float vA;
+        void main(){
+          vec2 d = gl_PointCoord - 0.5;
+          float a = smoothstep(0.5, 0.0, length(d)) * vA * uOpacity;
+          gl_FragColor = vec4(0.85, 0.78, 0.62, a); // warm dust vs cold ion tail
+        }
+      `
+    }));
+    scene.add(dust);
 
     const hist = [];
     let t0 = 0;
@@ -797,39 +941,100 @@
         const p = from.clone().addScaledVector(vel, t0);
         p.y += Math.sin(t0 * 0.4) * 0.6; // gentle arc
         head.position.copy(p);
+        coma.position.copy(p);
         const fade = Math.sin(Math.min(1, k) * Math.PI);
-        head.material.opacity = fade * 0.9;
+        head.material.opacity = fade * 0.95;
+        coma.material.opacity = fade * 0.4;
+        coma.scale.setScalar(2.6 + Math.sin(t0 * 1.7) * 0.25); // breathing coma
+
         hist.unshift(p.clone());
         if (hist.length > TAIL_N) hist.pop();
+        const back = vel.clone().normalize();
         const a = tailGeo.attributes.position.array;
         for (let i = 0; i < TAIL_N; i++) {
           const hp = hist[Math.min(i, hist.length - 1)] || p;
-          // tail stretches opposite to travel + slight solar-wind lift
-          const back = vel.clone().normalize().multiplyScalar(-i * 0.34);
-          a[i * 3] = hp.x + back.x;
-          a[i * 3 + 1] = hp.y + back.y + i * 0.05;
+          a[i * 3] = hp.x - back.x * i * 0.34;
+          a[i * 3 + 1] = hp.y - back.y * i * 0.34 + i * 0.05;
           a[i * 3 + 2] = hp.z;
         }
         tailGeo.attributes.position.needsUpdate = true;
         tail.material.opacity = fade * 0.5;
+
+        // dust: trails the nucleus on a wider, lazier curve with twinkle-jitter
+        const dp = dustGeo.attributes.position.array;
+        for (let i = 0; i < DUST_N; i++) {
+          const j = dustJit[i];
+          const lag = i * 0.22;
+          dp[i * 3] = p.x - back.x * lag + j.x + Math.sin(t0 * 2.0 + j.p) * 0.06;
+          dp[i * 3 + 1] = p.y - back.y * lag + j.y + lag * 0.11 + Math.cos(t0 * 1.6 + j.p) * 0.06;
+          dp[i * 3 + 2] = p.z + Math.sin(j.p) * 0.4;
+        }
+        dustGeo.attributes.position.needsUpdate = true;
+        dustU.uOpacity.value = fade * 0.55;
         return true;
       },
       dispose() {
-        scene.remove(head); scene.remove(tail);
-        head.material.dispose(); tail.material.dispose(); tailGeo.dispose();
+        scene.remove(head); scene.remove(coma); scene.remove(tail); scene.remove(dust);
+        head.material.dispose(); coma.material.dispose();
+        tail.material.dispose(); tailGeo.dispose();
+        dust.material.dispose(); dustGeo.dispose();
       }
     };
   }
 
-  /* — Rogue moon: small pale sphere drifting behind the planet — */
+  /* — Rogue moon: cratered, regolith-textured body drifting behind the planet.
+       Small on screen, so per-pixel fbm here is essentially free. — */
   function spawnMoon() {
     const dirLeft = Math.random() < 0.5;
     const r = 0.22 + Math.random() * 0.22;
+    const tintH = 0.7 + Math.random() * 0.12;
+    const baseCol = new THREE.Color().setHSL(tintH, 0.10, 0.5);
+    const moonU = {
+      uSeed: { value: Math.random() * 40 },
+      uCol: { value: baseCol }
+    };
     const moon = new THREE.Mesh(
-      new THREE.SphereGeometry(r, 32, 32),
-      new THREE.MeshStandardMaterial({
-        color: new THREE.Color().setHSL(0.7 + Math.random() * 0.12, 0.12, 0.52),
-        roughness: 0.95, metalness: 0.05
+      new THREE.SphereGeometry(r, 48, 32),
+      new THREE.ShaderMaterial({
+        uniforms: moonU,
+        vertexShader: `
+          varying vec3 vN;
+          varying vec3 vP;
+          void main(){
+            vN = normalize(normalMatrix * normal);
+            vP = position;
+            gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+          }
+        `,
+        fragmentShader: `
+          uniform float uSeed;
+          uniform vec3 uCol;
+          varying vec3 vN;
+          varying vec3 vP;
+          ${NOISE_GLSL}
+          void main(){
+            vec3 n = normalize(vP);
+            // regolith: fine grain + broad albedo patches (maria)
+            float grain = fbm(n * 26.0 + uSeed);
+            float maria = fbm(n * 2.3 + uSeed * 0.7);
+            // craters: thresholded mid-frequency noise -> rims + dark floors
+            float c = noise3(n * 9.0 + uSeed);
+            float crater = smoothstep(0.68, 0.78, c);
+            float rim = smoothstep(0.60, 0.68, c) - crater;
+            vec3 col = uCol * (0.62 + grain * 0.5);
+            col *= 1.0 - smoothstep(0.45, 0.75, maria) * 0.38;  // dark maria
+            col *= 1.0 - crater * 0.45;                          // crater floors
+            col += vec3(1.0) * rim * 0.22;                       // bright rims
+            // lighting: same key as the planet + soft terminator
+            vec3 L = normalize(vec3(-0.55, 0.5, 0.7));
+            float diff = clamp(dot(normalize(vN), L), 0.0, 1.0);
+            col *= 0.16 + smoothstep(0.0, 0.55, diff) * 1.05;
+            // faint cold rim against the void
+            float fr = pow(1.0 - clamp(dot(normalize(vN), vec3(0.0, 0.0, 1.0)), 0.0, 1.0), 3.0);
+            col += vec3(0.45, 0.5, 0.65) * fr * 0.12;
+            gl_FragColor = vec4(col, 1.0);
+          }
+        `
       })
     );
     const y = -1.2 + Math.random() * 2.6;
@@ -855,18 +1060,60 @@
     };
   }
 
-  /* — Asteroid: dark jagged rock tumbling slowly past, mid-depth — */
+  /* — Asteroid: lumpy coherent-noise rock with rocky surface detail
+       and faint ore veins glinting in the song's accent color — */
   function spawnAsteroid() {
-    const geo = new THREE.IcosahedronGeometry(0.28 + Math.random() * 0.3, 1);
+    const geo = new THREE.IcosahedronGeometry(0.28 + Math.random() * 0.3, 3);
     const pa = geo.attributes.position;
+    // coherent displacement (smooth lumps + sharp ridges), not per-vertex jitter
+    const nse = makeNoise2D((Math.random() * 1e6) | 0);
+    const v = new THREE.Vector3();
     for (let i = 0; i < pa.count; i++) {
-      const v = new THREE.Vector3().fromBufferAttribute(pa, i);
-      v.multiplyScalar(0.78 + Math.random() * 0.45);
+      v.fromBufferAttribute(pa, i);
+      const d = v.clone().normalize();
+      const lump = fbm2(nse, d.x * 1.8 + d.z * 0.7 + 5, d.y * 1.8 - d.z * 0.6 + 5, 4) - 0.5;
+      const ridge = Math.abs(fbm2(nse, d.x * 4.5 + 30, d.y * 4.5 + d.z * 2.0 + 30, 3) - 0.5);
+      v.multiplyScalar(1.0 + lump * 0.55 - ridge * 0.35);
       pa.setXYZ(i, v.x, v.y, v.z);
     }
     geo.computeVertexNormals();
-    const rock = new THREE.Mesh(geo, new THREE.MeshStandardMaterial({
-      color: 0x2c2438, roughness: 1, metalness: 0.12, flatShading: true
+    const rockU = {
+      uSeed: { value: Math.random() * 40 },
+      uVein: { value: palC }
+    };
+    const rock = new THREE.Mesh(geo, new THREE.ShaderMaterial({
+      uniforms: rockU,
+      vertexShader: `
+        varying vec3 vN;
+        varying vec3 vP;
+        void main(){
+          vN = normalize(normalMatrix * normal);
+          vP = position;
+          gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+        }
+      `,
+      fragmentShader: `
+        uniform float uSeed;
+        uniform vec3 uVein;
+        varying vec3 vN;
+        varying vec3 vP;
+        ${NOISE_GLSL}
+        void main(){
+          vec3 n = normalize(vP);
+          // layered rock: base grit + darker fracture bands
+          float grit = fbm(vP * 22.0 + uSeed);
+          float bands = fbm(vP * 5.0 - uSeed);
+          vec3 col = vec3(0.16, 0.13, 0.21) * (0.7 + grit * 0.6);
+          col *= 1.0 - smoothstep(0.55, 0.8, bands) * 0.4;
+          // thin mineral veins catching the song's accent
+          float vein = smoothstep(0.495, 0.5, abs(fract(fbm(vP * 8.0 + uSeed * 2.0) * 3.0) - 0.5));
+          col += uVein * vein * 0.30;
+          vec3 L = normalize(vec3(-0.55, 0.5, 0.7));
+          float diff = clamp(dot(normalize(vN), L), 0.0, 1.0);
+          col *= 0.18 + diff * 1.1;
+          gl_FragColor = vec4(col, 1.0);
+        }
+      `
     }));
     const dirLeft = Math.random() < 0.5;
     rock.position.set(dirLeft ? 16 : -16, -4 + Math.random() * 9, -(9 + Math.random() * 9));
@@ -892,64 +1139,129 @@
     };
   }
 
-  /* — Supernova: a distant star blooms violently, then dies back down — */
+  /* — Supernova: white-hot core, colored ejecta halo, and an expanding
+       shockwave ring that outruns the light — */
   function spawnSupernova() {
-    const sprite = new THREE.Sprite(new THREE.SpriteMaterial({
+    const pos = new THREE.Vector3((Math.random() - 0.5) * 90, (Math.random() - 0.3) * 50, -(60 + Math.random() * 60));
+    const core = new THREE.Sprite(new THREE.SpriteMaterial({
+      map: glowTex, color: 0xffffff, transparent: true, opacity: 0,
+      blending: THREE.AdditiveBlending, depthWrite: false
+    }));
+    core.position.copy(pos);
+    scene.add(core);
+    const halo = new THREE.Sprite(new THREE.SpriteMaterial({
       map: glowTex,
-      color: new THREE.Color().copy(palC).lerp(new THREE.Color('#ffffff'), 0.6),
+      color: new THREE.Color().copy(palC).lerp(new THREE.Color('#ffffff'), 0.25),
       transparent: true, opacity: 0,
       blending: THREE.AdditiveBlending, depthWrite: false
     }));
-    sprite.position.set((Math.random() - 0.5) * 90, (Math.random() - 0.3) * 50, -(60 + Math.random() * 60));
-    scene.add(sprite);
-    const dur = 7;
+    halo.position.copy(pos);
+    scene.add(halo);
+    const ring = new THREE.Mesh(
+      new THREE.RingGeometry(0.93, 1.0, 64),
+      new THREE.MeshBasicMaterial({
+        color: new THREE.Color().copy(palB).lerp(new THREE.Color('#ffffff'), 0.4),
+        transparent: true, opacity: 0, side: THREE.DoubleSide,
+        blending: THREE.AdditiveBlending, depthWrite: false
+      })
+    );
+    ring.position.copy(pos);
+    scene.add(ring);
+    const dur = 8;
     let t0 = 0;
     return {
       update(dt) {
         t0 += dt;
         if (t0 >= dur) return false;
-        // fast violent attack, long elegant decay
         const k = t0 / dur;
-        const env = k < 0.08 ? (k / 0.08) : Math.pow(1 - (k - 0.08) / 0.92, 1.8);
-        sprite.material.opacity = env * 0.95;
-        sprite.scale.setScalar(2 + env * 9 + k * 3);
+        // fast violent attack, long elegant decay
+        const env = k < 0.07 ? (k / 0.07) : Math.pow(1 - (k - 0.07) / 0.93, 1.8);
+        core.material.opacity = env * 0.95;
+        core.scale.setScalar(2 + env * 8 + k * 2);
+        // halo expands slower and lingers (the ejecta cloud)
+        const envH = k < 0.12 ? (k / 0.12) : Math.pow(1 - (k - 0.12) / 0.88, 1.2);
+        halo.material.opacity = envH * 0.5;
+        halo.scale.setScalar(3 + k * 16);
+        // shockwave ring races outward and thins away
+        ring.scale.setScalar(0.5 + k * 26);
+        ring.material.opacity = Math.max(0, env - k * 0.5) * 0.5;
+        ring.lookAt(camera.position);
         return true;
       },
       dispose() {
-        scene.remove(sprite);
-        sprite.material.dispose();
+        scene.remove(core); scene.remove(halo); scene.remove(ring);
+        core.material.dispose(); halo.material.dispose();
+        ring.material.dispose(); ring.geometry.dispose();
       }
     };
   }
 
-  /* — Satellite: tiny blinking light gliding across the upper sky — */
+  /* — Satellite: tiny craft (bus + solar wings) catching sun glints,
+       with its blinking beacon, gliding across the upper sky — */
   function spawnSatellite() {
-    const sprite = new THREE.Sprite(new THREE.SpriteMaterial({
+    const craft = new THREE.Group();
+    const busMat = new THREE.MeshStandardMaterial({
+      color: 0x8a8fa8, roughness: 0.35, metalness: 0.9
+    });
+    const panelMat = new THREE.MeshStandardMaterial({
+      color: 0x16245e, roughness: 0.25, metalness: 0.7,
+      emissive: 0x0a1340, emissiveIntensity: 0.6
+    });
+    const bus = new THREE.Mesh(new THREE.BoxGeometry(0.10, 0.10, 0.16), busMat);
+    craft.add(bus);
+    const panelGeo = new THREE.BoxGeometry(0.34, 0.005, 0.12);
+    const pL = new THREE.Mesh(panelGeo, panelMat); pL.position.x = -0.24; craft.add(pL);
+    const pR = new THREE.Mesh(panelGeo, panelMat); pR.position.x =  0.24; craft.add(pR);
+    const dish = new THREE.Mesh(
+      new THREE.ConeGeometry(0.045, 0.05, 10, 1, true), busMat
+    );
+    dish.position.set(0, 0.07, 0); dish.rotation.x = Math.PI;
+    craft.add(dish);
+
+    const beacon = new THREE.Sprite(new THREE.SpriteMaterial({
+      map: glowTex, color: 0xff5560, transparent: true, opacity: 0,
+      blending: THREE.AdditiveBlending, depthWrite: false
+    }));
+    beacon.scale.setScalar(0.35);
+    craft.add(beacon);
+    const glint = new THREE.Sprite(new THREE.SpriteMaterial({
       map: glowTex, color: 0xffffff, transparent: true, opacity: 0,
       blending: THREE.AdditiveBlending, depthWrite: false
     }));
+    glint.scale.setScalar(0.5);
+    craft.add(glint);
+
     const dirLeft = Math.random() < 0.5;
     const y = 6 + Math.random() * 12;
-    sprite.position.set(dirLeft ? 30 : -30, y, -(20 + Math.random() * 14));
-    sprite.scale.setScalar(0.5);
-    scene.add(sprite);
+    craft.position.set(dirLeft ? 30 : -30, y, -(20 + Math.random() * 14));
+    craft.rotation.z = (Math.random() - 0.5) * 0.5;
+    scene.add(craft);
     const speed = (dirLeft ? -1 : 1) * (1.1 + Math.random() * 0.7);
+    const tumble = 0.10 + Math.random() * 0.18;
     const dur = 60 / Math.abs(speed) * 0.55;
     let t0 = 0;
     return {
       update(dt, t) {
         t0 += dt;
         if (t0 >= dur) return false;
-        sprite.position.x += speed * dt;
-        sprite.position.y += Math.sin(t0 * 0.18) * 0.004;
+        craft.position.x += speed * dt;
+        craft.position.y += Math.sin(t0 * 0.18) * 0.004;
+        craft.rotation.y += tumble * dt;
+        craft.rotation.x += tumble * 0.4 * dt;
         const fade = Math.sin(Math.min(1, t0 / dur) * Math.PI);
-        const blink = 0.35 + 0.65 * Math.pow(0.5 + 0.5 * Math.sin(t * 2.4), 6.0);
-        sprite.material.opacity = fade * blink * 0.85;
+        // red nav beacon: short sharp blips
+        const blink = Math.pow(0.5 + 0.5 * Math.sin(t * 2.4), 8.0);
+        beacon.material.opacity = fade * blink * 0.9;
+        // solar panel glint: rare bright flash as the panels sweep the key light
+        const sweep = Math.sin(craft.rotation.y * 2.0 + 0.7);
+        glint.material.opacity = fade * Math.pow(Math.max(0, sweep), 24.0) * 0.95;
         return true;
       },
       dispose() {
-        scene.remove(sprite);
-        sprite.material.dispose();
+        scene.remove(craft);
+        bus.geometry.dispose(); panelGeo.dispose(); dish.geometry.dispose();
+        busMat.dispose(); panelMat.dispose();
+        beacon.material.dispose(); glint.material.dispose();
       }
     };
   }
@@ -1120,9 +1432,11 @@
 
   function frame() {
     rafId = requestAnimationFrame(frame);
-    const dt = Math.min(clock.getDelta(), 0.05);
+    const rawDt = clock.getDelta();
+    const dt = Math.min(rawDt, 0.05);
     const t = clock.elapsedTime;
 
+    governFps(rawDt);
     sampleAudio();
     watchTrack(dt);
 

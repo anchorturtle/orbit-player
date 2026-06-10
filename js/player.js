@@ -768,9 +768,11 @@ function drawWaveform(playedFrac = 0) {
     }
     preview.textContent = txt;
     const r = rail.getBoundingClientRect();
-    const x = e.clientX - r.left;
-    preview.style.left = x + 'px';
     preview.style.display = 'block';
+    // clamp so the tooltip (centered via translateX(-50%)) never clips at the rail ends
+    const half = (preview.offsetWidth || 36) / 2;
+    const x = Math.max(half, Math.min(r.width - half, e.clientX - r.left));
+    preview.style.left = x + 'px';
   }
 
   function hidePreview() {
