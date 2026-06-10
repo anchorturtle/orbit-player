@@ -39,9 +39,17 @@
   document.documentElement.classList.add('space3d-on');
 
   const MOBILE = (typeof isMob === 'function') ? isMob() : (window.innerWidth < 768);
-  const DPR_CAP = MOBILE ? 1.5 : 1.75;
+  const DPR_CAP = MOBILE ? 1.35 : 1.5;
+  // Fill-rate budget: the fog shaders are heavy, so cap total rendered
+  // pixels. Big windows render slightly soft (it's fog) but stay smooth.
+  const PIXEL_BUDGET = MOBILE ? 1.0e6 : 1.35e6;
+  function effectiveDPR() {
+    const dpr = Math.min(window.devicePixelRatio || 1, DPR_CAP);
+    const px = window.innerWidth * window.innerHeight * dpr * dpr;
+    return px > PIXEL_BUDGET ? dpr * Math.sqrt(PIXEL_BUDGET / px) : dpr;
+  }
 
-  renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, DPR_CAP));
+  renderer.setPixelRatio(effectiveDPR());
   renderer.setSize(window.innerWidth, window.innerHeight);
   renderer.outputEncoding = THREE.sRGBEncoding;
 
@@ -72,7 +80,11 @@
     ['#0B3B4C', '#0E7C7B', '#06D6A0'], // abyssal teal
     ['#3B0E45', '#A2196E', '#FF6FB7'], // dark magenta dream
     ['#241054', '#5B1FA8', '#19B8E3'], // midnight iris
-    ['#54123B', '#933B8B', '#E84FBF']  // plum haze
+    ['#54123B', '#933B8B', '#E84FBF'], // plum haze
+    ['#4C0E22', '#A8324A', '#FF7A6E'], // ember rose
+    ['#06343C', '#0F8A6E', '#7FFFC9'], // abyss jade
+    ['#33104F', '#C23B8A', '#5BD0FF'], // orchid voltage
+    ['#1B0B3A', '#6E2FB8', '#FF9ECF']  // blood orchid dusk
   ];
 
   function hashStr(s) {
@@ -116,9 +128,12 @@
                  mix(mix(hash13(i+vec3(0,0,1)), hash13(i+vec3(1,0,1)), f.x),
                      mix(hash13(i+vec3(0,1,1)), hash13(i+vec3(1,1,1)), f.x), f.y), f.z);
     }
+    #ifndef FBM_OCT
+    #define FBM_OCT 4
+    #endif
     float fbm(vec3 p){
       float v = 0.0, a = 0.5;
-      for (int i = 0; i < 4; i++){
+      for (int i = 0; i < FBM_OCT; i++){
         v += a * noise3(p);
         p = p * 2.07 + vec3(11.3, 7.7, 5.1);
         a *= 0.5;
@@ -217,25 +232,18 @@
   planet.rotation.z = 0.18;
   scene.add(planet);
 
-  /* ════════════════ AURORA VISUALIZER SHELL ════════════════
-     The audio visualizer: a misty, luminous aurora wrapping the planet.
-     Frequency data drives flowing light curtains; the live waveform
-     phase-shifts and shimmers them; fbm noise turns it all into
-     drifting cosmic fog. Light only — the planet never deforms. */
-  const auroraUniforms = {
-    uTime:    { value: 0 },
-    uAudio:   { value: 0 },
-    uBass:    { value: 0 },
-    uWaveTex: { value: waveTex },
-    uFreqTex: { value: freqTex },
-    uColA:    { value: palA },
-    uColB:    { value: palB },
-    uColC:    { value: palC }
-  };
+  /* ════════════════ AURORA VISUALIZER SHELLS ════════════════
+     The audio visualizer: misty, luminous aurora wrapping the planet.
+     The shells themselves VIBRATE IN 3D — audio + rolling noise displace
+     the fog volumetrically, so the light has real lumpy depth instead of
+     a smooth bubble. Two counter-drifting layers give parallax.
+     The planet itself never deforms. */
   const AURORA_FRAG = `
     uniform float uTime;
     uniform float uAudio;
     uniform float uBass;
+    uniform float uSeed;
+    uniform float uGain;
     uniform sampler2D uWaveTex;
     uniform sampler2D uFreqTex;
     uniform vec3 uColA;
@@ -244,6 +252,7 @@
     varying vec3 vNormal;
     varying vec3 vPos;
     varying vec3 vView;
+    varying float vDisp;
     ${NOISE_GLSL}
     void main(){
       vec3 n = normalize(vPos);
@@ -297,42 +306,105 @@
       // analog shimmer — faint scan-flicker riding the high end
       energy *= 0.88 + 0.12 * sin(uTime * 1.7 + lon * 60.0 + wave * 8.0 + warp2 * 4.0);
 
-      float a = energy * (0.16 + fres * 1.05) * (0.45 + uAudio * 1.25 + uBass * 0.35);
+      // 3D depth: outward-vibrating lumps glow hotter, valleys fall dark
+      energy *= 0.55 + smoothstep(-0.06, 0.16, vDisp) * 1.5;
 
-      // ── luminous color: deep palette, never neon-flat ──
-      vec3 col = mix(uColB, uColC, curtain);
-      col = mix(col, uColA, mist * 0.55);
+      float a = energy * (0.16 + fres * 1.05) * (0.45 + uAudio * 1.25 + uBass * 0.35) * uGain;
+
+      // ── luminous color: deep palette with iridescent play, never neon-flat ──
+      // each band carries its own color family
+      vec3 col = mix(uColA, uColB, curtain);             // bass curtains: surface ↔ swirl
+      col = mix(col, mix(uColB, uColC, 0.6), curtain2);  // mid ribbons drift toward energy
+      col = mix(col, uColA, mist * 0.45);
       col += uColC * fHigh * 0.55 * curtain;
-      col += uColA * polar * 0.4;
+      col += mix(uColC, uColA, 0.5) * polar * 0.4;
+
+      // spectral iridescence — hue shimmer flowing through the fog,
+      // scaled by the palette so it stays deep and dark, not rainbow-hippy
+      vec3 iri = 0.5 + 0.5 * cos(6.2831 * (mist * 0.7 + curtain * 0.35 + lat * 0.25 + uTime * 0.016 + uSeed + vec3(0.0, 0.33, 0.67)));
+      col = mix(col, col * (0.55 + iri * 1.1), 0.4);
 
       gl_FragColor = vec4(col * 1.5, clamp(a, 0.0, 0.85));
     }
   `;
   const AURORA_VERT = `
+    uniform float uTime;
+    uniform float uAudio;
+    uniform float uBass;
+    uniform float uSeed;
+    uniform float uPuff;
+    uniform sampler2D uWaveTex;
+    uniform sampler2D uFreqTex;
     varying vec3 vNormal;
     varying vec3 vPos;
     varying vec3 vView;
+    varying float vDisp;
+    ${NOISE_GLSL}
     void main(){
+      vec3 n = normalize(position);
+      float lon = atan(n.z, n.x) / 6.2831853 + 0.5;
+
+      // live audio at this longitude
+      float wave = texture2D(uWaveTex, vec2(lon, 0.5)).r - 0.502;
+      float fc = abs(fract(lon) * 2.0 - 1.0);
+      float f = texture2D(uFreqTex, vec2(fc * 0.5, 0.5)).r;
+
+      // ── 3D VIBRATION ──
+      // slow rolling volumetric lumps + spectrum punching the fog outward
+      // + the raw waveform rippling the equator + bass breathing the whole shell
+      float t = uTime * 0.07 + uSeed;
+      float lump = fbm(n * 2.6 + vec3(t, -t * 0.6, t * 0.45)) - 0.5;
+      float disp =
+          lump * (0.10 + uAudio * 0.18) +
+          f * 0.17 * (0.35 + abs(lump) * 1.8) +
+          wave * 0.12 * exp(-n.y * n.y * 3.0) +
+          uBass * 0.05;
+      disp *= uPuff;
+      vDisp = disp;
+
+      vec3 p = position + normal * disp;
       vNormal = normalize(normalMatrix * normal);
       vPos = position;
-      vec4 mv = modelViewMatrix * vec4(position, 1.0);
+      vec4 mv = modelViewMatrix * vec4(p, 1.0);
       vView = -mv.xyz;
       gl_Position = projectionMatrix * mv;
     }
   `;
-  // Inner shell: fog hugging the surface, drawn over the planet's limb
-  const aurora = new THREE.Mesh(
-    new THREE.SphereGeometry(PLANET_R * 1.10, 96, 64),
-    new THREE.ShaderMaterial({
-      uniforms: auroraUniforms,
-      transparent: true,
-      depthWrite: false,
-      blending: THREE.AdditiveBlending,
-      vertexShader: AURORA_VERT,
-      fragmentShader: AURORA_FRAG
-    })
-  );
-  scene.add(aurora);
+  // Two counter-drifting shells: a dense inner fog and a wilder, fainter
+  // outer veil — the offset lumps between them read as true 3D depth.
+  function makeAuroraShell(radiusMul, seed, puff, gain, octaves) {
+    const u = {
+      uTime:    { value: 0 },
+      uAudio:   { value: 0 },
+      uBass:    { value: 0 },
+      uSeed:    { value: seed },
+      uPuff:    { value: puff },
+      uGain:    { value: gain },
+      uWaveTex: { value: waveTex },
+      uFreqTex: { value: freqTex },
+      uColA:    { value: palA },
+      uColB:    { value: palB },
+      uColC:    { value: palC }
+    };
+    const mesh = new THREE.Mesh(
+      new THREE.SphereGeometry(PLANET_R * radiusMul, 80, 56),
+      new THREE.ShaderMaterial({
+        uniforms: u,
+        defines: { FBM_OCT: octaves },
+        transparent: true,
+        depthWrite: false,
+        blending: THREE.AdditiveBlending,
+        vertexShader: AURORA_VERT,
+        fragmentShader: AURORA_FRAG
+      })
+    );
+    scene.add(mesh);
+    return { mesh, u };
+  }
+  const auroraShells = [
+    makeAuroraShell(1.07, 0.0, 0.72, 1.0, 3),  // dense inner fog (planet stays the anchor)
+    makeAuroraShell(1.21, 7.3, 1.45, 0.5, 2)   // wild outer veil, cheap noise (it's faint)
+  ];
 
   /* Outer halo — soft glow with frequency-driven aurora rays bleeding outward */
   const atmoUniforms = {
@@ -344,7 +416,7 @@
     uColB: { value: palB }
   };
   const atmosphere = new THREE.Mesh(
-    new THREE.SphereGeometry(PLANET_R * 1.38, 64, 64),
+    new THREE.SphereGeometry(PLANET_R * 1.5, 64, 64),
     new THREE.ShaderMaterial({
       uniforms: atmoUniforms,
       side: THREE.BackSide,
@@ -369,15 +441,18 @@
         uniform vec3 uColB;
         varying vec3 vNormal;
         varying vec3 vPos;
+        ${NOISE_GLSL}
         void main(){
           vec3 n = normalize(vPos);
           float lon = atan(n.z, n.x) / 6.2831853 + 0.5;
           float fc = abs(fract(lon + uTime * 0.006) * 2.0 - 1.0);
           float f = texture2D(uFreqTex, vec2(fc * 0.6, 0.5)).r;
-          float glow = pow(0.66 - dot(vNormal, vec3(0.0, 0.0, -1.0)), 3.4);
-          float rays = 0.75 + 0.5 * f + 0.18 * sin(lon * 40.0 + uTime * 0.7);
+          // far softer falloff + noise breakup so it reads as haze, not a shield
+          float glow = pow(0.62 - dot(vNormal, vec3(0.0, 0.0, -1.0)), 4.6);
+          float haze = 0.55 + 0.45 * fbm(n * 3.0 + vec3(uTime * 0.03, -uTime * 0.02, 0.0));
+          float rays = 0.85 + 0.3 * f + 0.08 * sin(lon * 40.0 + uTime * 0.7);
           vec3 col = mix(uColA, uColB, 0.5 + 0.5 * sin(uTime * 0.12));
-          gl_FragColor = vec4(col, glow * rays * (0.42 + uBass * 0.55 + uAudio * 0.3));
+          gl_FragColor = vec4(col, glow * haze * rays * (0.18 + uBass * 0.3 + uAudio * 0.18));
         }
       `
     })
@@ -1028,6 +1103,7 @@
 
   function resize() {
     const w = window.innerWidth, h = window.innerHeight;
+    renderer.setPixelRatio(effectiveDPR());
     renderer.setSize(w, h);
     camera.aspect = w / h;
     fitCamera();
@@ -1059,9 +1135,11 @@
     planetUniforms.uTime.value = t;
     planetUniforms.uAudio.value = levelSm;
     planetUniforms.uBass.value = bassSm;
-    auroraUniforms.uTime.value = t;
-    auroraUniforms.uAudio.value = levelSm;
-    auroraUniforms.uBass.value = bassSm;
+    auroraShells.forEach(s => {
+      s.u.uTime.value = t;
+      s.u.uAudio.value = levelSm;
+      s.u.uBass.value = bassSm;
+    });
     atmoUniforms.uTime.value = t;
     atmoUniforms.uBass.value = bassSm;
     atmoUniforms.uAudio.value = levelSm;
@@ -1084,8 +1162,11 @@
     // motion
     planet.rotation.y += dt * (0.045 + bassSm * 0.08);
     planet.rotation.x = Math.sin(t * 0.02) * 0.04; // slow axis precession
-    aurora.rotation.y -= dt * 0.016;               // fog drifts against the spin
-    aurora.rotation.z = Math.sin(t * 0.013) * 0.06;
+    // fog layers counter-drift for parallax depth
+    auroraShells[0].mesh.rotation.y -= dt * 0.016;
+    auroraShells[0].mesh.rotation.z = Math.sin(t * 0.013) * 0.06;
+    auroraShells[1].mesh.rotation.y += dt * 0.010;
+    auroraShells[1].mesh.rotation.x = Math.sin(t * 0.009 + 2.0) * 0.05;
     ringPoints.rotation.y += dt * (0.05 + levelSm * 0.1);
     stars.rotation.y += dt * 0.0032;
     stars.rotation.z += dt * 0.001;
