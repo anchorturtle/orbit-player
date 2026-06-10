@@ -127,9 +127,9 @@
     }
   `;
 
-  /* ════════════════ AUDIO WAVEFORM TEXTURE ════════════════
-     The live time-domain waveform, uploaded every frame and wrapped
-     around the planet's equator as physical vertex displacement. */
+  /* ════════════════ AUDIO TEXTURES ════════════════
+     Live time-domain waveform + frequency spectrum, uploaded every frame
+     and fed to the aurora shell — light, not geometry. */
   const WAVE_W = 128;
   const waveArr = new Uint8Array(WAVE_W * 4);
   for (let i = 0; i < WAVE_W; i++) waveArr[i * 4] = 128; // silence = center
@@ -138,48 +138,36 @@
   waveTex.minFilter = THREE.LinearFilter;
   waveTex.needsUpdate = true;
 
-  /* ════════════════ PLANET (audio-reactive visualizer) ════════════════ */
+  const FREQ_W = 64;
+  const freqArr = new Uint8Array(FREQ_W * 4);
+  const freqTex = new THREE.DataTexture(freqArr, FREQ_W, 1, THREE.RGBAFormat);
+  freqTex.magFilter = THREE.LinearFilter;
+  freqTex.minFilter = THREE.LinearFilter;
+  freqTex.needsUpdate = true;
+
+  /* ════════════════ PLANET (calm solid body — the aurora does the dancing) ════════════════ */
   const PLANET_R = 1.25;
   const planetUniforms = {
     uTime:    { value: 0 },
     uAudio:   { value: 0 },
     uBass:    { value: 0 },
-    uWaveTex: { value: waveTex },
-    uWaveAmp: { value: 0 },
     uColA:    { value: palA },
     uColB:    { value: palB },
     uColC:    { value: palC }
   };
 
   const planet = new THREE.Mesh(
-    new THREE.SphereGeometry(PLANET_R, 144, 96),
+    new THREE.SphereGeometry(PLANET_R, 96, 64),
     new THREE.ShaderMaterial({
       uniforms: planetUniforms,
       vertexShader: `
-        uniform float uBass;
-        uniform float uWaveAmp;
-        uniform sampler2D uWaveTex;
         varying vec3 vNormal;
         varying vec3 vPos;
         varying vec3 vView;
-        varying float vWave;
         void main(){
           vNormal = normalize(normalMatrix * normal);
           vPos = position;
-
-          // ── THE VISUALIZER ──
-          // longitude maps the live waveform around the sphere,
-          // strongest at the equator, fading toward the poles.
-          vec3 n = normalize(position);
-          float lon = atan(n.z, n.x) / 6.2831853 + 0.5;
-          float lat = n.y;
-          float wave = texture2D(uWaveTex, vec2(lon, 0.5)).r - 0.502;
-          float band = exp(-lat * lat * 3.5);
-          float disp = wave * uWaveAmp * band;
-          vWave = abs(wave) * band;
-
-          vec3 p = position * (1.0 + uBass * 0.02) + normal * disp;
-          vec4 mv = modelViewMatrix * vec4(p, 1.0);
+          vec4 mv = modelViewMatrix * vec4(position, 1.0);
           vView = -mv.xyz;
           gl_Position = projectionMatrix * mv;
         }
@@ -194,7 +182,6 @@
         varying vec3 vNormal;
         varying vec3 vPos;
         varying vec3 vView;
-        varying float vWave;
         ${NOISE_GLSL}
         void main(){
           vec3 n = normalize(vPos);
@@ -213,10 +200,6 @@
           col += uColC * smoothstep(0.68, 0.95, storms) * (0.30 + uAudio * 0.85);
           col += uColA * smoothstep(0.75, 1.0, swirl) * 0.4;
 
-          // the waveform itself glows where it deforms the surface
-          col += uColC * vWave * 2.6;
-          col += uColB * vWave * 1.2;
-
           // simple key light from upper-left + soft terminator
           vec3 L = normalize(vec3(-0.55, 0.5, 0.7));
           float diff = clamp(dot(normalize(vNormal), L), 0.0, 1.0);
@@ -234,15 +217,134 @@
   planet.rotation.z = 0.18;
   scene.add(planet);
 
-  /* Atmosphere glow shell */
+  /* ════════════════ AURORA VISUALIZER SHELL ════════════════
+     The audio visualizer: a misty, luminous aurora wrapping the planet.
+     Frequency data drives flowing light curtains; the live waveform
+     phase-shifts and shimmers them; fbm noise turns it all into
+     drifting cosmic fog. Light only — the planet never deforms. */
+  const auroraUniforms = {
+    uTime:    { value: 0 },
+    uAudio:   { value: 0 },
+    uBass:    { value: 0 },
+    uWaveTex: { value: waveTex },
+    uFreqTex: { value: freqTex },
+    uColA:    { value: palA },
+    uColB:    { value: palB },
+    uColC:    { value: palC }
+  };
+  const AURORA_FRAG = `
+    uniform float uTime;
+    uniform float uAudio;
+    uniform float uBass;
+    uniform sampler2D uWaveTex;
+    uniform sampler2D uFreqTex;
+    uniform vec3 uColA;
+    uniform vec3 uColB;
+    uniform vec3 uColC;
+    varying vec3 vNormal;
+    varying vec3 vPos;
+    varying vec3 vView;
+    ${NOISE_GLSL}
+    void main(){
+      vec3 n = normalize(vPos);
+      float lon = atan(n.z, n.x) / 6.2831853 + 0.5;
+      float lat = n.y;
+
+      // ── live audio samples ──
+      // waveform around the sphere (seam feathered in the data)
+      float wave  = texture2D(uWaveTex, vec2(lon, 0.5)).r - 0.502;
+      // spectrum: mirrored coordinate so the wrap point never cracks
+      float fc1 = abs(fract(lon + uTime * 0.008) * 2.0 - 1.0);
+      float fc2 = abs(fract(lon * 2.0 - uTime * 0.005) * 2.0 - 1.0);
+      float fLow  = texture2D(uFreqTex, vec2(fc1 * 0.4, 0.5)).r;        // bass region
+      float fMid  = texture2D(uFreqTex, vec2(0.2 + fc2 * 0.5, 0.5)).r;  // mids
+      float fHigh = texture2D(uFreqTex, vec2(0.65 + fc1 * 0.3, 0.5)).r; // air
+
+      // ── domain-warped flow (the "wind" the light rides on) ──
+      float t = uTime * 0.05;
+      float warp  = fbm(n * 2.3 + vec3(t, -t * 0.7, t * 0.4));
+      float warp2 = fbm(n * 4.1 - vec3(t * 1.3, t * 0.5, -t * 0.8) + warp * 1.6);
+
+      // ── aurora curtains: ribbons of light flowing around the planet,
+      //    phase-danced by the live waveform, lit by the spectrum ──
+      float ribbonPhase = (lon + warp * 0.45) * 24.0 + uTime * 0.5 + wave * 5.0;
+      float curtain = 0.5 + 0.5 * sin(ribbonPhase);
+      curtain = pow(curtain, 3.0 + 3.0 * (1.0 - fMid)); // crisper ribbons when quiet, wider blooms when loud
+      float ribbonPhase2 = (lon - warp2 * 0.3) * 11.0 - uTime * 0.32 - wave * 3.0;
+      float curtain2 = pow(0.5 + 0.5 * sin(ribbonPhase2), 4.0);
+
+      // curtains live in two soft belts; mist covers everywhere
+      float belt = exp(-pow((abs(lat) - 0.40) * 2.6, 2.0));
+      float polar = smoothstep(0.55, 0.95, abs(lat)); // faint polar crown
+
+      // ── ethereal mist (cosmic fog, breathes with the music) ──
+      float mist = fbm(n * 3.3 + vec3(-t * 1.2, t * 0.9, t * 0.6) + wave * 0.7 + warp * 0.8);
+      mist = smoothstep(0.25, 0.95, mist);
+
+      // ── limb weighting: fog hugs the edge of the planet ──
+      float ndv = abs(dot(normalize(vNormal), normalize(vView)));
+      float fres = pow(1.0 - ndv, 1.7);
+
+      // ── energy mix — ribbons bloom hardest at the limb, like rays of light
+      //    standing off the planet's edge ──
+      float limbBoost = 0.45 + fres * 1.1;
+      float energy =
+          curtain  * belt * (0.18 + fLow * 1.7) * limbBoost +
+          curtain2 * belt * (0.10 + fMid * 1.2) * limbBoost +
+          polar * (0.05 + fHigh * 0.8) * (0.5 + 0.5 * curtain) +
+          mist * (0.10 + uAudio * 0.85);
+
+      // analog shimmer — faint scan-flicker riding the high end
+      energy *= 0.88 + 0.12 * sin(uTime * 1.7 + lon * 60.0 + wave * 8.0 + warp2 * 4.0);
+
+      float a = energy * (0.16 + fres * 1.05) * (0.45 + uAudio * 1.25 + uBass * 0.35);
+
+      // ── luminous color: deep palette, never neon-flat ──
+      vec3 col = mix(uColB, uColC, curtain);
+      col = mix(col, uColA, mist * 0.55);
+      col += uColC * fHigh * 0.55 * curtain;
+      col += uColA * polar * 0.4;
+
+      gl_FragColor = vec4(col * 1.5, clamp(a, 0.0, 0.85));
+    }
+  `;
+  const AURORA_VERT = `
+    varying vec3 vNormal;
+    varying vec3 vPos;
+    varying vec3 vView;
+    void main(){
+      vNormal = normalize(normalMatrix * normal);
+      vPos = position;
+      vec4 mv = modelViewMatrix * vec4(position, 1.0);
+      vView = -mv.xyz;
+      gl_Position = projectionMatrix * mv;
+    }
+  `;
+  // Inner shell: fog hugging the surface, drawn over the planet's limb
+  const aurora = new THREE.Mesh(
+    new THREE.SphereGeometry(PLANET_R * 1.10, 96, 64),
+    new THREE.ShaderMaterial({
+      uniforms: auroraUniforms,
+      transparent: true,
+      depthWrite: false,
+      blending: THREE.AdditiveBlending,
+      vertexShader: AURORA_VERT,
+      fragmentShader: AURORA_FRAG
+    })
+  );
+  scene.add(aurora);
+
+  /* Outer halo — soft glow with frequency-driven aurora rays bleeding outward */
   const atmoUniforms = {
     uTime: { value: 0 },
     uBass: { value: 0 },
+    uAudio: { value: 0 },
+    uFreqTex: { value: freqTex },
     uColA: { value: palA },
     uColB: { value: palB }
   };
   const atmosphere = new THREE.Mesh(
-    new THREE.SphereGeometry(PLANET_R * 1.32, 64, 64),
+    new THREE.SphereGeometry(PLANET_R * 1.38, 64, 64),
     new THREE.ShaderMaterial({
       uniforms: atmoUniforms,
       side: THREE.BackSide,
@@ -251,21 +353,31 @@
       blending: THREE.AdditiveBlending,
       vertexShader: `
         varying vec3 vNormal;
+        varying vec3 vPos;
         void main(){
           vNormal = normalize(normalMatrix * normal);
+          vPos = position;
           gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
         }
       `,
       fragmentShader: `
         uniform float uTime;
         uniform float uBass;
+        uniform float uAudio;
+        uniform sampler2D uFreqTex;
         uniform vec3 uColA;
         uniform vec3 uColB;
         varying vec3 vNormal;
+        varying vec3 vPos;
         void main(){
+          vec3 n = normalize(vPos);
+          float lon = atan(n.z, n.x) / 6.2831853 + 0.5;
+          float fc = abs(fract(lon + uTime * 0.006) * 2.0 - 1.0);
+          float f = texture2D(uFreqTex, vec2(fc * 0.6, 0.5)).r;
           float glow = pow(0.66 - dot(vNormal, vec3(0.0, 0.0, -1.0)), 3.4);
+          float rays = 0.75 + 0.5 * f + 0.18 * sin(lon * 40.0 + uTime * 0.7);
           vec3 col = mix(uColA, uColB, 0.5 + 0.5 * sin(uTime * 0.12));
-          gl_FragColor = vec4(col, glow * (0.5 + uBass * 0.6));
+          gl_FragColor = vec4(col, glow * rays * (0.42 + uBass * 0.55 + uAudio * 0.3));
         }
       `
     })
@@ -854,12 +966,12 @@
       bassSm += (bass - bassSm) * 0.18;
       levelSm += (all - levelSm) * 0.12;
 
-      // upload live waveform → planet displacement texture
+      // upload live waveform → aurora phase/shimmer texture
       const step = timeData.length / WAVE_W;
       for (let i = 0; i < WAVE_W; i++) {
         waveArr[i * 4] = timeData[Math.floor(i * step)];
       }
-      // feather the seam so the wrap point doesn't crack the sphere
+      // feather the seam so the wrap point doesn't crack the shell
       const FE = 9;
       for (let i = 0; i < FE; i++) {
         const k = i / FE;
@@ -867,6 +979,13 @@
         waveArr[idx] = Math.round(waveArr[idx] * (1 - k) + waveArr[0] * k);
       }
       waveTex.needsUpdate = true;
+
+      // upload spectrum → aurora curtain energy (low bins = most musical info)
+      for (let i = 0; i < FREQ_W; i++) {
+        // gentle temporal smoothing keeps the light analog, never strobing
+        freqArr[i * 4] = Math.round(freqArr[i * 4] * 0.6 + freqData[i] * 0.4);
+      }
+      freqTex.needsUpdate = true;
     } catch (e) { /* context may be suspended */ }
   }
 
@@ -940,9 +1059,12 @@
     planetUniforms.uTime.value = t;
     planetUniforms.uAudio.value = levelSm;
     planetUniforms.uBass.value = bassSm;
-    planetUniforms.uWaveAmp.value = 0.14 * Math.min(1, levelSm * 3.2);
+    auroraUniforms.uTime.value = t;
+    auroraUniforms.uAudio.value = levelSm;
+    auroraUniforms.uBass.value = bassSm;
     atmoUniforms.uTime.value = t;
     atmoUniforms.uBass.value = bassSm;
+    atmoUniforms.uAudio.value = levelSm;
     ringUniforms.uTime.value = t;
     ringUniforms.uAudio.value = levelSm;
     starUniforms.uTime.value = t;
@@ -962,6 +1084,8 @@
     // motion
     planet.rotation.y += dt * (0.045 + bassSm * 0.08);
     planet.rotation.x = Math.sin(t * 0.02) * 0.04; // slow axis precession
+    aurora.rotation.y -= dt * 0.016;               // fog drifts against the spin
+    aurora.rotation.z = Math.sin(t * 0.013) * 0.06;
     ringPoints.rotation.y += dt * (0.05 + levelSm * 0.1);
     stars.rotation.y += dt * 0.0032;
     stars.rotation.z += dt * 0.001;
