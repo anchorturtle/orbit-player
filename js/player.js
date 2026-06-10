@@ -872,6 +872,13 @@ function updatePlayUI() {
     }
   }
 
+  const lyricsPlayBtn = document.getElementById('lyrics-btn-play');
+  const lyricsPlayIcon = document.getElementById('lyrics-play-icon');
+  if (lyricsPlayBtn) {
+    lyricsPlayBtn.classList.toggle('playing', isPlaying);
+    if (lyricsPlayIcon) lyricsPlayIcon.textContent = isPlaying ? 'pause' : 'play_arrow';
+  }
+
   // On iOS, the mute icon state is tied to playback (soft mute = paused)
   if (isIOS() && isMuted) {
     updateVolumeIcon();
@@ -1305,10 +1312,81 @@ document.querySelectorAll('.tracklist-tabs .tab').forEach(tab => {
 });
 
 /* ── PREMIUM LYRICS VIEWER ── */
+const LYRICS_RESUME_MS = 1500;
 let lyricsRafId = null;
 let lyricsDesiredScroll = 0;
 let lyricsCurrentScroll = 0;
-let lyricsUserDragging = false;
+let lyricsUserBrowsing = false;
+let lyricsResumeTimer = null;
+let lyricsSuppressScrollUntil = 0;
+let lyricsScrollHandlersWired = false;
+
+function setLyricsScrollTop(top) {
+  const scrollEl = document.getElementById('lyrics-scroll');
+  if (!scrollEl) return;
+  lyricsSuppressScrollUntil = performance.now() + 64;
+  scrollEl.scrollTop = top;
+  lyricsCurrentScroll = top;
+}
+
+function showLyricsBrowseHint(show) {
+  const hint = document.getElementById('lyrics-browse-hint');
+  if (hint) hint.hidden = !show;
+}
+
+function pauseLyricsFollow() {
+  const win = document.getElementById('lyrics-win');
+  if (!win || win.style.display !== 'flex') return;
+  const scrollEl = document.getElementById('lyrics-scroll');
+  if (scrollEl) lyricsCurrentScroll = scrollEl.scrollTop;
+  lyricsUserBrowsing = true;
+  showLyricsBrowseHint(true);
+  clearTimeout(lyricsResumeTimer);
+  lyricsResumeTimer = setTimeout(() => resumeLyricsFollow(false), LYRICS_RESUME_MS);
+}
+
+function resumeLyricsFollow(immediate) {
+  lyricsUserBrowsing = false;
+  clearTimeout(lyricsResumeTimer);
+  showLyricsBrowseHint(false);
+  syncLyrics();
+  if (immediate) setLyricsScrollTop(lyricsDesiredScroll);
+}
+
+function initLyricsScrollHandlers() {
+  if (lyricsScrollHandlersWired) return;
+  const scrollEl = document.getElementById('lyrics-scroll');
+  if (!scrollEl) return;
+  lyricsScrollHandlersWired = true;
+
+  scrollEl.addEventListener('wheel', pauseLyricsFollow, { passive: true });
+
+  scrollEl.addEventListener('pointerdown', (e) => {
+    if (e.target === scrollEl) pauseLyricsFollow();
+  }, { passive: true });
+
+  let touchY = null;
+  scrollEl.addEventListener('touchstart', (e) => {
+    touchY = e.touches[0].clientY;
+  }, { passive: true });
+  scrollEl.addEventListener('touchmove', (e) => {
+    if (touchY !== null && Math.abs(e.touches[0].clientY - touchY) > 10) pauseLyricsFollow();
+  }, { passive: true });
+  scrollEl.addEventListener('touchend', () => { touchY = null; }, { passive: true });
+
+  scrollEl.addEventListener('scroll', () => {
+    if (lyricsUserBrowsing) {
+      lyricsCurrentScroll = scrollEl.scrollTop;
+      clearTimeout(lyricsResumeTimer);
+      lyricsResumeTimer = setTimeout(() => resumeLyricsFollow(false), LYRICS_RESUME_MS);
+      return;
+    }
+    if (performance.now() < lyricsSuppressScrollUntil) return;
+    if (Math.abs(scrollEl.scrollTop - lyricsCurrentScroll) > 3) {
+      pauseLyricsFollow();
+    }
+  }, { passive: true });
+}
 
 function attachHoldToSeek(lineEl) {
   let holdTimer = null;
@@ -1341,8 +1419,8 @@ function attachHoldToSeek(lineEl) {
       if (container) container.appendChild(ind);
       setTimeout(() => { if (ind.parentNode) ind.parentNode.removeChild(ind); }, 480);
 
-      // after deliberate seek, immediately resume autoscroll
-      lyricsUserDragging = false;
+      // after deliberate seek, immediately resume follow
+      resumeLyricsFollow(true);
     }, 185);
   }, { passive: true });
 
@@ -1363,24 +1441,20 @@ async function openLyricsViewer() {
     applyDesktopLayout();
   }
   await updateLyricsViewer();
+  initLyricsScrollHandlers();
   startLyricsSyncLoop();
 
-  // On open, immediately position to current line (after layout), then autoscroll takes over.
-  // Reset user time so it doesn't delay the initial follow.
+  // On open, snap to current line then follow playback
   requestAnimationFrame(() => {
-    if (typeof syncLyrics === 'function') syncLyrics();
-    const se = document.getElementById('lyrics-scroll');
-    if (se && typeof lyricsDesiredScroll !== 'undefined') {
-      lyricsUserDragging = false;
-      se.scrollTop = lyricsDesiredScroll;
-      lyricsCurrentScroll = lyricsDesiredScroll;
-    }
+    resumeLyricsFollow(true);
   });
 }
 
 function closeLyricsViewer() {
   const win = document.getElementById('lyrics-win');
   if (win) win.style.display = 'none';
+  clearTimeout(lyricsResumeTimer);
+  showLyricsBrowseHint(false);
   stopLyricsSyncLoop();
 }
 
@@ -1469,34 +1543,6 @@ async function updateLyricsViewer() {
     linesEl.appendChild(div);
   });
 
-  // --- Hold + drag to look around; release to instantly resume autoscroll to current lyric ---
-  const scrollEl = document.getElementById('lyrics-scroll');
-  if (scrollEl) {
-    const startDrag = () => { lyricsUserDragging = true; };
-    const endDrag = () => {
-      lyricsUserDragging = false;
-      // Force immediate resume to current on release
-      if (typeof syncLyrics === 'function') syncLyrics();
-      const se = document.getElementById('lyrics-scroll');
-      if (se && typeof lyricsDesiredScroll !== 'undefined') {
-        // One quick step toward the target so it feels responsive
-        se.scrollTop = lyricsDesiredScroll;
-        lyricsCurrentScroll = lyricsDesiredScroll;
-      }
-    };
-
-    scrollEl.addEventListener('pointerdown', startDrag, { passive: true });
-    scrollEl.addEventListener('touchstart', startDrag, { passive: true });
-    scrollEl.addEventListener('mousedown', startDrag, { passive: true });
-
-    const onRelease = () => endDrag();
-    document.addEventListener('pointerup', onRelease, { passive: true });
-    document.addEventListener('touchend', onRelease, { passive: true });
-    document.addEventListener('mouseup', onRelease, { passive: true });
-    scrollEl.addEventListener('pointerleave', onRelease, { passive: true });
-    scrollEl.addEventListener('touchcancel', onRelease, { passive: true });
-  }
-
   // Attach smart click handler to the lines container for "click any part to seek"
   // Supports interpolation between lines for precise playback control.
   // Shows subtle precision indicator animation at click location.
@@ -1566,8 +1612,9 @@ async function updateLyricsViewer() {
       }, 520);
     }
 
-    // Immediate visual update
+    // Immediate visual update + resume follow at new position
     syncLyrics();
+    resumeLyricsFollow(true);
   };
 
   // initial sync
@@ -1642,18 +1689,22 @@ function startLyricsSyncLoop() {
   const scrollEl = document.getElementById('lyrics-scroll');
   if (!scrollEl) return;
 
-  lyricsUserDragging = false;
+  lyricsUserBrowsing = false;
+  showLyricsBrowseHint(false);
   lyricsCurrentScroll = scrollEl.scrollTop;
   lyricsDesiredScroll = lyricsCurrentScroll;
 
   const tick = () => {
     if (scrollEl) {
-      if (!lyricsUserDragging) {
-        // Autoscroll is always active. When not dragging, smoothly float back to current lyric.
-        lyricsCurrentScroll += (lyricsDesiredScroll - lyricsCurrentScroll) * 0.032;
-        scrollEl.scrollTop = lyricsCurrentScroll;
+      if (!lyricsUserBrowsing) {
+        const actual = scrollEl.scrollTop;
+        if (Math.abs(actual - lyricsCurrentScroll) > 4) {
+          pauseLyricsFollow();
+        } else {
+          lyricsCurrentScroll += (lyricsDesiredScroll - lyricsCurrentScroll) * 0.038;
+          setLyricsScrollTop(lyricsCurrentScroll);
+        }
       } else {
-        // User is actively holding/dragging — let them look around freely.
         lyricsCurrentScroll = scrollEl.scrollTop;
       }
     }
@@ -1668,11 +1719,22 @@ function stopLyricsSyncLoop() {
     cancelAnimationFrame(lyricsRafId);
     lyricsRafId = null;
   }
+  clearTimeout(lyricsResumeTimer);
 }
 
 // Wire lyrics button and close
 document.getElementById('btn-lyrics').addEventListener('click', openLyricsViewer);
 document.getElementById('close-lyrics').addEventListener('click', closeLyricsViewer);
+
+initLyricsScrollHandlers();
+['lyrics-btn-play', 'lyrics-btn-back10', 'lyrics-btn-fwd10', 'lyrics-btn-follow'].forEach(id => {
+  const el = document.getElementById(id);
+  if (!el) return;
+  if (id === 'lyrics-btn-play') el.addEventListener('click', () => document.getElementById('btn-play').click());
+  else if (id === 'lyrics-btn-back10') el.addEventListener('click', () => skip(-10));
+  else if (id === 'lyrics-btn-fwd10') el.addEventListener('click', () => skip(10));
+  else if (id === 'lyrics-btn-follow') el.addEventListener('click', () => resumeLyricsFollow(true));
+});
 
 // Keep lyrics in sync when track changes or audio events
 const originalLoadTrackForLyrics = loadTrack;
