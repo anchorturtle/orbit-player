@@ -1394,7 +1394,7 @@ async function updateLyricsViewer() {
       clearTimeout(lyricsUserScrollTimeout);
       lyricsUserScrollTimeout = setTimeout(() => {
         lyricsUserInteracting = false;
-      }, 1350);
+      }, 950); // short delay before smooth auto-resume so user can freely browse
     };
     scrollEl.addEventListener('scroll', markUserInteracting, { passive: true });
     scrollEl.addEventListener('touchstart', markUserInteracting, { passive: true });
@@ -1560,11 +1560,13 @@ function syncLyrics() {
   });
 
   // set desired scroll for continuous smooth follow
-  // Use fractional position between current and next line for perfect continuous sync
-  // IMPORTANT: only auto-follow if the user is not actively scrolling/browsing the lyrics.
+  // Use fractional position between current and next line for perfect continuous sync.
+  // On mobile we bias the current line towards the top of the viewport so upcoming lines are easy to read.
+  // Autoscroll is always "on" (desired is always computed from playback), but we delay applying the
+  // actual scroll until the user has stopped interacting for a short while.
   const currentLine = lineEls[currentIdx];
   const scrollEl = document.getElementById('lyrics-scroll');
-  if (currentLine && scrollEl && !lyricsUserInteracting) {
+  if (currentLine && scrollEl) {
     let targetScroll;
     if (currentIdx < lyrics.length - 1) {
       const nextLine = lineEls[currentIdx + 1];
@@ -1572,11 +1574,21 @@ function syncLyrics() {
       const currTop = currentLine.offsetTop;
       const nextTop = nextLine.offsetTop;
       const lineCenterOffset = currentLine.offsetHeight / 2;
-      targetScroll = currTop + progress * (nextTop - currTop) - (scrollEl.clientHeight / 2) + lineCenterOffset;
+
+      let topBias;
+      if (typeof isMob === 'function' && isMob()) {
+        // On mobile: keep current line near the top (easy to see while reading ahead)
+        topBias = Math.min(110, scrollEl.clientHeight * 0.18);
+      } else {
+        // Desktop: gentle center with slight top preference
+        topBias = scrollEl.clientHeight * 0.42;
+      }
+      targetScroll = currTop + progress * (nextTop - currTop) - topBias + lineCenterOffset;
     } else {
       const lineCenter = currentLine.offsetTop + (currentLine.offsetHeight / 2);
-      targetScroll = lineCenter - (scrollEl.clientHeight / 2);
+      targetScroll = lineCenter - (scrollEl.clientHeight * 0.42);
     }
+
     lyricsDesiredScroll = targetScroll;
   }
 }
@@ -1591,9 +1603,11 @@ function startLyricsSyncLoop() {
 
   const tick = () => {
     if (scrollEl) {
-      // Floaty, non-jarring follow. Much slower lerp so user can freely scroll and read ahead.
+      // Very smooth floating follow. Autoscroll is always active in the background (desired position
+      // is continuously updated from playback time), but we only apply the smooth lerp after the user
+      // has stopped scrolling for a moment.
       if (!lyricsUserInteracting) {
-        lyricsCurrentScroll += (lyricsDesiredScroll - lyricsCurrentScroll) * 0.042;
+        lyricsCurrentScroll += (lyricsDesiredScroll - lyricsCurrentScroll) * 0.032; // even gentler for premium float feel
         scrollEl.scrollTop = lyricsCurrentScroll;
       }
     }
