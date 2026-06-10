@@ -22,6 +22,21 @@ The lyrics follow the music in a smooth, natural way — but you’re always in 
 
 It feels responsive and alive instead of robotic. This has been the main thing we’ve been refining and it’s getting really good.
 
+**Quick Resume Notes (for next time we pick this up)**
+
+- **Lyrics viewer** is the active focus area.
+- Recent wins (as of last session):
+  - Smooth always-on autoscroll with drag-to-browse + instant snap-back on release.
+  - Copy-text icon button added in the header (right of the track title).
+  - Title + artist now properly centered on desktop and mobile (copy button is absolute-positioned to the right so it doesn’t break centering).
+  - Left accent bar next to current lyric completely removed.
+  - Currently playing lyric now correctly gets a slight +10% font-size bump (previous em-based rule had it rendering *smaller* than non-highlighted lines — fixed).
+  - Lyrics scroll now uses the same custom styled scrollbar (`.no-scrollbar` purple gradient) as the tracklist and gallery.
+  - The media player window itself no longer has internal scrolling — all buttons, transport, timeline, and bottom controls stay visible and properly spaced no matter how small you make the window.
+- We still have work to do (polish, more tracks with lyrics, possible further refinements).
+- Fastest way to test: open `index.html` (or run `npx serve .`), select the **Jazzpot** track, click the lyrics icon in the player header.
+- Main files we’ve been touching: `css/styles.css`, `js/player.js`, `index.html`.
+
 **We’ve also been quietly making everything feel more refined and nicer to use**
 
 Lots of quality-of-life and UI polish has landed:
@@ -34,6 +49,7 @@ Lots of quality-of-life and UI polish has landed:
 
 ## What’s new (latest first)
 
+- **Lyrics viewer font-size fix**: Highlighted/current lyric now correctly renders ~10% larger than non-highlighted lines (previous implementation had it backwards / smaller due to `em` unit resolving against parent instead of the base size).
 - **Lyrics autoscroll is now always on by default.** Grab and drag anywhere in the lyrics list to freely browse. On release it instantly snaps back to the current playing line and smooth following resumes right away. The behavior is now strictly tied to your active drag gesture (no lingering timeouts). All the mobile top-bias and prior smoothness improvements are kept.
 - Lyrics viewer refinements: autoscroll always computes the ideal position live. The visual follow uses a gentle delayed float (~950ms) after you stop interacting so it feels floaty rather than stiff. Opens already snapped to the current line. Mobile current line is biased toward the top of the viewport. Hold-to-seek updated.
 - More lyrics viewer polish: always-on autoscroll with a smooth delay after you stop scrolling so you can freely look around. Gentler lerp for a softer feel. Mobile gets current line biased to the top + full-height layout (minus nav bar). Desktop lyrics window is a bit narrower by default. Softer transitions and feedback across the board.
