@@ -1269,8 +1269,7 @@ document.querySelectorAll('.tracklist-tabs .tab').forEach(tab => {
 let lyricsRafId = null;
 let lyricsDesiredScroll = 0;
 let lyricsCurrentScroll = 0;
-let lastUserScrollTime = 0;
-let isAutoScrolling = false;
+let lyricsUserDragging = false;
 
 function attachHoldToSeek(lineEl) {
   let holdTimer = null;
@@ -1303,8 +1302,8 @@ function attachHoldToSeek(lineEl) {
       if (container) container.appendChild(ind);
       setTimeout(() => { if (ind.parentNode) ind.parentNode.removeChild(ind); }, 480);
 
-      // after deliberate seek, let auto-follow resume immediately
-      lastUserScrollTime = 0;
+      // after deliberate seek, immediately resume autoscroll
+      lyricsUserDragging = false;
     }, 185);
   }, { passive: true });
 
@@ -1333,7 +1332,7 @@ async function openLyricsViewer() {
     if (typeof syncLyrics === 'function') syncLyrics();
     const se = document.getElementById('lyrics-scroll');
     if (se && typeof lyricsDesiredScroll !== 'undefined') {
-      lastUserScrollTime = 0;
+      lyricsUserDragging = false;
       se.scrollTop = lyricsDesiredScroll;
       lyricsCurrentScroll = lyricsDesiredScroll;
     }
@@ -1397,18 +1396,34 @@ async function updateLyricsViewer() {
     linesEl.appendChild(div);
   });
 
-  // --- Free scrolling UX: let user browse lyrics freely without the player yanking the view back ---
+  // --- Hold + drag to look around; release to instantly resume autoscroll to current lyric ---
   const scrollEl = document.getElementById('lyrics-scroll');
   if (scrollEl) {
-    const markUserScroll = () => {
-      if (isAutoScrolling) return;
-      lastUserScrollTime = Date.now();
+    const startDrag = () => { lyricsUserDragging = true; };
+    const endDrag = () => {
+      lyricsUserDragging = false;
+      // Force immediate resume to current on release
+      if (typeof syncLyrics === 'function') syncLyrics();
+      const se = document.getElementById('lyrics-scroll');
+      if (se && typeof lyricsDesiredScroll !== 'undefined') {
+        // One quick step toward the target so it feels responsive
+        se.scrollTop = lyricsDesiredScroll;
+        lyricsCurrentScroll = lyricsDesiredScroll;
+      }
     };
-    scrollEl.addEventListener('scroll', markUserScroll, { passive: true });
-    scrollEl.addEventListener('touchstart', markUserScroll, { passive: true });
-    scrollEl.addEventListener('wheel', markUserScroll, { passive: true });
 
-    // Subtle floating "return to now" button (appears when scrolled away while playing)
+    scrollEl.addEventListener('pointerdown', startDrag, { passive: true });
+    scrollEl.addEventListener('touchstart', startDrag, { passive: true });
+    scrollEl.addEventListener('mousedown', startDrag, { passive: true });
+
+    const onRelease = () => endDrag();
+    document.addEventListener('pointerup', onRelease, { passive: true });
+    document.addEventListener('touchend', onRelease, { passive: true });
+    document.addEventListener('mouseup', onRelease, { passive: true });
+    scrollEl.addEventListener('pointerleave', onRelease, { passive: true });
+    scrollEl.addEventListener('touchcancel', onRelease, { passive: true });
+
+    // Subtle "NOW" button as safety net
     let jumpBtn = document.getElementById('lyrics-jump-now');
     if (!jumpBtn) {
       jumpBtn = document.createElement('button');
@@ -1423,42 +1438,23 @@ async function updateLyricsViewer() {
       }
       jumpBtn.addEventListener('click', (e) => {
         e.stopPropagation();
-        lyricsUserInteracting = false;
-        clearTimeout(lyricsUserScrollTimeout);
-        const track = TRACKS[currentIndex];
-        const lxs = track.lyrics || [];
-        if (!lxs.length || !audio) return;
-        const t = audio.currentTime;
-        let idx = 0;
-        for (let i = 0; i < lxs.length; i++) {
-          if (t >= lxs[i].time) idx = i; else break;
-        }
-        const lineElsNow = document.querySelectorAll('#lyrics-lines .lyric-line');
-        const tgt = lineElsNow[idx];
-        if (tgt && scrollEl) {
-          const off = tgt.offsetHeight / 2;
-          const target = tgt.offsetTop + off - (scrollEl.clientHeight / 2);
-          scrollEl.scrollTo({ top: target, behavior: 'smooth' });
-          lyricsDesiredScroll = target;
+        lyricsUserDragging = false;
+        if (typeof syncLyrics === 'function') syncLyrics();
+        const se = document.getElementById('lyrics-scroll');
+        if (se && typeof lyricsDesiredScroll !== 'undefined') {
+          se.scrollTo({ top: lyricsDesiredScroll, behavior: 'smooth' });
+          lyricsCurrentScroll = lyricsDesiredScroll;
         }
         jumpBtn.style.display = 'none';
       });
     }
 
-    // Show the button when user has scrolled meaningfully away from the current line
     const checkJumpVisibility = () => {
       if (!jumpBtn || !scrollEl) return;
-      const lineElsNow = document.querySelectorAll('#lyrics-lines .lyric-line');
-      const cur = lineElsNow[currentIdx] || lineElsNow[0];
-      if (!cur) { jumpBtn.style.display = 'none'; return; }
-      const curCenter = cur.offsetTop + cur.offsetHeight / 2;
-      const viewCenter = scrollEl.scrollTop + scrollEl.clientHeight / 2;
-      const away = Math.abs(curCenter - viewCenter) > 95;
       const away = Math.abs(scrollEl.scrollTop - lyricsDesiredScroll) > 95;
       jumpBtn.style.display = away ? 'inline-flex' : 'none';
     };
     scrollEl.addEventListener('scroll', checkJumpVisibility, { passive: true });
-    // Expose for the RAF tick
     window.__lyricsCheckJump = checkJumpVisibility;
   }
 
@@ -1607,23 +1603,18 @@ function startLyricsSyncLoop() {
   const scrollEl = document.getElementById('lyrics-scroll');
   if (!scrollEl) return;
 
+  lyricsUserDragging = false;
   lyricsCurrentScroll = scrollEl.scrollTop;
   lyricsDesiredScroll = lyricsCurrentScroll;
 
   const tick = () => {
     if (scrollEl) {
-      const now = Date.now();
-      // Autoscroll is always "on" (desired is live), but we only visually follow after user stops scrolling.
-      // This delay gives time to freely browse without fighting.
-      if (now - lastUserScrollTime > 950) {
-        // smooth floating lerp
+      if (!lyricsUserDragging) {
+        // Autoscroll is always active. When not dragging, smoothly float back to current lyric.
         lyricsCurrentScroll += (lyricsDesiredScroll - lyricsCurrentScroll) * 0.032;
-        isAutoScrolling = true;
         scrollEl.scrollTop = lyricsCurrentScroll;
-        // reset flag next frame so programmatic scroll doesn't trigger user scroll handler
-        requestAnimationFrame(() => { isAutoScrolling = false; });
       } else {
-        // while user is in control, keep our internal current in sync with actual to avoid jump on resume
+        // User is actively holding/dragging — let them look around freely.
         lyricsCurrentScroll = scrollEl.scrollTop;
       }
     }
