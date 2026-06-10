@@ -18,7 +18,7 @@ The lyrics follow the music in a smooth, natural way — but you’re always in 
 - Let go and it gently but quickly snaps right back to the line that’s playing and keeps following
 - Hold on any line for a moment and the song jumps there
 - On phones the current line sits a little higher so you can comfortably read what’s coming up
-- A subtle floating “NOW” button appears if you wander off and want to jump back to the present
+- Free scrolling with instant snap-back to current line on release (no persistent “NOW” button needed)
 
 It feels responsive and alive instead of robotic. This has been the main thing we’ve been refining and it’s getting really good.
 
@@ -35,9 +35,9 @@ Lots of quality-of-life and UI polish has landed:
 ## What’s new (latest first)
 
 - **Lyrics autoscroll is now always on by default.** Grab and drag anywhere in the lyrics list to freely browse. On release it instantly snaps back to the current playing line and smooth following resumes right away. The behavior is now strictly tied to your active drag gesture (no lingering timeouts). All the mobile top-bias and prior smoothness improvements are kept.
-- Lyrics viewer refinements: autoscroll always computes the ideal position live. The visual follow uses a gentle delayed float (~950ms) after you stop interacting so it feels floaty rather than stiff. Opens already snapped to the current line. Mobile current line is biased toward the top of the viewport. Hold-to-seek and the jump button were updated to match the new model.
+- Lyrics viewer refinements: autoscroll always computes the ideal position live. The visual follow uses a gentle delayed float (~950ms) after you stop interacting so it feels floaty rather than stiff. Opens already snapped to the current line. Mobile current line is biased toward the top of the viewport. Hold-to-seek updated.
 - More lyrics viewer polish: always-on autoscroll with a smooth delay after you stop scrolling so you can freely look around. Gentler lerp for a softer feel. Mobile gets current line biased to the top + full-height layout (minus nav bar). Desktop lyrics window is a bit narrower by default. Softer transitions and feedback across the board.
-- “Master the lyrics viewer” update: proper mobile full-screen experience (respects the bottom nav bar), truly free scrolling without the auto fighting you, deliberate hold-to-seek on lines, a subtle floating “NOW” button to jump back to the current line. Desktop default window made narrower. Smoother floaty motion, softer seek feedback. Mobile lyrics text sized for comfort. Lots of close icon and text size homogenization.
+- “Master the lyrics viewer” update: proper mobile full-screen experience (respects the bottom nav bar), truly free scrolling without the auto fighting you, deliberate hold-to-seek on lines. Desktop default window made narrower. Smoother floaty motion, softer seek feedback. Mobile lyrics text sized for comfort. Lots of close icon and text size homogenization. (The floating “NOW” button was later removed in favor of a simple copy-text button in the header.)
 - Homogenize + QC pass: standardized close buttons to a consistent ~66% icon size, unified text sizes across the whole interface, cleaned up and finalized the Jazzpot lyrics (proper punctuation/casing, 40 lines), improved default window positioning so lyrics is centered-top-tall-narrow and doesn’t auto-show on refresh, added the Jazzpot track with its synced lyrics and the sync script.
 
 ## Features

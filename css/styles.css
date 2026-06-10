@@ -1302,7 +1302,6 @@ body { font-family: 'Plus Jakarta Sans', sans-serif; background: #06040f; color:
 }
 
 .lyrics-meta {
-  text-align: center;
   padding: 18px 24px 8px;
   flex-shrink: 0;
   position: relative;
@@ -1310,12 +1309,54 @@ body { font-family: 'Plus Jakarta Sans', sans-serif; background: #06040f; color:
   border-bottom: 1px solid rgba(255,255,255,0.06);
 }
 
+.lyrics-title-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 2px;
+}
+
 .lyrics-track-title {
   font-size: 1.05rem;
   font-weight: 700;
   letter-spacing: -.01em;
   color: #e9e1de;
-  margin-bottom: 2px;
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.lyrics-copy-btn {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(123,47,255,0.25);
+  border-radius: 6px;
+  color: rgba(233,225,222,0.75);
+  cursor: pointer;
+  transition: all 120ms ease;
+}
+
+.lyrics-copy-btn:hover {
+  background: rgba(123,47,255,0.12);
+  border-color: rgba(123,47,255,0.4);
+  color: #e9e1de;
+}
+
+.lyrics-copy-btn:active {
+  transform: scale(0.92);
+}
+
+.lyrics-copy-btn .material-symbols-outlined {
+  font-size: 16px;
 }
 
 .lyrics-track-artist {
@@ -1410,37 +1451,6 @@ body { font-family: 'Plus Jakarta Sans', sans-serif; background: #06040f; color:
   color: rgba(233, 225, 222, 0.55);
   /* Same font-size and weight as base for zero layout shift */
   opacity: 0.9;
-}
-
-/* Subtle floating "return to current" button — only appears when user has scrolled away */
-.lyrics-jump-btn {
-  position: absolute;
-  bottom: 14px;
-  left: 50%;
-  transform: translateX(-50%);
-  display: none;
-  align-items: center;
-  gap: 5px;
-  padding: 5px 14px 5px 10px;
-  border-radius: 999px;
-  background: rgba(12, 8, 26, 0.82);
-  border: 1px solid rgba(123, 47, 255, 0.25);
-  color: #e9e1de;
-  font-size: 11px;
-  font-weight: 600;
-  letter-spacing: .4px;
-  z-index: 45;
-  box-shadow: 0 4px 14px rgba(0,0,0,0.45);
-  transition: opacity .18s ease, transform .18s ease;
-  opacity: 0.9;
-}
-.lyrics-jump-btn:hover {
-  opacity: 1;
-  transform: translateX(-50%) translateY(-1px);
-  background: rgba(18, 12, 36, 0.92);
-}
-.lyrics-jump-btn:active {
-  transform: translateX(-50%) scale(0.96);
 }
 
 /* Smoother, floatier line transitions (less jarring) — layout-safe only */

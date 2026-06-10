@@ -1363,6 +1363,38 @@ async function updateLyricsViewer() {
   titleEl.textContent = track.title || '—';
   artistEl.textContent = track.artist || '';
 
+  // Wire copy lyrics button (near title, right side)
+  const copyBtn = document.getElementById('btn-copy-lyrics');
+  if (copyBtn) {
+    copyBtn.onclick = (e) => {
+      e.stopPropagation();
+      const t = TRACKS[currentIndex];
+      if (!t || !t.lyrics || t.lyrics.length === 0) return;
+      const text = t.lyrics.map(l => l.text).join('\n');
+      navigator.clipboard.writeText(text).then(() => {
+        const orig = copyBtn.innerHTML;
+        const origColor = copyBtn.style.color;
+        copyBtn.innerHTML = '<span class="material-symbols-outlined">check</span>';
+        copyBtn.style.color = 'rgba(0,200,150,0.95)';
+        setTimeout(() => {
+          copyBtn.innerHTML = orig;
+          copyBtn.style.color = origColor || '';
+        }, 1400);
+      }).catch(() => {
+        // fallback for older browsers / file://
+        const ta = document.createElement('textarea');
+        ta.value = text;
+        document.body.appendChild(ta);
+        ta.select();
+        try { document.execCommand('copy'); } catch (_) {}
+        document.body.removeChild(ta);
+        const orig = copyBtn.innerHTML;
+        copyBtn.innerHTML = '<span class="material-symbols-outlined">check</span>';
+        setTimeout(() => { copyBtn.innerHTML = orig; }, 1200);
+      });
+    };
+  }
+
   // Support dynamic load from lyricsFile (for the workflow: run script -> json -> auto load)
   if (track.lyricsFile && !track.lyrics) {
     try {
@@ -1378,8 +1410,10 @@ async function updateLyricsViewer() {
   const lyrics = track.lyrics || [];
   if (lyrics.length === 0) {
     linesEl.innerHTML = '<div class="lyric-line" style="color:rgba(233,225,222,0.4); font-size:1.1rem;">Lyrics not available for this track yet.<br>(For local file:// open, lyrics must be embedded in js/player.js TRACKS.)</div>';
+    if (copyBtn) copyBtn.style.display = 'none';
     return;
   }
+  if (copyBtn) copyBtn.style.display = '';
 
   const lyricsData = lyrics; // for closure in click handler
 
@@ -1422,40 +1456,6 @@ async function updateLyricsViewer() {
     document.addEventListener('mouseup', onRelease, { passive: true });
     scrollEl.addEventListener('pointerleave', onRelease, { passive: true });
     scrollEl.addEventListener('touchcancel', onRelease, { passive: true });
-
-    // Subtle "NOW" button as safety net
-    let jumpBtn = document.getElementById('lyrics-jump-now');
-    if (!jumpBtn) {
-      jumpBtn = document.createElement('button');
-      jumpBtn.id = 'lyrics-jump-now';
-      jumpBtn.className = 'lyrics-jump-btn';
-      jumpBtn.innerHTML = '<span class="material-symbols-outlined" style="font-size:17px; line-height:1">arrow_downward</span><span style="font-size:10px; letter-spacing:.5px; margin-left:2px">NOW</span>';
-      jumpBtn.title = 'Jump back to current lyric';
-      const container = document.getElementById('lyrics-container') || linesEl.parentElement;
-      if (container) {
-        container.style.position = 'relative';
-        container.appendChild(jumpBtn);
-      }
-      jumpBtn.addEventListener('click', (e) => {
-        e.stopPropagation();
-        lyricsUserDragging = false;
-        if (typeof syncLyrics === 'function') syncLyrics();
-        const se = document.getElementById('lyrics-scroll');
-        if (se && typeof lyricsDesiredScroll !== 'undefined') {
-          se.scrollTo({ top: lyricsDesiredScroll, behavior: 'smooth' });
-          lyricsCurrentScroll = lyricsDesiredScroll;
-        }
-        jumpBtn.style.display = 'none';
-      });
-    }
-
-    const checkJumpVisibility = () => {
-      if (!jumpBtn || !scrollEl) return;
-      const away = Math.abs(scrollEl.scrollTop - lyricsDesiredScroll) > 95;
-      jumpBtn.style.display = away ? 'inline-flex' : 'none';
-    };
-    scrollEl.addEventListener('scroll', checkJumpVisibility, { passive: true });
-    window.__lyricsCheckJump = checkJumpVisibility;
   }
 
   // Attach smart click handler to the lines container for "click any part to seek"
@@ -1619,7 +1619,6 @@ function startLyricsSyncLoop() {
       }
     }
     syncLyrics();
-    if (window.__lyricsCheckJump) window.__lyricsCheckJump();
     lyricsRafId = requestAnimationFrame(tick);
   };
   lyricsRafId = requestAnimationFrame(tick);
