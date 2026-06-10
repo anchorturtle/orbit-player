@@ -872,13 +872,6 @@ function updatePlayUI() {
     }
   }
 
-  const lyricsPlayBtn = document.getElementById('lyrics-btn-play');
-  const lyricsPlayIcon = document.getElementById('lyrics-play-icon');
-  if (lyricsPlayBtn) {
-    lyricsPlayBtn.classList.toggle('playing', isPlaying);
-    if (lyricsPlayIcon) lyricsPlayIcon.textContent = isPlaying ? 'pause' : 'play_arrow';
-  }
-
   // On iOS, the mute icon state is tied to playback (soft mute = paused)
   if (isIOS() && isMuted) {
     updateVolumeIcon();
@@ -950,8 +943,8 @@ function loadTrack(idx, autoplay) {
     drawWaveform(initialPct);
   }).catch(() => {});
 
-  document.querySelectorAll('.track-item').forEach((el, i) => {
-    el.classList.toggle('active', i === idx);
+  document.querySelectorAll('.track-item').forEach(el => {
+    el.classList.toggle('active', +el.dataset.idx === idx);
   });
 
   // If the song detail/info window is open, update its content in real-time to the new song
@@ -1329,18 +1322,12 @@ function setLyricsScrollTop(top) {
   lyricsCurrentScroll = top;
 }
 
-function showLyricsBrowseHint(show) {
-  const hint = document.getElementById('lyrics-browse-hint');
-  if (hint) hint.hidden = !show;
-}
-
 function pauseLyricsFollow() {
   const win = document.getElementById('lyrics-win');
   if (!win || win.style.display !== 'flex') return;
   const scrollEl = document.getElementById('lyrics-scroll');
   if (scrollEl) lyricsCurrentScroll = scrollEl.scrollTop;
   lyricsUserBrowsing = true;
-  showLyricsBrowseHint(true);
   clearTimeout(lyricsResumeTimer);
   lyricsResumeTimer = setTimeout(() => resumeLyricsFollow(false), LYRICS_RESUME_MS);
 }
@@ -1348,7 +1335,6 @@ function pauseLyricsFollow() {
 function resumeLyricsFollow(immediate) {
   lyricsUserBrowsing = false;
   clearTimeout(lyricsResumeTimer);
-  showLyricsBrowseHint(false);
   syncLyrics();
   if (immediate) setLyricsScrollTop(lyricsDesiredScroll);
 }
@@ -1454,7 +1440,6 @@ function closeLyricsViewer() {
   const win = document.getElementById('lyrics-win');
   if (win) win.style.display = 'none';
   clearTimeout(lyricsResumeTimer);
-  showLyricsBrowseHint(false);
   stopLyricsSyncLoop();
 }
 
@@ -1690,7 +1675,6 @@ function startLyricsSyncLoop() {
   if (!scrollEl) return;
 
   lyricsUserBrowsing = false;
-  showLyricsBrowseHint(false);
   lyricsCurrentScroll = scrollEl.scrollTop;
   lyricsDesiredScroll = lyricsCurrentScroll;
 
@@ -1727,14 +1711,6 @@ document.getElementById('btn-lyrics').addEventListener('click', openLyricsViewer
 document.getElementById('close-lyrics').addEventListener('click', closeLyricsViewer);
 
 initLyricsScrollHandlers();
-['lyrics-btn-play', 'lyrics-btn-back10', 'lyrics-btn-fwd10', 'lyrics-btn-follow'].forEach(id => {
-  const el = document.getElementById(id);
-  if (!el) return;
-  if (id === 'lyrics-btn-play') el.addEventListener('click', () => document.getElementById('btn-play').click());
-  else if (id === 'lyrics-btn-back10') el.addEventListener('click', () => skip(-10));
-  else if (id === 'lyrics-btn-fwd10') el.addEventListener('click', () => skip(10));
-  else if (id === 'lyrics-btn-follow') el.addEventListener('click', () => resumeLyricsFollow(true));
-});
 
 // Keep lyrics in sync when track changes or audio events
 const originalLoadTrackForLyrics = loadTrack;
