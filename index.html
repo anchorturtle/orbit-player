@@ -32,6 +32,7 @@
 <body>
   <!-- BACKGROUND LAYERS -->
   <div id="space-bg"></div>
+  <canvas id="space3d-canvas"></canvas>
   <canvas id="stars-canvas"></canvas>
   <div class="vignette"></div>
   <div class="scanlines"></div>
@@ -40,19 +41,15 @@
   <!-- AUDIO ELEMENT -->
   <audio id="audio-player" preload="auto" playsinline></audio>
 
-  <!-- PLANET (focal visual) -->
+  <!-- PLANET FOCAL TEXT (the planet itself is rendered live in 3D behind this) -->
   <div id="planet-bg" style="position:fixed;left:0;right:0;top:0;bottom:0;display:flex;align-items:center;justify-content:center;z-index:1;pointer-events:none">
-    <div style="position:relative;width:320px;height:320px">
-      <div class="planet-glow" style="position:absolute;inset:0;border-radius:50%"></div>
-      <div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:520px;height:520px;border-radius:50%;border:1px solid rgba(45,91,255,.07)" class="ring-far"></div>
-      <div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:340px;height:340px;border-radius:50%;border:1px solid rgba(123,47,255,.09)" class="ring-near"></div>
-      <div style="position:absolute;inset:0;border-radius:50%;overflow:hidden;background:rgba(15,10,35,.32);backdrop-filter:blur(18px);border:1px solid rgba(123,47,255,.14)">
-        <div style="width:100%;height:100%;background-image:radial-gradient(rgba(255,255,255,.12) 1px,transparent 0);background-size:12px 12px;opacity:.18"></div>
-      </div>
+    <div style="position:relative;width:340px;height:340px">
+      <div class="focal-backdrop"></div>
+      <div class="planet-fallback-glow"></div>
       <div style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:10;text-align:center;padding:32px">
-        <p class="tape-counter phosphor" style="margin-bottom:10px">NOW PLAYING</p>
-        <h2 id="focal-title" style="font-size:2.4rem;font-weight:900;font-style:italic;letter-spacing:-.03em;line-height:1;color:#e9e1de;text-shadow:0 0 40px rgba(123,47,255,.5);margin-bottom:10px">—</h2>
-        <p id="focal-artist" class="phosphor" style="font-size:9px;font-weight:700;letter-spacing:.5em;text-transform:uppercase;color:var(--jestr-green)">Select a track</p>
+        <p class="tape-counter phosphor focal-eyebrow" style="margin-bottom:10px">NOW PLAYING</p>
+        <h2 id="focal-title" class="focal-title">—</h2>
+        <p id="focal-artist" class="phosphor focal-artist">Select a track</p>
       </div>
     </div>
   </div>
@@ -365,7 +362,11 @@
   </div>
 
   <!-- SCRIPT IMPORTS (order matters for dependencies) -->
+  <!-- Three.js (classic UMD build for zero-build file:// compatibility). If it fails to load
+       (offline), space3d.js bails out silently and the 2D star canvas fallback takes over. -->
+  <script src="https://unpkg.com/three@0.147.0/build/three.min.js"></script>
   <script src="js/utils.js"></script>
+  <script src="js/space3d.js"></script>
   <script src="js/player.js"></script>
   <script src="js/gallery.js"></script>
   <script src="js/main.js"></script>

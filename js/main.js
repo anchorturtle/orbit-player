@@ -8,6 +8,9 @@
 (function () {
   // On the clay site we use Three.js blobs instead
   if (window.__CLAY_MODE) return;
+  // The 3D WebGL background (space3d.js) owns the sky when available;
+  // this 2D canvas is only the offline / no-WebGL fallback.
+  if (window.__SPACE3D_ACTIVE) return;
 
   const c = document.getElementById('stars-canvas'), ctx = c.getContext('2d');
   let W, H, stars = [];
