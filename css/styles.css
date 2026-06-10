@@ -1230,9 +1230,8 @@ body { font-family: 'Plus Jakarta Sans', sans-serif; background: #06040f; color:
   .lyric-line {
     font-size: 0.99rem;
   }
-  .lyric-line.current {
-    font-size: 1.2rem;
-  }
+  /* No size change on current — stable placement for readability.
+     Highlight via color/glow/accent only. */
 
   /* Lyrics full screen on mobile (respect bottom nav bar, no covering it) */
   #lyrics-win {
@@ -1358,13 +1357,19 @@ body { font-family: 'Plus Jakarta Sans', sans-serif; background: #06040f; color:
   line-height: 1.38;
   font-weight: 400;
   color: rgba(233, 225, 222, 0.42);
+  /* IMPORTANT: only non-layout properties for states.
+     No font-size, no font-weight changes, no scale that shifts text.
+     Consistent left padding reserves space for the accent bar on *all* lines.
+     This keeps every word in its exact imagined position at all times.
+     Highlighting must never move or reflow the lyrics mid-song. */
   transition: color 280ms cubic-bezier(0.23, 1, 0.32, 1),
-              font-size 280ms cubic-bezier(0.23, 1, 0.32, 1),
               opacity 280ms cubic-bezier(0.23, 1, 0.32, 1),
-              transform 280ms cubic-bezier(0.23, 1, 0.32, 1);
+              text-shadow 280ms cubic-bezier(0.23, 1, 0.32, 1),
+              background-color 280ms cubic-bezier(0.23, 1, 0.32, 1);
   cursor: pointer;
-  padding: 2px 12px;
+  padding: 2px 12px 2px 26px; /* consistent left reserve for accent bar on every line */
   border-radius: 4px;
+  position: relative;
 }
 
 .lyric-line:hover {
@@ -1373,23 +1378,37 @@ body { font-family: 'Plus Jakarta Sans', sans-serif; background: #06040f; color:
 
 .lyric-line.current {
   color: #f0e9e2;
-  font-size: 2.15rem;
-  font-weight: 600;
+  /* Stable size/weight — text never moves or reflows. */
   text-shadow: 0 2px 12px rgba(0, 0, 0, 0.5),
-               0 0 28px rgba(123, 47, 255, 0.35);
+               0 0 28px rgba(123, 47, 255, 0.45);
   opacity: 1;
-  transform: scale(1.01);
+  background: rgba(123, 47, 255, 0.07);
+  border-radius: 6px;
+  /* Subtle left accent bar lives in the reserved padding space — zero text shift */
+}
+
+.lyric-line.current::before {
+  content: '';
+  position: absolute;
+  left: 8px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 3px;
+  height: 1.1em;
+  background: rgba(123, 47, 255, 0.85);
+  border-radius: 2px;
+  pointer-events: none;
 }
 
 .lyric-line.past {
   color: rgba(233, 225, 222, 0.22);
-  font-size: 1.38rem;
+  /* Same font-size and weight as base for zero layout shift */
   opacity: 0.65;
 }
 
 .lyric-line.future {
   color: rgba(233, 225, 222, 0.55);
-  font-size: 1.52rem;
+  /* Same font-size and weight as base for zero layout shift */
   opacity: 0.9;
 }
 
@@ -1424,12 +1443,12 @@ body { font-family: 'Plus Jakarta Sans', sans-serif; background: #06040f; color:
   transform: translateX(-50%) scale(0.96);
 }
 
-/* Smoother, floatier line transitions (less jarring) */
+/* Smoother, floatier line transitions (less jarring) — layout-safe only */
 .lyric-line {
   transition: color 320ms cubic-bezier(0.23, 1, 0.32, 1),
-              font-size 320ms cubic-bezier(0.23, 1, 0.32, 1),
               opacity 320ms cubic-bezier(0.23, 1, 0.32, 1),
-              transform 320ms cubic-bezier(0.23, 1, 0.32, 1);
+              text-shadow 320ms cubic-bezier(0.23, 1, 0.32, 1),
+              background-color 320ms cubic-bezier(0.23, 1, 0.32, 1);
 }
 
 /* Softer seek flash — less jarring visual feedback */
@@ -1453,13 +1472,12 @@ body { font-family: 'Plus Jakarta Sans', sans-serif; background: #06040f; color:
   border-bottom-color: rgba(0,0,0,.45); border-right-color: rgba(0,0,0,.28);
 }
 
-/* Additional motion & click feedback for lyrics (premium feel) */
+/* Additional motion & click feedback for lyrics (premium feel) — layout-safe */
 .lyric-line {
   transition: color 260ms cubic-bezier(0.23, 1, 0.32, 1),
-              font-size 260ms cubic-bezier(0.23, 1, 0.32, 1),
               opacity 260ms cubic-bezier(0.23, 1, 0.32, 1),
-              transform 260ms cubic-bezier(0.23, 1, 0.32, 1),
-              text-shadow 260ms cubic-bezier(0.23, 1, 0.32, 1);
+              text-shadow 260ms cubic-bezier(0.23, 1, 0.32, 1),
+              background-color 260ms cubic-bezier(0.23, 1, 0.32, 1);
 }
 
 .lyric-line.current {
