@@ -143,7 +143,7 @@ body { font-family: 'Plus Jakarta Sans', sans-serif; background: #06040f; color:
 .win-bar-right { display: flex; align-items: center; gap: 4px; }
 
 .win-title {
-  font-size: 10px; font-weight: 700; letter-spacing: .18em; text-transform: uppercase;
+  font-size: 11px; font-weight: 700; letter-spacing: .18em; text-transform: uppercase;
   color: rgba(0,200,150,.65);
 }
 
@@ -157,6 +157,9 @@ body { font-family: 'Plus Jakarta Sans', sans-serif; background: #06040f; color:
   cursor: pointer; color: rgba(232,0,61,.5);
   transition: background .15s, color .15s, box-shadow .12s, transform .08s, border-color .12s;
   box-shadow: 0 2px 4px rgba(0,0,0,.45), inset 0 1px 0 rgba(255,255,255,.06);
+}
+.win-close .material-symbols-outlined {
+  font-size: 13px; /* ~66% of the 20px circle diameter for consistent icon size */
 }
 .win-close:hover { background: rgba(232,0,61,.45); color: #fff; box-shadow: 0 3px 8px rgba(0,0,0,.5), 0 0 12px rgba(232,0,61,.45); }
 .win-close:active { transform: scale(.9) translateY(1px); }
@@ -837,6 +840,23 @@ body { font-family: 'Plus Jakarta Sans', sans-serif; background: #06040f; color:
   border: 1px solid transparent; transition: background .15s, border-color .15s;
   position: relative;
 }
+.track-title {
+  font-size: 13px;
+  font-weight: 700;
+  color: rgba(233,225,222,.82);
+  margin: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.track-artist {
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  color: rgba(0,200,150,.5);
+  margin: 0;
+}
 .track-item:hover { background: rgba(45,91,255,.07); }
 .track-item.active { background: rgba(45,91,255,.12) !important; border-color: rgba(123,47,255,.3) !important; }
 .track-item.active .track-title { color: #e9e1de !important; }
@@ -870,7 +890,7 @@ body { font-family: 'Plus Jakarta Sans', sans-serif; background: #06040f; color:
   background: rgba(255,255,255,.04);
   border: 1px solid rgba(255,255,255,.07);
   color: var(--baby-blue);
-  font-size: 9px;
+  font-size: 10px;
   font-weight: 700;
   letter-spacing: .1em;
   text-transform: uppercase;
@@ -1134,11 +1154,12 @@ body { font-family: 'Plus Jakarta Sans', sans-serif; background: #06040f; color:
   .player-bottom-row #vol-pct { font-size: 9px !important; min-width: 12px !important; }
   /* larger tap target for player close X (mobile) while keeping exact same closeWin + wireup as gallery/tracklist */
   #player-win .win-close { width: 28px !important; height: 28px !important; }
-  #player-win .win-close .material-symbols-outlined { font-size: 18px !important; }
+  #player-win .win-close .material-symbols-outlined { font-size: 18px !important; } /* ~64% of circle, close to 66% */
 
   /* Homogenized mobile buttons + readable text across the whole site (not just player).
      Consistent tap targets ~24-28px, bumped micro fonts. Dock will measure taller via existing updateMobPlayerHeight. */
-  .win-close { width: 26px !important; height: 26px !important; font-size: 16px !important; }
+  .win-close { width: 26px !important; height: 26px !important; }
+  .win-close .material-symbols-outlined { font-size: 17px !important; } /* ~66% of circle */
 
   #tracklist-win .win-body { padding: 6px !important; }
   .track-item { padding: 7px 8px !important; gap: 6px !important; }
@@ -1235,7 +1256,8 @@ body { font-family: 'Plus Jakarta Sans', sans-serif; background: #06040f; color:
   .mob-btn .material-symbols-outlined { font-size: 22px !important; }
   .win-title { font-size: 13px !important; }
   .win-bar { padding: 11px 14px 10px !important; }
-  .win-close { width: 26px !important; height: 26px !important; font-size: 16px !important; }
+  .win-close { width: 26px !important; height: 26px !important; }
+  .win-close .material-symbols-outlined { font-size: 17px !important; } /* ~66% of circle */
   .track-title { font-size: 16px !important; }
   .track-artist { font-size: 13px !important; }
   .vol-row { padding: 7px 12px !important; }

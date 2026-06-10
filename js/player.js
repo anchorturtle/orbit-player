@@ -166,23 +166,23 @@ const TRACKS = [
     // lyrics hardcoded for reliable loading (dynamic fetch often fails when opening index.html directly via file://)
     // To regenerate: run the sync script, then copy the array here (or serve the site with a web server for dynamic load)
     lyrics: [
-      {"time":24.0,"text":"No stress when i flex"},
+      {"time":24.0,"text":"No stress when I flex"},
       {"time":25.59,"text":"Feel it in the back of ya necks"},
-      {"time":27.179,"text":"Spit straight shots i got next"},
+      {"time":27.179,"text":"Spit straight shots, I got next"},
       {"time":28.769,"text":"Wrist watches stop for this text"},
-      {"time":30.359,"text":"The tip top cream of the crop"},
+      {"time":30.359,"text":"The tip-top cream of the crop"},
       {"time":31.949,"text":"Swept off ya feet for this bop"},
-      {"time":33.538,"text":"I Split seven seas when i rock"},
+      {"time":33.538,"text":"I split seven seas when I rock"},
       {"time":35.128,"text":"Cooking up steez like a crackshot"},
-      {"time":36.718,"text":"I’m The mascot of hittin’ the jackpot"},
+      {"time":36.718,"text":"I’m the mascot of hittin’ the jackpot"},
       {"time":38.308,"text":"A Sasquatch laughing his ass off"},
-      {"time":39.897,"text":"A mothman trippin off bathsalts"},
-      {"time":41.487,"text":"The sugar cane drippin on ya windowpane"},
-      {"time":43.077,"text":"The Profane finger point on both hands to stay sane"},
-      {"time":44.667,"text":"Folks it’s the Ace in the hole"},
-      {"time":46.256,"text":"The best kept secret since Coke"},
+      {"time":39.897,"text":"A Mothman trippin’ off bath salts"},
+      {"time":41.487,"text":"The sugar cane drippin’ on ya windowpane"},
+      {"time":43.077,"text":"The profane finger point on both hands to stay sane"},
+      {"time":44.667,"text":"Folks, it’s the ace in the hole"},
+      {"time":46.256,"text":"The best-kept secret since Coke"},
       {"time":47.846,"text":"Slept on and treated like I’m slow"},
-      {"time":49.436,"text":"Cuz I take my time when I line up these flows"},
+      {"time":49.436,"text":"’Cuz I take my time when I line up these flows"},
       {"time":51.026,"text":"As soon as it enters ya soul"},
       {"time":52.615,"text":"Everything shiny as gold"},
       {"time":54.205,"text":"Feelings that I can’t control"},
@@ -191,12 +191,12 @@ const TRACKS = [
       {"time":58.974,"text":"Real talk that matters the most"},
       {"time":60.564,"text":"The worm inside of the host"},
       {"time":62.154,"text":"Make puppets out of holy ghosts"},
-      {"time":63.744,"text":"Cuz I swear that ya doing the most"},
+      {"time":63.744,"text":"’Cuz I swear that ya doing the most"},
       {"time":65.333,"text":"On the twos and the fours"},
       {"time":66.923,"text":"Ain’t looking for boos or applause"},
       {"time":68.513,"text":"Just tryna find who wit the cause"},
       {"time":70.103,"text":"Pursuit of the finest of awes"},
-      {"time":71.692,"text":"My mind is a pilot got mileage"},
+      {"time":71.692,"text":"My mind is a pilot, got mileage"},
       {"time":73.282,"text":"But they say that no man an island"},
       {"time":74.872,"text":"I feel like I died in asylum"},
       {"time":76.462,"text":"Came back and grew a new phylum"},
@@ -204,7 +204,7 @@ const TRACKS = [
       {"time":79.641,"text":"And still I’m unrivaled"},
       {"time":81.231,"text":"Like hot wax spilling on vinyl"},
       {"time":82.821,"text":"Turn a black sheep into an albino"},
-      {"time":84.41,"text":"Murder I reap blood with the spinal"},
+      {"time":84.41,"text":"Murder I reap, blood with the spinal"},
       {"time":86.0,"text":"And judgment is final"}
     ],
   }
@@ -1138,8 +1138,8 @@ function renderTracklist(filter) {
     el.innerHTML = `
       <div class="drag-handle" title="Drag to reorder"><span class="material-symbols-outlined" style="font-size:16px;pointer-events:none">drag_indicator</span></div>
       <div style="flex:1;min-width:0">
-        <p class="track-title" style="font-size:11px;font-weight:700;color:rgba(233,225,222,.82);margin:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${t.title}</p>
-        <p class="track-artist" style="font-size:8px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:rgba(0,200,150,.5);margin:0">${t.artist}</p>
+        <p class="track-title" style="font-weight:700;color:rgba(233,225,222,.82);margin:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${t.title}</p>
+        <p class="track-artist" style="font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:rgba(0,200,150,.5);margin:0">${t.artist}</p>
       </div>
       <span class="material-symbols-outlined" style="font-size:13px;color:rgba(150,100,255,.3);flex-shrink:0;font-variation-settings:'FILL' 1">music_note</span>`;
     el.addEventListener('click', e => { 
