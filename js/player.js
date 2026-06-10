@@ -1269,6 +1269,51 @@ document.querySelectorAll('.tracklist-tabs .tab').forEach(tab => {
 let lyricsRafId = null;
 let lyricsDesiredScroll = 0;
 let lyricsCurrentScroll = 0;
+let lyricsUserInteracting = false;
+let lyricsUserScrollTimeout = null;
+
+function attachHoldToSeek(lineEl) {
+  let holdTimer = null;
+  lineEl.addEventListener('pointerdown', (e) => {
+    clearTimeout(holdTimer);
+    const startY = e.clientY;
+    holdTimer = setTimeout(() => {
+      // User held long enough on this specific line → deliberate seek
+      const idx = parseInt(lineEl.dataset.index || '0');
+      const track = TRACKS[currentIndex];
+      const lxs = track && track.lyrics ? track.lyrics : [];
+      if (!lxs[idx]) return;
+
+      const targetTime = lxs[idx].time;
+      if (audio) audio.currentTime = targetTime;
+
+      // subtle non-jarring visual confirmation
+      lineEl.classList.add('seek-flash');
+      setTimeout(() => lineEl.classList.remove('seek-flash'), 420);
+
+      // optional tiny indicator at tap point
+      const ind = document.createElement('div');
+      ind.className = 'click-indicator';
+      const r = lineEl.getBoundingClientRect();
+      const frac = (e.clientY - r.top) / Math.max(1, r.height);
+      ind.style.top = `${lineEl.offsetTop + (frac * lineEl.offsetHeight) - 1}px`;
+      ind.style.height = '1.5px';
+      ind.style.opacity = '0.55';
+      const container = document.getElementById('lyrics-lines');
+      if (container) container.appendChild(ind);
+      setTimeout(() => { if (ind.parentNode) ind.parentNode.removeChild(ind); }, 480);
+
+      // after deliberate seek, let auto-follow resume soon
+      lyricsUserInteracting = false;
+      clearTimeout(lyricsUserScrollTimeout);
+    }, 185);
+  }, { passive: true });
+
+  const cancelHold = () => clearTimeout(holdTimer);
+  lineEl.addEventListener('pointerup', cancelHold, { once: true });
+  lineEl.addEventListener('pointercancel', cancelHold, { once: true });
+  lineEl.addEventListener('pointerleave', cancelHold, { once: true });
+}
 
 async function openLyricsViewer() {
   const win = document.getElementById('lyrics-win');
@@ -1334,8 +1379,79 @@ async function updateLyricsViewer() {
     div.textContent = line.text || ' ';
     div.dataset.time = line.time;
     div.dataset.index = idx;
+
+    // Hold-to-seek on individual lines (deliberate action, not accidental during scroll)
+    attachHoldToSeek(div);
+
     linesEl.appendChild(div);
   });
+
+  // --- Free scrolling UX: let user browse lyrics freely without the player yanking the view back ---
+  const scrollEl = document.getElementById('lyrics-scroll');
+  if (scrollEl) {
+    const markUserInteracting = () => {
+      lyricsUserInteracting = true;
+      clearTimeout(lyricsUserScrollTimeout);
+      lyricsUserScrollTimeout = setTimeout(() => {
+        lyricsUserInteracting = false;
+      }, 1350);
+    };
+    scrollEl.addEventListener('scroll', markUserInteracting, { passive: true });
+    scrollEl.addEventListener('touchstart', markUserInteracting, { passive: true });
+    scrollEl.addEventListener('wheel', markUserInteracting, { passive: true });
+
+    // Subtle floating "return to now" button (appears when scrolled away while playing)
+    let jumpBtn = document.getElementById('lyrics-jump-now');
+    if (!jumpBtn) {
+      jumpBtn = document.createElement('button');
+      jumpBtn.id = 'lyrics-jump-now';
+      jumpBtn.className = 'lyrics-jump-btn';
+      jumpBtn.innerHTML = '<span class="material-symbols-outlined" style="font-size:17px; line-height:1">arrow_downward</span><span style="font-size:10px; letter-spacing:.5px; margin-left:2px">NOW</span>';
+      jumpBtn.title = 'Jump back to current lyric';
+      const container = document.getElementById('lyrics-container') || linesEl.parentElement;
+      if (container) {
+        container.style.position = 'relative';
+        container.appendChild(jumpBtn);
+      }
+      jumpBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        lyricsUserInteracting = false;
+        clearTimeout(lyricsUserScrollTimeout);
+        const track = TRACKS[currentIndex];
+        const lxs = track.lyrics || [];
+        if (!lxs.length || !audio) return;
+        const t = audio.currentTime;
+        let idx = 0;
+        for (let i = 0; i < lxs.length; i++) {
+          if (t >= lxs[i].time) idx = i; else break;
+        }
+        const lineElsNow = document.querySelectorAll('#lyrics-lines .lyric-line');
+        const tgt = lineElsNow[idx];
+        if (tgt && scrollEl) {
+          const off = tgt.offsetHeight / 2;
+          const target = tgt.offsetTop + off - (scrollEl.clientHeight / 2);
+          scrollEl.scrollTo({ top: target, behavior: 'smooth' });
+          lyricsDesiredScroll = target;
+        }
+        jumpBtn.style.display = 'none';
+      });
+    }
+
+    // Show the button when user has scrolled meaningfully away from the current line
+    const checkJumpVisibility = () => {
+      if (!jumpBtn || !scrollEl) return;
+      const lineElsNow = document.querySelectorAll('#lyrics-lines .lyric-line');
+      const cur = lineElsNow[currentIdx] || lineElsNow[0];
+      if (!cur) { jumpBtn.style.display = 'none'; return; }
+      const curCenter = cur.offsetTop + cur.offsetHeight / 2;
+      const viewCenter = scrollEl.scrollTop + scrollEl.clientHeight / 2;
+      const away = Math.abs(curCenter - viewCenter) > 95;
+      jumpBtn.style.display = (away && lyricsUserInteracting) ? 'inline-flex' : 'none';
+    };
+    scrollEl.addEventListener('scroll', checkJumpVisibility, { passive: true });
+    // Expose for the RAF tick
+    window.__lyricsCheckJump = checkJumpVisibility;
+  }
 
   // Attach smart click handler to the lines container for "click any part to seek"
   // Supports interpolation between lines for precise playback control.
@@ -1445,9 +1561,10 @@ function syncLyrics() {
 
   // set desired scroll for continuous smooth follow
   // Use fractional position between current and next line for perfect continuous sync
+  // IMPORTANT: only auto-follow if the user is not actively scrolling/browsing the lyrics.
   const currentLine = lineEls[currentIdx];
   const scrollEl = document.getElementById('lyrics-scroll');
-  if (currentLine && scrollEl) {
+  if (currentLine && scrollEl && !lyricsUserInteracting) {
     let targetScroll;
     if (currentIdx < lyrics.length - 1) {
       const nextLine = lineEls[currentIdx + 1];
@@ -1474,11 +1591,14 @@ function startLyricsSyncLoop() {
 
   const tick = () => {
     if (scrollEl) {
-      // smooth easing towards desired
-      lyricsCurrentScroll += (lyricsDesiredScroll - lyricsCurrentScroll) * 0.085;
-      scrollEl.scrollTop = lyricsCurrentScroll;
+      // Floaty, non-jarring follow. Much slower lerp so user can freely scroll and read ahead.
+      if (!lyricsUserInteracting) {
+        lyricsCurrentScroll += (lyricsDesiredScroll - lyricsCurrentScroll) * 0.042;
+        scrollEl.scrollTop = lyricsCurrentScroll;
+      }
     }
     syncLyrics();
+    if (window.__lyricsCheckJump) window.__lyricsCheckJump();
     lyricsRafId = requestAnimationFrame(tick);
   };
   lyricsRafId = requestAnimationFrame(tick);

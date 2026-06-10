@@ -97,15 +97,15 @@ function applyDesktopLayout() {
     pl.style.bottom = ''; pl.style.right = '';
   }
 
-  // Lyrics viewer: center top middle, 30% more narrow, 10% shorter on bottom (to avoid cutting media player)
+  // Lyrics viewer: center top middle. Default 15% narrower. Leaves room at bottom for media player.
   const ly = document.getElementById('lyrics-win');
   if (ly && ly.dataset.userPositioned !== 'true') {
-    const lyW = Math.min(480, Math.max(340, vw * 0.406)); // 30% narrower (0.58*0.7)
-    const lyH = Math.min(520, usableH * 0.58); // ~15% shorter height for 10% less on bottom + clearance for player
+    const lyW = Math.min(410, Math.max(300, vw * 0.345)); // 15% narrower default
+    const lyH = Math.min(520, usableH * 0.62);
     ly.style.width = lyW + 'px';
     ly.style.height = lyH + 'px';
     ly.style.left = Math.max(PAD, (vw - lyW) / 2) + 'px';
-    ly.style.top = Math.max(28, Math.floor(vh * 0.045)) + 'px'; // top-ish center
+    ly.style.top = Math.max(24, Math.floor(vh * 0.04)) + 'px';
     ly.style.bottom = '';
     ly.style.right = '';
   }
