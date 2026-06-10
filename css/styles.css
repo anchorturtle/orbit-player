@@ -1317,8 +1317,11 @@ body { font-family: 'Plus Jakarta Sans', sans-serif; background: #06040f; color:
   letter-spacing: -.01em;
   color: #e9e1de;
   text-align: center;
-  padding-right: 40px; /* reserve space so long titles don't go under the absolute copy button */
-  box-sizing: border-box;
+  /* Center the title block while reserving space on the right for the absolute copy button.
+     Using max-width + auto margins keeps the visual center of the text aligned to the window center. */
+  max-width: calc(100% - 70px);
+  margin: 0 auto;
+  display: block;
 }
 
 .lyrics-copy-btn {
@@ -1361,6 +1364,9 @@ body { font-family: 'Plus Jakarta Sans', sans-serif; background: #06040f; color:
   color: rgba(0,200,150,0.65);
   text-align: center;
   margin-top: 2px;
+  max-width: calc(100% - 70px);
+  margin-left: auto;
+  margin-right: auto;
 }
 
 .lyrics-container {
