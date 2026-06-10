@@ -1455,7 +1455,9 @@ async function updateLyricsViewer() {
   if (currentIndex < 0 || !TRACKS[currentIndex]) {
     titleEl.textContent = '—';
     artistEl.textContent = '';
-    linesEl.innerHTML = '<div class="lyric-line" style="color:rgba(233,225,222,0.4); font-size:1.1rem;">No track selected.</div>';
+    linesEl.innerHTML = '';
+    const copyBtnEmpty = document.getElementById('btn-copy-lyrics');
+    if (copyBtnEmpty) copyBtnEmpty.style.display = 'none';
     return;
   }
 
@@ -1509,7 +1511,6 @@ async function updateLyricsViewer() {
 
   const lyrics = track.lyrics || [];
   if (lyrics.length === 0) {
-    linesEl.innerHTML = '<div class="lyric-line" style="color:rgba(233,225,222,0.4); font-size:1.1rem;">Lyrics not available for this track yet.<br>(For local file:// open, lyrics must be embedded in js/player.js TRACKS.)</div>';
     if (copyBtn) copyBtn.style.display = 'none';
     return;
   }
