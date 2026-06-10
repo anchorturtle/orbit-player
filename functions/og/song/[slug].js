@@ -18,6 +18,7 @@ export async function onRequest(context) {
     'the-sum-of-hippy-thoughts': { title: 'The Sum Of Hippy Thoughts', artist: 'jestR' },
     'what-dreams-may-come': { title: 'What Dreams May Come', artist: 'jestR' },
     'spin-cycle': { title: 'Spin Cycle', artist: 'jestR' },
+    'jazzpot': { title: 'Jazzpot', artist: 'jestR' },
   };
 
   const track = tracks[slug] || { title: 'Track', artist: 'jestR' };
