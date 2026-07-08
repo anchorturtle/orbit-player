@@ -1173,15 +1173,16 @@ html.orbit-resizing .win {
 .gallery-item-video .gallery-video-glass-play {
   width: 52px; height: 52px; border-radius: 50%;
   display: flex; align-items: center; justify-content: center;
-  background: rgba(255,255,255,.07);
-  border: 1px solid rgba(255,255,255,.14);
-  border-top-color: rgba(255,255,255,.22);
-  box-shadow: 0 6px 22px rgba(0,0,0,.45), inset 0 1px 0 rgba(255,255,255,.1);
+  background: rgba(126, 200, 227, 0.28);
+  border: 1px solid rgba(200, 235, 245, 0.5);
+  border-top-color: rgba(255, 255, 255, 0.55);
+  box-shadow: 0 6px 22px rgba(0,0,0,.4), 0 0 20px rgba(126,200,227,.25),
+    inset 0 1px 0 rgba(255,255,255,.22);
   backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
 }
 .gallery-item-video .gallery-video-glass-play .material-symbols-outlined {
-  font-size: 30px; color: var(--baby-blue); margin-left: 3px;
-  filter: drop-shadow(0 0 10px rgba(126,200,227,.55));
+  font-size: 30px; color: #fff; margin-left: 3px;
+  filter: drop-shadow(0 1px 5px rgba(0,0,0,.35));
   font-variation-settings: 'FILL' 1;
 }
 @media (hover: none) and (pointer: coarse) {

@@ -1,6 +1,9 @@
-"""1200x630 link-preview card: video frame + orbit glass play (no VIDEO badge)."""
+"""1200x630 link-preview: clean video frame + baby-blue glass disc + white play."""
 from PIL import Image, ImageDraw
 import os
+
+BABY = (126, 200, 227)
+WHITE = (255, 255, 255)
 
 src = os.path.join(os.path.dirname(__file__), "..", "videos", "jazzpotwax-poster.jpg")
 out = os.path.join(os.path.dirname(__file__), "..", "videos", "jazzpotwax-og.jpg")
@@ -17,43 +20,30 @@ im = im.crop((left, top, left + target[0], top + target[1]))
 
 draw = ImageDraw.Draw(im, "RGBA")
 cx, cy = target[0] // 2, target[1] // 2
+r = 62
 
-# Soft vignette (readability, still shows the frame)
-for i in range(8):
-    pad = i * 18
-    alpha = int(12 + i * 4)
-    draw.rectangle(
-        (pad, pad, target[0] - pad, target[1] - pad),
-        outline=(3, 2, 10, alpha),
-        width=2,
+# Soft radial edge (no boxy rectangles)
+for spread, alpha in ((92, 22), (78, 38), (r, 88)):
+    draw.ellipse(
+        (cx - spread, cy - spread, cx + spread, cy + spread),
+        fill=(*BABY, alpha),
     )
 
-# Glass play: outer glow ring (baby-blue, not purple)
-r_outer = 78
-draw.ellipse(
-    (cx - r_outer, cy - r_outer, cx + r_outer, cy + r_outer),
-    fill=(126, 200, 227, 28),
-    outline=(126, 200, 227, 90),
-    width=2,
-)
-
-# Frosted disc
-r = 64
+# Glass rim + specular highlight
 draw.ellipse(
     (cx - r, cy - r, cx + r, cy + r),
-    fill=(255, 255, 255, 38),
-    outline=(233, 225, 222, 200),
+    fill=(*BABY, 95),
+    outline=(220, 242, 250, 230),
     width=3,
 )
 draw.ellipse(
-    (cx - r + 6, cy - r + 6, cx + r - 6, cy - r + 6),
-    fill=(3, 2, 10, 120),
-    outline=None,
+    (cx - r * 0.72, cy - r * 0.92, cx + r * 0.72, cy - r * 0.05),
+    fill=(255, 255, 255, 55),
 )
 
-# Play triangle (baby-blue)
-tri = [(cx - 18, cy - 32), (cx - 18, cy + 32), (cx + 34, cy)]
-draw.polygon(tri, fill=(126, 200, 227, 245))
+# White play triangle
+tri = [(cx - 15, cy - 28), (cx - 15, cy + 28), (cx + 30, cy)]
+draw.polygon(tri, fill=(*WHITE, 252))
 
 im.save(out, quality=90)
 print("wrote", out, os.path.getsize(out))
