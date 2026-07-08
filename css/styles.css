@@ -45,7 +45,11 @@ body { font-family: 'Plus Jakarta Sans', sans-serif; background: #06040f; color:
               #04020c;
 }
 #stars-canvas { position: fixed; inset: 0; z-index: 0; pointer-events: none; }
-#space3d-canvas { position: fixed; inset: 0; z-index: 0; pointer-events: none; display: block; }
+#space3d-canvas {
+  position: fixed; inset: 0; z-index: 0; pointer-events: none; display: block;
+  transform: translateZ(0);
+  contain: strict;
+}
 
 /* ── Focal "NOW PLAYING" overlay (floats on the live 3D planet) ── */
 .focal-backdrop {
@@ -87,14 +91,9 @@ body { font-family: 'Plus Jakarta Sans', sans-serif; background: #06040f; color:
 .grain-overlay {
   position: fixed; inset: 0; pointer-events: none; z-index: 200; opacity: var(--grain-opacity);
   background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
-  /* 0.1s thrash forced full-screen repaints ~10×/s; slow steps keep film grain without killing fps. */
-  animation: grain-shift 1.4s steps(2) infinite; mix-blend-mode: overlay;
+  /* Static film grain - animated grain was continuous full-screen composite cost. */
+  mix-blend-mode: soft-light;
   contain: strict;
-}
-@keyframes grain-shift {
-  0%   { transform: translate3d(0, 0, 0); }
-  50%  { transform: translate3d(-1px, 1px, 0); }
-  100% { transform: translate3d(0, 0, 0); }
 }
 
 .scanlines {
@@ -165,9 +164,9 @@ body { font-family: 'Plus Jakarta Sans', sans-serif; background: #06040f; color:
   background:
     linear-gradient(165deg, rgba(123,47,255,.07) 0%, transparent 38%),
     var(--win-bg);
-  /* 40px reads as the same frosted glass as 52px over WebGL; much cheaper to composite. */
-  backdrop-filter: blur(40px) saturate(1.9) brightness(1.05);
-  -webkit-backdrop-filter: blur(40px) saturate(1.9) brightness(1.05);
+  /* Focused window blur: 32px still frosted over WebGL. */
+  backdrop-filter: blur(32px) saturate(1.85) brightness(1.05);
+  -webkit-backdrop-filter: blur(32px) saturate(1.85) brightness(1.05);
   border: 1px solid var(--win-border);
   border-radius: var(--win-radius);
   box-shadow: var(--win-shadow);
@@ -175,13 +174,18 @@ body { font-family: 'Plus Jakarta Sans', sans-serif; background: #06040f; color:
   display: flex; flex-direction: column;
   contain: layout style paint;
 }
-/* Background windows: lighter compositor cost; focused window stays full glass. */
+/* Background windows: no backdrop-filter (multi-window blur was ~15fps killer).
+   Solid glass fill still reads layered; focused .win-glass-full keeps real blur. */
 .win.win-glass-lite {
-  backdrop-filter: blur(12px) saturate(1.5) brightness(1.03);
-  -webkit-backdrop-filter: blur(12px) saturate(1.5) brightness(1.03);
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
   background:
-    linear-gradient(165deg, rgba(123,47,255,.06) 0%, transparent 38%),
-    rgba(5, 3, 18, 0.84);
+    linear-gradient(165deg, rgba(123,47,255,.09) 0%, transparent 42%),
+    rgba(6, 4, 18, 0.92);
+  box-shadow:
+    0 16px 40px rgba(0,0,0,.55),
+    0 0 0 1px rgba(123,47,255,.10),
+    inset 0 1px 0 rgba(255,255,255,.08);
 }
 html.orbit-resizing .win {
   backdrop-filter: none !important;
@@ -225,8 +229,8 @@ html.orbit-resizing .win {
   position: absolute; left: 10%; right: 10%; bottom: -1px; height: 1px;
   background: linear-gradient(90deg, transparent, rgba(123,47,255,.55), rgba(45,91,255,.45), rgba(0,200,150,.35), transparent);
   background-size: 200% 100%;
-  animation: barShimmer 7s linear infinite;
-  opacity: .55;
+  animation: none;
+  opacity: .45;
   pointer-events: none;
 }
 @keyframes barShimmer {
@@ -1780,8 +1784,9 @@ html.orbit-resizing .win {
   position: absolute; left: 14%; right: 14%; top: -1px; height: 1px;
   background: linear-gradient(90deg, transparent, rgba(123,47,255,.7), rgba(0,200,150,.5), transparent);
   background-size: 200% 100%;
-  animation: barShimmer 6s linear infinite;
+  animation: none;
   pointer-events: none;
+  opacity: .55;
 }
 #dock-win .win-body {
   flex-direction: row; align-items: center; justify-content: center;
@@ -1828,7 +1833,7 @@ html.orbit-resizing .win {
   position: absolute; left: 8%; right: 8%; top: -1px; height: 1px;
   background: linear-gradient(90deg, transparent, rgba(123,47,255,.65), rgba(0,200,150,.45), transparent);
   background-size: 200% 100%;
-  animation: barShimmer 6s linear infinite;
+  animation: none;
   pointer-events: none;
 }
 .mob-btn {

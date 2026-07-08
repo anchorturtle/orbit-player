@@ -562,11 +562,19 @@ audio.addEventListener('durationchange', () => { tryUpdateDuration(); applySaved
 audio.addEventListener('playing', ensureAudioContextRunning);
 audio.addEventListener('play', ensureAudioContextRunning);
 
+let _waveDrawRaf = 0;
+let _waveDrawPct = 0;
 function setProgress(pct) {
   document.getElementById('progress-fill').style.width = pct + '%';
   document.getElementById('progress-thumb').style.left = pct + '%';
-  // update waveform played portion live
-  if (currentWaveform) drawWaveform(pct / 100);
+  // Waveform redraw is expensive (many bars + shadowBlur) - coalesce to one paint/frame
+  if (!currentWaveform) return;
+  _waveDrawPct = pct / 100;
+  if (_waveDrawRaf) return;
+  _waveDrawRaf = requestAnimationFrame(() => {
+    _waveDrawRaf = 0;
+    drawWaveform(_waveDrawPct);
+  });
 }
 
 function seekToPct(pct) {
@@ -723,8 +731,8 @@ function drawWaveform(playedFrac = 0) {
 
     // main bar — played glows in the song's accent, rest sits back in the haze
     if (played) {
-      ctx.shadowBlur = 5;
-      ctx.shadowColor = hexToRgba(colC, 0.6);
+      // No per-bar shadowBlur (GPU tax); glow via brighter fill instead
+      ctx.shadowBlur = 0;
       ctx.fillStyle = hexToRgba(colC, 0.95);
     } else {
       ctx.shadowBlur = 0;

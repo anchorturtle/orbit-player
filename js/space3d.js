@@ -92,6 +92,8 @@
   renderer.setPixelRatio(effectiveDPR());
   renderer.setSize(window.innerWidth, window.innerHeight);
   renderer.outputEncoding = THREE.sRGBEncoding;
+  // Cheaper path: no MSAA, no auto object sort thrash on static-ish scene graph
+  renderer.sortObjects = false;
 
   const scene = new THREE.Scene();
   const camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 500);
@@ -234,7 +236,7 @@
   /* ════════════════ AUDIO TEXTURES ════════════════
      Live time-domain waveform + frequency spectrum, uploaded every frame
      and fed to the aurora shell — light, not geometry. */
-  const WAVE_W = 128;
+  const WAVE_W = 64;
   const waveArr = new Uint8Array(WAVE_W * 4);
   for (let i = 0; i < WAVE_W; i++) waveArr[i * 4] = 128; // silence = center
   const waveTex = new THREE.DataTexture(waveArr, WAVE_W, 1, THREE.RGBAFormat);
@@ -267,7 +269,7 @@
     new THREE.SphereGeometry(PLANET_R, PLANET_SEG_W, PLANET_SEG_H),
     new THREE.ShaderMaterial({
       uniforms: planetUniforms,
-      defines: { FBM_OCT: 3 },
+      defines: { FBM_OCT: 2 },
       vertexShader: `
         varying vec3 vNormal;
         varying vec3 vPos;
@@ -497,7 +499,7 @@
     return { mesh, u };
   }
   const auroraShells = [
-    makeAuroraShell(1.07, 0.0, 0.72, 1.0, 3),  // dense inner fog (planet stays the anchor)
+    makeAuroraShell(1.07, 0.0, 0.72, 1.0, 2),  // dense inner fog (2 octaves — quality preserved via soft additive)
     makeAuroraShell(1.21, 7.3, 1.45, 0.5, 2)   // wild outer veil, cheap noise (it's faint)
   ];
 
@@ -1338,8 +1340,8 @@
       if (typeof audioContext !== 'undefined' && audioContext &&
           typeof gainNode !== 'undefined' && gainNode) {
         analyser = audioContext.createAnalyser();
-        analyser.fftSize = 512;
-        analyser.smoothingTimeConstant = 0.78;
+        analyser.fftSize = 256;
+        analyser.smoothingTimeConstant = 0.8;
         gainNode.connect(analyser); // parallel tap, does not affect output
         freqData = new Uint8Array(analyser.frequencyBinCount);
         timeData = new Uint8Array(analyser.fftSize);
@@ -1347,20 +1349,27 @@
     } catch (e) { /* audio graph not ready yet */ }
   }
 
+  let _audioTexFrame = 0;
   function sampleAudio() {
     if (!analyser) { tryHookAudio(); return; }
     try {
       analyser.getByteFrequencyData(freqData);
-      analyser.getByteTimeDomainData(timeData);
 
       let bass = 0, all = 0;
-      const bassBins = 10;
+      const bassBins = Math.min(10, freqData.length);
       for (let i = 1; i < bassBins; i++) bass += freqData[i];
-      for (let i = 0; i < freqData.length; i++) all += freqData[i];
-      bass = bass / (bassBins - 1) / 255;
-      all = all / freqData.length / 255;
+      // Coarse mean: sample every 2nd bin (same visual energy, half the reads)
+      for (let i = 0; i < freqData.length; i += 2) all += freqData[i];
+      bass = bass / Math.max(1, bassBins - 1) / 255;
+      all = all / Math.max(1, (freqData.length / 2)) / 255;
       bassSm += (bass - bassSm) * 0.18;
       levelSm += (all - levelSm) * 0.12;
+
+      // GPU texture uploads at ~30Hz — aurora still reads smooth due to shader lerp
+      _audioTexFrame++;
+      if ((_audioTexFrame & 1) === 0) return;
+
+      analyser.getByteTimeDomainData(timeData);
 
       // upload live waveform → aurora phase/shimmer texture
       const step = timeData.length / WAVE_W;
@@ -1368,7 +1377,7 @@
         waveArr[i * 4] = timeData[Math.floor(i * step)];
       }
       // feather the seam so the wrap point doesn't crack the shell
-      const FE = 9;
+      const FE = 6;
       for (let i = 0; i < FE; i++) {
         const k = i / FE;
         const idx = (WAVE_W - FE + i) * 4;
@@ -1377,7 +1386,8 @@
       waveTex.needsUpdate = true;
 
       // upload spectrum → aurora curtain energy (low bins = most musical info)
-      for (let i = 0; i < FREQ_W; i++) {
+      const nFreq = Math.min(FREQ_W, freqData.length);
+      for (let i = 0; i < nFreq; i++) {
         // gentle temporal smoothing keeps the light analog, never strobing
         freqArr[i * 4] = Math.round(freqArr[i * 4] * 0.6 + freqData[i] * 0.4);
       }
