@@ -105,10 +105,19 @@
         <button class="win-close" id="close-gallery" title="Close"><span class="material-symbols-outlined">close</span></button>
       </div>
     </div>
-    <div class="win-body" style="padding:10px;">
-      <!-- Use the exact same scroller pattern as the tracklist (#sidebar-tracklist) -->
+    <div class="win-body" style="padding:10px;gap:8px">
+      <div class="tracklist-tabs gallery-tabs">
+        <button class="tab active" data-gallery-tab="images">Images</button>
+        <button class="tab" data-gallery-tab="videos">Videos</button>
+      </div>
+      <!-- Same scroller pattern as tracklist (#sidebar-tracklist) -->
       <div style="flex:1; overflow-y:auto; display:block; padding:0 6px 0 0; position:relative" class="no-scrollbar" id="gallery-scroll-container">
-        <div class="gallery-grid" id="gw-grid"></div>
+        <div class="gallery-panel" id="gallery-panel-images">
+          <div class="gallery-grid" id="gw-grid"></div>
+        </div>
+        <div class="gallery-panel" id="gallery-panel-videos" hidden>
+          <div class="gallery-grid" id="gw-videos-grid"></div>
+        </div>
       </div>
     </div>
   </div>
@@ -216,6 +225,41 @@
       <img id="image-win-img" src="" alt="" style="max-width:100%;max-height:100%;border-radius:8px;object-fit:contain;display:block;position:relative;z-index:1"/>
       <div class="img-nav img-nav-prev" id="img-nav-prev"><span class="material-symbols-outlined img-nav-icon">chevron_left</span></div>
       <div class="img-nav img-nav-next" id="img-nav-next"><span class="material-symbols-outlined img-nav-icon">chevron_right</span></div>
+    </div>
+  </div>
+
+  <!-- VIDEO VIEWER WINDOW -->
+  <div id="video-win" class="win" style="z-index:500;display:none">
+    <div class="win-resize nw" data-dir="nw"></div><div class="win-resize ne" data-dir="ne"></div>
+    <div class="win-resize sw" data-dir="sw"></div><div class="win-resize se" data-dir="se"></div>
+    <div class="win-resize n" data-dir="n"></div><div class="win-resize s" data-dir="s"></div>
+    <div class="win-resize e" data-dir="e"></div><div class="win-resize w" data-dir="w"></div>
+    <div class="win-bar" id="video-win-bar">
+      <div class="win-bar-left">
+        <span class="material-symbols-outlined" style="font-size:12px;color:rgba(150,100,255,.5)">drag_indicator</span>
+        <span class="win-title" id="video-win-title">Video</span>
+      </div>
+      <div class="win-bar-right">
+        <button class="win-close" id="close-video-win" title="Close"><span class="material-symbols-outlined">close</span></button>
+      </div>
+    </div>
+    <div class="win-body orbit-video-body">
+      <div class="orbit-video-stage">
+        <video id="video-win-player" playsinline preload="metadata"></video>
+      </div>
+      <div class="orbit-video-controls">
+        <button type="button" class="ctrl-btn orbit-video-btn" id="video-btn-play" title="Play / Pause">
+          <span class="material-symbols-outlined" id="video-btn-play-icon">play_arrow</span>
+        </button>
+        <div class="orbit-video-seek-wrap">
+          <input type="range" id="video-seek" min="0" max="1000" value="0" step="1" aria-label="Seek"/>
+        </div>
+        <span class="tape-counter orbit-video-time" id="video-time">0:00 / 0:00</span>
+        <button type="button" class="ctrl-btn orbit-video-btn" id="video-btn-mute" title="Mute">
+          <span class="material-symbols-outlined" id="video-btn-mute-icon">volume_up</span>
+        </button>
+        <input type="range" id="video-vol" class="orbit-video-vol" min="0" max="100" value="100" aria-label="Volume"/>
+      </div>
     </div>
   </div>
 
