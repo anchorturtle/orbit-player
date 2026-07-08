@@ -1,7 +1,7 @@
-# Workers asset upload: jazzpotwax.mp4 is ~211 MiB (limit 25 MiB). UI + posters deploy; MP4 loads from GitHub media on prod.
+videos/jazzpotwax.mp4
 videos/*.mp4
-node_modules/
-dist/
-.git/
-.hermes/
-.wrangler/
+**/node_modules
+**/.git
+**/.hermes
+**/.wrangler
+**/dist
