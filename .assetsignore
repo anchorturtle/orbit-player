@@ -1,12 +1,2 @@
-# Cloudflare Workers static assets: max 25 MiB per file (see wrangler assets upload).
-# Large media stays in git/LFS for local dev but is NOT bundled on deploy — host on R2/CDN.
-
+# Workers asset upload: jazzpotwax.mp4 is ~211 MiB (limit 25 MiB). UI + posters deploy; MP4 loads from GitHub media on prod.
 videos/*.mp4
-
-# Never upload dev / tooling trees
-node_modules/
-.git/
-.hermes/
-.wrangler/
-.dev.vars
-.env

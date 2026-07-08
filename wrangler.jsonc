@@ -2,27 +2,13 @@
   "$schema": "node_modules/wrangler/config-schema.json",
   "name": "orbit-player",
   "compatibility_date": "2025-09-27",
-  "pages_build_output_dir": "dist",
-  "build": {
-    "command": "npm run build"
-  },
   "observability": {
     "enabled": true
   },
   "assets": {
-    "directory": "./dist"
+    "directory": "."
   },
   "compatibility_flags": [
     "nodejs_compat"
-  ],
-  "routes": [
-    {
-      "pattern": "www.anchorturtle.com",
-      "custom_domain": true
-    },
-    {
-      "pattern": "anchorturtle.com",
-      "custom_domain": true
-    }
   ]
 }

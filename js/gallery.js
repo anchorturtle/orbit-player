@@ -62,16 +62,16 @@ const VIDEOS = [
   },
 ];
 
-/** Workers deploy skips large MP4s (.assetsignore); optional CDN base in index.html */
-function orbitMediaUrl(relativePath) {
-  const path = String(relativePath || '').replace(/^\//, '');
-  const base = (typeof window !== 'undefined' && window.ORBIT_MEDIA_CDN) || '';
-  if (!base) return path;
-  return `${String(base).replace(/\/$/, '')}/${path}`;
-}
-
+/** Deploy skips large MP4s (.assetsignore); on anchorturtle.com load from GitHub media (same repo). */
 function videoSrcForEntry(v) {
-  return orbitMediaUrl(v.src);
+  const rel = String(v.src || '').replace(/^\//, '');
+  if (/^https?:\/\//i.test(rel)) return rel;
+  const host = typeof location !== 'undefined' ? location.hostname : '';
+  const isLocal = host === 'localhost' || host === '127.0.0.1';
+  if (!isLocal && /\.mp4$/i.test(rel)) {
+    return `https://media.githubusercontent.com/media/anchorturtle/orbit-player/main/${rel}`;
+  }
+  return rel;
 }
 
 function findVideoBySlug(slug) {
