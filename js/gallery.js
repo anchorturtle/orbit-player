@@ -86,6 +86,49 @@ function videoShareUrl(slug) {
   return `${location.origin}/video/${slug}`;
 }
 
+function videoDownloadFilename(entry) {
+  const rel = String(entry?.src || 'video.mp4').replace(/^\//, '');
+  const parts = rel.split('/');
+  return parts[parts.length - 1] || 'video.mp4';
+}
+
+function downloadCurrentVideo() {
+  const entry = VIDEOS[_videoIdx];
+  if (!entry) return;
+  const rel = videoSrcForEntry(entry);
+  const url = /^https?:\/\//i.test(rel) ? rel : new URL(rel, window.location.href).href;
+  const filename = videoDownloadFilename(entry);
+  const btn = document.getElementById('video-btn-download');
+
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = filename;
+  a.rel = 'noopener';
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+
+  const sameOrigin = url.startsWith(window.location.origin);
+  if (typeof showToast === 'function') {
+    showToast(
+      sameOrigin
+        ? 'Download started'
+        : 'Download started (~200 MB). If it opens in the browser, use Save or Share → Save.',
+      3200
+    );
+  }
+  if (btn) {
+    const icon = btn.querySelector('.material-symbols-outlined');
+    const prev = icon ? icon.textContent : '';
+    if (icon) icon.textContent = 'check';
+    btn.classList.add('copied');
+    setTimeout(() => {
+      if (icon && prev) icon.textContent = prev;
+      btn.classList.remove('copied');
+    }, 1600);
+  }
+}
+
 let currentGalleryTab = 'images';
 
 function setGalleryTab(tab) {
@@ -845,6 +888,14 @@ function setVideoVolume(pct) {
         player.muted = true;
         syncVideoUi();
       }
+      return;
+    }
+
+    const downloadBtn = e.target.closest('#video-btn-download');
+    if (downloadBtn) {
+      e.stopPropagation();
+      e.stopImmediatePropagation();
+      downloadCurrentVideo();
       return;
     }
 
