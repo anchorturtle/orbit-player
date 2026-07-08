@@ -1,0 +1,12 @@
+# Cloudflare Workers static assets: max 25 MiB per file (see wrangler assets upload).
+# Large media stays in git/LFS for local dev but is NOT bundled on deploy — host on R2/CDN.
+
+videos/*.mp4
+
+# Never upload dev / tooling trees
+node_modules/
+.git/
+.hermes/
+.wrangler/
+.dev.vars
+.env

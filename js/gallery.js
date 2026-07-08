@@ -62,6 +62,18 @@ const VIDEOS = [
   },
 ];
 
+/** Workers deploy skips large MP4s (.assetsignore); optional CDN base in index.html */
+function orbitMediaUrl(relativePath) {
+  const path = String(relativePath || '').replace(/^\//, '');
+  const base = (typeof window !== 'undefined' && window.ORBIT_MEDIA_CDN) || '';
+  if (!base) return path;
+  return `${String(base).replace(/\/$/, '')}/${path}`;
+}
+
+function videoSrcForEntry(v) {
+  return orbitMediaUrl(v.src);
+}
+
 function findVideoBySlug(slug) {
   return VIDEOS.findIndex(v => v.slug === slug);
 }
@@ -505,12 +517,15 @@ function openVideoWin(idx) {
   titleEl.textContent = entry.title || 'Video';
   document.title = (entry.title || 'Video') + ' | AnchorTurtle';
 
-  const nextSrc = new URL(entry.src, window.location.href).href;
+  const mediaSrc = videoSrcForEntry(entry);
+  const nextSrc = /^https?:\/\//i.test(mediaSrc)
+    ? mediaSrc
+    : new URL(mediaSrc, window.location.href).href;
   const hadSrc = !!(player.currentSrc || player.getAttribute('src'));
   const sameSrc = hadSrc && (player.currentSrc === nextSrc || player.src === nextSrc);
 
   if (!sameSrc) {
-    player.src = entry.src;
+    player.src = mediaSrc;
     if (entry.poster) player.setAttribute('poster', entry.poster);
     else player.removeAttribute('poster');
     player.currentTime = 0;
