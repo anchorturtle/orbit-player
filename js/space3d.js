@@ -1438,6 +1438,9 @@
 
     governFps(rawDt);
     if (document.documentElement.classList.contains('orbit-resizing')) return;
+    const videoWinEl = document.getElementById('video-win');
+    const fsEl = document.fullscreenElement || document.webkitFullscreenElement;
+    if (videoWinEl && fsEl === videoWinEl) return;
     sampleAudio();
     watchTrack(dt);
 

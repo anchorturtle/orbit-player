@@ -213,6 +213,9 @@ function makeWindowDraggable(winId, barId) {
     if (winId === 'video-win' && typeof nudgeVideoPaint === 'function') {
       nudgeVideoPaint(document.getElementById('video-win-player'));
     }
+    if (winId === 'video-win' && typeof captureVideoWinGeometry === 'function') {
+      captureVideoWinGeometry(win);
+    }
   }
 
   bar.addEventListener('mousedown', e => startOp(e, 'drag'));
@@ -447,6 +450,16 @@ makeWindowDraggable('lyrics-win', 'lyrics-bar');
       }
       if (typeof clampWindowToViewport === 'function') {
         requestAnimationFrame(() => clampWindowToViewport(iw, 8));
+      }
+    }
+
+    const vwWin = document.getElementById('video-win');
+    if (vwWin && vwWin.style.display === 'flex' && !isVideoFullscreenActive?.()) {
+      if (vwWin.dataset.userPositioned !== 'true' && typeof layoutVideoWinDefault === 'function') {
+        layoutVideoWinDefault(vwWin);
+      }
+      if (typeof clampWindowToViewport === 'function') {
+        requestAnimationFrame(() => clampWindowToViewport(vwWin, 8));
       }
     }
 

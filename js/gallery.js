@@ -286,6 +286,84 @@ function fmtTime(sec) {
 }
 
 let _videoIdx = 0;
+let _videoPreFsRect = null;
+let _videoUiRaf = 0;
+
+function scheduleSyncVideoUi() {
+  if (_videoUiRaf) return;
+  _videoUiRaf = requestAnimationFrame(() => {
+    _videoUiRaf = 0;
+    syncVideoUi();
+  });
+}
+
+/** Pin + remember window box before native fullscreen (exit FS must not leave 100vw inline). */
+function captureVideoWinGeometry(win) {
+  if (!win || isMob()) return;
+  const r = win.getBoundingClientRect();
+  _videoPreFsRect = {
+    left: Math.round(r.left) + 'px',
+    top: Math.round(r.top) + 'px',
+    width: Math.round(r.width) + 'px',
+    height: Math.round(r.height) + 'px',
+    userPositioned: win.dataset.userPositioned === 'true',
+  };
+  win.style.left = _videoPreFsRect.left;
+  win.style.top = _videoPreFsRect.top;
+  win.style.width = _videoPreFsRect.width;
+  win.style.height = _videoPreFsRect.height;
+  win.style.bottom = '';
+  win.style.right = '';
+  win.style.maxWidth = '';
+  win.style.maxHeight = '';
+}
+
+function restoreVideoWinAfterFullscreen() {
+  const win = document.getElementById('video-win');
+  if (!win || win.style.display !== 'flex' || isMob()) return;
+  const rect = _videoPreFsRect;
+  const apply = () => {
+    if (rect) {
+      win.style.left = rect.left;
+      win.style.top = rect.top;
+      win.style.width = rect.width;
+      win.style.height = rect.height;
+      win.style.bottom = '';
+      win.style.right = '';
+      win.style.maxWidth = '';
+      win.style.maxHeight = '';
+      if (rect.userPositioned) win.dataset.userPositioned = 'true';
+    } else if (win.dataset.userPositioned !== 'true') {
+      const vw = window.innerWidth;
+      const vh = window.innerHeight;
+      const w = Math.min(720, vw - 80);
+      const h = Math.min(540, vh - 120);
+      win.style.width = w + 'px';
+      win.style.height = h + 'px';
+      win.style.left = ((vw - w) / 2) + 'px';
+      win.style.top = ((vh - h) / 2) + 'px';
+      win.style.bottom = '';
+      win.style.right = '';
+    }
+    if (typeof clampWindowToViewport === 'function') clampWindowToViewport(win, 8);
+    if (typeof syncWindowGlassTiers === 'function') syncWindowGlassTiers();
+    nudgeVideoPaint(document.getElementById('video-win-player'));
+  };
+  requestAnimationFrame(() => requestAnimationFrame(apply));
+}
+
+function layoutVideoWinDefault(win) {
+  const vw = window.innerWidth;
+  const vh = window.innerHeight;
+  const w = Math.min(720, vw - 80);
+  const h = Math.min(540, vh - 120);
+  win.style.width = w + 'px';
+  win.style.height = h + 'px';
+  win.style.left = ((vw - w) / 2) + 'px';
+  win.style.top = ((vh - h) / 2) + 'px';
+  win.style.bottom = '';
+  win.style.right = '';
+}
 
 /** Fix Chrome frozen video frame after window resize (audio keeps going). */
 function nudgeVideoPaint(player) {
@@ -457,6 +535,7 @@ function onVideoFullscreenLeave() {
   if (win) {
     win.classList.remove('video-fs-pointer-in-zone', 'video-fs-chrome-hidden');
   }
+  restoreVideoWinAfterFullscreen();
 }
 
 function bindVideoFsChromeListeners() {
@@ -477,6 +556,7 @@ function toggleVideoFullscreen() {
     if (exit) exit.call(doc);
     return;
   }
+  captureVideoWinGeometry(win);
   const req = win.requestFullscreen || win.webkitRequestFullscreen;
   if (req) {
     req.call(win)
@@ -545,23 +625,18 @@ function openVideoWin(idx) {
     win.style.top = '0';
     win.style.bottom = '';
     win.style.right = '';
-  } else if (win.dataset.userPositioned !== 'true') {
-    const vw = window.innerWidth, vh = window.innerHeight;
-    const w = Math.min(720, vw - 80), h = Math.min(540, vh - 120);
-    win.style.width = w + 'px';
-    win.style.height = h + 'px';
-    win.style.left = ((vw - w) / 2) + 'px';
-    win.style.top = ((vh - h) / 2) + 'px';
-    win.style.bottom = '';
-    win.style.right = '';
+  } else {
+    if (typeof restoreSessionWindowPosition === 'function') {
+      restoreSessionWindowPosition('video-win');
+    }
+    if (win.dataset.userPositioned !== 'true') {
+      layoutVideoWinDefault(win);
+    }
   }
 
   win.style.display = 'flex';
   bringToFront('video-win');
-  const bumpFront = () => bringToFront('video-win');
-  requestAnimationFrame(bumpFront);
-  setTimeout(bumpFront, 80);
-  setTimeout(bumpFront, 200);
+  requestAnimationFrame(() => bringToFront('video-win'));
   tryAutoplayVideo(player);
   syncVideoUi();
 
@@ -575,16 +650,23 @@ function closeVideoWin() {
   const player = document.getElementById('video-win-player');
   const doc = document;
   const active = doc.fullscreenElement || doc.webkitFullscreenElement;
+  const finishClose = () => {
+    if (!isMob() && win && typeof saveSessionWindowPosition === 'function') {
+      saveSessionWindowPosition('video-win');
+    }
+    if (player) player.pause();
+    if (win) win.style.display = 'none';
+    document.title = 'AnchorTurtle';
+    syncVideoFullscreenUi();
+  };
   if (active) {
     const exit = doc.exitFullscreen || doc.webkitExitFullscreen;
-    if (exit) exit.call(doc);
+    if (exit) {
+      exit.call(doc).then(finishClose).catch(finishClose);
+      return;
+    }
   }
-  if (player) {
-    player.pause();
-  }
-  if (win) win.style.display = 'none';
-  document.title = 'AnchorTurtle';
-  syncVideoFullscreenUi();
+  finishClose();
 }
 
 function syncVideoUi() {
@@ -692,7 +774,7 @@ function setVideoVolume(pct) {
 
   player.addEventListener('play', syncVideoUi);
   player.addEventListener('pause', syncVideoUi);
-  player.addEventListener('timeupdate', syncVideoUi);
+  player.addEventListener('timeupdate', scheduleSyncVideoUi);
   player.addEventListener('loadedmetadata', syncVideoUi);
   player.addEventListener('volumechange', syncVideoUi);
   player.addEventListener('ended', syncVideoUi);
