@@ -137,13 +137,15 @@ function makeWindowDraggable(winId, barId) {
     const r = win.getBoundingClientRect();
     mode = m; sx = e.clientX; sy = e.clientY; sl = r.left; st = r.top; sw = r.width; sh = r.height;
     e.preventDefault(); if (e.stopPropagation) e.stopPropagation();
+    document.documentElement.classList.add('orbit-resizing');
     bringToFront(winId);
   }
 
   function onMove(e) {
     if (!mode) return;
     const dx = e.clientX - sx, dy = e.clientY - sy;
-    const mw = (winId === 'player-win' ? 380 : 240), mh = (winId === 'player-win' ? 240 : 200);
+    const mw = (winId === 'player-win' ? 380 : winId === 'video-win' ? 300 : 240),
+      mh = (winId === 'player-win' ? 240 : winId === 'video-win' ? 260 : 200);
     const vw = window.innerWidth, vh = window.innerHeight;
     const margin = 8;
 
@@ -175,6 +177,8 @@ function makeWindowDraggable(winId, barId) {
 
   function onUp() {
     mode = null;
+    document.documentElement.classList.remove('orbit-resizing');
+    if (typeof syncWindowGlassTiers === 'function') syncWindowGlassTiers();
     // Ensure scrollbars recalculate properly after the window has been resized
     const scrollers = win.querySelectorAll('.win-body, #sidebar-tracklist');
     scrollers.forEach(el => {
@@ -205,6 +209,9 @@ function makeWindowDraggable(winId, barId) {
         const val = parseFloat(prog.value) || 0;
         setProgress(val);
       }
+    }
+    if (winId === 'video-win' && typeof nudgeVideoPaint === 'function') {
+      nudgeVideoPaint(document.getElementById('video-win-player'));
     }
   }
 
@@ -276,6 +283,7 @@ function closeWin(winId, dockId, mobId) {
   if (dockId) { const b = document.getElementById(dockId); if (b) b.classList.remove('win-open'); }
   if (mobId) setMobActive(mobId, false);
   if (isMob()) updateMobPlayerHeight();
+  if (typeof syncWindowGlassTiers === 'function') syncWindowGlassTiers();
 }
 
 /* Mobile toggle with smart "always bring to front + second tap to dismiss" behavior */
@@ -329,6 +337,7 @@ makeWindowDraggable('tracklist-win', 'tracklist-bar');
 makeWindowDraggable('gallery-win', 'gallery-bar');
 makeWindowDraggable('player-win', 'player-bar');
 makeWindowDraggable('image-win', 'image-win-bar');
+makeWindowDraggable('video-win', 'video-win-bar');
 makeWindowDraggable('song-detail-win', 'song-detail-bar');
 makeWindowDraggable('lyrics-win', 'lyrics-bar');
 
@@ -341,7 +350,8 @@ makeWindowDraggable('lyrics-win', 'lyrics-bar');
   // populates player title/artist/focal, sets audio src (no autoplay), marks active in list, etc.
   // We deliberately skip this for /song/ or #song/ links so the share target loads clean (no wrong-track flash).
   const isDirectShare = window.location.pathname.startsWith('/song/') ||
-                        (location.hash && location.hash.startsWith('#song/'));
+                        window.location.pathname.startsWith('/video/') ||
+                        (location.hash && (location.hash.startsWith('#song/') || location.hash.startsWith('#video/')));
   if (!isDirectShare && typeof loadTrack === 'function' && typeof TRACKS !== 'undefined' && TRACKS.length) {
     loadTrack(0, false);
   }
@@ -377,6 +387,7 @@ makeWindowDraggable('lyrics-win', 'lyrics-bar');
     const lyricsBtn = document.getElementById('btn-lyrics');
     if (lyricsBtn) lyricsBtn.classList.remove('win-open');
     renderGallery();  // populate gallery grid on initial desktop layout
+    if (typeof syncWindowGlassTiers === 'function') syncWindowGlassTiers();
   } else {
     ['tracklist-win', 'player-win'].forEach(id => {
       const w = document.getElementById(id); if (w) w.style.display = 'flex';
@@ -386,6 +397,7 @@ makeWindowDraggable('lyrics-win', 'lyrics-bar');
     updateMobPlayerHeight();
     // Ensure player sheet starts above the full-height tracklist (prevents z fighting / click-through on mobile).
     if (typeof bringToFront === 'function') bringToFront('player-win');
+    if (typeof syncWindowGlassTiers === 'function') syncWindowGlassTiers();
   }
 
   window.addEventListener('resize', () => {

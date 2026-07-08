@@ -15,11 +15,43 @@ function isIOS() {
 /* ── Z-INDEX MANAGEMENT ── */
 let _zBase = 300;
 
+/** Only the topmost visible window gets heavy glass blur; others use lite glass (same look, far cheaper). */
+function syncWindowGlassTiers() {
+  const wins = [...document.querySelectorAll('.win:not(#dock-win)')].filter(w => w.style.display === 'flex');
+  let topZ = -1;
+  let topWin = null;
+  wins.forEach(w => {
+    const z = parseInt(w.style.zIndex, 10) || 0;
+    if (z >= topZ) {
+      topZ = z;
+      topWin = w;
+    }
+  });
+  wins.forEach(w => {
+    w.classList.remove('win-glass-full', 'win-glass-lite');
+    if (w === topWin) w.classList.add('win-glass-full');
+    else w.classList.add('win-glass-lite');
+  });
+}
+
 function bringToFront(winId) {
   _zBase++;
   const w = document.getElementById(winId);
   if (w) {
     let z = _zBase + 10;
+    // Modal viewers (gallery lightbox + video) sit above the normal desktop stack.
+    if (winId === 'image-win' || winId === 'video-win') {
+      z = Math.max(z, 640);
+      _zBase = Math.max(_zBase, z - 10);
+    }
+    if (winId === 'lyrics-win') {
+      z = Math.max(z, 650);
+      _zBase = Math.max(_zBase, z - 10);
+    }
+    if (isMob() && winId === 'gallery-win') {
+      z = Math.max(z, 650);
+      _zBase = Math.max(_zBase, z - 10);
+    }
     // On mobile, the tracklist element is now full-height to the nav bar (to give "entire screen").
     // Always keep it below the player sheet in z-order. This stops the tracklist from
     // randomly coming to the front when tapping the (overlaid) media player, and ensures
@@ -33,6 +65,7 @@ function bringToFront(winId) {
     }
     w.style.zIndex = z;
   }
+  syncWindowGlassTiers();
 }
 
 /* ── MOBILE HEIGHT HELPERS ── */

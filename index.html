@@ -108,7 +108,7 @@
     <div class="win-body" style="padding:10px;gap:8px">
       <div class="tracklist-tabs gallery-tabs">
         <button class="tab active" data-gallery-tab="images">Images</button>
-        <button class="tab" data-gallery-tab="videos">Videos</button>
+        <button class="tab" data-gallery-tab="videos">AI videos</button>
       </div>
       <!-- Same scroller pattern as tracklist (#sidebar-tracklist) -->
       <div style="flex:1; overflow-y:auto; display:block; padding:0 6px 0 0; position:relative" class="no-scrollbar" id="gallery-scroll-container">
@@ -243,22 +243,46 @@
         <button class="win-close" id="close-video-win" title="Close"><span class="material-symbols-outlined">close</span></button>
       </div>
     </div>
-    <div class="win-body orbit-video-body">
+    <div class="win-body player-faceplate orbit-video-faceplate">
+      <div class="orbit-video-fullscreen-host" id="video-fullscreen-host">
       <div class="orbit-video-stage">
-        <video id="video-win-player" playsinline preload="metadata"></video>
-      </div>
-      <div class="orbit-video-controls">
-        <button type="button" class="ctrl-btn orbit-video-btn" id="video-btn-play" title="Play / Pause">
-          <span class="material-symbols-outlined" id="video-btn-play-icon">play_arrow</span>
+        <video id="video-win-player" playsinline preload="auto" poster="videos/jazzpotwax-poster.jpg"></video>
+        <button type="button" id="video-ai-badge" class="video-ai-badge" title="About AI in this piece" aria-expanded="false" aria-controls="video-ai-disclaimer">
+          <span class="material-symbols-outlined" aria-hidden="true">auto_awesome</span>
         </button>
-        <div class="orbit-video-seek-wrap">
-          <input type="range" id="video-seek" min="0" max="1000" value="0" step="1" aria-label="Seek"/>
+        <div id="video-ai-disclaimer" class="video-ai-disclaimer" role="dialog" aria-label="AI disclosure">
+          <p>AI was used to generate content for this art.</p>
         </div>
-        <span class="tape-counter orbit-video-time" id="video-time">0:00 / 0:00</span>
-        <button type="button" class="ctrl-btn orbit-video-btn" id="video-btn-mute" title="Mute">
-          <span class="material-symbols-outlined" id="video-btn-mute-icon">volume_up</span>
+      </div>
+
+      <div class="orbit-video-controls-row">
+        <button type="button" id="video-btn-play" class="play-btn orbit-video-play-calm" title="Play / Pause">
+          <span id="video-play-icon" class="play-icon"></span>
         </button>
-        <input type="range" id="video-vol" class="orbit-video-vol" min="0" max="100" value="100" aria-label="Volume"/>
+        <div class="orbit-video-scrub-block">
+          <div class="time-label time-current" id="video-time-current">0:00</div>
+          <div class="progress-wrap orbit-video-progress" id="video-progress-rail">
+            <div class="progress-track-bg"></div>
+            <div class="progress-fill-bar" id="video-progress-fill"></div>
+            <div class="progress-thumb" id="video-progress-thumb"></div>
+            <input type="range" id="video-seek" min="0" max="1000" value="0" step="1" aria-label="Seek"/>
+          </div>
+          <div class="time-label time-total" id="video-time-total">0:00</div>
+        </div>
+        <div class="volume-module orbit-video-vol">
+          <div id="video-vol-icon-wrap" title="Mute/Unmute">
+            <span id="video-vol-icon" class="material-symbols-outlined">volume_up</span>
+          </div>
+          <input type="range" id="video-vol-slider" min="0" max="100" value="100" step="1" aria-label="Volume"/>
+          <span class="tape-counter vol-pct" id="video-vol-pct">100%</span>
+        </div>
+        <button type="button" id="video-btn-share" class="ctrl-btn" title="Copy shareable link">
+          <span class="material-symbols-outlined">share</span>
+        </button>
+        <button type="button" id="video-btn-fullscreen" class="ctrl-btn" title="Fullscreen">
+          <span class="material-symbols-outlined" id="video-fullscreen-icon">fullscreen</span>
+        </button>
+      </div>
       </div>
     </div>
   </div>

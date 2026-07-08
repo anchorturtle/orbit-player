@@ -1113,6 +1113,13 @@ volSlider.addEventListener('input', () => {
   updateVolumeIcon();
 });
 
+volSlider.addEventListener('pointerdown', () => {
+  volSlider.closest('.volume-module')?.classList.add('slider-active');
+});
+const clearMainVolActive = () => volSlider.closest('.volume-module')?.classList.remove('slider-active');
+volSlider.addEventListener('pointerup', clearMainVolActive);
+volSlider.addEventListener('pointercancel', clearMainVolActive);
+
 document.getElementById('vol-icon-wrap').addEventListener('click', () => {
   initAudioContext();
   ensureAudioContextRunning();

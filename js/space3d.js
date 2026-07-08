@@ -1437,6 +1437,7 @@
     const t = clock.elapsedTime;
 
     governFps(rawDt);
+    if (document.documentElement.classList.contains('orbit-resizing')) return;
     sampleAudio();
     watchTrack(dt);
 
