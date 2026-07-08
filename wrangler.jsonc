@@ -2,8 +2,9 @@
   "$schema": "node_modules/wrangler/config-schema.json",
   "name": "orbit-player",
   "compatibility_date": "2025-09-27",
+  "pages_build_output_dir": "./pages-dist",
   "build": {
-    "command": "node scripts/strip-deploy-mp4.mjs"
+    "command": "node scripts/prepare-pages.mjs"
   },
   "observability": {
     "enabled": true

@@ -247,12 +247,6 @@
       <div class="orbit-video-fullscreen-host" id="video-fullscreen-host">
       <div class="orbit-video-stage">
         <video id="video-win-player" playsinline preload="auto" poster="videos/jazzpotwax-poster.jpg"></video>
-        <button type="button" id="video-ai-badge" class="video-ai-badge" title="About AI in this piece" aria-expanded="false" aria-controls="video-ai-disclaimer">
-          <span class="material-symbols-outlined" aria-hidden="true">auto_awesome</span>
-        </button>
-        <div id="video-ai-disclaimer" class="video-ai-disclaimer" role="dialog" aria-label="AI disclosure">
-          <p>AI was used to generate content for this art.</p>
-        </div>
       </div>
 
       <div class="orbit-video-controls-row">
@@ -282,6 +276,15 @@
         <button type="button" id="video-btn-fullscreen" class="ctrl-btn" title="Fullscreen">
           <span class="material-symbols-outlined" id="video-fullscreen-icon">fullscreen</span>
         </button>
+      </div>
+      <div class="orbit-video-ai-foot">
+        <button type="button" id="video-ai-badge" class="video-ai-badge" title="About AI in this piece" aria-expanded="false" aria-controls="video-ai-disclaimer">
+          <span class="material-symbols-outlined" aria-hidden="true">auto_awesome</span>
+          <span class="video-ai-badge-label">AI</span>
+        </button>
+        <div id="video-ai-disclaimer" class="video-ai-disclaimer" role="dialog" aria-label="AI disclosure">
+          <p>AI was used to generate content for this art.</p>
+        </div>
       </div>
       </div>
     </div>
