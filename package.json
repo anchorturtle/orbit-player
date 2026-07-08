@@ -4,7 +4,8 @@
   "description": "AnchorTurtle / jestR cosmic hi-fi player (vanilla static site on main)",
   "scripts": {
     "start": "npx --yes serve -l 3456 .",
-    "dev": "npx --yes serve -l 3456 ."
+    "dev": "npx --yes serve -l 3456 .",
+    "build": "node scripts/prepare-dist.mjs"
   },
   "repository": {
     "type": "git",
