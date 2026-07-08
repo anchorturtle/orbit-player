@@ -1,11 +1,10 @@
 {
   "name": "orbit-player",
   "private": true,
-  "description": "AnchorTurtle / jestR cosmic hi-fi player (vanilla static site on main)",
+  "description": "AnchorTurtle / jestR cosmic hi-fi player",
   "scripts": {
     "start": "npx --yes serve -l 3456 .",
-    "dev": "npx --yes serve -l 3456 .",
-    "build": "node scripts/prepare-pages.mjs"
+    "dev": "npx --yes serve -l 3456 ."
   },
   "repository": {
     "type": "git",

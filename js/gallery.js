@@ -62,14 +62,18 @@ const VIDEOS = [
   },
 ];
 
-/** Deploy skips large MP4s (.assetsignore); on anchorturtle.com load from GitHub media (same repo). */
+/** Full MP4 on branch media-store (too large for Pages). Local dev uses videos/jazzpotwax.mp4. */
+const ORBIT_VIDEO_MEDIA_BRANCH = 'media-store';
+const ORBIT_VIDEO_REPO = 'anchorturtle/orbit-player';
+
 function videoSrcForEntry(v) {
   const rel = String(v.src || '').replace(/^\//, '');
   if (/^https?:\/\//i.test(rel)) return rel;
   const host = typeof location !== 'undefined' ? location.hostname : '';
   const isLocal = host === 'localhost' || host === '127.0.0.1';
-  if (!isLocal && /\.mp4$/i.test(rel)) {
-    return `https://media.githubusercontent.com/media/anchorturtle/orbit-player/main/${rel}`;
+  if (isLocal) return rel;
+  if (/\.mp4$/i.test(rel)) {
+    return `https://media.githubusercontent.com/media/${ORBIT_VIDEO_REPO}/${ORBIT_VIDEO_MEDIA_BRANCH}/${rel}`;
   }
   return rel;
 }
