@@ -148,7 +148,9 @@ function renderGalleryVideos() {
     const poster = v.poster || v.src;
     return `<div class="gallery-item gallery-item-video" data-vi="${i}">
       <img class="gallery-video-thumb" src="${poster}" alt="${v.title || 'Video'}" loading="lazy"/>
-      <div class="gallery-video-hover-play" aria-hidden="true"><span class="material-symbols-outlined">play_arrow</span></div>
+      <div class="gallery-video-hover-play" aria-hidden="true">
+        <span class="gallery-video-glass-play"><span class="material-symbols-outlined">play_arrow</span></span>
+      </div>
     </div>`;
   }).join('');
 

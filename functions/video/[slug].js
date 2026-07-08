@@ -5,7 +5,7 @@ export async function onRequest(context) {
     'jazzpotwax': {
       title: 'Jazzpot Wax',
       poster: '/videos/jazzpotwax-og.jpg',
-      description: 'Watch on AnchorTurtle',
+      description: 'jestR · AnchorTurtle',
     },
   };
 
@@ -16,14 +16,14 @@ export async function onRequest(context) {
   const imageUrl = `${siteUrl}${video.poster}`;
   const appUrl = `${siteUrl}/#video/${slug}`;
 
-  const title = `${video.title} | AnchorTurtle`;
+  const title = video.title;
 
   const html = `<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>${title}</title>
+  <title>${title} | AnchorTurtle</title>
 
   <link rel="icon" type="image/png" sizes="256x256" href="${siteUrl}/images/at-sea-trans-256.png">
   <link rel="apple-touch-icon" href="${siteUrl}/images/at-sea-trans-256.png">
