@@ -118,6 +118,8 @@ function applyDesktopLayout() {
 function makeWindowDraggable(winId, barId) {
   const win = document.getElementById(winId), bar = document.getElementById(barId);
   let mode = null, sx, sy, sl, st, sw, sh;
+  let moveRaf = 0;
+  let lastMoveE = null;
 
   function pin() {
     if (isMob()) return;
@@ -141,7 +143,7 @@ function makeWindowDraggable(winId, barId) {
     bringToFront(winId);
   }
 
-  function onMove(e) {
+  function applyMove(e) {
     if (!mode) return;
     const dx = e.clientX - sx, dy = e.clientY - sy;
     const mw = (winId === 'player-win' ? 380 : winId === 'video-win' ? 300 : 240),
@@ -175,7 +177,24 @@ function makeWindowDraggable(winId, barId) {
     }
   }
 
+  // Coalesce mousemove layout writes to one rAF — N windows × raw mousemove was a jank source.
+  function onMove(e) {
+    if (!mode) return;
+    lastMoveE = e;
+    if (moveRaf) return;
+    moveRaf = requestAnimationFrame(() => {
+      moveRaf = 0;
+      if (lastMoveE) applyMove(lastMoveE);
+    });
+  }
+
   function onUp() {
+    if (moveRaf) {
+      cancelAnimationFrame(moveRaf);
+      moveRaf = 0;
+    }
+    if (lastMoveE && mode) applyMove(lastMoveE);
+    lastMoveE = null;
     mode = null;
     document.documentElement.classList.remove('orbit-resizing');
     if (typeof syncWindowGlassTiers === 'function') syncWindowGlassTiers();

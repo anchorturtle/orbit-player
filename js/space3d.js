@@ -24,9 +24,11 @@
 
   let renderer;
   try {
+    // MSAA off: full-viewport soft shaders + additive particles hide jaggies;
+    // antialias:true often costs 20–40% fill rate for almost no visible gain here.
     renderer = new THREE.WebGLRenderer({
       canvas,
-      antialias: true,
+      antialias: false,
       alpha: true,
       powerPreference: 'high-performance'
     });
@@ -39,7 +41,8 @@
   document.documentElement.classList.add('space3d-on');
 
   const MOBILE = (typeof isMob === 'function') ? isMob() : (window.innerWidth < 768);
-  const DPR_CAP = MOBILE ? 1.5 : 1.75;
+  // Cap DPR: planet/aurora are foggy; extra retina pixels rarely read as quality.
+  const DPR_CAP = MOBILE ? 1.25 : 1.5;
 
   // ── Adaptive resolution governor ──
   // Holds 60fps by trading render resolution (it's mostly fog and glow, so
@@ -257,8 +260,11 @@
     uColC:    { value: palC }
   };
 
+  // Segment counts tuned for shader-driven surfaces (noise hides tessellation).
+  const PLANET_SEG_W = MOBILE ? 48 : 64;
+  const PLANET_SEG_H = MOBILE ? 32 : 48;
   const planet = new THREE.Mesh(
-    new THREE.SphereGeometry(PLANET_R, 96, 64),
+    new THREE.SphereGeometry(PLANET_R, PLANET_SEG_W, PLANET_SEG_H),
     new THREE.ShaderMaterial({
       uniforms: planetUniforms,
       defines: { FBM_OCT: 3 },
@@ -473,8 +479,10 @@
       uColB:    { value: palB },
       uColC:    { value: palC }
     };
+    const aSegW = MOBILE ? 36 : 48;
+    const aSegH = MOBILE ? 24 : 32;
     const mesh = new THREE.Mesh(
-      new THREE.SphereGeometry(PLANET_R * radiusMul, 80, 56),
+      new THREE.SphereGeometry(PLANET_R * radiusMul, aSegW, aSegH),
       new THREE.ShaderMaterial({
         uniforms: u,
         defines: { FBM_OCT: octaves },
@@ -502,8 +510,9 @@
     uColA: { value: palA },
     uColB: { value: palB }
   };
+  const atmoSeg = MOBILE ? 32 : 40;
   const atmosphere = new THREE.Mesh(
-    new THREE.SphereGeometry(PLANET_R * 1.5, 64, 64),
+    new THREE.SphereGeometry(PLANET_R * 1.5, atmoSeg, atmoSeg),
     new THREE.ShaderMaterial({
       uniforms: atmoUniforms,
       defines: { FBM_OCT: 2 },
@@ -553,7 +562,7 @@
   ringGroup.rotation.y = -0.22;
   scene.add(ringGroup);
 
-  const RING_COUNT = MOBILE ? 320 : 620;
+  const RING_COUNT = MOBILE ? 260 : 480;
   const ringGeo = new THREE.BufferGeometry();
   {
     const pos = new Float32Array(RING_COUNT * 3);
@@ -622,7 +631,7 @@
   ringGroup.add(ringPoints);
 
   /* ════════════════ STARFIELD (deep parallax, twinkle) ════════════════ */
-  const STAR_COUNT = MOBILE ? 1600 : 3200;
+  const STAR_COUNT = MOBILE ? 1100 : 2200;
   const starGeo = new THREE.BufferGeometry();
   {
     const pos = new Float32Array(STAR_COUNT * 3);
@@ -994,7 +1003,7 @@
       uCol: { value: baseCol }
     };
     const moon = new THREE.Mesh(
-      new THREE.SphereGeometry(r, 48, 32),
+      new THREE.SphereGeometry(r, 24, 16),
       new THREE.ShaderMaterial({
         uniforms: moonU,
         vertexShader: `
@@ -1429,6 +1438,11 @@
   /* ════════════════ RENDER LOOP ════════════════ */
   const clock = new THREE.Clock();
   let rafId = null;
+  const htmlEl = document.documentElement;
+  const videoWinElCached = document.getElementById('video-win');
+  // Reused temps — avoid Vector3.clone() GC in the hot shooter path
+  const _shootHead = new THREE.Vector3();
+  const _shootTail = new THREE.Vector3();
 
   function frame() {
     rafId = requestAnimationFrame(frame);
@@ -1437,10 +1451,9 @@
     const t = clock.elapsedTime;
 
     governFps(rawDt);
-    if (document.documentElement.classList.contains('orbit-resizing')) return;
-    const videoWinEl = document.getElementById('video-win');
+    if (htmlEl.classList.contains('orbit-resizing')) return;
     const fsEl = document.fullscreenElement || document.webkitFullscreenElement;
-    if (videoWinEl && fsEl === videoWinEl) return;
+    if (videoWinElCached && fsEl === videoWinElCached) return;
     sampleAudio();
     watchTrack(dt);
 
@@ -1453,11 +1466,12 @@
     planetUniforms.uTime.value = t;
     planetUniforms.uAudio.value = levelSm;
     planetUniforms.uBass.value = bassSm;
-    auroraShells.forEach(s => {
+    for (let ai = 0; ai < auroraShells.length; ai++) {
+      const s = auroraShells[ai];
       s.u.uTime.value = t;
       s.u.uAudio.value = levelSm;
       s.u.uBass.value = bassSm;
-    });
+    }
     atmoUniforms.uTime.value = t;
     atmoUniforms.uBass.value = bassSm;
     atmoUniforms.uAudio.value = levelSm;
@@ -1466,7 +1480,8 @@
     starUniforms.uTime.value = t;
     starUniforms.uAudio.value = levelSm;
     galaxyU.uTime.value = t;
-    nebulae.forEach(n => {
+    for (let ni = 0; ni < nebulae.length; ni++) {
+      const n = nebulae[ni];
       n.u.uTime.value = t;
       n.u.uAudio.value = levelSm;
       n.mesh.rotation.z += n.rs * dt;
@@ -1475,7 +1490,7 @@
         n.u.uC1.value.lerp(tgtA, 0.004);
         n.u.uC2.value.lerp(tgtB, 0.004);
       }
-    });
+    }
 
     // motion
     planet.rotation.y += dt * (0.045 + bassSm * 0.08);
@@ -1506,23 +1521,24 @@
       if (free) spawnShooter(free);
       nextShoot = 8 + Math.random() * 14;
     }
-    shooters.forEach(s => {
-      if (!s.active) return;
+    for (let si = 0; si < shooters.length; si++) {
+      const s = shooters[si];
+      if (!s.active) continue;
       s.t += dt;
       const k = s.t / s.dur;
       if (k >= 1) {
         s.active = false;
         s.line.material.opacity = 0;
-        return;
+        continue;
       }
-      const head = s.from.clone().addScaledVector(s.dir, k);
-      const tail = s.from.clone().addScaledVector(s.dir, Math.max(0, k - 0.07));
+      _shootHead.copy(s.from).addScaledVector(s.dir, k);
+      _shootTail.copy(s.from).addScaledVector(s.dir, Math.max(0, k - 0.07));
       const a = s.line.geometry.attributes.position.array;
-      a[0] = tail.x; a[1] = tail.y; a[2] = tail.z;
-      a[3] = head.x; a[4] = head.y; a[5] = head.z;
+      a[0] = _shootTail.x; a[1] = _shootTail.y; a[2] = _shootTail.z;
+      a[3] = _shootHead.x; a[4] = _shootHead.y; a[5] = _shootHead.z;
       s.line.geometry.attributes.position.needsUpdate = true;
       s.line.material.opacity = Math.sin(k * Math.PI) * 0.85;
-    });
+    }
 
     // rare ambient events — the longer you stay, the more you may see
     if (t > nextEventAt) {

@@ -681,7 +681,8 @@ function drawWaveform(playedFrac = 0) {
   // size the backing buffer to the CSS layout box (CSS owns layout — never
   // fight it with inline styles; this is what kept mis-sizing the waveform)
   const rect = canvas.getBoundingClientRect();
-  const dpr = window.devicePixelRatio || 1;
+  // Waveform is soft bars — full retina DPR rarely helps and burns 2D canvas time.
+  const dpr = Math.min(window.devicePixelRatio || 1, 1.5);
   const cssW = Math.max(48, rect.width || 300);
   const cssH = Math.max(14, rect.height || 28);
   const bufW = Math.round(cssW * dpr);

@@ -87,17 +87,25 @@ body { font-family: 'Plus Jakarta Sans', sans-serif; background: #06040f; color:
 .grain-overlay {
   position: fixed; inset: 0; pointer-events: none; z-index: 200; opacity: var(--grain-opacity);
   background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
-  animation: grain-shift .1s steps(1) infinite; mix-blend-mode: overlay;
+  /* 0.1s thrash forced full-screen repaints ~10×/s; slow steps keep film grain without killing fps. */
+  animation: grain-shift 1.4s steps(2) infinite; mix-blend-mode: overlay;
+  contain: strict;
 }
-@keyframes grain-shift { 0%{transform:translate(0,0)} 20%{transform:translate(-2px,1px)} 40%{transform:translate(2px,-1px)} 60%{transform:translate(-1px,2px)} 80%{transform:translate(1px,-2px)} 100%{transform:translate(0,0)} }
+@keyframes grain-shift {
+  0%   { transform: translate3d(0, 0, 0); }
+  50%  { transform: translate3d(-1px, 1px, 0); }
+  100% { transform: translate3d(0, 0, 0); }
+}
 
 .scanlines {
   position: fixed; inset: 0; pointer-events: none; z-index: 199;
   background: repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,255,180,.018) 2px, rgba(0,255,180,.018) 3px);
+  contain: strict;
 }
 .vignette {
   position: fixed; inset: 0; pointer-events: none; z-index: 198;
   background: radial-gradient(ellipse at center, transparent 32%, rgba(3,2,10,var(--vignette-strength)) 100%);
+  contain: strict;
 }
 
 .phosphor { text-shadow: 0 0 8px rgba(0,200,150,.4), 0 0 2px rgba(0,200,150,.2); }
@@ -157,22 +165,23 @@ body { font-family: 'Plus Jakarta Sans', sans-serif; background: #06040f; color:
   background:
     linear-gradient(165deg, rgba(123,47,255,.07) 0%, transparent 38%),
     var(--win-bg);
-  backdrop-filter: blur(52px) saturate(2) brightness(1.06);
-  -webkit-backdrop-filter: blur(52px) saturate(2) brightness(1.06);
+  /* 40px reads as the same frosted glass as 52px over WebGL; much cheaper to composite. */
+  backdrop-filter: blur(40px) saturate(1.9) brightness(1.05);
+  -webkit-backdrop-filter: blur(40px) saturate(1.9) brightness(1.05);
   border: 1px solid var(--win-border);
   border-radius: var(--win-radius);
   box-shadow: var(--win-shadow);
   user-select: none; overflow: hidden;
   display: flex; flex-direction: column;
-  contain: layout style;
+  contain: layout style paint;
 }
 /* Background windows: lighter compositor cost; focused window stays full glass. */
 .win.win-glass-lite {
-  backdrop-filter: blur(18px) saturate(1.55) brightness(1.04);
-  -webkit-backdrop-filter: blur(18px) saturate(1.55) brightness(1.04);
+  backdrop-filter: blur(12px) saturate(1.5) brightness(1.03);
+  -webkit-backdrop-filter: blur(12px) saturate(1.5) brightness(1.03);
   background:
     linear-gradient(165deg, rgba(123,47,255,.06) 0%, transparent 38%),
-    rgba(5, 3, 18, 0.82);
+    rgba(5, 3, 18, 0.84);
 }
 html.orbit-resizing .win {
   backdrop-filter: none !important;
@@ -1758,6 +1767,12 @@ html.orbit-resizing .win {
 #dock-win {
   position: fixed; bottom: 12px; left: 50%; transform: translateX(-50%);
   width: min(500px, 94vw); z-index: 400; border-radius: 999px;
+  /* Dock is always on-screen — keep glass look with a fixed cheap blur (not 40–52px full-window stack). */
+  backdrop-filter: blur(22px) saturate(1.7) brightness(1.04);
+  -webkit-backdrop-filter: blur(22px) saturate(1.7) brightness(1.04);
+  background:
+    linear-gradient(165deg, rgba(123,47,255,.08) 0%, transparent 50%),
+    rgba(7, 4, 20, 0.72);
 }
 /* Animated gradient hairline across the top of the dock */
 #dock-win::after {
@@ -1803,7 +1818,7 @@ html.orbit-resizing .win {
 /* ============ MOBILE NAV DOCK ============ */
 #mobile-dock {
   display: none; position: fixed; bottom: 0; left: 0; right: 0; z-index: 500;
-  background: rgba(5,3,16,.82); backdrop-filter: blur(36px) saturate(1.8); -webkit-backdrop-filter: blur(36px) saturate(1.8);
+  background: rgba(5,3,16,.86); backdrop-filter: blur(22px) saturate(1.65); -webkit-backdrop-filter: blur(22px) saturate(1.65);
   border-top: 1px solid rgba(123,47,255,.22);
   padding: 8px 16px calc(8px + env(safe-area-inset-bottom));
   align-items: center; justify-content: space-around;
