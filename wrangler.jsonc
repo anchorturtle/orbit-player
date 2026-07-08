@@ -10,5 +10,15 @@
   },
   "compatibility_flags": [
     "nodejs_compat"
+  ],
+  "routes": [
+    {
+      "pattern": "www.anchorturtle.com",
+      "custom_domain": true
+    },
+    {
+      "pattern": "anchorturtle.com",
+      "custom_domain": true
+    }
   ]
 }
