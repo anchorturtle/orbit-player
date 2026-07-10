@@ -273,29 +273,6 @@
         <div id="video-captions" class="orbit-video-captions" aria-live="polite" hidden>
           <div class="orbit-video-caption-line" id="video-caption-line"></div>
         </div>
-        <div id="video-caption-settings" class="orbit-video-caption-settings" hidden>
-          <div class="orbit-video-caption-settings-title">Captions</div>
-          <label class="orbit-video-caption-opt">Size
-            <select id="video-caption-size" aria-label="Caption size">
-              <option value="sm">Small</option>
-              <option value="md" selected>Medium</option>
-              <option value="lg">Large</option>
-            </select>
-          </label>
-          <label class="orbit-video-caption-opt">Style
-            <select id="video-caption-style" aria-label="Caption style">
-              <option value="subtle" selected>Subtle</option>
-              <option value="boxed">Boxed</option>
-              <option value="karaoke">Glow</option>
-            </select>
-          </label>
-          <label class="orbit-video-caption-opt">Position
-            <select id="video-caption-pos" aria-label="Caption position">
-              <option value="bottom" selected>Bottom</option>
-              <option value="mid">Middle</option>
-            </select>
-          </label>
-        </div>
       </div>
 
       <div class="orbit-video-controls-row">
@@ -335,6 +312,29 @@
         <button type="button" id="video-btn-fullscreen" class="ctrl-btn" title="Fullscreen">
           <span class="material-symbols-outlined" id="video-fullscreen-icon">fullscreen</span>
         </button>
+      </div>
+      <div id="video-caption-settings" class="orbit-video-caption-settings" hidden>
+        <div class="orbit-video-caption-settings-title">Captions</div>
+        <label class="orbit-video-caption-opt">Size
+          <select id="video-caption-size" aria-label="Caption size">
+            <option value="sm">Small</option>
+            <option value="md" selected>Medium</option>
+            <option value="lg">Large</option>
+          </select>
+        </label>
+        <label class="orbit-video-caption-opt">Style
+          <select id="video-caption-style" aria-label="Caption style">
+            <option value="subtle" selected>Subtle</option>
+            <option value="boxed">Boxed</option>
+            <option value="karaoke">Glow</option>
+          </select>
+        </label>
+        <label class="orbit-video-caption-opt">Position
+          <select id="video-caption-pos" aria-label="Caption position">
+            <option value="bottom" selected>Bottom</option>
+            <option value="mid">Middle</option>
+          </select>
+        </label>
       </div>
       <div class="orbit-video-ai-foot">
         <button type="button" id="video-ai-badge" class="video-ai-badge" title="About AI in this piece" aria-expanded="false" aria-controls="video-ai-disclaimer">

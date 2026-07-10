@@ -1082,15 +1082,32 @@ function saveVideoCaptionPrefs() {
   } catch (_) {}
 }
 
+function orbitTracksPool() {
+  if (typeof window !== 'undefined' && Array.isArray(window.ORBIT_TRACKS)) return window.ORBIT_TRACKS;
+  try {
+    if (typeof TRACKS !== 'undefined' && Array.isArray(TRACKS)) return TRACKS;
+  } catch (_) {}
+  return [];
+}
+
 function lyricsForVideoEntry(entry) {
   if (!entry) return [];
   if (Array.isArray(entry.lyrics) && entry.lyrics.length) return entry.lyrics;
   const slug = entry.lyricsTrackSlug || VIDEO_LYRICS_SLUG_FALLBACK[entry.slug] || entry.slug;
-  if (typeof TRACKS !== 'undefined' && Array.isArray(TRACKS)) {
-    const track = TRACKS.find(t => t.slug === slug);
-    if (track && Array.isArray(track.lyrics)) return track.lyrics;
+  const track = orbitTracksPool().find(t => t && t.slug === slug);
+  if (track && Array.isArray(track.lyrics) && track.lyrics.length) {
+    entry.lyrics = track.lyrics;
+    return track.lyrics;
   }
   return [];
+}
+
+function hydrateVideoLyrics() {
+  VIDEOS.forEach((v) => {
+    if (!v || (Array.isArray(v.lyrics) && v.lyrics.length)) return;
+    const lines = lyricsForVideoEntry(v);
+    if (lines.length) v.lyrics = lines;
+  });
 }
 
 function applyVideoCaptionChrome() {
@@ -1106,21 +1123,28 @@ function applyVideoCaptionChrome() {
     host.dataset.size = _videoCaptionPrefs.size;
     host.dataset.style = _videoCaptionPrefs.style;
     host.dataset.pos = _videoCaptionPrefs.pos;
-    host.hidden = !_videoCaptionsOn || !_videoCaptionLines.length;
+    const show = _videoCaptionsOn && _videoCaptionLines.length > 0;
+    host.hidden = !show;
+    host.classList.toggle('is-on', show);
   }
   if (btn) {
-    btn.classList.toggle('active', _videoCaptionsOn && !!_videoCaptionLines.length);
-    btn.setAttribute('aria-pressed', _videoCaptionsOn ? 'true' : 'false');
-    btn.disabled = !_videoCaptionLines.length;
-    btn.title = !_videoCaptionLines.length
+    const ready = _videoCaptionLines.length > 0;
+    btn.classList.toggle('active', _videoCaptionsOn && ready);
+    btn.setAttribute('aria-pressed', (_videoCaptionsOn && ready) ? 'true' : 'false');
+    btn.disabled = !ready;
+    btn.title = !ready
       ? 'No captions for this video'
       : (_videoCaptionsOn ? 'Captions on' : 'Captions off');
   }
   const settingsBtn = document.getElementById('video-btn-cc-settings');
-  if (settingsBtn) settingsBtn.disabled = !_videoCaptionLines.length;
+  if (settingsBtn) {
+    settingsBtn.disabled = !_videoCaptionLines.length;
+    settingsBtn.classList.toggle('active', !document.getElementById('video-caption-settings')?.hidden);
+  }
 }
 
 function setVideoCaptionSource(entry) {
+  hydrateVideoLyrics();
   _videoCaptionLines = lyricsForVideoEntry(entry).slice().sort((a, b) => (a.time || 0) - (b.time || 0));
   _videoCaptionIdx = -1;
   const line = document.getElementById('video-caption-line');
@@ -1166,10 +1190,8 @@ function updateVideoCaptions(t) {
     return;
   }
   const next = _videoCaptionLines[idx];
-  const end = idx + 1 < _videoCaptionLines.length
-    ? (_videoCaptionLines[idx + 1].time || Infinity)
-    : (next.time || 0) + 4;
-  if (t > end + 0.35) {
+  const isLast = idx >= _videoCaptionLines.length - 1;
+  if (isLast && t > (next.time || 0) + 4.5) {
     line.classList.remove('on');
     line.textContent = '';
     return;
@@ -1182,17 +1204,31 @@ function updateVideoCaptions(t) {
 
 function hideVideoCaptionSettings() {
   const panel = document.getElementById('video-caption-settings');
-  if (panel) panel.hidden = true;
+  if (panel) {
+    panel.hidden = true;
+    panel.classList.remove('open');
+  }
+  document.getElementById('video-btn-cc-settings')?.classList.remove('active');
 }
 
 function toggleVideoCaptionSettings(force) {
   const panel = document.getElementById('video-caption-settings');
-  if (!panel || !_videoCaptionLines.length) return;
-  const open = typeof force === 'boolean' ? force : panel.hidden;
-  panel.hidden = !open;
+  if (!panel) return;
+  if (!_videoCaptionLines.length) {
+    hydrateVideoLyrics();
+    const entry = VIDEOS[_videoIdx];
+    _videoCaptionLines = lyricsForVideoEntry(entry).slice().sort((a, b) => (a.time || 0) - (b.time || 0));
+    applyVideoCaptionChrome();
+  }
+  if (!_videoCaptionLines.length) return;
+  const shouldOpen = typeof force === 'boolean' ? force : panel.hidden;
+  panel.hidden = !shouldOpen;
+  panel.classList.toggle('open', shouldOpen);
+  document.getElementById('video-btn-cc-settings')?.classList.toggle('active', shouldOpen);
 }
 
 loadVideoCaptionPrefs();
+hydrateVideoLyrics();
 
 let _videoPremuteVol = 100;
 let _videoUserMuted = false;
@@ -1433,12 +1469,38 @@ function setVideoVolume(pct) {
   sizeEl?.addEventListener('change', onCaptionPrefChange);
   styleEl?.addEventListener('change', onCaptionPrefChange);
   posEl?.addEventListener('change', onCaptionPrefChange);
+
+  const ccBtnDirect = document.getElementById('video-btn-cc');
+  const ccSettingsDirect = document.getElementById('video-btn-cc-settings');
+  ccBtnDirect?.addEventListener('click', (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    hydrateVideoLyrics();
+    if (!_videoCaptionLines.length) {
+      const entry = VIDEOS[_videoIdx];
+      _videoCaptionLines = lyricsForVideoEntry(entry).slice().sort((a, b) => (a.time || 0) - (b.time || 0));
+    }
+    if (!_videoCaptionLines.length) return;
+    _videoCaptionsOn = !_videoCaptionsOn;
+    saveVideoCaptionPrefs();
+    applyVideoCaptionChrome();
+    const playerEl = document.getElementById('video-win-player');
+    _videoCaptionIdx = -1;
+    updateVideoCaptions(playerEl ? playerEl.currentTime : 0);
+  });
+  ccSettingsDirect?.addEventListener('click', (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    toggleVideoCaptionSettings();
+  });
+
   document.addEventListener('click', (e) => {
     const panel = document.getElementById('video-caption-settings');
     if (!panel || panel.hidden) return;
     if (e.target.closest('#video-caption-settings') || e.target.closest('#video-btn-cc-settings')) return;
     hideVideoCaptionSettings();
   });
+  hydrateVideoLyrics();
   applyVideoCaptionChrome();
 
   document.addEventListener('keydown', e => {

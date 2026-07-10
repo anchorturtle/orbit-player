@@ -209,6 +209,7 @@ const TRACKS = [
     ],
   }
 ];
+window.ORBIT_TRACKS = TRACKS;
 
 let currentTracklistCategory = 'all';
 
