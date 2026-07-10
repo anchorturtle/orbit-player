@@ -229,10 +229,25 @@
         <button class="win-close" id="close-image-win" title="Close"><span class="material-symbols-outlined">close</span></button>
       </div>
     </div>
-    <div class="win-body" style="align-items:center;justify-content:center;background:rgba(3,2,10,.5);padding:10px;overflow:hidden">
-      <img id="image-win-img" src="" alt="" style="max-width:100%;max-height:100%;border-radius:8px;object-fit:contain;display:block;position:relative;z-index:1"/>
-      <div class="img-nav img-nav-prev" id="img-nav-prev"><span class="material-symbols-outlined img-nav-icon">chevron_left</span></div>
-      <div class="img-nav img-nav-next" id="img-nav-next"><span class="material-symbols-outlined img-nav-icon">chevron_right</span></div>
+    <div class="win-body orbit-image-faceplate">
+      <div class="orbit-image-fullscreen-host" id="image-fullscreen-host">
+        <div class="orbit-image-stage">
+          <img id="image-win-img" src="" alt=""/>
+          <div class="img-nav img-nav-prev" id="img-nav-prev"><span class="material-symbols-outlined img-nav-icon">chevron_left</span></div>
+          <div class="img-nav img-nav-next" id="img-nav-next"><span class="material-symbols-outlined img-nav-icon">chevron_right</span></div>
+          <button type="button" id="img-btn-fullscreen" class="orbit-image-enlarge-btn" title="Fullscreen" aria-label="Fullscreen">
+            <span class="material-symbols-outlined" id="img-fullscreen-icon">fullscreen</span>
+          </button>
+        </div>
+        <div class="orbit-image-controls-row" id="image-controls-row">
+          <button type="button" id="img-btn-prev" class="ctrl-btn" title="Previous"><span class="material-symbols-outlined">chevron_left</span></button>
+          <button type="button" id="img-btn-next" class="ctrl-btn" title="Next"><span class="material-symbols-outlined">chevron_right</span></button>
+          <span class="orbit-image-ctrl-spacer"></span>
+          <button type="button" id="img-btn-fs-bar" class="ctrl-btn" title="Exit fullscreen">
+            <span class="material-symbols-outlined" id="img-fs-bar-icon">fullscreen_exit</span>
+          </button>
+        </div>
+      </div>
     </div>
   </div>
 
@@ -267,6 +282,7 @@
             <div class="progress-track-bg"></div>
             <div class="progress-fill-bar" id="video-progress-fill"></div>
             <div class="progress-thumb" id="video-progress-thumb"></div>
+            <div id="video-seek-preview" class="seek-preview" style="display:none;"></div>
             <input type="range" id="video-seek" min="0" max="1000" value="0" step="1" aria-label="Seek"/>
           </div>
           <div class="time-label time-total" id="video-time-total">0:00</div>

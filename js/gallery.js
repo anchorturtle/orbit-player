@@ -212,9 +212,234 @@ function renderGallery() {
   setGalleryTab(currentGalleryTab);
 }
 
-let _imgIdx = 0;
-
 /* ── IMAGE VIEWER (enlarged / lightbox) ── */
+let _imgIdx = 0;
+let _imgPreFsRect = null;
+let _imgFsWasActive = false;
+let _imgFsHideTimer = null;
+let _imgFsGraceTimer = null;
+let _imgFsChromeBound = false;
+let _imgFsPostGrace = false;
+let _imgFsChromeOpen = false;
+const IMG_FS_CHROME_IDLE_MS = 3000;
+const IMG_FS_BOTTOM_ZONE = 0.85;
+
+function captureImageWinGeometry(win) {
+  if (!win || isMob()) return;
+  const r = win.getBoundingClientRect();
+  _imgPreFsRect = {
+    left: Math.round(r.left) + 'px',
+    top: Math.round(r.top) + 'px',
+    width: Math.round(r.width) + 'px',
+    height: Math.round(r.height) + 'px',
+    userPositioned: win.dataset.userPositioned === 'true',
+  };
+  win.style.left = _imgPreFsRect.left;
+  win.style.top = _imgPreFsRect.top;
+  win.style.width = _imgPreFsRect.width;
+  win.style.height = _imgPreFsRect.height;
+  win.style.bottom = '';
+  win.style.right = '';
+  win.style.maxWidth = '';
+  win.style.maxHeight = '';
+}
+
+function restoreImageWinAfterFullscreen() {
+  const win = document.getElementById('image-win');
+  if (!win || win.style.display !== 'flex' || isMob()) return;
+  const rect = _imgPreFsRect;
+  const apply = () => {
+    if (rect) {
+      win.style.left = rect.left;
+      win.style.top = rect.top;
+      win.style.width = rect.width;
+      win.style.height = rect.height;
+      win.style.bottom = '';
+      win.style.right = '';
+      win.style.maxWidth = '';
+      win.style.maxHeight = '';
+      if (rect.userPositioned) win.dataset.userPositioned = 'true';
+    } else if (win.dataset.userPositioned !== 'true') {
+      const vw = window.innerWidth, vh = window.innerHeight;
+      const w = Math.min(560, vw - 80), h = Math.min(520, vh - 120);
+      win.style.width = w + 'px';
+      win.style.height = h + 'px';
+      win.style.left = ((vw - w) / 2) + 'px';
+      win.style.top = ((vh - h) / 2) + 'px';
+      win.style.bottom = '';
+      win.style.right = '';
+    }
+    if (typeof clampWindowToViewport === 'function') clampWindowToViewport(win, 8);
+    if (typeof syncWindowGlassTiers === 'function') syncWindowGlassTiers();
+  };
+  requestAnimationFrame(() => requestAnimationFrame(apply));
+}
+
+function isImageFullscreenActive() {
+  const win = document.getElementById('image-win');
+  const active = document.fullscreenElement || document.webkitFullscreenElement;
+  return !!(win && active === win);
+}
+
+function imgFsPointerInBottomZone(clientY) {
+  const h = window.innerHeight || document.documentElement.clientHeight || 1;
+  return clientY >= h * IMG_FS_BOTTOM_ZONE;
+}
+
+function setImageFsChromeHidden(hidden) {
+  const win = document.getElementById('image-win');
+  if (!win) return;
+  win.classList.toggle('image-fs-chrome-hidden', !!hidden);
+}
+
+function clearImageFsChromeTimers() {
+  if (_imgFsHideTimer) { clearTimeout(_imgFsHideTimer); _imgFsHideTimer = null; }
+  if (_imgFsGraceTimer) { clearTimeout(_imgFsGraceTimer); _imgFsGraceTimer = null; }
+}
+
+function closeImageFsChrome() {
+  setImageFsChromeHidden(true);
+  _imgFsChromeOpen = false;
+  if (_imgFsHideTimer) { clearTimeout(_imgFsHideTimer); _imgFsHideTimer = null; }
+}
+
+function openImageFsChrome() {
+  setImageFsChromeHidden(false);
+  _imgFsChromeOpen = true;
+}
+
+function bumpImageFsMouseIdle() {
+  if (_imgFsHideTimer) { clearTimeout(_imgFsHideTimer); _imgFsHideTimer = null; }
+  if (!isImageFullscreenActive() || !_imgFsChromeOpen) return;
+  _imgFsHideTimer = setTimeout(() => {
+    _imgFsHideTimer = null;
+    if (!isImageFullscreenActive()) return;
+    closeImageFsChrome();
+  }, IMG_FS_CHROME_IDLE_MS);
+}
+
+function onImageFullscreenPointerMove(e) {
+  if (!isImageFullscreenActive()) return;
+  const win = document.getElementById('image-win');
+  if (!win) return;
+  const inZone = imgFsPointerInBottomZone(e.clientY);
+  win.classList.toggle('image-fs-pointer-in-zone', inZone);
+  if (!_imgFsPostGrace) return;
+  if (inZone) {
+    openImageFsChrome();
+    bumpImageFsMouseIdle();
+    return;
+  }
+  if (_imgFsChromeOpen) bumpImageFsMouseIdle();
+}
+
+function onImageFullscreenPointerActivity(e) {
+  if (!isImageFullscreenActive() || !_imgFsPostGrace) return;
+  if (imgFsPointerInBottomZone(e.clientY)) {
+    openImageFsChrome();
+    bumpImageFsMouseIdle();
+  } else if (_imgFsChromeOpen) {
+    bumpImageFsMouseIdle();
+  }
+}
+
+function onImageFullscreenEnter() {
+  const win = document.getElementById('image-win');
+  if (!win) return;
+  bindImageFsChromeListeners();
+  _imgFsPostGrace = false;
+  _imgFsChromeOpen = true;
+  win.classList.remove('image-fs-pointer-in-zone');
+  setImageFsChromeHidden(false);
+  clearImageFsChromeTimers();
+  _imgFsGraceTimer = setTimeout(() => {
+    _imgFsGraceTimer = null;
+    _imgFsPostGrace = true;
+    if (!isImageFullscreenActive()) return;
+    closeImageFsChrome();
+  }, IMG_FS_CHROME_IDLE_MS);
+}
+
+function onImageFullscreenLeave() {
+  clearImageFsChromeTimers();
+  _imgFsPostGrace = false;
+  _imgFsChromeOpen = false;
+  const win = document.getElementById('image-win');
+  if (win) win.classList.remove('image-fs-pointer-in-zone', 'image-fs-chrome-hidden');
+  restoreImageWinAfterFullscreen();
+}
+
+function bindImageFsChromeListeners() {
+  if (_imgFsChromeBound) return;
+  _imgFsChromeBound = true;
+  document.addEventListener('pointermove', onImageFullscreenPointerMove, { passive: true });
+  document.addEventListener('pointerdown', onImageFullscreenPointerActivity, { passive: true });
+}
+
+function syncImageFullscreenUi() {
+  const win = document.getElementById('image-win');
+  const icon = document.getElementById('img-fullscreen-icon');
+  const barIcon = document.getElementById('img-fs-bar-icon');
+  const btn = document.getElementById('img-btn-fullscreen');
+  const barBtn = document.getElementById('img-btn-fs-bar');
+  const activeEl = document.fullscreenElement || document.webkitFullscreenElement;
+  const on = !!(win && activeEl === win);
+  if (icon) icon.textContent = on ? 'fullscreen_exit' : 'fullscreen';
+  if (barIcon) barIcon.textContent = on ? 'fullscreen_exit' : 'fullscreen';
+  if (btn) {
+    btn.classList.toggle('active', on);
+    btn.title = on ? 'Exit fullscreen' : 'Fullscreen';
+  }
+  if (barBtn) barBtn.title = on ? 'Exit fullscreen' : 'Fullscreen';
+  if (on && !_imgFsWasActive) onImageFullscreenEnter();
+  else if (!on && _imgFsWasActive) onImageFullscreenLeave();
+  _imgFsWasActive = on;
+}
+
+function toggleImageFullscreen() {
+  const win = document.getElementById('image-win');
+  if (!win) return;
+  const doc = document;
+  const active = doc.fullscreenElement || doc.webkitFullscreenElement;
+  if (active === win) {
+    const exit = doc.exitFullscreen || doc.webkitExitFullscreen;
+    if (exit) exit.call(doc);
+    return;
+  }
+  if (active) {
+    const exit = doc.exitFullscreen || doc.webkitExitFullscreen;
+    if (exit) {
+      exit.call(doc).then(() => toggleImageFullscreen()).catch(() => {});
+    }
+    return;
+  }
+  captureImageWinGeometry(win);
+  const req = win.requestFullscreen || win.webkitRequestFullscreen;
+  if (req) {
+    req.call(win)
+      .then(() => syncImageFullscreenUi())
+      .catch(() => {});
+  }
+}
+
+function closeImageWin() {
+  const win = document.getElementById('image-win');
+  const doc = document;
+  const active = doc.fullscreenElement || doc.webkitFullscreenElement;
+  const finish = () => {
+    if (win) win.style.display = 'none';
+    syncImageFullscreenUi();
+  };
+  if (active === win) {
+    const exit = doc.exitFullscreen || doc.webkitExitFullscreen;
+    if (exit) {
+      exit.call(doc).then(finish).catch(finish);
+      return;
+    }
+  }
+  finish();
+}
+
 function openImageWin(idx) {
   const win = document.getElementById('image-win');
   _imgIdx = idx;
@@ -250,9 +475,21 @@ function openImageWin(idx) {
   }
 }
 
-document.getElementById('close-image-win').addEventListener('click', () =>
-  document.getElementById('image-win').style.display = 'none'
-);
+document.getElementById('close-image-win').addEventListener('click', closeImageWin);
+
+document.addEventListener('fullscreenchange', syncImageFullscreenUi);
+document.addEventListener('webkitfullscreenchange', syncImageFullscreenUi);
+
+(function initImageFullscreenControls() {
+  const fsBtn = document.getElementById('img-btn-fullscreen');
+  const fsBar = document.getElementById('img-btn-fs-bar');
+  const prevBar = document.getElementById('img-btn-prev');
+  const nextBar = document.getElementById('img-btn-next');
+  if (fsBtn) fsBtn.addEventListener('click', (e) => { e.stopPropagation(); toggleImageFullscreen(); });
+  if (fsBar) fsBar.addEventListener('click', (e) => { e.stopPropagation(); toggleImageFullscreen(); });
+  if (prevBar) prevBar.addEventListener('click', (e) => { e.stopPropagation(); imgNavGo(-1); });
+  if (nextBar) nextBar.addEventListener('click', (e) => { e.stopPropagation(); imgNavGo(1); });
+})();
 
 /* ── IMAGE NAV ── */
 function imgNavGo(dir) {
@@ -277,6 +514,7 @@ document.getElementById('img-nav-next').addEventListener('touchend', e => { e.pr
   function hideAll() { leaveTimer = setTimeout(() => { prevBtn.classList.remove('edge-visible'); nextBtn.classList.remove('edge-visible'); }, 320); }
 
   winEl.addEventListener('mousemove', e => {
+    if (isImageFullscreenActive()) return;
     const r = winEl.getBoundingClientRect(); const x = e.clientX - r.left; const w = r.width;
     if (x < EDGE) { show(prevBtn); nextBtn.classList.remove('edge-visible'); }
     else if (x > w - EDGE) { show(nextBtn); prevBtn.classList.remove('edge-visible'); }
@@ -317,10 +555,21 @@ document.getElementById('img-nav-next').addEventListener('touchend', e => { e.pr
 /* ── KEYBOARD GALLERY ── */
 document.addEventListener('keydown', e => {
   const win = document.getElementById('image-win');
-  if (win.style.display !== 'flex') return;
+  if (!win || win.style.display !== 'flex') return;
+  const tag = (e.target && e.target.tagName) || '';
+  if (tag === 'INPUT' || tag === 'TEXTAREA' || e.target?.isContentEditable) return;
   if (e.key === 'ArrowLeft') { e.preventDefault(); imgNavGo(-1); }
   else if (e.key === 'ArrowRight') { e.preventDefault(); imgNavGo(1); }
-  else if (e.key === 'Escape') { win.style.display = 'none'; }
+  else if (e.key === 'f' || e.key === 'F') { e.preventDefault(); toggleImageFullscreen(); }
+  else if (e.key === 'Escape') {
+    e.preventDefault();
+    if (isImageFullscreenActive()) {
+      const exit = document.exitFullscreen || document.webkitExitFullscreen;
+      if (exit) exit.call(document);
+    } else {
+      closeImageWin();
+    }
+  }
 });
 
 /* ── VIDEO VIEWER ── */
@@ -597,9 +846,16 @@ function toggleVideoFullscreen() {
   if (!win) return;
   const doc = document;
   const active = doc.fullscreenElement || doc.webkitFullscreenElement;
-  if (active) {
+  if (active === win) {
     const exit = doc.exitFullscreen || doc.webkitExitFullscreen;
     if (exit) exit.call(doc);
+    return;
+  }
+  if (active) {
+    const exit = doc.exitFullscreen || doc.webkitExitFullscreen;
+    if (exit) {
+      exit.call(doc).then(() => toggleVideoFullscreen()).catch(() => {});
+    }
     return;
   }
   captureVideoWinGeometry(win);
@@ -612,6 +868,28 @@ function toggleVideoFullscreen() {
       });
   } else if (player && player.webkitEnterFullscreen) {
     player.webkitEnterFullscreen();
+  }
+}
+
+function seekVideoBy(deltaSec) {
+  const player = document.getElementById('video-win-player');
+  if (!player || !isFinite(player.duration)) return;
+  player.currentTime = Math.max(0, Math.min(player.duration, player.currentTime + deltaSec));
+  syncVideoUi();
+}
+
+function toggleVideoMute() {
+  const player = document.getElementById('video-win-player');
+  if (!player) return;
+  if (_videoUserMuted || player.muted || player.volume === 0) {
+    _videoUserMuted = false;
+    player.muted = false;
+    setVideoVolume(_videoPremuteVol || 80);
+  } else {
+    _videoPremuteVol = Math.round(player.volume * 100) || 80;
+    _videoUserMuted = true;
+    player.muted = true;
+    syncVideoUi();
   }
 }
 
@@ -837,12 +1115,49 @@ function setVideoVolume(pct) {
 
   player.addEventListener('click', (e) => {
     if (e.target !== player) return;
+    if (isVideoFullscreenActive() && _videoFsPostGrace && !_videoFsChromeOpen) {
+      openVideoFsChrome();
+      bumpVideoFsMouseIdle();
+    }
     toggleVideoPlayback();
+  });
+
+  let _videoLastTap = 0;
+  player.addEventListener('dblclick', (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    toggleVideoFullscreen();
+  });
+  /* iOS / touch: treat rapid second tap as double-tap fullscreen */
+  player.addEventListener('pointerup', (e) => {
+    if (e.pointerType === 'mouse') return;
+    const now = performance.now();
+    if (now - _videoLastTap < 320) {
+      _videoLastTap = 0;
+      toggleVideoFullscreen();
+    } else {
+      _videoLastTap = now;
+    }
   });
 
   if (seek) {
     const setSeekDrag = (on) => {
       if (progressRail) progressRail.classList.toggle('dragging', on);
+    };
+    const seekPreview = document.getElementById('video-seek-preview');
+    const showVideoSeekPreview = (clientX) => {
+      if (!seekPreview || !progressRail) return;
+      const dur = player.duration;
+      const r = progressRail.getBoundingClientRect();
+      const frac = Math.max(0, Math.min(1, (clientX - r.left) / Math.max(1, r.width)));
+      seekPreview.textContent = isFinite(dur) && dur > 0 ? fmtTime(frac * dur) : '--:--';
+      seekPreview.style.display = 'block';
+      const half = (seekPreview.offsetWidth || 36) / 2;
+      const x = Math.max(half, Math.min(r.width - half, clientX - r.left));
+      seekPreview.style.left = x + 'px';
+    };
+    const hideVideoSeekPreview = () => {
+      if (seekPreview) seekPreview.style.display = 'none';
     };
     seek.addEventListener('pointerdown', () => setSeekDrag(true));
     seek.addEventListener('pointerup', () => setSeekDrag(false));
@@ -854,6 +1169,13 @@ function setVideoVolume(pct) {
       }
       syncVideoUi();
     });
+    if (progressRail) {
+      progressRail.addEventListener('pointermove', (e) => showVideoSeekPreview(e.clientX));
+      progressRail.addEventListener('pointerleave', () => {
+        if (!progressRail.classList.contains('dragging')) hideVideoSeekPreview();
+      });
+      progressRail.addEventListener('pointerup', hideVideoSeekPreview);
+    }
   }
 
   if (volSlider) {
@@ -879,16 +1201,7 @@ function setVideoVolume(pct) {
     if (volWrap) {
       e.stopPropagation();
       e.stopImmediatePropagation();
-      if (_videoUserMuted || player.muted || player.volume === 0) {
-        _videoUserMuted = false;
-        player.muted = false;
-        setVideoVolume(_videoPremuteVol || 80);
-      } else {
-        _videoPremuteVol = Math.round(player.volume * 100) || 80;
-        _videoUserMuted = true;
-        player.muted = true;
-        syncVideoUi();
-      }
+      toggleVideoMute();
       return;
     }
 
@@ -937,10 +1250,13 @@ function setVideoVolume(pct) {
   document.addEventListener('keydown', e => {
     const win = document.getElementById('video-win');
     if (!win || win.style.display !== 'flex') return;
+    const tag = (e.target && e.target.tagName) || '';
+    if (tag === 'INPUT' || tag === 'TEXTAREA' || e.target?.isContentEditable) return;
+    const imgWin = document.getElementById('image-win');
+    if (imgWin && imgWin.style.display === 'flex') return;
     if (e.key === 'Escape') {
       e.preventDefault();
-      const active = document.fullscreenElement || document.webkitFullscreenElement;
-      if (active) {
+      if (isVideoFullscreenActive()) {
         const exit = document.exitFullscreen || document.webkitExitFullscreen;
         if (exit) exit.call(document);
       } else {
@@ -949,6 +1265,24 @@ function setVideoVolume(pct) {
     } else if (e.key === ' ') {
       e.preventDefault();
       toggleVideoPlayback();
+      if (isVideoFullscreenActive()) {
+        openVideoFsChrome();
+        bumpVideoFsMouseIdle();
+      }
+    } else if (e.key === 'ArrowLeft') {
+      e.preventDefault();
+      seekVideoBy(-5);
+      if (isVideoFullscreenActive()) { openVideoFsChrome(); bumpVideoFsMouseIdle(); }
+    } else if (e.key === 'ArrowRight') {
+      e.preventDefault();
+      seekVideoBy(5);
+      if (isVideoFullscreenActive()) { openVideoFsChrome(); bumpVideoFsMouseIdle(); }
+    } else if (e.key === 'f' || e.key === 'F') {
+      e.preventDefault();
+      toggleVideoFullscreen();
+    } else if (e.key === 'm' || e.key === 'M') {
+      e.preventDefault();
+      toggleVideoMute();
     }
   });
 

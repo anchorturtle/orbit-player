@@ -456,8 +456,9 @@ makeWindowDraggable('lyrics-win', 'lyrics-bar');
 
     // Image Viewer (enlarged gallery lightbox): keep front + center on zoom/resize.
     // If user never dragged it, re-center with good size. Always clamp to stay fully visible.
+    // Skip while native fullscreen (geometry is owned by the FS restore path).
     const iw = document.getElementById('image-win');
-    if (iw && iw.style.display === 'flex') {
+    if (iw && iw.style.display === 'flex' && !isImageFullscreenActive?.()) {
       if (iw.dataset.userPositioned !== 'true') {
         const vw = window.innerWidth, vh = window.innerHeight;
         const w = Math.min(560, vw - 80), h = Math.min(520, vh - 120);

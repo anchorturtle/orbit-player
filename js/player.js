@@ -1161,6 +1161,93 @@ updateVolumeIcon();
 // Full volume slider is now enabled on mobile thanks to Web Audio GainNode.
 // It provides the best possible volume control the browser allows (including proper muting on iOS).
 
+/* ── KEYBOARD + SCROLL QoL (YouTube / X-style polish) ── */
+(function initPlayerKeyboardQoL() {
+  function mediaWinsOpen() {
+    const img = document.getElementById('image-win');
+    const vid = document.getElementById('video-win');
+    return (img && img.style.display === 'flex') || (vid && vid.style.display === 'flex');
+  }
+
+  function playerIsRelevant() {
+    const pw = document.getElementById('player-win');
+    return (pw && pw.style.display === 'flex') || isPlaying || !!(audio.src && audio.src !== window.location.href);
+  }
+
+  function togglePlayFromKeys() {
+    initAudioContext();
+    ensureAudioContextRunning();
+    if (!audio.src || audio.src === window.location.href) {
+      if (TRACKS.length) loadTrack(0, true);
+      return;
+    }
+    if (isPlaying) pauseAndStopBackground();
+    else {
+      ensureAudioContextRunning();
+      audio.play().then(() => { isPlaying = true; }).catch(() => { isPlaying = false; });
+      isPlaying = true;
+    }
+    updatePlayUI();
+  }
+
+  function toggleMuteFromKeys() {
+    initAudioContext();
+    ensureAudioContextRunning();
+    const wrap = document.getElementById('vol-icon-wrap');
+    if (wrap) wrap.click();
+  }
+
+  document.addEventListener('keydown', (e) => {
+    const tag = (e.target && e.target.tagName) || '';
+    if (tag === 'INPUT' || tag === 'TEXTAREA' || e.target?.isContentEditable) return;
+    if (mediaWinsOpen() || !playerIsRelevant()) return;
+
+    if (e.key === ' ') {
+      e.preventDefault();
+      togglePlayFromKeys();
+    } else if (e.key === 'ArrowLeft') {
+      e.preventDefault();
+      skip(-5);
+    } else if (e.key === 'ArrowRight') {
+      e.preventDefault();
+      skip(5);
+    } else if (e.key === 'ArrowUp') {
+      e.preventDefault();
+      if (isMuted) toggleMuteFromKeys();
+      setVolume(+volSlider.value + 5);
+    } else if (e.key === 'ArrowDown') {
+      e.preventDefault();
+      setVolume(+volSlider.value - 5);
+    } else if (e.key === 'm' || e.key === 'M') {
+      e.preventDefault();
+      toggleMuteFromKeys();
+    } else if (e.key === 'n' || e.key === 'N') {
+      e.preventDefault();
+      loadTrack((currentIndex + 1) % TRACKS.length, isPlaying);
+    } else if (e.key === 'p' || e.key === 'P') {
+      e.preventDefault();
+      if (audio.currentTime > 3) { audio.currentTime = 0; return; }
+      loadTrack((currentIndex - 1 + TRACKS.length) % TRACKS.length, isPlaying);
+    }
+  });
+
+  const volMod = document.querySelector('#player-win .volume-module');
+  if (volMod) {
+    volMod.addEventListener('wheel', (e) => {
+      e.preventDefault();
+      initAudioContext();
+      ensureAudioContextRunning();
+      if (isMuted) {
+        isMuted = false;
+        volIcon.classList.remove('muted');
+      }
+      const delta = e.deltaY > 0 ? -4 : 4;
+      setVolume(+volSlider.value + delta);
+      updateVolumeIcon();
+    }, { passive: false });
+  }
+})();
+
 /* ── DOWNLOAD ── */
 document.getElementById('btn-download').addEventListener('click', () => {
   const t = TRACKS[currentIndex]; if (!t) return;

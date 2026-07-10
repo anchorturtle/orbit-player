@@ -1450,6 +1450,7 @@
   let rafId = null;
   const htmlEl = document.documentElement;
   const videoWinElCached = document.getElementById('video-win');
+  const imageWinElCached = document.getElementById('image-win');
   // Reused temps — avoid Vector3.clone() GC in the hot shooter path
   const _shootHead = new THREE.Vector3();
   const _shootTail = new THREE.Vector3();
@@ -1464,6 +1465,7 @@
     if (htmlEl.classList.contains('orbit-resizing')) return;
     const fsEl = document.fullscreenElement || document.webkitFullscreenElement;
     if (videoWinElCached && fsEl === videoWinElCached) return;
+    if (imageWinElCached && fsEl === imageWinElCached) return;
     sampleAudio();
     watchTrack(dt);
 
