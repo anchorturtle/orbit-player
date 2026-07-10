@@ -1266,7 +1266,7 @@ function renderTracklist(filter) {
   let items = TRACKS.map((t, i) => ({ t, origIdx: i }));
 
   // Apply category filter (tabs)
-  if (currentTracklistCategory !== 'all') {
+  if (currentTracklistCategory && currentTracklistCategory !== 'all') {
     items = items.filter(({ t }) => (t.category || 'instrumental') === currentTracklistCategory);
   }
 
@@ -1400,11 +1400,11 @@ document.getElementById('search-input').addEventListener('input', function () {
 });
 
 /* ── TRACKLIST CATEGORY TABS ── */
-document.querySelectorAll('.tracklist-tabs .tab').forEach(tab => {
+document.querySelectorAll('#tracklist-win .tracklist-tabs .tab').forEach(tab => {
   tab.addEventListener('click', () => {
-    document.querySelectorAll('.tracklist-tabs .tab').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('#tracklist-win .tracklist-tabs .tab').forEach(t => t.classList.remove('active'));
     tab.classList.add('active');
-    currentTracklistCategory = tab.dataset.category;
+    currentTracklistCategory = tab.dataset.category || 'all';
     renderTracklist(document.getElementById('search-input').value);
   });
 });

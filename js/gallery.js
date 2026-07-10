@@ -60,6 +60,8 @@ const VIDEOS = [
     src: 'videos/jazzpotwax.mp4',
     title: 'Jazzpot Wax',
     poster: 'videos/jazzpotwax-poster.jpg',
+    /** Reuse timed lyrics from TRACKS (player.js) for on-video captions */
+    lyricsTrackSlug: 'jazzpot',
   },
 ];
 
@@ -747,6 +749,7 @@ function closeVideoFsChrome() {
   _videoFsChromeOpen = false;
   document.getElementById('video-ai-disclaimer')?.classList.remove('open');
   document.getElementById('video-ai-badge')?.setAttribute('aria-expanded', 'false');
+  hideVideoCaptionSettings();
   if (_videoFsHideTimer) {
     clearTimeout(_videoFsHideTimer);
     _videoFsHideTimer = null;
@@ -961,6 +964,7 @@ function openVideoWin(idx) {
   win.style.display = 'flex';
   bringToFront('video-win');
   requestAnimationFrame(() => bringToFront('video-win'));
+  setVideoCaptionSource(entry);
   tryAutoplayVideo(player);
   syncVideoUi();
 
@@ -1042,7 +1046,153 @@ function syncVideoUi() {
     if (fill) fill.style.width = pct100 + '%';
     if (thumb) thumb.style.left = pct100 + '%';
   }
+  updateVideoCaptions(cur);
 }
+
+/* ── VIDEO CAPTIONS (timed lyrics from TRACKS, e.g. Jazzpot) ── */
+const VIDEO_LYRICS_SLUG_FALLBACK = { jazzpotwax: 'jazzpot' };
+const VIDEO_CAPTION_PREF_KEY = 'orbit-video-caption-prefs';
+let _videoCaptionsOn = true;
+let _videoCaptionLines = [];
+let _videoCaptionIdx = -1;
+let _videoCaptionPrefs = { size: 'md', style: 'subtle', pos: 'bottom' };
+
+function loadVideoCaptionPrefs() {
+  try {
+    const raw = localStorage.getItem(VIDEO_CAPTION_PREF_KEY);
+    if (!raw) return;
+    const parsed = JSON.parse(raw);
+    if (parsed && typeof parsed === 'object') {
+      _videoCaptionPrefs = {
+        size: parsed.size || 'md',
+        style: parsed.style || 'subtle',
+        pos: parsed.pos || 'bottom',
+      };
+      if (typeof parsed.on === 'boolean') _videoCaptionsOn = parsed.on;
+    }
+  } catch (_) {}
+}
+
+function saveVideoCaptionPrefs() {
+  try {
+    localStorage.setItem(VIDEO_CAPTION_PREF_KEY, JSON.stringify({
+      ..._videoCaptionPrefs,
+      on: _videoCaptionsOn,
+    }));
+  } catch (_) {}
+}
+
+function lyricsForVideoEntry(entry) {
+  if (!entry) return [];
+  if (Array.isArray(entry.lyrics) && entry.lyrics.length) return entry.lyrics;
+  const slug = entry.lyricsTrackSlug || VIDEO_LYRICS_SLUG_FALLBACK[entry.slug] || entry.slug;
+  if (typeof TRACKS !== 'undefined' && Array.isArray(TRACKS)) {
+    const track = TRACKS.find(t => t.slug === slug);
+    if (track && Array.isArray(track.lyrics)) return track.lyrics;
+  }
+  return [];
+}
+
+function applyVideoCaptionChrome() {
+  const host = document.getElementById('video-captions');
+  const btn = document.getElementById('video-btn-cc');
+  const sizeEl = document.getElementById('video-caption-size');
+  const styleEl = document.getElementById('video-caption-style');
+  const posEl = document.getElementById('video-caption-pos');
+  if (sizeEl) sizeEl.value = _videoCaptionPrefs.size;
+  if (styleEl) styleEl.value = _videoCaptionPrefs.style;
+  if (posEl) posEl.value = _videoCaptionPrefs.pos;
+  if (host) {
+    host.dataset.size = _videoCaptionPrefs.size;
+    host.dataset.style = _videoCaptionPrefs.style;
+    host.dataset.pos = _videoCaptionPrefs.pos;
+    host.hidden = !_videoCaptionsOn || !_videoCaptionLines.length;
+  }
+  if (btn) {
+    btn.classList.toggle('active', _videoCaptionsOn && !!_videoCaptionLines.length);
+    btn.setAttribute('aria-pressed', _videoCaptionsOn ? 'true' : 'false');
+    btn.disabled = !_videoCaptionLines.length;
+    btn.title = !_videoCaptionLines.length
+      ? 'No captions for this video'
+      : (_videoCaptionsOn ? 'Captions on' : 'Captions off');
+  }
+  const settingsBtn = document.getElementById('video-btn-cc-settings');
+  if (settingsBtn) settingsBtn.disabled = !_videoCaptionLines.length;
+}
+
+function setVideoCaptionSource(entry) {
+  _videoCaptionLines = lyricsForVideoEntry(entry).slice().sort((a, b) => (a.time || 0) - (b.time || 0));
+  _videoCaptionIdx = -1;
+  const line = document.getElementById('video-caption-line');
+  if (line) {
+    line.textContent = '';
+    line.classList.remove('on');
+  }
+  applyVideoCaptionChrome();
+  const player = document.getElementById('video-win-player');
+  updateVideoCaptions(player ? player.currentTime : 0);
+}
+
+function captionIndexAtTime(t) {
+  if (!_videoCaptionLines.length) return -1;
+  let lo = 0, hi = _videoCaptionLines.length - 1, ans = -1;
+  while (lo <= hi) {
+    const mid = (lo + hi) >> 1;
+    if ((_videoCaptionLines[mid].time || 0) <= t) {
+      ans = mid;
+      lo = mid + 1;
+    } else {
+      hi = mid - 1;
+    }
+  }
+  return ans;
+}
+
+function updateVideoCaptions(t) {
+  const host = document.getElementById('video-captions');
+  const line = document.getElementById('video-caption-line');
+  if (!host || !line) return;
+  if (!_videoCaptionsOn || !_videoCaptionLines.length) {
+    host.hidden = true;
+    return;
+  }
+  host.hidden = false;
+  const idx = captionIndexAtTime(t);
+  if (idx === _videoCaptionIdx) return;
+  _videoCaptionIdx = idx;
+  if (idx < 0) {
+    line.classList.remove('on');
+    line.textContent = '';
+    return;
+  }
+  const next = _videoCaptionLines[idx];
+  const end = idx + 1 < _videoCaptionLines.length
+    ? (_videoCaptionLines[idx + 1].time || Infinity)
+    : (next.time || 0) + 4;
+  if (t > end + 0.35) {
+    line.classList.remove('on');
+    line.textContent = '';
+    return;
+  }
+  line.textContent = next.text || '';
+  line.classList.remove('on');
+  void line.offsetWidth;
+  line.classList.add('on');
+}
+
+function hideVideoCaptionSettings() {
+  const panel = document.getElementById('video-caption-settings');
+  if (panel) panel.hidden = true;
+}
+
+function toggleVideoCaptionSettings(force) {
+  const panel = document.getElementById('video-caption-settings');
+  if (!panel || !_videoCaptionLines.length) return;
+  const open = typeof force === 'boolean' ? force : panel.hidden;
+  panel.hidden = !open;
+}
+
+loadVideoCaptionPrefs();
 
 let _videoPremuteVol = 100;
 let _videoUserMuted = false;
@@ -1245,7 +1395,51 @@ function setVideoVolume(pct) {
       toggleVideoFullscreen();
       return;
     }
+
+    const ccBtn = e.target.closest('#video-btn-cc');
+    if (ccBtn) {
+      e.stopPropagation();
+      e.stopImmediatePropagation();
+      if (!_videoCaptionLines.length) return;
+      _videoCaptionsOn = !_videoCaptionsOn;
+      saveVideoCaptionPrefs();
+      applyVideoCaptionChrome();
+      const playerEl = document.getElementById('video-win-player');
+      updateVideoCaptions(playerEl ? playerEl.currentTime : 0);
+      return;
+    }
+
+    const ccSettingsBtn = e.target.closest('#video-btn-cc-settings');
+    if (ccSettingsBtn) {
+      e.stopPropagation();
+      e.stopImmediatePropagation();
+      toggleVideoCaptionSettings();
+      return;
+    }
   });
+
+  const sizeEl = document.getElementById('video-caption-size');
+  const styleEl = document.getElementById('video-caption-style');
+  const posEl = document.getElementById('video-caption-pos');
+  const onCaptionPrefChange = () => {
+    _videoCaptionPrefs = {
+      size: sizeEl?.value || 'md',
+      style: styleEl?.value || 'subtle',
+      pos: posEl?.value || 'bottom',
+    };
+    saveVideoCaptionPrefs();
+    applyVideoCaptionChrome();
+  };
+  sizeEl?.addEventListener('change', onCaptionPrefChange);
+  styleEl?.addEventListener('change', onCaptionPrefChange);
+  posEl?.addEventListener('change', onCaptionPrefChange);
+  document.addEventListener('click', (e) => {
+    const panel = document.getElementById('video-caption-settings');
+    if (!panel || panel.hidden) return;
+    if (e.target.closest('#video-caption-settings') || e.target.closest('#video-btn-cc-settings')) return;
+    hideVideoCaptionSettings();
+  });
+  applyVideoCaptionChrome();
 
   document.addEventListener('keydown', e => {
     const win = document.getElementById('video-win');
@@ -1283,6 +1477,15 @@ function setVideoVolume(pct) {
     } else if (e.key === 'm' || e.key === 'M') {
       e.preventDefault();
       toggleVideoMute();
+    } else if (e.key === 'c' || e.key === 'C') {
+      e.preventDefault();
+      if (!_videoCaptionLines.length) return;
+      _videoCaptionsOn = !_videoCaptionsOn;
+      saveVideoCaptionPrefs();
+      applyVideoCaptionChrome();
+      const playerEl = document.getElementById('video-win-player');
+      updateVideoCaptions(playerEl ? playerEl.currentTime : 0);
+      if (isVideoFullscreenActive()) { openVideoFsChrome(); bumpVideoFsMouseIdle(); }
     }
   });
 

@@ -114,7 +114,7 @@
       </div>
     </div>
     <div class="win-body" style="padding:10px;gap:8px">
-      <div class="tracklist-tabs gallery-tabs">
+      <div class="gallery-tabs">
         <button class="tab active" data-gallery-tab="images">Images</button>
         <button class="tab" data-gallery-tab="videos">AI videos</button>
       </div>
@@ -270,6 +270,32 @@
       <div class="orbit-video-fullscreen-host" id="video-fullscreen-host">
       <div class="orbit-video-stage">
         <video id="video-win-player" playsinline preload="auto" poster="videos/jazzpotwax-poster.jpg"></video>
+        <div id="video-captions" class="orbit-video-captions" aria-live="polite" hidden>
+          <div class="orbit-video-caption-line" id="video-caption-line"></div>
+        </div>
+        <div id="video-caption-settings" class="orbit-video-caption-settings" hidden>
+          <div class="orbit-video-caption-settings-title">Captions</div>
+          <label class="orbit-video-caption-opt">Size
+            <select id="video-caption-size" aria-label="Caption size">
+              <option value="sm">Small</option>
+              <option value="md" selected>Medium</option>
+              <option value="lg">Large</option>
+            </select>
+          </label>
+          <label class="orbit-video-caption-opt">Style
+            <select id="video-caption-style" aria-label="Caption style">
+              <option value="subtle" selected>Subtle</option>
+              <option value="boxed">Boxed</option>
+              <option value="karaoke">Glow</option>
+            </select>
+          </label>
+          <label class="orbit-video-caption-opt">Position
+            <select id="video-caption-pos" aria-label="Caption position">
+              <option value="bottom" selected>Bottom</option>
+              <option value="mid">Middle</option>
+            </select>
+          </label>
+        </div>
       </div>
 
       <div class="orbit-video-controls-row">
@@ -294,6 +320,12 @@
           <input type="range" id="video-vol-slider" min="0" max="100" value="100" step="1" aria-label="Volume"/>
           <span class="tape-counter vol-pct" id="video-vol-pct">100%</span>
         </div>
+        <button type="button" id="video-btn-cc" class="ctrl-btn" title="Captions" aria-pressed="false">
+          <span class="material-symbols-outlined">closed_caption</span>
+        </button>
+        <button type="button" id="video-btn-cc-settings" class="ctrl-btn" title="Caption settings">
+          <span class="material-symbols-outlined">settings</span>
+        </button>
         <button type="button" id="video-btn-download" class="ctrl-btn" title="Download video">
           <span class="material-symbols-outlined">download</span>
         </button>
