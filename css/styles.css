@@ -173,20 +173,33 @@ body { font-family: 'Plus Jakarta Sans', sans-serif; background: #06040f; color:
   user-select: none; overflow: hidden;
   display: flex; flex-direction: column;
   contain: layout style paint;
+  transition: box-shadow .35s ease;
 }
 /* Background windows: no backdrop-filter (multi-window blur was ~15fps killer).
-   Solid glass fill still reads layered; focused .win-glass-full keeps real blur. */
+   Base background stays identical to the focused tier; the ::after darkener
+   below fades in to replace the lost frosting, so focus changes no longer
+   cause an abrupt window color snap. */
 .win.win-glass-lite {
   backdrop-filter: none !important;
   -webkit-backdrop-filter: none !important;
-  background:
-    linear-gradient(165deg, rgba(123,47,255,.09) 0%, transparent 42%),
-    rgba(6, 4, 18, 0.92);
   box-shadow:
     0 16px 40px rgba(0,0,0,.55),
     0 0 0 1px rgba(123,47,255,.10),
     inset 0 1px 0 rgba(255,255,255,.08);
 }
+.win:not(#dock-win)::after {
+  content: "";
+  position: absolute; inset: 0;
+  border-radius: var(--win-radius);
+  background:
+    linear-gradient(165deg, rgba(123,47,255,.06) 0%, transparent 42%),
+    rgba(6, 4, 18, 0.82);
+  opacity: 0;
+  transition: opacity .35s ease;
+  pointer-events: none;
+  z-index: 0;
+}
+.win.win-glass-lite:not(#dock-win)::after { opacity: 1; }
 html.orbit-resizing .win {
   backdrop-filter: none !important;
   -webkit-backdrop-filter: none !important;
@@ -2132,8 +2145,14 @@ html.orbit-resizing .win {
   #video-win .orbit-video-vol #video-vol-pct {
     display: none;
   }
+  /* Phones: hardware buttons handle volume; slider space goes to the scrubber
+     so the full control set (cc/settings/download/share/fs) still fits. */
   #video-win .orbit-video-vol #video-vol-slider {
-    width: 40px;
+    display: none;
+  }
+  #video-win .orbit-video-controls-row > .ctrl-btn {
+    width: 26px;
+    height: 26px;
   }
   .orbit-video-scrub-block .time-label {
     font-size: 8px;

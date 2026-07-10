@@ -325,7 +325,9 @@ function onImageFullscreenPointerMove(e) {
   const win = document.getElementById('image-win');
   if (!win) return;
   const inZone = imgFsPointerInBottomZone(e.clientY);
-  win.classList.toggle('image-fs-pointer-in-zone', inZone);
+  if (win.classList.contains('image-fs-pointer-in-zone') !== inZone) {
+    win.classList.toggle('image-fs-pointer-in-zone', inZone);
+  }
   if (!_imgFsPostGrace) return;
   if (inZone) {
     openImageFsChrome();
@@ -665,10 +667,12 @@ function layoutVideoWinDefault(win) {
 /** Fix Chrome frozen video frame after window resize (audio keeps going). */
 function nudgeVideoPaint(player) {
   if (!player || !player.src || player.paused) return;
-  const t = player.currentTime;
   requestAnimationFrame(() => {
     if (!player || player.paused) return;
     try {
+      // Read the time at restore point (not at schedule) so a user seek made
+      // in between isn't silently reverted.
+      const t = player.currentTime;
       player.pause();
       void player.offsetHeight;
       player.currentTime = t;
@@ -781,7 +785,9 @@ function onVideoFullscreenPointerMove(e) {
   if (!win) return;
 
   const inZone = videoFsPointerInBottomZone(e.clientY);
-  win.classList.toggle('video-fs-pointer-in-zone', inZone);
+  if (win.classList.contains('video-fs-pointer-in-zone') !== inZone) {
+    win.classList.toggle('video-fs-pointer-in-zone', inZone);
+  }
 
   if (!_videoFsPostGrace) return;
 
@@ -1173,6 +1179,7 @@ function captionIndexAtTime(t) {
 }
 
 function updateVideoCaptions(t) {
+  if (_videoCaptionFlashTimer) return; // don't stomp the on/off confirmation flash
   const host = document.getElementById('video-captions');
   const line = document.getElementById('video-caption-line');
   if (!host || !line) return;
@@ -1200,6 +1207,46 @@ function updateVideoCaptions(t) {
   line.classList.remove('on');
   void line.offsetWidth;
   line.classList.add('on');
+}
+
+let _videoCaptionFlashTimer = null;
+
+/* Toggle captions with immediate visual confirmation: briefly flash the state
+   in the caption area so the button click always has visible feedback, even
+   before the first timed line. */
+function toggleVideoCaptionsOn() {
+  hydrateVideoLyrics();
+  if (!_videoCaptionLines.length) {
+    const entry = VIDEOS[_videoIdx];
+    _videoCaptionLines = lyricsForVideoEntry(entry).slice().sort((a, b) => (a.time || 0) - (b.time || 0));
+  }
+  if (!_videoCaptionLines.length) return;
+  _videoCaptionsOn = !_videoCaptionsOn;
+  saveVideoCaptionPrefs();
+  applyVideoCaptionChrome();
+  _videoCaptionIdx = -1;
+
+  const host = document.getElementById('video-captions');
+  const line = document.getElementById('video-caption-line');
+  if (host && line) {
+    clearTimeout(_videoCaptionFlashTimer);
+    host.hidden = false;
+    line.textContent = _videoCaptionsOn ? 'Captions on' : 'Captions off';
+    line.classList.remove('on');
+    void line.offsetWidth;
+    line.classList.add('on');
+    _videoCaptionFlashTimer = setTimeout(() => {
+      _videoCaptionFlashTimer = null;
+      _videoCaptionIdx = -1;
+      const playerEl = document.getElementById('video-win-player');
+      line.classList.remove('on');
+      line.textContent = '';
+      updateVideoCaptions(playerEl ? playerEl.currentTime : 0);
+    }, 1100);
+  } else {
+    const playerEl = document.getElementById('video-win-player');
+    updateVideoCaptions(playerEl ? playerEl.currentTime : 0);
+  }
 }
 
 function hideVideoCaptionSettings() {
@@ -1432,26 +1479,6 @@ function setVideoVolume(pct) {
       return;
     }
 
-    const ccBtn = e.target.closest('#video-btn-cc');
-    if (ccBtn) {
-      e.stopPropagation();
-      e.stopImmediatePropagation();
-      if (!_videoCaptionLines.length) return;
-      _videoCaptionsOn = !_videoCaptionsOn;
-      saveVideoCaptionPrefs();
-      applyVideoCaptionChrome();
-      const playerEl = document.getElementById('video-win-player');
-      updateVideoCaptions(playerEl ? playerEl.currentTime : 0);
-      return;
-    }
-
-    const ccSettingsBtn = e.target.closest('#video-btn-cc-settings');
-    if (ccSettingsBtn) {
-      e.stopPropagation();
-      e.stopImmediatePropagation();
-      toggleVideoCaptionSettings();
-      return;
-    }
   });
 
   const sizeEl = document.getElementById('video-caption-size');
@@ -1475,18 +1502,7 @@ function setVideoVolume(pct) {
   ccBtnDirect?.addEventListener('click', (e) => {
     e.preventDefault();
     e.stopPropagation();
-    hydrateVideoLyrics();
-    if (!_videoCaptionLines.length) {
-      const entry = VIDEOS[_videoIdx];
-      _videoCaptionLines = lyricsForVideoEntry(entry).slice().sort((a, b) => (a.time || 0) - (b.time || 0));
-    }
-    if (!_videoCaptionLines.length) return;
-    _videoCaptionsOn = !_videoCaptionsOn;
-    saveVideoCaptionPrefs();
-    applyVideoCaptionChrome();
-    const playerEl = document.getElementById('video-win-player');
-    _videoCaptionIdx = -1;
-    updateVideoCaptions(playerEl ? playerEl.currentTime : 0);
+    toggleVideoCaptionsOn();
   });
   ccSettingsDirect?.addEventListener('click', (e) => {
     e.preventDefault();
@@ -1541,12 +1557,7 @@ function setVideoVolume(pct) {
       toggleVideoMute();
     } else if (e.key === 'c' || e.key === 'C') {
       e.preventDefault();
-      if (!_videoCaptionLines.length) return;
-      _videoCaptionsOn = !_videoCaptionsOn;
-      saveVideoCaptionPrefs();
-      applyVideoCaptionChrome();
-      const playerEl = document.getElementById('video-win-player');
-      updateVideoCaptions(playerEl ? playerEl.currentTime : 0);
+      toggleVideoCaptionsOn();
       if (isVideoFullscreenActive()) { openVideoFsChrome(); bumpVideoFsMouseIdle(); }
     }
   });
