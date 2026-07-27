@@ -205,8 +205,18 @@ const TRACKS = [
       {"time":81.231,"text":"Like hot wax spilling on vinyl"},
       {"time":82.821,"text":"Turn a black sheep into an albino"},
       {"time":84.41,"text":"Murder I reap, blood with the spinal"},
-      {"time":86.0,"text":"And judgment is final"}
+    {"time":86.0,"text":"And judgment is final"}
     ],
+  },
+  {
+    title: 'Still Going Higher',
+    artist: 'jestR',
+    slug: 'still-going-higher-2',
+    file: 'audio/Still_Going_Higher_2.mp3',
+    year: 2026,
+    description: 'Motivational rap track with driving energy.',
+    category: 'rap',
+    lyrics: []
   }
 ];
 window.ORBIT_TRACKS = TRACKS;
