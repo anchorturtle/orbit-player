@@ -211,8 +211,8 @@ const TRACKS = [
   {
     title: 'Still Going Higher',
     artist: 'jestR',
-    slug: 'still-going-higher-2',
-    file: 'audio/Still_Going_Higher_2.mp3',
+    slug: 'still-going-higher',
+    file: 'audio/Still_Going_Higher.mp3',
     year: 2026,
     description: 'Motivational rap track with driving energy.',
     category: 'rap',
