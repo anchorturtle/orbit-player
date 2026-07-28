@@ -209,17 +209,37 @@ const TRACKS = [
     ],
   },
   {
-    title: 'Still Going Higher',
-    artist: 'jestR',
-    slug: 'still-going-higher',
-    file: 'audio/Still_Going_Higher.mp3',
-    year: 2026,
-    description: 'Motivational rap track with driving energy.',
-    category: 'rap',
-    lyrics: []
-  }
-];
-window.ORBIT_TRACKS = TRACKS;
+      title: 'Still Going Higher',
+      artist: 'jestR',
+      slug: 'still-going-higher',
+      file: 'audio/Still_Going_Higher.mp3',
+      year: 2026,
+      description: 'Motivational rap track with driving energy.',
+      category: 'rap',
+      lyrics: []
+    },
+    {
+      title: 'Fat Stacks',
+      artist: 'jestR',
+      slug: 'fat-stacks',
+      file: 'audio/Fat Stacks.mp3',
+      year: 2024,
+      description: 'Rap track - fat stacks energy.',
+      category: 'rap',
+      lyrics: []
+    },
+    {
+      title: 'Chokeslam',
+      artist: 'jestR',
+      slug: 'chokeslam',
+      file: 'audio/Chokeslam.mp3',
+      year: 2024,
+      description: 'Rap track - chokeslam impact.',
+      category: 'rap',
+      lyrics: []
+    }
+  ];
+  window.ORBIT_TRACKS = TRACKS;
 
 let currentTracklistCategory = 'all';
 

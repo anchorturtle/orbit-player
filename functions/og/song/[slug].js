@@ -19,6 +19,9 @@ export async function onRequest(context) {
     'what-dreams-may-come': { title: 'What Dreams May Come', artist: 'jestR' },
     'spin-cycle': { title: 'Spin Cycle', artist: 'jestR' },
     'jazzpot': { title: 'Jazzpot', artist: 'jestR' },
+    'still-going-higher': { title: 'Still Going Higher', artist: 'jestR' },
+    'fat-stacks': { title: 'Fat Stacks', artist: 'jestR' },
+    'chokeslam': { title: 'Chokeslam', artist: 'jestR' },
   };
 
   const track = tracks[slug] || { title: 'Track', artist: 'jestR' };
