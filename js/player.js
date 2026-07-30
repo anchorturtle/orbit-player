@@ -5,12 +5,22 @@
 
 const TRACKS = [
   {
-    title: 'KO (instrumental)',
+    title: 'K.O.',
     artist: 'jestR',
-    slug: 'ko-instrumental',
+    slug: 'ko',
     file: 'audio/KO.mp3',
     year: 2026,
-    description: 'New instrumental track to start the collection.',
+    description: '',
+    category: 'instrumental'
+  },
+  {
+    title: 'Soul Seer',
+    artist: 'jestR',
+    slug: 'soul-seer',
+    file: 'audio/Mp3-SoulSeer.mp3',
+    year: 2021,
+    description: 'Mystical and introspective journey through inner vision.',
+    artwork: null,
     category: 'instrumental'
   },
   {
