@@ -5,6 +5,15 @@
 
 const TRACKS = [
   {
+    title: 'KO (instrumental)',
+    artist: 'jestR',
+    slug: 'ko-instrumental',
+    file: 'audio/KO.mp3',
+    year: 2026,
+    description: 'New instrumental track to start the collection.',
+    category: 'instrumental'
+  },
+  {
     title: 'Geronimo',
     artist: 'jestR',
     slug: 'geronimo',
