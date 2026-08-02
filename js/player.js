@@ -5,6 +5,15 @@
 
 const TRACKS = [
   {
+    title: 'Thousand Dragon',
+    artist: 'jestR',
+    slug: 'thousand-dragon',
+    file: 'audio/Thousand-Dragon-jestR.mp3',
+    year: 2026,
+    description: '',
+    category: 'instrumental'
+  },
+  {
     title: 'K.O.',
     artist: 'jestR',
     slug: 'ko',
