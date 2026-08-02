@@ -2,6 +2,16 @@ export async function onRequest(context) {
   const { slug } = context.params;
 
   const videos = {
+    'thousand-dragon': {
+      title: 'Thousand Dragon',
+      poster: '/videos/thousand-dragon-og.jpg',
+      description: 'jestR · AnchorTurtle',
+    },
+    'ko': {
+      title: 'K.O.',
+      poster: '/videos/ko-og.jpg',
+      description: 'jestR · AnchorTurtle',
+    },
     'jazzpotwax': {
       title: 'Jazzpot Wax',
       poster: '/videos/jazzpotwax-og.jpg',

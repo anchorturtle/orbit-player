@@ -56,6 +56,18 @@ const GALLERY = [
 
 const VIDEOS = [
   {
+    slug: 'thousand-dragon',
+    src: 'videos/thousand-dragon.mp4',
+    title: 'Thousand Dragon',
+    poster: 'videos/thousand-dragon-poster.jpg',
+  },
+  {
+    slug: 'ko',
+    src: 'videos/ko.mp4',
+    title: 'K.O.',
+    poster: 'videos/ko-poster.jpg',
+  },
+  {
     slug: 'jazzpotwax',
     src: 'videos/jazzpotwax.mp4',
     title: 'Jazzpot Wax',

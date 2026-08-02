@@ -8,5 +8,5 @@ node_modules/
 dist/
 pages-dist/
 .hermes/
-videos/jazzpotwax.mp4
+videos/*.mp4
 scripts/*.png
