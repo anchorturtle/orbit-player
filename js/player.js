@@ -73,16 +73,6 @@ const TRACKS = [
     category: 'instrumental'
   },
   {
-    title: 'Soul Seer',
-    artist: 'jestR',
-    slug: 'soul-seer',
-    file: 'audio/Mp3-SoulSeer.mp3',
-    year: 2021,
-    description: 'Mystical and introspective journey through inner vision.',
-    artwork: null,
-    category: 'instrumental'
-  },
-  {
     title: 'Peace',
     artist: 'jestR',
     slug: 'peace',

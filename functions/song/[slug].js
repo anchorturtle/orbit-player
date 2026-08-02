@@ -4,6 +4,7 @@ export async function onRequest(context) {
   // Track data - keep this in sync with your TRACKS in js/player.js
   const tracks = {
     'thousand-dragon': { title: 'Thousand Dragon', artist: 'jestR' },
+    'ko': { title: 'K.O.', artist: 'jestR' },
     'geronimo': { title: 'Geronimo', artist: 'jestR' },
     'mile-high': { title: 'Mile High', artist: 'jestR' },
     'follow-the-flow': { title: 'Follow The Flow', artist: 'jestR' },
