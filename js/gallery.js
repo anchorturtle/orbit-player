@@ -74,6 +74,8 @@ const VIDEOS = [
     poster: 'videos/jazzpotwax-poster.jpg',
     /** Reuse timed lyrics from TRACKS (player.js) for on-video captions */
     lyricsTrackSlug: 'jazzpot',
+    /** Over 200MB — exceeds the GitHub media CDN limit; streamed from a public Release asset instead */
+    cdnSrc: 'https://github.com/anchorturtle/orbit-player/releases/download/video-assets/jazzpotwax.mp4',
   },
 ];
 
@@ -87,6 +89,7 @@ function videoSrcForEntry(v) {
   const host = typeof location !== 'undefined' ? location.hostname : '';
   const isLocal = host === 'localhost' || host === '127.0.0.1';
   if (isLocal) return rel;
+  if (v.cdnSrc) return v.cdnSrc;
   if (/\.mp4$/i.test(rel)) {
     return `https://media.githubusercontent.com/media/${ORBIT_VIDEO_REPO}/${ORBIT_VIDEO_MEDIA_BRANCH}/${rel}`;
   }
