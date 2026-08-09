@@ -97,15 +97,12 @@ body { font-family: 'Plus Jakarta Sans', sans-serif; background: #06040f; color:
   text-transform: uppercase; color: var(--jestr-green); margin: 0;
 }
 
-/* ── PLANET SWIPE (touch: swipe the planet to change track) ── */
+/* ── PLANET SWIPE (drag the planet to change track — touch AND desktop) ── */
 #planet-swipe-layer {
   position: fixed; inset: 0; z-index: 3;
-  pointer-events: none;
-  display: none;
+  pointer-events: auto;
+  display: block;
   touch-action: pan-y; /* vertical scroll passes through; we capture horizontal */
-}
-@media (hover: none) and (pointer: coarse) {
-  #planet-swipe-layer { display: block; pointer-events: auto; }
 }
 /* The song title lives ON each planet now (3D orbiting text sprite in
    space3d.js) — hide the old center DOM title; keep the eyebrow + artist. */

@@ -760,7 +760,6 @@
 
   // Swap hook: build the incoming song's planet and start the parabola arcs.
   window.__ORBIT_PLANETS_SWAP__ = function (dir, targetIdx) {
-    if (!window.matchMedia || !window.matchMedia('(hover: none) and (pointer: coarse)').matches) return;
     let slug = null, title = null;
     try {
       const t = TRACKS[targetIdx];
@@ -1490,14 +1489,12 @@
   }
 
   window.__PLANET_SWIPE_SET__ = function (dxPx) {
-    if (!window.matchMedia || !window.matchMedia('(hover: none) and (pointer: coarse)').matches) return;
     swipeDragging = true;
-    // Planet follows the finger: drag left (dx<0) => camera pans right (offset>0)
+    // Planet follows the pointer: drag left (dx<0) => camera pans right (offset>0)
     swipeOffsetTarget = -dxPx * worldPerPx * 0.92;
   };
 
   window.__PLANET_SWIPE_RELEASE__ = function (commit, dir) {
-    if (!window.matchMedia || !window.matchMedia('(hover: none) and (pointer: coarse)').matches) return;
     swipeDragging = false; // commit arcs run via __ORBIT_PLANETS_SWAP__; cancel eases home
   };
 

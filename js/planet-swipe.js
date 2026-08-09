@@ -1,8 +1,8 @@
 /* ============================================================
-   PLANET SWIPE — touch: swipe the planet to change track.
-   Mobile/tablet (coarse pointer) only. Each song's planet carries
-   its own orbiting title text (space3d.js), so the swipe just:
-   drag = whole planet follows the finger (camera pan),
+   PLANET SWIPE — drag the planet to change track (touch + desktop).
+   Each song's planet carries its own orbiting title text (space3d.js),
+   so the swipe just:
+   drag = whole planet follows the pointer (camera pan),
    commit = current planet arcs OUT on a parabola while the next
    song's planet arcs IN (both visible + spinning, own text onboard).
    ============================================================ */
@@ -11,8 +11,6 @@
 
   var layer = document.getElementById('planet-swipe-layer');
   if (!layer) return;
-  var coarse = window.matchMedia && window.matchMedia('(hover: none) and (pointer: coarse)');
-  if (!coarse || !coarse.matches) return; // desktop mouse — planet stays a pure visual
 
   var planetBg = document.getElementById('planet-bg');
 
