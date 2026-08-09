@@ -1328,6 +1328,42 @@
     };
   }
 
+  /* ════════════════ PLANET SWIPE DRIVE (touch drag moves the whole planet) ════════════════
+     planet-swipe.js drives these hooks: drag = camera pans so the planet + rings +
+     atmosphere follow the finger with the title; commit = fly out then spring back
+     (easeOutBack) while the new song's palette lerps in + shockwave fires. */
+  let swipeOffset = 0;          // current camera x offset (world units)
+  let swipeOffsetTarget = 0;    // drag target
+  let swipeDragging = false;
+  let swipeAnim = null;         // {phase, t, dur, dir, from, to}
+  let worldPerPx = 0.009;
+
+  const easeOutCubic = (k) => 1 - Math.pow(1 - k, 3);
+  const easeOutBack = (k) => { const c1 = 1.70158, c3 = c1 + 1; return 1 + c3 * Math.pow(k - 1, 3) + c1 * Math.pow(k - 1, 2); };
+
+  function refreshWorldPerPx() {
+    worldPerPx = (2 * Math.tan(THREE.MathUtils.degToRad(camera.fov / 2)) * baseZ) / window.innerHeight;
+  }
+
+  window.__PLANET_SWIPE_SET__ = function (dxPx) {
+    if (!window.matchMedia || !window.matchMedia('(hover: none) and (pointer: coarse)').matches) return;
+    swipeAnim = null;
+    swipeDragging = true;
+    // Planet follows the finger: drag left (dx<0) => camera pans right (offset>0)
+    swipeOffsetTarget = -dxPx * worldPerPx * 0.92;
+  };
+
+  window.__PLANET_SWIPE_RELEASE__ = function (commit, dir) {
+    if (!window.matchMedia || !window.matchMedia('(hover: none) and (pointer: coarse)').matches) return;
+    swipeDragging = false;
+    if (commit) {
+      const from = swipeOffset;
+      swipeAnim = { phase: 'out', t: 0, dur: 0.22, dir: dir, from: from, to: dir * PLANET_R * 1.35 };
+    } else {
+      swipeAnim = null; // spring back handled by the idle ease
+    }
+  };
+
   /* ════════════════ AUDIO REACTIVITY ════════════════
      Taps the player's existing Web Audio graph (gainNode) with an analyser.
      player.js loads after this file; bindings exist by the time the loop runs. */
@@ -1430,6 +1466,7 @@
     const z = (PLANET_R * h) / (Math.tan(THREE.MathUtils.degToRad(camera.fov / 2)) * targetPx);
     baseZ = Math.max(6.2, Math.min(13, z));
     camera.position.z = baseZ;
+    refreshWorldPerPx();
   }
 
   function resize() {
@@ -1525,6 +1562,34 @@
     camera.position.y += ((driftY + my) - camera.position.y) * 0.012;
     camera.position.z += ((baseZ + Math.sin(t * 0.013) * 0.45) - camera.position.z) * 0.008;
     camera.lookAt(0, 0, 0);
+
+    // ── planet swipe: camera pans so the whole planet follows the finger ──
+    if (swipeDragging) {
+      swipeOffset = swipeOffsetTarget; // snappy 1:1 during drag
+      camera.rotation.z += swipeOffset * 0.045; // subtle tilt with the drag
+    } else if (swipeAnim) {
+      swipeAnim.t += dt;
+      const k = Math.min(1, swipeAnim.t / swipeAnim.dur);
+      if (swipeAnim.phase === 'out') {
+        swipeOffset = swipeAnim.from + (swipeAnim.to - swipeAnim.from) * easeOutCubic(k);
+      } else {
+        swipeOffset = swipeAnim.from + (swipeAnim.to - swipeAnim.from) * easeOutBack(k);
+      }
+      camera.rotation.z += swipeOffset * 0.045;
+      if (k >= 1) {
+        if (swipeAnim.phase === 'out') {
+          swipeAnim = { phase: 'in', t: 0, dur: 0.5, dir: swipeAnim.dir, from: swipeOffset, to: 0 };
+        } else {
+          swipeAnim = null;
+          swipeOffset = 0;
+        }
+      }
+    } else {
+      // idle: ease back to center (spring feel)
+      swipeOffset += (0 - swipeOffset) * Math.min(1, dt * 5);
+      camera.rotation.z += swipeOffset * 0.045;
+    }
+    camera.position.x += swipeOffset;
 
     // shooting stars
     nextShoot -= dt;

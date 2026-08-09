@@ -65,6 +65,7 @@
     }
     dx = nx;
     applyDrag(dx);
+    if (window.__PLANET_SWIPE_SET__) window.__PLANET_SWIPE_SET__(dx); // whole planet follows
   }
 
   function endSwipe() {
@@ -76,6 +77,7 @@
     if (commit) {
       lock = true;
       var target = ((currentIndex + dir) + TRACKS.length) % TRACKS.length;
+      if (window.__PLANET_SWIPE_RELEASE__) window.__PLANET_SWIPE_RELEASE__(true, dir); // fly out + spring back
       if (hasWAAPI) {
         var curT = curEl.style.transform, curO = curEl.style.opacity;
         curEl.animate(
@@ -95,6 +97,7 @@
         lock = false;
       }, 180);
     } else {
+      if (window.__PLANET_SWIPE_RELEASE__) window.__PLANET_SWIPE_RELEASE__(false, dir); // spring back to center
       if (hasWAAPI) {
         curEl.animate(
           [{ transform: curEl.style.transform, opacity: curEl.style.opacity }, { transform: 'translateX(0px)', opacity: 0 }],
@@ -122,6 +125,9 @@
   layer.addEventListener('pointercancel', function () {
     if (!active) return;
     active = false;
-    if (swiping) finishSwipeUi();
+    if (swiping) {
+      if (window.__PLANET_SWIPE_RELEASE__) window.__PLANET_SWIPE_RELEASE__(false, 0);
+      finishSwipeUi();
+    }
   });
 })();
