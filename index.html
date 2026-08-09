@@ -43,10 +43,10 @@
 
   <!-- PLANET FOCAL TEXT (the planet itself is rendered live in 3D behind this) -->
   <div id="planet-bg" style="position:fixed;left:0;right:0;top:0;bottom:0;display:flex;align-items:center;justify-content:center;z-index:1;pointer-events:none">
-    <div style="position:relative;width:340px;height:340px">
+    <div class="focal-orbit" style="position:relative">
       <div class="focal-backdrop"></div>
       <div class="planet-fallback-glow"></div>
-      <div style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:10;text-align:center;padding:32px">
+      <div class="focal-text" style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:10;text-align:center;padding:32px">
         <p class="tape-counter phosphor focal-eyebrow" style="margin-bottom:10px">NOW PLAYING</p>
         <h2 id="focal-title" class="focal-title">—</h2>
         <p id="focal-artist" class="phosphor focal-artist">Select a track</p>
