@@ -18,7 +18,7 @@ TITLE_FONT = "C:/Windows/Fonts/HenriDidot.otf"
 
 # Keep in sync with the track maps in functions/song/[slug].js + functions/og/song/[slug].js
 SLUGS = [
-    "offers", "thousand-dragon", "ko", "geronimo", "mile-high",
+    "offers", "thousand-dragon", "ko", "hyperdream-odyssey", "geronimo", "mile-high",
     "follow-the-flow", "soul-seer", "peace", "strider", "insane-membrane",
     "wavy", "boa-constrictor", "news", "wheels", "pop",
     "the-sum-of-hippy-thoughts", "what-dreams-may-come", "spin-cycle",
@@ -27,6 +27,7 @@ SLUGS = [
 
 TITLES = {
     "offers": "Offers", "thousand-dragon": "Thousand Dragon", "ko": "K.O.",
+    "hyperdream-odyssey": "hyperdream.odyssey.exe",
     "geronimo": "Geronimo", "mile-high": "Mile High", "follow-the-flow": "Follow The Flow",
     "soul-seer": "Soul Seer", "peace": "Peace", "strider": "Strider",
     "insane-membrane": "Insane Membrane", "wavy": "Wavy", "boa-constrictor": "Boa Constrictor",

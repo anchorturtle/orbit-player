@@ -32,6 +32,15 @@ const TRACKS = [
     category: 'instrumental'
   },
   {
+    title: 'hyperdream.odyssey.exe',
+    artist: 'jestR',
+    slug: 'hyperdream-odyssey',
+    file: 'audio/hyperdream-odyssey.mp3',
+    year: 2026,
+    description: '',
+    category: 'instrumental'
+  },
+  {
     title: 'Soul Seer',
     artist: 'jestR',
     slug: 'soul-seer',
