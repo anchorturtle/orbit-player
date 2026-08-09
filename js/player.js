@@ -5,6 +5,15 @@
 
 const TRACKS = [
   {
+    title: 'Offers',
+    artist: 'jestR',
+    slug: 'offers',
+    file: 'audio/Offers.mp3',
+    year: 2026,
+    description: '',
+    category: 'instrumental'
+  },
+  {
     title: 'Thousand Dragon',
     artist: 'jestR',
     slug: 'thousand-dragon',

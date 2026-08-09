@@ -3,6 +3,7 @@ export async function onRequest(context) {
 
   // Track data (keep in sync with js/player.js or move to a shared source later)
   const tracks = {
+    'offers': { title: 'Offers', artist: 'jestR' },
     'thousand-dragon': { title: 'Thousand Dragon', artist: 'jestR' },
     'ko': { title: 'K.O.', artist: 'jestR' },
     'geronimo': { title: 'Geronimo', artist: 'jestR' },
