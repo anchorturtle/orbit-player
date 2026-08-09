@@ -253,6 +253,8 @@
 
   /* ════════════════ PLANET (calm solid body — the aurora does the dancing) ════════════════ */
   const PLANET_R = 1.25;
+  const BAND_R = 1.85;      // title band radius (between outer aurora shell 1.51 and rings 1.98)
+  const BAND_H = 0.42;      // title band height
   const planetUniforms = {
     uTime:    { value: 0 },
     uAudio:   { value: 0 },
@@ -645,9 +647,9 @@
   scene.remove(ringGroup); heroGroup.add(ringGroup);
   for (const s of auroraShells) { scene.remove(s.mesh); heroGroup.add(s.mesh); }
 
-  const heroTitleSprite = makeTitleSprite('');
-  heroGroup.add(heroTitleSprite);
-  const heroView = { group: heroGroup, core: planet, shells: auroraShells, atmo: atmosphere, ringU: ringUniforms, ringP: ringPoints, hero: true, titleSprite: heroTitleSprite, titleAngle: 1.2, titleSet: true, titleSlug: null };
+  const heroTitleBand = makeTitleBand('');
+  heroGroup.add(heroTitleBand.wrap);
+  const heroView = { group: heroGroup, core: planet, shells: auroraShells, atmo: atmosphere, ringU: ringUniforms, ringP: ringPoints, hero: true, titleBand: heroTitleBand, titleSlug: null };
   let planetViews = [heroView];
   let currentView = heroView;
   let arcAnim = null; // {out, in, t, dur, dir}
@@ -693,61 +695,64 @@
       if (o.isPoints) ringP = o;
     });
     group.add(rg);
-    const titleSprite = makeTitleSprite(title || '');
-    group.add(titleSprite);
+    const titleBand = makeTitleBand(title || '');
+    group.add(titleBand.wrap);
     group.visible = false;
     scene.add(group);
-    return { group: group, core: core, shells: shells, atmo: atmo, ringU: ringU, ringP: ringP, hero: false, titleSprite: titleSprite, titleAngle: Math.random() * Math.PI * 2, titleSet: true, titleSlug: null };
+    return { group: group, core: core, shells: shells, atmo: atmo, ringU: ringU, ringP: ringP, hero: false, titleBand: titleBand, titleSlug: null };
   }
 
   function disposeView(v) {
     v.group.traverse(o => {
-      if (o.material) { o.material.dispose(); }
+      if (o.material) {
+        if (o.material.map) o.material.map.dispose();
+        o.material.dispose();
+      }
     });
     scene.remove(v.group);
   }
 
-  /* ── per-planet orbiting title text (canvas sprite, always faces camera) ── */
-  function makeTitleSprite(title) {
+  /* ── per-planet title BAND: text wrapped around the globe like a ring ── */
+  function makeTitleBand(title) {
+    const wrap = new THREE.Group();
+    wrap.rotation.x = Math.PI * 0.46; // same tilt as the rings
+    wrap.rotation.y = -0.22;
     const canvas = document.createElement('canvas');
-    canvas.width = 1024; canvas.height = 320;
-    const sprite = new THREE.Sprite(new THREE.SpriteMaterial({
-      map: new THREE.CanvasTexture(canvas),
-      transparent: true, depthWrite: false
-    }));
-    sprite.scale.set(3.1, 0.97, 1);
-    updateTitleSprite(sprite, title);
-    return sprite;
+    canvas.width = 2048; canvas.height = 256;
+    const tex = new THREE.CanvasTexture(canvas);
+    const mat = new THREE.MeshBasicMaterial({ map: tex, transparent: true, depthWrite: false, side: THREE.FrontSide });
+    const mesh = new THREE.Mesh(new THREE.CylinderGeometry(BAND_R, BAND_R, BAND_H, 96, 1, true), mat);
+    mesh.renderOrder = 5;
+    wrap.add(mesh);
+    updateTitleBand(mesh, title);
+    return { wrap: wrap, mesh: mesh, tex: tex };
   }
 
-  function updateTitleSprite(sprite, title) {
-    const canvas = sprite.material.map.image;
+  function updateTitleBand(mesh, title) {
+    const tex = mesh.material.map;
+    const canvas = tex.image;
     const ctx = canvas.getContext('2d');
     ctx.clearRect(0, 0, canvas.width, canvas.height);
-    // soft-break markers become line breaks; shrink long lines to fit
-    let lines = String(title || '').split('\u200b');
-    const maxW = canvas.width - 140;
-    let size = 118;
+    const unit = String(title || '').toUpperCase() + '   •   ';
+    let size = 150;
     const fontFor = s => '900 ' + s + 'px "Plus Jakarta Sans", system-ui, -apple-system, sans-serif';
-    while (size > 56) {
+    while (size > 40) {
       ctx.font = fontFor(size);
-      if (lines.every(l => ctx.measureText(l).width <= maxW)) break;
-      size -= 6;
+      if (ctx.measureText(unit).width * 3 <= canvas.width) break;
+      size -= 4;
     }
     ctx.font = fontFor(size);
-    ctx.textAlign = 'center';
+    ctx.textAlign = 'left';
     ctx.textBaseline = 'middle';
     ctx.shadowColor = 'rgba(3,2,10,0.95)';
-    ctx.shadowBlur = 24;
+    ctx.shadowBlur = 22;
     ctx.fillStyle = '#f2ece6';
-    const lh = size * 1.12;
-    const totalH = lines.length * lh;
-    let y = (canvas.height - totalH) / 2 + lh / 2;
-    for (const line of lines) {
-      if (line) ctx.fillText(line.trim(), canvas.width / 2, y);
-      y += lh;
+    let x = 0;
+    while (x < canvas.width) {
+      ctx.fillText(unit, x, canvas.height / 2);
+      x += ctx.measureText(unit).width;
     }
-    sprite.material.map.needsUpdate = true;
+    tex.needsUpdate = true;
   }
 
   function quadBezier(k, p0x, p0y, p1x, p1y, p2x, p2y) {
@@ -764,7 +769,7 @@
     try {
       const t = TRACKS[targetIdx];
       slug = t && t.slug;
-      title = t ? softBreakTitle(t.title) : null;
+      title = t ? t.title : null;
     } catch (e) {}
     const palette = slug ? paletteFor(slug) : PALETTES[0];
     const inView = buildPlanetClone(palette, title);
@@ -1742,24 +1747,18 @@
       }
     }
 
-    // ── each planet's title text orbits its globe like a moon ──
+    // ── each planet's title BAND slides around the globe (marquee ring) ──
     for (let vi = 0; vi < planetViews.length; vi++) {
       const v = planetViews[vi];
       if (v.group && !v.group.visible) continue;
-      // live title sync: tracklist clicks update the current planet's text too
+      // live title sync: tracklist clicks update the current planet's band too
       let curSlug = null;
       try { curSlug = (typeof TRACKS !== 'undefined' && TRACKS[currentIndex]) ? TRACKS[currentIndex].slug : null; } catch (e) {}
       if (curSlug && v.titleSlug !== curSlug) {
         v.titleSlug = curSlug;
-        try { updateTitleSprite(v.titleSprite, softBreakTitle(TRACKS[currentIndex].title)); } catch (e) {}
+        try { updateTitleBand(v.titleBand.mesh, TRACKS[currentIndex].title); } catch (e) {}
       }
-      v.titleAngle += dt * 0.32;
-      const ta = v.titleAngle;
-      v.titleSprite.position.set(
-        Math.cos(ta) * 3.15 * PLANET_R,
-        Math.sin(ta) * 1.35 * PLANET_R,
-        Math.sin(ta) * 1.05
-      );
+      v.titleBand.mesh.rotation.y += dt * 0.12; // slow marquee around the ring
     }
 
     // ── glue the DOM focal title to the planet's projected screen position ──
