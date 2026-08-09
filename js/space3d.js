@@ -253,8 +253,6 @@
 
   /* ════════════════ PLANET (calm solid body — the aurora does the dancing) ════════════════ */
   const PLANET_R = 1.25;
-  const BAND_R = 1.9;       // title band radius (front arc floats just off the planet face)
-  const BAND_H = 0.8;       // title band height (tall — readable)
   const planetUniforms = {
     uTime:    { value: 0 },
     uAudio:   { value: 0 },
@@ -647,9 +645,7 @@
   scene.remove(ringGroup); heroGroup.add(ringGroup);
   for (const s of auroraShells) { scene.remove(s.mesh); heroGroup.add(s.mesh); }
 
-  const heroTitleBand = makeTitleBand('');
-  heroGroup.add(heroTitleBand.wrap);
-  const heroView = { group: heroGroup, core: planet, shells: auroraShells, atmo: atmosphere, ringU: ringUniforms, ringP: ringPoints, hero: true, titleBand: heroTitleBand, titleSlug: null };
+  const heroView = { group: heroGroup, core: planet, shells: auroraShells, atmo: atmosphere, ringU: ringUniforms, ringP: ringPoints, hero: true };
   let planetViews = [heroView];
   let currentView = heroView;
   let arcAnim = null; // {out, in, t, dur, dir}
@@ -671,7 +667,7 @@
     return m;
   }
 
-  function buildPlanetClone(paletteHex, title) {
+  function buildPlanetClone(paletteHex) {
     const group = new THREE.Group();
     const core = planet.clone();
     core.material = freshMaterial(planet.material, paletteHex);
@@ -695,11 +691,9 @@
       if (o.isPoints) ringP = o;
     });
     group.add(rg);
-    const titleBand = makeTitleBand(title || '');
-    group.add(titleBand.wrap);
     group.visible = false;
     scene.add(group);
-    return { group: group, core: core, shells: shells, atmo: atmo, ringU: ringU, ringP: ringP, hero: false, titleBand: titleBand, titleSlug: null };
+    return { group: group, core: core, shells: shells, atmo: atmo, ringU: ringU, ringP: ringP, hero: false };
   }
 
   function disposeView(v) {
@@ -712,55 +706,6 @@
     scene.remove(v.group);
   }
 
-  /* ── per-planet title BAND: a tall, readable banner arcing across the planet
-     like a slider. Partial cylinder (front arc only) so the text faces the
-     camera — it SLIDES via texture offset, letters stay upright. ── */
-  function makeTitleBand(title) {
-    const wrap = new THREE.Group();
-    wrap.rotation.x = 0.12; // gentle sash tilt for life
-    const canvas = document.createElement('canvas');
-    canvas.width = 2048; canvas.height = 320;
-    const tex = new THREE.CanvasTexture(canvas);
-    tex.wrapS = THREE.RepeatWrapping; // seamless marquee offset
-    const mat = new THREE.MeshBasicMaterial({ map: tex, transparent: true, depthWrite: false, side: THREE.DoubleSide });
-    // front arc: theta 0 = +Z (toward camera); cover ~97° of the front
-    const mesh = new THREE.Mesh(new THREE.CylinderGeometry(BAND_R, BAND_R, BAND_H, 64, 1, true, -0.85, 1.7), mat);
-    mesh.renderOrder = 5;
-    wrap.add(mesh);
-    updateTitleBand(mesh, title);
-    return { wrap: wrap, mesh: mesh, tex: tex };
-  }
-
-  function updateTitleBand(mesh, title) {
-    const tex = mesh.material.map;
-    const canvas = tex.image;
-    const ctx = canvas.getContext('2d');
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-    // dark backing strip so the white text pops over the planet/aurora
-    ctx.fillStyle = 'rgba(3,2,10,0.62)';
-    ctx.fillRect(0, 66, canvas.width, canvas.height - 132);
-    const unit = String(title || '').toUpperCase() + '   •   ';
-    let size = 168;
-    const fontFor = s => '900 ' + s + 'px "Plus Jakarta Sans", system-ui, -apple-system, sans-serif';
-    while (size > 52) {
-      ctx.font = fontFor(size);
-      if (ctx.measureText(unit).width * 3 <= canvas.width) break;
-      size -= 5;
-    }
-    ctx.font = fontFor(size);
-    ctx.textAlign = 'left';
-    ctx.textBaseline = 'middle';
-    ctx.shadowColor = 'rgba(0,0,0,0.9)';
-    ctx.shadowBlur = 18;
-    ctx.fillStyle = '#f7f2ec';
-    let x = 0;
-    while (x < canvas.width) {
-      ctx.fillText(unit, x, canvas.height / 2);
-      x += ctx.measureText(unit).width;
-    }
-    tex.needsUpdate = true;
-  }
-
   function quadBezier(k, p0x, p0y, p1x, p1y, p2x, p2y) {
     const a = 1 - k;
     return {
@@ -770,16 +715,15 @@
   }
 
   // Swap hook: build the incoming song's planet and start the parabola arcs.
+  // Title stays on the stationary DOM #focal-title (updated by loadTrack).
   window.__ORBIT_PLANETS_SWAP__ = function (dir, targetIdx) {
-    let slug = null, title = null;
+    let slug = null;
     try {
       const t = TRACKS[targetIdx];
       slug = t && t.slug;
-      title = t ? t.title : null;
     } catch (e) {}
     const palette = slug ? paletteFor(slug) : PALETTES[0];
-    const inView = buildPlanetClone(palette, title);
-    inView.titleSlug = slug;
+    const inView = buildPlanetClone(palette);
     const outView = currentView;
     arcAnim = { out: outView, in: inView, t: 0, dur: 0.72, dir: dir };
     // Incoming enters from the OPPOSITE side of the swipe, from deep behind.
@@ -1753,22 +1697,8 @@
       }
     }
 
-    // ── each planet's title BAND slides around the globe (marquee, letters stay upright) ──
-    for (let vi = 0; vi < planetViews.length; vi++) {
-      const v = planetViews[vi];
-      if (v.group && !v.group.visible) continue;
-      // live title sync: tracklist clicks update the current planet's band too
-      let curSlug = null;
-      try { curSlug = (typeof TRACKS !== 'undefined' && TRACKS[currentIndex]) ? TRACKS[currentIndex].slug : null; } catch (e) {}
-      if (curSlug && v.titleSlug !== curSlug) {
-        v.titleSlug = curSlug;
-        try { updateTitleBand(v.titleBand.mesh, TRACKS[currentIndex].title); } catch (e) {}
-      }
-      v.titleBand.tex.offset.x += dt * 0.02; // marquee around the planet (texture slides, geometry stays)
-    }
-
-    // ── glue the DOM focal title to the planet's projected screen position ──
-    // (keeps the text centered ON the planet even while the camera drifts)
+    // ── keep DOM #focal-title glued to the planet's projected screen position ──
+    // (stationary white title centered ON the planet while camera drifts on drag)
     const planetBgEl = document.getElementById('planet-bg');
     if (planetBgEl && planetBgEl.style.display !== 'none') {
       _projPlanet.set(0, 0, 0).project(camera);

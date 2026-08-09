@@ -104,12 +104,7 @@ body { font-family: 'Plus Jakarta Sans', sans-serif; background: #06040f; color:
   display: block;
   touch-action: pan-y; /* vertical scroll passes through; we capture horizontal */
 }
-/* The song title lives ON each planet now (3D orbiting text sprite in
-   space3d.js) — hide the old center DOM title; keep the eyebrow + artist. */
-#focal-title { display: none; }
-/* While swiping, the static focal chrome steps aside so the planet text owns the read */
-#planet-bg.swiping .focal-text { opacity: 0; transition: opacity .12s ease; }
-#planet-bg .focal-text { transition: opacity .3s ease; }
+/* Stationary white #focal-title sits over the planet (no marquee / 3D band). */
 
 .grain-overlay {
   position: fixed; inset: 0; pointer-events: none; z-index: 200; opacity: var(--grain-opacity);

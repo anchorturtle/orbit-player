@@ -1,10 +1,9 @@
 /* ============================================================
    PLANET SWIPE — drag the planet to change track (touch + desktop).
-   Each song's planet carries its own orbiting title text (space3d.js),
-   so the swipe just:
+   Title stays stationary on DOM #focal-title (player.js loadTrack).
    drag = whole planet follows the pointer (camera pan),
    commit = current planet arcs OUT on a parabola while the next
-   song's planet arcs IN (both visible + spinning, own text onboard).
+   song's planet arcs IN (both visible + spinning, own palette).
    ============================================================ */
 (function () {
   'use strict';
@@ -51,7 +50,7 @@
       lock = true;
       var target = ((currentIndex + dir) + TRACKS.length) % TRACKS.length;
       if (window.__PLANET_SWIPE_RELEASE__) window.__PLANET_SWIPE_RELEASE__(false, dir); // end drag pan
-      if (window.__ORBIT_PLANETS_SWAP__) window.__ORBIT_PLANETS_SWAP__(dir, target);   // parabola swap: out arcs away, in arcs in (own text onboard)
+      if (window.__ORBIT_PLANETS_SWAP__) window.__ORBIT_PLANETS_SWAP__(dir, target);   // parabola swap: out arcs away, in arcs in
       setTimeout(function () {
         finishSwipeUi();
         // swap track as the incoming planet lands (watchTrack picks the slug up
