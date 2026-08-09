@@ -90,6 +90,14 @@
     </div>
   </div>
 
+  <!-- TOUCH SWIPE LAYER (mobile/tablet: swipe the planet to change track) -->
+  <div id="planet-swipe-layer" aria-hidden="true">
+    <div class="swipe-stage">
+      <div id="swipe-title-current" class="swipe-title"></div>
+      <div id="swipe-title-next" class="swipe-title"></div>
+    </div>
+  </div>
+
   <!-- GALLERY WINDOW -->
   <div id="gallery-win" class="win" style="display:none;z-index:310">
     <div class="win-resize nw" data-dir="nw"></div><div class="win-resize ne" data-dir="ne"></div>
@@ -490,6 +498,7 @@
   <script src="js/utils.js?v=20260710b"></script>
   <script src="js/space3d.js?v=20260710b"></script>
   <script src="js/player.js?v=20260710b"></script>
+  <script src="js/planet-swipe.js?v=20260809a"></script>
   <script src="js/gallery.js?v=20260710b"></script>
   <script src="js/main.js?v=20260710b"></script>
 </body>
