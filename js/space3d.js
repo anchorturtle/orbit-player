@@ -632,6 +632,101 @@
   }));
   ringGroup.add(ringPoints);
 
+  /* ════════════════ ORBIT PLANET POOL (per-song planets) ════════════════
+     Each song gets its own planet view (core + aurora + atmosphere + ring).
+     The hero view is the original objects wrapped in a group; clones are
+     built on demand with STATIC per-song palette uniforms (shaders/geoms shared).
+     On swipe commit the current view arcs OUT on a parabola while the next
+     view arcs IN — both visible and spinning; the incoming view is promoted. */
+  const heroGroup = new THREE.Group();
+  scene.add(heroGroup);
+  scene.remove(planet); heroGroup.add(planet);
+  scene.remove(atmosphere); heroGroup.add(atmosphere);
+  scene.remove(ringGroup); heroGroup.add(ringGroup);
+  for (const s of auroraShells) { scene.remove(s.mesh); heroGroup.add(s.mesh); }
+
+  const heroView = { group: heroGroup, core: planet, shells: auroraShells, atmo: atmosphere, ringU: ringUniforms, ringP: ringPoints, hero: true };
+  let planetViews = [heroView];
+  let currentView = heroView;
+  let arcAnim = null; // {out, in, t, dur, dir}
+
+  function freshMaterial(srcMat, paletteHex) {
+    const cols = paletteHex.map(h => new THREE.Color(h));
+    const m = srcMat.clone();
+    const u = {};
+    for (const k in srcMat.uniforms) {
+      const v = srcMat.uniforms[k].value;
+      if (k === 'uColA') u[k] = { value: cols[0] };
+      else if (k === 'uColB') u[k] = { value: cols[1] };
+      else if (k === 'uColC') u[k] = { value: cols[2] };
+      else if (v && v.isTexture) u[k] = { value: v }; // share audio textures
+      else if (v && typeof v.clone === 'function') u[k] = { value: v.clone() };
+      else u[k] = { value: v };
+    }
+    m.uniforms = u;
+    return m;
+  }
+
+  function buildPlanetClone(paletteHex) {
+    const group = new THREE.Group();
+    const core = planet.clone();
+    core.material = freshMaterial(planet.material, paletteHex);
+    group.add(core);
+    const shells = auroraShells.map(s => {
+      const mesh = s.mesh.clone();
+      mesh.material = freshMaterial(s.mesh.material, paletteHex);
+      group.add(mesh);
+      return { mesh: mesh, u: mesh.material.uniforms };
+    });
+    const atmo = atmosphere.clone();
+    atmo.material = freshMaterial(atmosphere.material, paletteHex);
+    group.add(atmo);
+    const rg = ringGroup.clone(true);
+    let ringP = null, ringU = null;
+    rg.traverse(o => {
+      if (o.material && o.material.uniforms) {
+        o.material = freshMaterial(o.material, paletteHex);
+        if (!ringU) { ringU = o.material.uniforms; }
+      }
+      if (o.isPoints) ringP = o;
+    });
+    group.add(rg);
+    group.visible = false;
+    scene.add(group);
+    return { group: group, core: core, shells: shells, atmo: atmo, ringU: ringU, ringP: ringP, hero: false };
+  }
+
+  function disposeView(v) {
+    v.group.traverse(o => {
+      if (o.material) { o.material.dispose(); }
+    });
+    scene.remove(v.group);
+  }
+
+  function quadBezier(k, p0x, p0y, p1x, p1y, p2x, p2y) {
+    const a = 1 - k;
+    return {
+      x: a * a * p0x + 2 * a * k * p1x + k * k * p2x,
+      y: a * a * p0y + 2 * a * k * p1y + k * k * p2y
+    };
+  }
+
+  // Swap hook: build the incoming song's planet and start the parabola arcs.
+  window.__ORBIT_PLANETS_SWAP__ = function (dir, targetIdx) {
+    if (!window.matchMedia || !window.matchMedia('(hover: none) and (pointer: coarse)').matches) return;
+    let slug = null;
+    try { slug = TRACKS[targetIdx] && TRACKS[targetIdx].slug; } catch (e) {}
+    const palette = slug ? paletteFor(slug) : PALETTES[0];
+    const inView = buildPlanetClone(palette);
+    const outView = currentView;
+    arcAnim = { out: outView, in: inView, t: 0, dur: 0.72, dir: dir };
+    inView.group.position.set(-dir * 3.1 * PLANET_R, 1.1 * PLANET_R, 0);
+    inView.group.rotation.z = -dir * 0.6;
+    inView.group.scale.setScalar(0.82);
+    inView.group.visible = true;
+  };
+
+
   /* ════════════════ STARFIELD (deep parallax, twinkle) ════════════════ */
   const STAR_COUNT = MOBILE ? 1100 : 2200;
   const starGeo = new THREE.BufferGeometry();
@@ -1306,8 +1401,8 @@
         blending: THREE.AdditiveBlending, depthWrite: false
       })
     );
-    ring.rotation.x = ringGroup.rotation.x;
-    ring.rotation.y = ringGroup.rotation.y;
+    ring.rotation.x = currentView.ringGroup.rotation.x;
+    ring.rotation.y = currentView.ringGroup.rotation.y;
     ring.scale.setScalar(PLANET_R * 1.15);
     scene.add(ring);
     let t0 = 0;
@@ -1335,11 +1430,7 @@
   let swipeOffset = 0;          // current camera x offset (world units)
   let swipeOffsetTarget = 0;    // drag target
   let swipeDragging = false;
-  let swipeAnim = null;         // {phase, t, dur, dir, from, to}
   let worldPerPx = 0.009;
-
-  const easeOutCubic = (k) => 1 - Math.pow(1 - k, 3);
-  const easeOutBack = (k) => { const c1 = 1.70158, c3 = c1 + 1; return 1 + c3 * Math.pow(k - 1, 3) + c1 * Math.pow(k - 1, 2); };
 
   function refreshWorldPerPx() {
     worldPerPx = (2 * Math.tan(THREE.MathUtils.degToRad(camera.fov / 2)) * baseZ) / window.innerHeight;
@@ -1347,7 +1438,6 @@
 
   window.__PLANET_SWIPE_SET__ = function (dxPx) {
     if (!window.matchMedia || !window.matchMedia('(hover: none) and (pointer: coarse)').matches) return;
-    swipeAnim = null;
     swipeDragging = true;
     // Planet follows the finger: drag left (dx<0) => camera pans right (offset>0)
     swipeOffsetTarget = -dxPx * worldPerPx * 0.92;
@@ -1355,13 +1445,7 @@
 
   window.__PLANET_SWIPE_RELEASE__ = function (commit, dir) {
     if (!window.matchMedia || !window.matchMedia('(hover: none) and (pointer: coarse)').matches) return;
-    swipeDragging = false;
-    if (commit) {
-      const from = swipeOffset;
-      swipeAnim = { phase: 'out', t: 0, dur: 0.22, dir: dir, from: from, to: dir * PLANET_R * 1.35 };
-    } else {
-      swipeAnim = null; // spring back handled by the idle ease
-    }
+    swipeDragging = false; // commit arcs run via __ORBIT_PLANETS_SWAP__; cancel eases home
   };
 
   /* ════════════════ AUDIO REACTIVITY ════════════════
@@ -1491,6 +1575,7 @@
   // Reused temps — avoid Vector3.clone() GC in the hot shooter path
   const _shootHead = new THREE.Vector3();
   const _shootTail = new THREE.Vector3();
+  const _projPlanet = new THREE.Vector3();
 
   function frame() {
     rafId = requestAnimationFrame(frame);
@@ -1511,21 +1596,24 @@
     palB.lerp(tgtB, 0.022);
     palC.lerp(tgtC, 0.022);
 
-    // uniforms
-    planetUniforms.uTime.value = t;
-    planetUniforms.uAudio.value = levelSm;
-    planetUniforms.uBass.value = bassSm;
-    for (let ai = 0; ai < auroraShells.length; ai++) {
-      const s = auroraShells[ai];
-      s.u.uTime.value = t;
-      s.u.uAudio.value = levelSm;
-      s.u.uBass.value = bassSm;
+    // uniforms — every visible planet view (hero + in-flight clones)
+    for (let vi = 0; vi < planetViews.length; vi++) {
+      const v = planetViews[vi];
+      if (v.group && !v.group.visible) continue;
+      v.core.material.uniforms.uTime.value = t;
+      v.core.material.uniforms.uAudio.value = levelSm;
+      v.core.material.uniforms.uBass.value = bassSm;
+      for (let ai = 0; ai < v.shells.length; ai++) {
+        v.shells[ai].u.uTime.value = t;
+        v.shells[ai].u.uAudio.value = levelSm;
+        v.shells[ai].u.uBass.value = bassSm;
+      }
+      v.atmo.material.uniforms.uTime.value = t;
+      v.atmo.material.uniforms.uBass.value = bassSm;
+      v.atmo.material.uniforms.uAudio.value = levelSm;
+      v.ringU.uTime.value = t;
+      v.ringU.uAudio.value = levelSm;
     }
-    atmoUniforms.uTime.value = t;
-    atmoUniforms.uBass.value = bassSm;
-    atmoUniforms.uAudio.value = levelSm;
-    ringUniforms.uTime.value = t;
-    ringUniforms.uAudio.value = levelSm;
     starUniforms.uTime.value = t;
     starUniforms.uAudio.value = levelSm;
     galaxyU.uTime.value = t;
@@ -1541,15 +1629,15 @@
       }
     }
 
-    // motion
-    planet.rotation.y += dt * (0.045 + bassSm * 0.08);
-    planet.rotation.x = Math.sin(t * 0.02) * 0.04; // slow axis precession
+    // motion — the settled planet only (in-flight views are arc-animated below)
+    currentView.core.rotation.y += dt * (0.045 + bassSm * 0.08);
+    currentView.core.rotation.x = Math.sin(t * 0.02) * 0.04; // slow axis precession
     // fog layers counter-drift for parallax depth
-    auroraShells[0].mesh.rotation.y -= dt * 0.016;
-    auroraShells[0].mesh.rotation.z = Math.sin(t * 0.013) * 0.06;
-    auroraShells[1].mesh.rotation.y += dt * 0.010;
-    auroraShells[1].mesh.rotation.x = Math.sin(t * 0.009 + 2.0) * 0.05;
-    ringPoints.rotation.y += dt * (0.05 + levelSm * 0.1);
+    currentView.shells[0].mesh.rotation.y -= dt * 0.016;
+    currentView.shells[0].mesh.rotation.z = Math.sin(t * 0.013) * 0.06;
+    currentView.shells[1].mesh.rotation.y += dt * 0.010;
+    currentView.shells[1].mesh.rotation.x = Math.sin(t * 0.009 + 2.0) * 0.05;
+    currentView.ringP.rotation.y += dt * (0.05 + levelSm * 0.1);
     stars.rotation.y += dt * 0.0032;
     stars.rotation.z += dt * 0.001;
 
@@ -1567,29 +1655,50 @@
     if (swipeDragging) {
       swipeOffset = swipeOffsetTarget; // snappy 1:1 during drag
       camera.rotation.z += swipeOffset * 0.045; // subtle tilt with the drag
-    } else if (swipeAnim) {
-      swipeAnim.t += dt;
-      const k = Math.min(1, swipeAnim.t / swipeAnim.dur);
-      if (swipeAnim.phase === 'out') {
-        swipeOffset = swipeAnim.from + (swipeAnim.to - swipeAnim.from) * easeOutCubic(k);
-      } else {
-        swipeOffset = swipeAnim.from + (swipeAnim.to - swipeAnim.from) * easeOutBack(k);
-      }
-      camera.rotation.z += swipeOffset * 0.045;
-      if (k >= 1) {
-        if (swipeAnim.phase === 'out') {
-          swipeAnim = { phase: 'in', t: 0, dur: 0.5, dir: swipeAnim.dir, from: swipeOffset, to: 0 };
-        } else {
-          swipeAnim = null;
-          swipeOffset = 0;
-        }
-      }
     } else {
-      // idle: ease back to center (spring feel)
+      // idle / release: ease back to center (spring feel)
       swipeOffset += (0 - swipeOffset) * Math.min(1, dt * 5);
       camera.rotation.z += swipeOffset * 0.045;
     }
     camera.position.x += swipeOffset;
+
+    // ── orbit planet swap — parabola arcs, both planets visible + spinning ──
+    if (arcAnim) {
+      arcAnim.t += dt;
+      const k = Math.min(1, arcAnim.t / arcAnim.dur);
+      const dir = arcAnim.dir;
+      // outgoing: parabola from center, dipping down, accelerating out
+      const out = quadBezier(k, 0, 0, dir * 1.6 * PLANET_R, -1.35 * PLANET_R, dir * 3.1 * PLANET_R, 0);
+      // incoming: parabola from off-screen high, arcing down to land at center
+      const inn = quadBezier(k, -dir * 3.1 * PLANET_R, 1.1 * PLANET_R, -dir * 1.3 * PLANET_R, 2.0 * PLANET_R, 0, 0);
+      if (arcAnim.out.group) {
+        arcAnim.out.group.position.set(out.x, out.y, 0);
+        arcAnim.out.group.rotation.z = dir * k * 2.4;  // spins out
+        arcAnim.out.group.scale.setScalar(1 - 0.18 * k);
+      }
+      if (arcAnim.in.group) {
+        arcAnim.in.group.position.set(inn.x, inn.y, 0);
+        arcAnim.in.group.rotation.z = -dir * k * 2.0;  // counter-spins in
+        arcAnim.in.group.scale.setScalar(0.82 + 0.18 * k);
+      }
+      if (k >= 1) {
+        const promoted = arcAnim.in;
+        disposeView(arcAnim.out);
+        currentView = promoted;
+        planetViews = [promoted];
+        arcAnim = null;
+      }
+    }
+
+    // ── glue the DOM focal title to the planet's projected screen position ──
+    // (keeps the text centered ON the planet even while the camera drifts)
+    const planetBgEl = document.getElementById('planet-bg');
+    if (planetBgEl && planetBgEl.style.display !== 'none') {
+      _projPlanet.set(0, 0, 0).project(camera);
+      const tx = (_projPlanet.x * 0.5 + 0.5) * window.innerWidth - window.innerWidth / 2;
+      const ty = (-_projPlanet.y * 0.5 + 0.5) * window.innerHeight - window.innerHeight / 2;
+      planetBgEl.style.transform = 'translate(' + tx.toFixed(1) + 'px,' + ty.toFixed(1) + 'px)';
+    }
 
     // shooting stars
     nextShoot -= dt;

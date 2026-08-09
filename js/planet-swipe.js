@@ -77,7 +77,8 @@
     if (commit) {
       lock = true;
       var target = ((currentIndex + dir) + TRACKS.length) % TRACKS.length;
-      if (window.__PLANET_SWIPE_RELEASE__) window.__PLANET_SWIPE_RELEASE__(true, dir); // fly out + spring back
+      if (window.__PLANET_SWIPE_RELEASE__) window.__PLANET_SWIPE_RELEASE__(false, dir); // end drag pan
+      if (window.__ORBIT_PLANETS_SWAP__) window.__ORBIT_PLANETS_SWAP__(dir, target);   // parabola swap: out planet arcs away, in planet arcs in
       if (hasWAAPI) {
         var curT = curEl.style.transform, curO = curEl.style.opacity;
         curEl.animate(
@@ -93,9 +94,11 @@
         curEl.style.transform = ''; curEl.style.opacity = '0';
         nextEl.style.transform = ''; nextEl.style.opacity = '0';
         finishSwipeUi();
+        // swap track as the incoming planet lands (watchTrack picks the slug up
+        // within one 0.4s poll => palette lerp + shockwave fire right on landing)
         if (typeof loadTrack === 'function') loadTrack(target, isPlaying);
         lock = false;
-      }, 180);
+      }, 340);
     } else {
       if (window.__PLANET_SWIPE_RELEASE__) window.__PLANET_SWIPE_RELEASE__(false, dir); // spring back to center
       if (hasWAAPI) {
