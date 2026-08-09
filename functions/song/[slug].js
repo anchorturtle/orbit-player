@@ -31,7 +31,7 @@ export async function onRequest(context) {
 
   const url = new URL(context.request.url);
   const siteUrl = `${url.protocol}//${url.host}`;
-  const imageUrl = `${siteUrl}/og/song/${slug}.svg`;
+  const imageUrl = `${siteUrl}/images/og/song/${slug}.jpg`;
   const appUrl = `${siteUrl}/#song/${slug}`;
 
   const title = `${track.title} - ${track.artist}`;
