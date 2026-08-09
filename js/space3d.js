@@ -253,8 +253,8 @@
 
   /* ════════════════ PLANET (calm solid body — the aurora does the dancing) ════════════════ */
   const PLANET_R = 1.25;
-  const BAND_R = 1.85;      // title band radius (between outer aurora shell 1.51 and rings 1.98)
-  const BAND_H = 0.42;      // title band height
+  const BAND_R = 1.9;       // title band radius (front arc floats just off the planet face)
+  const BAND_H = 0.8;       // title band height (tall — readable)
   const planetUniforms = {
     uTime:    { value: 0 },
     uAudio:   { value: 0 },
@@ -712,20 +712,19 @@
     scene.remove(v.group);
   }
 
-  /* ── per-planet title BAND: text wrapped around the globe like a slider ── */
+  /* ── per-planet title BAND: a tall, readable banner arcing across the planet
+     like a slider. Partial cylinder (front arc only) so the text faces the
+     camera — it SLIDES via texture offset, letters stay upright. ── */
   function makeTitleBand(title) {
     const wrap = new THREE.Group();
-    // Sash tilt: steep enough that the readable front arc crosses the planet
-    // and the bottom arc hides behind it (no upside-down letters), gentle
-    // enough to read like a band. Text SLIDES via texture offset (marquee).
-    wrap.rotation.x = 0.5;
-    wrap.rotation.y = 0.0;
+    wrap.rotation.x = 0.12; // gentle sash tilt for life
     const canvas = document.createElement('canvas');
-    canvas.width = 2048; canvas.height = 256;
+    canvas.width = 2048; canvas.height = 320;
     const tex = new THREE.CanvasTexture(canvas);
     tex.wrapS = THREE.RepeatWrapping; // seamless marquee offset
-    const mat = new THREE.MeshBasicMaterial({ map: tex, transparent: true, depthWrite: false, side: THREE.FrontSide });
-    const mesh = new THREE.Mesh(new THREE.CylinderGeometry(BAND_R, BAND_R, BAND_H, 96, 1, true), mat);
+    const mat = new THREE.MeshBasicMaterial({ map: tex, transparent: true, depthWrite: false, side: THREE.DoubleSide });
+    // front arc: theta 0 = +Z (toward camera); cover ~97° of the front
+    const mesh = new THREE.Mesh(new THREE.CylinderGeometry(BAND_R, BAND_R, BAND_H, 64, 1, true, -0.85, 1.7), mat);
     mesh.renderOrder = 5;
     wrap.add(mesh);
     updateTitleBand(mesh, title);
@@ -737,20 +736,23 @@
     const canvas = tex.image;
     const ctx = canvas.getContext('2d');
     ctx.clearRect(0, 0, canvas.width, canvas.height);
+    // dark backing strip so the white text pops over the planet/aurora
+    ctx.fillStyle = 'rgba(3,2,10,0.62)';
+    ctx.fillRect(0, 66, canvas.width, canvas.height - 132);
     const unit = String(title || '').toUpperCase() + '   •   ';
-    let size = 150;
+    let size = 168;
     const fontFor = s => '900 ' + s + 'px "Plus Jakarta Sans", system-ui, -apple-system, sans-serif';
-    while (size > 40) {
+    while (size > 52) {
       ctx.font = fontFor(size);
       if (ctx.measureText(unit).width * 3 <= canvas.width) break;
-      size -= 4;
+      size -= 5;
     }
     ctx.font = fontFor(size);
     ctx.textAlign = 'left';
     ctx.textBaseline = 'middle';
-    ctx.shadowColor = 'rgba(3,2,10,0.95)';
-    ctx.shadowBlur = 22;
-    ctx.fillStyle = '#f2ece6';
+    ctx.shadowColor = 'rgba(0,0,0,0.9)';
+    ctx.shadowBlur = 18;
+    ctx.fillStyle = '#f7f2ec';
     let x = 0;
     while (x < canvas.width) {
       ctx.fillText(unit, x, canvas.height / 2);
