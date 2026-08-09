@@ -374,6 +374,9 @@ document.addEventListener('pagehide', () => {
 
 // Also stop everything if the user pauses
 function pauseAndStopBackground() {
+  // Mark not-playing first so a teardown `ended` (clearing bg src) cannot advance tracks
+  isPlaying = false;
+
   // Stop all background handoff / keep-alive logic first
   stopBackgroundAudioKeepAlive();
 
@@ -401,7 +404,6 @@ function pauseAndStopBackground() {
     audio.pause();
   }
 
-  isPlaying = false;
   updatePlayUI();
 }
 
@@ -532,6 +534,56 @@ function exitIOSBackgroundAudioMode() {
     - Seek our main audio to the background element's currentTime.
     - Resume our main player + Web Audio (GainNode) so volume works again.
 */
+/* Keep <audio>.loop in sync with repeat-one so a track restarts natively
+   without waiting on JS — required for lock-screen / screen-off replay. */
+function applyRepeatLoopFlag() {
+  const one = (repeatMode === 2);
+  try { if (audio) audio.loop = one; } catch (e) {}
+  try { if (iosBackgroundAudio) iosBackgroundAudio.loop = one; } catch (e) {}
+  try { if (precreatedIOSBackgroundAudio) precreatedIOSBackgroundAudio.loop = one; } catch (e) {}
+}
+
+/* Shared end-of-track routing (main player + iOS screen-off handoff player). */
+function handleTrackEnded() {
+  // Ignore teardown (pause / clear src) and mid-handoff races
+  if (!isPlaying) return;
+
+  // repeat-one: prefer native .loop; this is a fallback if ended still fires
+  if (repeatMode === 2) {
+    try {
+      if (iosBackgroundAudio) {
+        iosBackgroundAudio.currentTime = 0;
+        iosBackgroundAudio.play().catch(() => {});
+        return;
+      }
+    } catch (e) {}
+    try {
+      audio.currentTime = 0;
+      audio.play().catch(() => {});
+    } catch (e) {}
+    return;
+  }
+
+  if (isShuffle) {
+    let ni;
+    do { ni = Math.floor(Math.random() * TRACKS.length); } while (TRACKS.length > 1 && ni === currentIndex);
+    loadTrack(ni, true);
+  } else if (currentIndex < TRACKS.length - 1) {
+    loadTrack(currentIndex + 1, true);
+  } else if (repeatMode === 1) {
+    // repeat all: wrap playlist
+    loadTrack(0, true);
+  } else {
+    pauseAndStopBackground();
+  }
+}
+
+function wireIOSBackgroundTrackEvents(el) {
+  if (!el || el._orbitEndedWired) return;
+  el._orbitEndedWired = true;
+  el.addEventListener('ended', handleTrackEnded);
+}
+
 function enterIOSNativeBackgroundPlayback() {
   if (!isIOS() || !isPlaying || iosBackgroundAudio) return;
 
@@ -551,6 +603,10 @@ function enterIOSNativeBackgroundPlayback() {
       iosBackgroundAudio.preload = 'auto';
       iosBackgroundAudio.playsInline = true;
     }
+
+    // Repeat modes must work with screen off: loop + ended on the BG player
+    applyRepeatLoopFlag();
+    wireIOSBackgroundTrackEvents(iosBackgroundAudio);
 
     // Start the native background player
     iosBackgroundAudio.play().catch(() => {});
@@ -917,19 +973,7 @@ audio.addEventListener('timeupdate', () => {
   }
 });
 
-audio.addEventListener('ended', () => {
-  if (repeatMode === 2) { audio.currentTime = 0; audio.play(); return; }
-  if (isShuffle) {
-    let ni; do { ni = Math.floor(Math.random() * TRACKS.length); } while (TRACKS.length > 1 && ni === currentIndex);
-    loadTrack(ni, true);
-  } else if (currentIndex < TRACKS.length - 1) {
-    loadTrack(currentIndex + 1, true);
-  } else if (repeatMode === 1) {
-    loadTrack(0, true);
-  } else {
-    pauseAndStopBackground();
-  }
-});
+audio.addEventListener('ended', handleTrackEnded);
 
 function updatePlayUI() {
   const playBtn = document.getElementById('btn-play');
@@ -1087,14 +1131,21 @@ function loadTrack(idx, autoplay) {
     } catch (e) {}
   }
 
+  applyRepeatLoopFlag();
+
   if (isIOS() && iosBackgroundAudio) {
     // We're currently in iOS native background handoff mode.
     // Update the background player to the new track instead of the main one.
+    // (repeat-all / next advance while screen is locked land here)
     try {
       iosBackgroundAudio.pause();
       iosBackgroundAudio.src = t.file;
       iosBackgroundAudio.currentTime = 0;
+      applyRepeatLoopFlag();
+      wireIOSBackgroundTrackEvents(iosBackgroundAudio);
       iosBackgroundAudio.play().catch(() => {});
+      isPlaying = true;
+      updatePlayUI();
     } catch (e) {}
   } else if (autoplay) {
     initAudioContext();
@@ -1106,11 +1157,14 @@ function loadTrack(idx, autoplay) {
       try {
         if (precreatedIOSBackgroundAudio) {
           precreatedIOSBackgroundAudio.src = '';
+          precreatedIOSBackgroundAudio._orbitEndedWired = false;
         }
         precreatedIOSBackgroundAudio = new Audio();
         precreatedIOSBackgroundAudio.src = t.file;
         precreatedIOSBackgroundAudio.preload = 'auto';
         precreatedIOSBackgroundAudio.playsInline = true;
+        applyRepeatLoopFlag();
+        wireIOSBackgroundTrackEvents(precreatedIOSBackgroundAudio);
         precreatedIOSBackgroundAudio.load(); // start loading early
       } catch (e) {}
     }
@@ -1154,6 +1208,8 @@ document.getElementById('btn-repeat').addEventListener('click', function () {
   if (repeatMode === 0) { this.classList.remove('active-state'); icon.textContent = 'repeat'; }
   else if (repeatMode === 1) { this.classList.add('active-state'); icon.textContent = 'repeat'; }
   else { this.classList.add('active-state'); icon.textContent = 'repeat_one'; }
+  // Immediate — screen-off player must pick up loop without waiting for unlock
+  applyRepeatLoopFlag();
 });
 
 /* ── VOLUME ── */
