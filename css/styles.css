@@ -107,28 +107,10 @@ body { font-family: 'Plus Jakarta Sans', sans-serif; background: #06040f; color:
 @media (hover: none) and (pointer: coarse) {
   #planet-swipe-layer { display: block; pointer-events: auto; }
 }
-#planet-swipe-layer .swipe-stage {
-  position: absolute; inset: 0;
-  display: flex; align-items: center; justify-content: center;
-  pointer-events: none;
-}
-.swipe-title {
-  position: absolute;
-  max-width: min(78vw, 540px);
-  margin: 0;
-  text-align: center;
-  font-size: clamp(1.35rem, 4.6vw, 2.6rem);
-  font-weight: 900; font-style: italic; letter-spacing: -.02em; line-height: 1.12;
-  color: #f2ece6;
-  text-shadow:
-    0 2px 24px rgba(3,2,10,.9),
-    0 0 44px var(--track-a, rgba(123,47,255,.65)),
-    0 0 90px var(--track-b, rgba(45,91,255,.4));
-  will-change: transform, opacity;
-  pointer-events: none;
-  opacity: 0;
-}
-/* While swiping, the static focal title steps aside so the carousel owns the text */
+/* The song title lives ON each planet now (3D orbiting text sprite in
+   space3d.js) — hide the old center DOM title; keep the eyebrow + artist. */
+#focal-title { display: none; }
+/* While swiping, the static focal chrome steps aside so the planet text owns the read */
 #planet-bg.swiping .focal-text { opacity: 0; transition: opacity .12s ease; }
 #planet-bg .focal-text { transition: opacity .3s ease; }
 

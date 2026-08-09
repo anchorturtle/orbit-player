@@ -645,7 +645,9 @@
   scene.remove(ringGroup); heroGroup.add(ringGroup);
   for (const s of auroraShells) { scene.remove(s.mesh); heroGroup.add(s.mesh); }
 
-  const heroView = { group: heroGroup, core: planet, shells: auroraShells, atmo: atmosphere, ringU: ringUniforms, ringP: ringPoints, hero: true };
+  const heroTitleSprite = makeTitleSprite('');
+  heroGroup.add(heroTitleSprite);
+  const heroView = { group: heroGroup, core: planet, shells: auroraShells, atmo: atmosphere, ringU: ringUniforms, ringP: ringPoints, hero: true, titleSprite: heroTitleSprite, titleAngle: 1.2, titleSet: true, titleSlug: null };
   let planetViews = [heroView];
   let currentView = heroView;
   let arcAnim = null; // {out, in, t, dur, dir}
@@ -667,7 +669,7 @@
     return m;
   }
 
-  function buildPlanetClone(paletteHex) {
+  function buildPlanetClone(paletteHex, title) {
     const group = new THREE.Group();
     const core = planet.clone();
     core.material = freshMaterial(planet.material, paletteHex);
@@ -691,9 +693,11 @@
       if (o.isPoints) ringP = o;
     });
     group.add(rg);
+    const titleSprite = makeTitleSprite(title || '');
+    group.add(titleSprite);
     group.visible = false;
     scene.add(group);
-    return { group: group, core: core, shells: shells, atmo: atmo, ringU: ringU, ringP: ringP, hero: false };
+    return { group: group, core: core, shells: shells, atmo: atmo, ringU: ringU, ringP: ringP, hero: false, titleSprite: titleSprite, titleAngle: Math.random() * Math.PI * 2, titleSet: true, titleSlug: null };
   }
 
   function disposeView(v) {
@@ -701,6 +705,49 @@
       if (o.material) { o.material.dispose(); }
     });
     scene.remove(v.group);
+  }
+
+  /* ── per-planet orbiting title text (canvas sprite, always faces camera) ── */
+  function makeTitleSprite(title) {
+    const canvas = document.createElement('canvas');
+    canvas.width = 1024; canvas.height = 320;
+    const sprite = new THREE.Sprite(new THREE.SpriteMaterial({
+      map: new THREE.CanvasTexture(canvas),
+      transparent: true, depthWrite: false
+    }));
+    sprite.scale.set(3.1, 0.97, 1);
+    updateTitleSprite(sprite, title);
+    return sprite;
+  }
+
+  function updateTitleSprite(sprite, title) {
+    const canvas = sprite.material.map.image;
+    const ctx = canvas.getContext('2d');
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    // soft-break markers become line breaks; shrink long lines to fit
+    let lines = String(title || '').split('\u200b');
+    const maxW = canvas.width - 140;
+    let size = 118;
+    const fontFor = s => '900 ' + s + 'px "Plus Jakarta Sans", system-ui, -apple-system, sans-serif';
+    while (size > 56) {
+      ctx.font = fontFor(size);
+      if (lines.every(l => ctx.measureText(l).width <= maxW)) break;
+      size -= 6;
+    }
+    ctx.font = fontFor(size);
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.shadowColor = 'rgba(3,2,10,0.95)';
+    ctx.shadowBlur = 24;
+    ctx.fillStyle = '#f2ece6';
+    const lh = size * 1.12;
+    const totalH = lines.length * lh;
+    let y = (canvas.height - totalH) / 2 + lh / 2;
+    for (const line of lines) {
+      if (line) ctx.fillText(line.trim(), canvas.width / 2, y);
+      y += lh;
+    }
+    sprite.material.map.needsUpdate = true;
   }
 
   function quadBezier(k, p0x, p0y, p1x, p1y, p2x, p2y) {
@@ -714,15 +761,21 @@
   // Swap hook: build the incoming song's planet and start the parabola arcs.
   window.__ORBIT_PLANETS_SWAP__ = function (dir, targetIdx) {
     if (!window.matchMedia || !window.matchMedia('(hover: none) and (pointer: coarse)').matches) return;
-    let slug = null;
-    try { slug = TRACKS[targetIdx] && TRACKS[targetIdx].slug; } catch (e) {}
+    let slug = null, title = null;
+    try {
+      const t = TRACKS[targetIdx];
+      slug = t && t.slug;
+      title = t ? softBreakTitle(t.title) : null;
+    } catch (e) {}
     const palette = slug ? paletteFor(slug) : PALETTES[0];
-    const inView = buildPlanetClone(palette);
+    const inView = buildPlanetClone(palette, title);
+    inView.titleSlug = slug;
     const outView = currentView;
     arcAnim = { out: outView, in: inView, t: 0, dur: 0.72, dir: dir };
-    inView.group.position.set(-dir * 3.1 * PLANET_R, 1.1 * PLANET_R, 0);
-    inView.group.rotation.z = -dir * 0.6;
-    inView.group.scale.setScalar(0.82);
+    // Incoming enters from the OPPOSITE side of the swipe, from deep behind.
+    inView.group.position.set(dir * 3.4 * PLANET_R, 0.5 * PLANET_R, -1.8);
+    inView.group.rotation.z = -dir * 0.8;
+    inView.group.scale.setScalar(0.7);
     inView.group.visible = true;
   };
 
@@ -1667,19 +1720,21 @@
       arcAnim.t += dt;
       const k = Math.min(1, arcAnim.t / arcAnim.dur);
       const dir = arcAnim.dir;
-      // outgoing: parabola from center, dipping down, accelerating out
-      const out = quadBezier(k, 0, 0, dir * 1.6 * PLANET_R, -1.35 * PLANET_R, dir * 3.1 * PLANET_R, 0);
-      // incoming: parabola from off-screen high, arcing down to land at center
-      const inn = quadBezier(k, -dir * 3.1 * PLANET_R, 1.1 * PLANET_R, -dir * 1.3 * PLANET_R, 2.0 * PLANET_R, 0, 0);
+      // Outgoing: exits on the SWIPE side (left for next), arcing down and away,
+      // drifting slightly TOWARD camera (near side of the orbital exchange).
+      const out = quadBezier(k, 0, 0, -dir * 1.7 * PLANET_R, -1.4 * PLANET_R, -dir * 3.4 * PLANET_R, -0.2 * PLANET_R);
+      // Incoming: enters from the OPPOSITE side, high and far BEHIND, arcing
+      // down into center — depth separation means it never crosses the outgoing.
+      const inn = quadBezier(k, dir * 3.4 * PLANET_R, 0.5 * PLANET_R, dir * 1.5 * PLANET_R, 1.6 * PLANET_R, 0, 0);
       if (arcAnim.out.group) {
-        arcAnim.out.group.position.set(out.x, out.y, 0);
-        arcAnim.out.group.rotation.z = dir * k * 2.4;  // spins out
-        arcAnim.out.group.scale.setScalar(1 - 0.18 * k);
+        arcAnim.out.group.position.set(out.x, out.y, 0.5 * k);
+        arcAnim.out.group.rotation.z = -dir * k * 2.2;  // spins out with the swipe
+        arcAnim.out.group.scale.setScalar(1 - 0.14 * k);
       }
       if (arcAnim.in.group) {
-        arcAnim.in.group.position.set(inn.x, inn.y, 0);
-        arcAnim.in.group.rotation.z = -dir * k * 2.0;  // counter-spins in
-        arcAnim.in.group.scale.setScalar(0.82 + 0.18 * k);
+        arcAnim.in.group.position.set(inn.x, inn.y, -1.8 + 1.8 * k); // from deep behind → center
+        arcAnim.in.group.rotation.z = -dir * k * 1.8;  // counter-spins in
+        arcAnim.in.group.scale.setScalar(0.7 + 0.3 * k);
       }
       if (k >= 1) {
         const promoted = arcAnim.in;
@@ -1688,6 +1743,26 @@
         planetViews = [promoted];
         arcAnim = null;
       }
+    }
+
+    // ── each planet's title text orbits its globe like a moon ──
+    for (let vi = 0; vi < planetViews.length; vi++) {
+      const v = planetViews[vi];
+      if (v.group && !v.group.visible) continue;
+      // live title sync: tracklist clicks update the current planet's text too
+      let curSlug = null;
+      try { curSlug = (typeof TRACKS !== 'undefined' && TRACKS[currentIndex]) ? TRACKS[currentIndex].slug : null; } catch (e) {}
+      if (curSlug && v.titleSlug !== curSlug) {
+        v.titleSlug = curSlug;
+        try { updateTitleSprite(v.titleSprite, softBreakTitle(TRACKS[currentIndex].title)); } catch (e) {}
+      }
+      v.titleAngle += dt * 0.32;
+      const ta = v.titleAngle;
+      v.titleSprite.position.set(
+        Math.cos(ta) * 3.15 * PLANET_R,
+        Math.sin(ta) * 1.35 * PLANET_R,
+        Math.sin(ta) * 1.05
+      );
     }
 
     // ── glue the DOM focal title to the planet's projected screen position ──

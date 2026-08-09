@@ -1,8 +1,10 @@
 /* ============================================================
    PLANET SWIPE — touch: swipe the planet to change track.
-   Mobile/tablet (coarse pointer) only. Carousel title animation:
-   current title follows the finger, incoming title slides in,
-   track change fires the existing planet shockwave + palette lerp.
+   Mobile/tablet (coarse pointer) only. Each song's planet carries
+   its own orbiting title text (space3d.js), so the swipe just:
+   drag = whole planet follows the finger (camera pan),
+   commit = current planet arcs OUT on a parabola while the next
+   song's planet arcs IN (both visible + spinning, own text onboard).
    ============================================================ */
 (function () {
   'use strict';
@@ -12,32 +14,11 @@
   var coarse = window.matchMedia && window.matchMedia('(hover: none) and (pointer: coarse)');
   if (!coarse || !coarse.matches) return; // desktop mouse — planet stays a pure visual
 
-  var curEl = document.getElementById('swipe-title-current');
-  var nextEl = document.getElementById('swipe-title-next');
   var planetBg = document.getElementById('planet-bg');
 
   var THRESHOLD = 64;        // px of horizontal travel to commit
-  var MAX_TRAVEL = 170;      // visual drag limit
   var startX = 0, startY = 0, dx = 0;
   var active = false, swiping = false, lock = false;
-  var hasWAAPI = typeof curEl.animate === 'function';
-
-  function titleFor(idx) {
-    var t = TRACKS[(idx + TRACKS.length) % TRACKS.length];
-    if (!t) return '';
-    return (typeof softBreakTitle === 'function') ? softBreakTitle(t.title) : t.title;
-  }
-
-  function applyDrag(offset) {
-    var travel = Math.max(-MAX_TRAVEL, Math.min(MAX_TRAVEL, offset));
-    var dir = travel >= 0 ? 1 : -1;
-    var fade = Math.max(0, 1 - Math.abs(offset) / 260);
-    curEl.style.transform = 'translateX(' + travel + 'px) rotate(' + (travel * 0.025) + 'deg)';
-    curEl.style.opacity = String(fade);
-    var inX = travel + dir * 46;
-    nextEl.style.transform = 'translateX(' + inX + 'px) rotate(' + (inX * 0.025) + 'deg)';
-    nextEl.style.opacity = String(Math.min(1, Math.abs(offset) / 260));
-  }
 
   function beginSwipe(e) {
     if (lock) return;
@@ -57,14 +38,8 @@
       swiping = true;
       layer.classList.add('swiping');
       if (planetBg) planetBg.classList.add('swiping');
-      var nextIdx = nx < 0 ? currentIndex + 1 : currentIndex - 1;
-      curEl.textContent = titleFor(currentIndex);
-      nextEl.textContent = titleFor(nextIdx);
-      nextEl.style.transform = 'translateX(' + (nx < 0 ? 1 : -1) * 46 + 'px)';
-      nextEl.style.opacity = '0';
     }
     dx = nx;
-    applyDrag(dx);
     if (window.__PLANET_SWIPE_SET__) window.__PLANET_SWIPE_SET__(dx); // whole planet follows
   }
 
@@ -78,21 +53,8 @@
       lock = true;
       var target = ((currentIndex + dir) + TRACKS.length) % TRACKS.length;
       if (window.__PLANET_SWIPE_RELEASE__) window.__PLANET_SWIPE_RELEASE__(false, dir); // end drag pan
-      if (window.__ORBIT_PLANETS_SWAP__) window.__ORBIT_PLANETS_SWAP__(dir, target);   // parabola swap: out planet arcs away, in planet arcs in
-      if (hasWAAPI) {
-        var curT = curEl.style.transform, curO = curEl.style.opacity;
-        curEl.animate(
-          [{ transform: curT, opacity: curO }, { transform: 'translateX(' + (dir * 190) + 'px) rotate(' + (dir * 5) + 'deg)', opacity: 0 }],
-          { duration: 240, easing: 'cubic-bezier(.22,.9,.36,1)' }
-        );
-        nextEl.animate(
-          [{ transform: 'translateX(' + (-dir * 190) + 'px) rotate(' + (-dir * 5) + 'deg)', opacity: 0 }, { transform: 'translateX(0px) rotate(0deg)', opacity: 1 }],
-          { duration: 340, easing: 'cubic-bezier(.22,.9,.36,1)' }
-        );
-      }
+      if (window.__ORBIT_PLANETS_SWAP__) window.__ORBIT_PLANETS_SWAP__(dir, target);   // parabola swap: out arcs away, in arcs in (own text onboard)
       setTimeout(function () {
-        curEl.style.transform = ''; curEl.style.opacity = '0';
-        nextEl.style.transform = ''; nextEl.style.opacity = '0';
         finishSwipeUi();
         // swap track as the incoming planet lands (watchTrack picks the slug up
         // within one 0.4s poll => palette lerp + shockwave fire right on landing)
@@ -101,23 +63,11 @@
       }, 340);
     } else {
       if (window.__PLANET_SWIPE_RELEASE__) window.__PLANET_SWIPE_RELEASE__(false, dir); // spring back to center
-      if (hasWAAPI) {
-        curEl.animate(
-          [{ transform: curEl.style.transform, opacity: curEl.style.opacity }, { transform: 'translateX(0px)', opacity: 0 }],
-          { duration: 240, easing: 'ease-out' }
-        );
-        nextEl.animate(
-          [{ transform: nextEl.style.transform, opacity: nextEl.style.opacity }, { transform: 'translateX(0px)', opacity: 0 }],
-          { duration: 240, easing: 'ease-out' }
-        );
-      }
-      setTimeout(finishSwipeUi, 240);
+      setTimeout(finishSwipeUi, 120);
     }
   }
 
   function finishSwipeUi() {
-    curEl.style.transform = ''; curEl.style.opacity = '0';
-    nextEl.style.transform = ''; nextEl.style.opacity = '0';
     layer.classList.remove('swiping');
     if (planetBg) planetBg.classList.remove('swiping');
   }
