@@ -985,6 +985,14 @@ function syncDetailPlayIcon() {
   }
 }
 
+function softBreakTitle(title) {
+  // Zero-width space BEFORE dots/underscores so long tokens wrap at word
+  // boundaries with the separator leading the next line:
+  //   hyperdream.odyssey.exe -> hyperdream / .odyssey / .exe
+  // (instead of CSS breaking mid-token).
+  return String(title).replace(/[._]/g, (m) => '\u200b' + m);
+}
+
 function loadTrack(idx, autoplay) {
   currentIndex = idx;
   const t = TRACKS[idx];
@@ -992,7 +1000,7 @@ function loadTrack(idx, autoplay) {
   audio.load();
   document.getElementById('fp-title').textContent = t.title;
   document.getElementById('fp-artist').textContent = t.artist;
-  document.getElementById('focal-title').textContent = t.title;
+  document.getElementById('focal-title').textContent = softBreakTitle(t.title);
   document.getElementById('focal-artist').textContent = t.artist;
 
   // Lyrics button only for rap category tracks (more intuitive)
