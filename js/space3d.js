@@ -712,14 +712,18 @@
     scene.remove(v.group);
   }
 
-  /* ── per-planet title BAND: text wrapped around the globe like a ring ── */
+  /* ── per-planet title BAND: text wrapped around the globe like a slider ── */
   function makeTitleBand(title) {
     const wrap = new THREE.Group();
-    wrap.rotation.x = Math.PI * 0.46; // same tilt as the rings
-    wrap.rotation.y = -0.22;
+    // Sash tilt: steep enough that the readable front arc crosses the planet
+    // and the bottom arc hides behind it (no upside-down letters), gentle
+    // enough to read like a band. Text SLIDES via texture offset (marquee).
+    wrap.rotation.x = 0.5;
+    wrap.rotation.y = 0.0;
     const canvas = document.createElement('canvas');
     canvas.width = 2048; canvas.height = 256;
     const tex = new THREE.CanvasTexture(canvas);
+    tex.wrapS = THREE.RepeatWrapping; // seamless marquee offset
     const mat = new THREE.MeshBasicMaterial({ map: tex, transparent: true, depthWrite: false, side: THREE.FrontSide });
     const mesh = new THREE.Mesh(new THREE.CylinderGeometry(BAND_R, BAND_R, BAND_H, 96, 1, true), mat);
     mesh.renderOrder = 5;
@@ -1747,7 +1751,7 @@
       }
     }
 
-    // ── each planet's title BAND slides around the globe (marquee ring) ──
+    // ── each planet's title BAND slides around the globe (marquee, letters stay upright) ──
     for (let vi = 0; vi < planetViews.length; vi++) {
       const v = planetViews[vi];
       if (v.group && !v.group.visible) continue;
@@ -1758,7 +1762,7 @@
         v.titleSlug = curSlug;
         try { updateTitleBand(v.titleBand.mesh, TRACKS[currentIndex].title); } catch (e) {}
       }
-      v.titleBand.mesh.rotation.y += dt * 0.12; // slow marquee around the ring
+      v.titleBand.tex.offset.x += dt * 0.02; // marquee around the planet (texture slides, geometry stays)
     }
 
     // ── glue the DOM focal title to the planet's projected screen position ──
