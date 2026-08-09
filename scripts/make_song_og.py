@@ -1,8 +1,11 @@
-"""1200x630 link-preview card: per-song gradient + song title.
+"""1200x630 link-preview card: per-song gradient + song title (bottom-right, serif).
 
 Generates one images/og/song/<slug>.jpg per track. Gradient colors come from
 the SAME palette table + hash as js/space3d.js (PALETTES, hashStr) so the
 share card matches the song's planet world.
+
+Design (james 2026-08-09): just the song name, bottom-right of the gradient,
+modern serif. No artist, no wordmark.
 
 USAGE: python scripts/make_song_og.py
 """
@@ -10,8 +13,8 @@ from PIL import Image, ImageDraw, ImageFont
 import os
 
 TARGET = (1200, 630)
-TITLE_FONT = "C:/Windows/Fonts/BebasNeue-Regular.ttf"
-SUB_FONT = "C:/Windows/Fonts/Montserrat-Medium.ttf"
+# Modern serif. Swap path to change look (e.g. AGaramondPro-Bold.otf for classic).
+TITLE_FONT = "C:/Windows/Fonts/HenriDidot.otf"
 
 # Keep in sync with the track maps in functions/song/[slug].js + functions/og/song/[slug].js
 SLUGS = [
@@ -51,6 +54,11 @@ PALETTES = [
     ("#1B0B3A", "#6E2FB8", "#FF9ECF"),
 ]
 
+MARGIN_R = 84   # title block distance from right edge
+MARGIN_B = 66   # title block distance from bottom edge
+MAX_W = 1010    # max title width before auto-shrink
+MAX_FONT = 132
+
 
 def hash_str(s):
     h = 0
@@ -68,12 +76,23 @@ def lerp(c1, c2, t):
     return tuple(int(round(a + (b - a) * t)) for a, b in zip(c1, c2))
 
 
+def fit_font(draw, title, max_w, max_font):
+    size = max_font
+    while size > 40:
+        f = ImageFont.truetype(TITLE_FONT, size)
+        bbox = draw.textbbox((0, 0), title, font=f)
+        if bbox[2] - bbox[0] <= max_w:
+            return f, bbox
+        size -= 4
+    f = ImageFont.truetype(TITLE_FONT, 40)
+    return f, draw.textbbox((0, 0), title, font=f)
+
+
 def make_card(slug, title, out_path):
     palette = PALETTES[hash_str(slug) % len(PALETTES)]
     surf, swirl, energy = (hex_to_rgb(c) for c in palette)
 
     # Diagonal gradient: top-left surface -> bottom-right energy, swirl mid-stop.
-    # Deep + dark so white title text pops (matches planet world, not neon-flat).
     img = Image.new("RGB", TARGET)
     px = img.load()
     W, H = TARGET
@@ -88,24 +107,13 @@ def make_card(slug, title, out_path):
 
     draw = ImageDraw.Draw(img, "RGBA")
 
-    # Very subtle vignette depth (keeps edges from looking flat)
-    for i, alpha in ((0, 18), (90, 12), (180, 8)):
-        draw.rectangle([i, i, W - i, H - i], outline=(0, 0, 0, alpha), width=1)
-
-    # Title (BebasNeue, big, centered, white)
-    title_font = ImageFont.truetype(TITLE_FONT, 148)
-    bbox = draw.textbbox((0, 0), title, font=title_font)
+    # Song title only — bottom-right, modern serif, white.
+    f, bbox = fit_font(draw, title, MAX_W, MAX_FONT)
     tw, th = bbox[2] - bbox[0], bbox[3] - bbox[1]
-    tx = (W - tw) // 2 - bbox[0]
-    ty = (H - th) // 2 - bbox[1] - 20
-    draw.text((tx, ty), title, font=title_font, fill=(255, 255, 255, 255))
-
-    # Tiny site wordmark (bottom center)
-    sub_font = ImageFont.truetype(SUB_FONT, 26)
-    sub = "A N C H O R T U R T L E"
-    bbox2 = draw.textbbox((0, 0), sub, font=sub_font)
-    sw = bbox2[2] - bbox2[0]
-    draw.text(((W - sw) // 2 - bbox2[0], H - 74), sub, font=sub_font, fill=(255, 255, 255, 130))
+    # Right-align: text ends MARGIN_R from right edge, baseline sits MARGIN_B up.
+    tx = W - MARGIN_R - tw - bbox[0]
+    ty = H - MARGIN_B - th - bbox[1]
+    draw.text((tx, ty), title, font=f, fill=(255, 255, 255, 255))
 
     img.save(out_path, quality=92)
 
