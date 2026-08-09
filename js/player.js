@@ -290,7 +290,7 @@ let silentBackgroundSource = null;
 
 let currentIndex = 0, isPlaying = false, isShuffle = false, repeatMode = 0;
 let seekOnReady = null, isSeeking = false, durationPollTimer = null;
-let isMuted = false, premuteVolume = 80;
+let isMuted = false, premuteVolume = 100;
 let currentWaveform = null;
 let waveformCanvas = null;
 let waveformCache = {}; // per-slug real waveform peaks cache
@@ -313,7 +313,7 @@ function initAudioContext() {
     gainNode.connect(audioContext.destination);
 
     // Set initial gain from current volume setting
-    gainNode.gain.value = (premuteVolume || 80) / 100;
+    gainNode.gain.value = (premuteVolume || 100) / 100;
 
   } catch (e) {
     console.warn('Web Audio API not supported or failed to initialize. Falling back to native volume.', e);
@@ -1203,13 +1203,13 @@ document.getElementById('vol-icon-wrap').addEventListener('click', () => {
   if (isMuted) {
     // Unmute
     isMuted = false;
-    setVolume(premuteVolume || 80);
+    setVolume(premuteVolume || 100);
     volIcon.classList.remove('muted');
     updateVolumeIcon();
   } else {
     // Mute (this now works properly even on iOS via GainNode)
     isMuted = true;
-    premuteVolume = +volSlider.value || 80;
+    premuteVolume = +volSlider.value || 100;
 
     if (gainNode) {
       gainNode.gain.value = 0;
@@ -1222,7 +1222,7 @@ document.getElementById('vol-icon-wrap').addEventListener('click', () => {
   }
 });
 
-setVolume(80);
+setVolume(100);
 updateVolumeIcon();
 
 // Full volume slider is now enabled on mobile thanks to Web Audio GainNode.
