@@ -4,6 +4,7 @@
    ============================================ */
 
 const GALLERY = [
+  {src: 'images/jestr-gradient.PNG'},
   {src: 'images/demoboypeace.PNG'},
   {src: 'images/19800879_207324159793930_1257706135595812184_o.jpg'},
   {src: 'images/1facethefear.png'},
