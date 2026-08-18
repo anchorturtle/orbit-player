@@ -368,8 +368,8 @@ makeWindowDraggable('lyrics-win', 'lyrics-bar');
   // Player module must be loaded first so TRACKS + renderTracklist exist
   renderTracklist();
 
-  // Make Geronimo (TRACKS[0]) ready to play by default on normal visits:
-  // populates player title/artist/focal, sets audio src (no autoplay), marks active in list, etc.
+  // Make TRACKS[0] chrome-ready on normal visits (titles/focal/active row).
+  // loadTrack(..., false) does not set audio.src or fetch/decode the MP3.
   // We deliberately skip this for /song/ or #song/ links so the share target loads clean (no wrong-track flash).
   const isDirectShare = window.location.pathname.startsWith('/song/') ||
                         window.location.pathname.startsWith('/video/') ||

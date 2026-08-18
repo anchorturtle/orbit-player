@@ -700,9 +700,41 @@ function setProgress(pct) {
   });
 }
 
+function mediaIsFor(t) {
+  if (!t) return false;
+  const src = audio.currentSrc || audio.src || '';
+  if (!src || src === window.location.href) return false;
+  return src.includes(t.file) || src.includes(encodeURI(t.file));
+}
+
+function attachMedia(t) {
+  if (!t || mediaIsFor(t)) return;
+  audio.src = t.file;
+  audio.load();
+}
+
+function requestWaveform(t) {
+  if (!t) return;
+  if (waveformCache[t.slug] && currentWaveform === waveformCache[t.slug]) return;
+  generateWaveform(t).then(wf => {
+    if (!TRACKS[currentIndex] || TRACKS[currentIndex].slug !== t.slug) return;
+    currentWaveform = wf;
+    const initialPct = (audio.duration && isGoodDuration(audio.duration))
+      ? (audio.currentTime / audio.duration) : 0;
+    drawWaveform(initialPct);
+  }).catch(() => {});
+}
+
+function ensureMediaReady(t, { waveform = true } = {}) {
+  if (!t) return;
+  attachMedia(t);
+  if (waveform) requestWaveform(t);
+}
+
 function seekToPct(pct) {
   pct = Math.max(0, Math.min(1, pct));
   setProgress(pct * 100);
+  if (TRACKS[currentIndex]) ensureMediaReady(TRACKS[currentIndex]);
   if (audio.readyState >= 1 && isGoodDuration(audio.duration)) {
     audio.currentTime = pct * audio.duration;
     seekOnReady = null;
@@ -712,6 +744,7 @@ function seekToPct(pct) {
 }
 
 function skip(sec) {
+  if (TRACKS[currentIndex]) ensureMediaReady(TRACKS[currentIndex]);
   if (audio.readyState >= 1 && isGoodDuration(audio.duration)) {
     audio.currentTime = Math.max(0, Math.min(audio.duration, (audio.currentTime || 0) + sec));
   }
@@ -1040,8 +1073,6 @@ function softBreakTitle(title) {
 function loadTrack(idx, autoplay) {
   currentIndex = idx;
   const t = TRACKS[idx];
-  audio.src = t.file;
-  audio.load();
   document.getElementById('fp-title').textContent = t.title;
   document.getElementById('fp-artist').textContent = t.artist;
   document.getElementById('focal-title').textContent = softBreakTitle(t.title);
@@ -1064,14 +1095,8 @@ function loadTrack(idx, autoplay) {
     artDiv.innerHTML = '<span class="material-symbols-outlined">music_note</span>';
   }
 
-  // async load waveform for this track (non-blocking)
-  currentWaveform = null;
-  generateWaveform(t).then(wf => {
-    currentWaveform = wf;
-    // draw initial (will be updated by timeupdate/setProgress)
-    const initialPct = (audio.duration && isGoodDuration(audio.duration)) ? (audio.currentTime / audio.duration) : 0;
-    drawWaveform(initialPct);
-  }).catch(() => {});
+  currentWaveform = waveformCache[t.slug] || null;
+  if (currentWaveform) drawWaveform(0);
 
   document.querySelectorAll('.track-item').forEach(el => {
     el.classList.toggle('active', +el.dataset.idx === idx);
@@ -1148,6 +1173,7 @@ function loadTrack(idx, autoplay) {
       updatePlayUI();
     } catch (e) {}
   } else if (autoplay) {
+    ensureMediaReady(t);
     initAudioContext();
     ensureAudioContextRunning();
     audio.play().then(() => { isPlaying = true; updatePlayUI(); }).catch(() => { isPlaying = false; updatePlayUI(); });
@@ -1178,6 +1204,11 @@ document.getElementById('btn-play').addEventListener('click', () => {
   initAudioContext();
   ensureAudioContextRunning();
 
+  if (currentIndex < 0 || !TRACKS[currentIndex]) {
+    if (TRACKS.length) loadTrack(0, true);
+    return;
+  }
+  ensureMediaReady(TRACKS[currentIndex]);
   if (!audio.src || audio.src === window.location.href) { if (TRACKS.length) loadTrack(0, true); return; }
   if (isPlaying) {
     pauseAndStopBackground();
@@ -1308,6 +1339,11 @@ updateVolumeIcon();
   function togglePlayFromKeys() {
     initAudioContext();
     ensureAudioContextRunning();
+    if (currentIndex < 0 || !TRACKS[currentIndex]) {
+      if (TRACKS.length) loadTrack(0, true);
+      return;
+    }
+    ensureMediaReady(TRACKS[currentIndex]);
     if (!audio.src || audio.src === window.location.href) {
       if (TRACKS.length) loadTrack(0, true);
       return;
