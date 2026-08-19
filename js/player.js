@@ -585,17 +585,16 @@ document.addEventListener('visibilitychange', () => {
     if (document.visibilityState === 'visible') {
       // User unlocked screen / returned to the page
       if (isIOS() && iosBackgroundAudio) {
-        // We were using native background playback — sync back
-        exitIOSNativeBackgroundPlayback();
-
-        // Resume our main player + Web Audio (GainNode)
-        if (audio) {
-          audio.play().catch(() => {});
-        }
-        ensureAudioContextRunning();
+        // We were using native background playback — sync track + time back
+        resumeFromIOSNativeBackgroundPlayback();
       } else {
         ensureAudioContextRunning();
         stopBackgroundAudioKeepAlive();
+        // Defensive: UI index and <audio> src can drift after long background
+        if (isIOS() && TRACKS[currentIndex] && !mediaIsFor(TRACKS[currentIndex])) {
+          ensureMediaReady(TRACKS[currentIndex], { waveform: false });
+        }
+        if (audio && audio.paused) audio.play().catch(() => {});
       }
     } else {
       // Screen locked or app went to background
@@ -626,22 +625,18 @@ document.addEventListener('pagehide', () => {
 function pauseAndStopBackground() {
   // Mark not-playing first so a teardown `ended` (clearing bg src) cannot advance tracks
   isPlaying = false;
+  iosHandoffGuard = true;
 
   // Stop all background handoff / keep-alive logic first
   stopBackgroundAudioKeepAlive();
 
   if (isIOS() && iosBackgroundAudio) {
-    try {
-      iosBackgroundAudio.pause();
-      iosBackgroundAudio.src = '';
-    } catch (e) {}
+    teardownIOSBgEl(iosBackgroundAudio);
     iosBackgroundAudio = null;
   }
 
   if (isIOS() && precreatedIOSBackgroundAudio) {
-    try {
-      precreatedIOSBackgroundAudio.src = '';
-    } catch (e) {}
+    teardownIOSBgEl(precreatedIOSBackgroundAudio);
     precreatedIOSBackgroundAudio = null;
   }
 
@@ -655,6 +650,7 @@ function pauseAndStopBackground() {
   }
 
   updatePlayUI();
+  setTimeout(() => { iosHandoffGuard = false; }, 120);
 }
 
 function startBackgroundAudioKeepAlive() {
@@ -730,6 +726,8 @@ function stopSilentBackgroundSource() {
 let isUsingDirectAudioPath = false;
 let iosBackgroundAudio = null; // temporary native audio element used for iOS background playback
 let precreatedIOSBackgroundAudio = null; // pre-warmed native element for faster handoff on iOS
+/* Blocks ended→next while tearing down the bg player (clearing src can fire `ended`). */
+let iosHandoffGuard = false;
 
 function enterIOSBackgroundAudioMode() {
   if (!isIOS() || !audioContext || !sourceNode || isUsingDirectAudioPath) return;
@@ -820,8 +818,8 @@ function stepTrack(dir, { wrap = true, autoplay = isPlaying } = {}) {
 }
 
 function handleTrackEnded() {
-  // Ignore teardown (pause / clear src) and mid-handoff races
-  if (!isPlaying) return;
+  // Ignore teardown (pause / clear src), mid-handoff races, and unlock sync
+  if (!isPlaying || iosHandoffGuard) return;
 
   // repeat-one: prefer native .loop; this is a fallback if ended still fires
   if (repeatMode === 2) {
@@ -857,22 +855,50 @@ function wireIOSBackgroundTrackEvents(el) {
   el.addEventListener('ended', handleTrackEnded);
 }
 
+function bgElMatchesTrack(el, t) {
+  if (!el || !t) return false;
+  const src = el.currentSrc || el.src || '';
+  if (!src) return false;
+  return src.includes(t.file) || src.includes(encodeURI(t.file));
+}
+
+function teardownIOSBgEl(el) {
+  if (!el) return;
+  try {
+    el.pause();
+    if (el._orbitEndedWired) {
+      el.removeEventListener('ended', handleTrackEnded);
+      el._orbitEndedWired = false;
+    }
+    el.removeAttribute('src');
+    el.src = '';
+    el.load();
+  } catch (e) {}
+}
+
 function enterIOSNativeBackgroundPlayback() {
   if (!isIOS() || !isPlaying || iosBackgroundAudio) return;
 
   stopBackgroundAudioKeepAlive(); // make sure old keep-alive is dead
 
   try {
+    const t = TRACKS[currentIndex];
+    const mainTime = audio ? (audio.currentTime || 0) : 0;
+
     // Prefer a pre-created element if we have one (much faster handoff)
     if (precreatedIOSBackgroundAudio) {
       iosBackgroundAudio = precreatedIOSBackgroundAudio;
       precreatedIOSBackgroundAudio = null;
-      iosBackgroundAudio.currentTime = audio.currentTime || 0;
+      // Pre-warm can be stale if the track advanced before lock
+      if (t && !bgElMatchesTrack(iosBackgroundAudio, t)) {
+        iosBackgroundAudio.src = encodeURI(t.file);
+      }
+      try { iosBackgroundAudio.currentTime = mainTime; } catch (e) {}
     } else {
       // Fallback: create on the fly
       iosBackgroundAudio = new Audio();
-      iosBackgroundAudio.src = audio.src;
-      iosBackgroundAudio.currentTime = audio.currentTime || 0;
+      iosBackgroundAudio.src = t ? encodeURI(t.file) : (audio ? audio.src : '');
+      try { iosBackgroundAudio.currentTime = mainTime; } catch (e) {}
       iosBackgroundAudio.preload = 'auto';
       iosBackgroundAudio.playsInline = true;
     }
@@ -897,31 +923,84 @@ function enterIOSNativeBackgroundPlayback() {
   }
 }
 
+/* Sync main <audio> to whatever actually played while locked (track + time). */
+function syncMainAudioToTrackAt(track, bgTime) {
+  if (!audio || !track) return Promise.resolve();
+  attachMedia(track);
+  applyRepeatLoopFlag();
+
+  const applyTime = () => {
+    try {
+      const t = Math.max(0, bgTime || 0);
+      if (isGoodDuration(audio.duration)) {
+        audio.currentTime = Math.min(t, Math.max(0, audio.duration - 0.05));
+      } else {
+        audio.currentTime = t;
+      }
+    } catch (e) {}
+  };
+
+  if (mediaIsFor(track) && audio.readyState >= 1) {
+    applyTime();
+    return Promise.resolve();
+  }
+
+  return new Promise((resolve) => {
+    let done = false;
+    const finish = () => {
+      if (done) return;
+      done = true;
+      audio.removeEventListener('loadedmetadata', finish);
+      audio.removeEventListener('canplay', finish);
+      applyTime();
+      resolve();
+    };
+    audio.addEventListener('loadedmetadata', finish);
+    audio.addEventListener('canplay', finish);
+    // If src was already correct and metadata cached
+    if (audio.readyState >= 1) finish();
+    else setTimeout(finish, 900);
+  });
+}
+
 function exitIOSNativeBackgroundPlayback() {
-  if (!iosBackgroundAudio) return;
+  if (!iosBackgroundAudio) return Promise.resolve();
 
+  iosHandoffGuard = true;
+  const track = TRACKS[currentIndex];
+  let bgTime = 0;
   try {
-    const bgTime = iosBackgroundAudio.currentTime || 0;
+    bgTime = iosBackgroundAudio.currentTime || 0;
+  } catch (e) {}
 
-    // Stop the background player
-    iosBackgroundAudio.pause();
-    iosBackgroundAudio.src = '';
-    iosBackgroundAudio = null;
+  const bg = iosBackgroundAudio;
+  iosBackgroundAudio = null;
+  teardownIOSBgEl(bg);
 
-    // Clean up any pre-created element too
-    if (precreatedIOSBackgroundAudio) {
-      precreatedIOSBackgroundAudio.src = '';
-      precreatedIOSBackgroundAudio = null;
-    }
-
-    // Sync our main audio element back to where the background one was
-    if (audio) {
-      audio.currentTime = bgTime;
-    }
-  } catch (e) {
-    iosBackgroundAudio = null;
+  if (precreatedIOSBackgroundAudio) {
+    teardownIOSBgEl(precreatedIOSBackgroundAudio);
     precreatedIOSBackgroundAudio = null;
   }
+
+  return syncMainAudioToTrackAt(track, bgTime).finally(() => {
+    // Keep guard briefly so a late `ended` from teardown cannot advance tracks
+    setTimeout(() => { iosHandoffGuard = false; }, 120);
+  });
+}
+
+function resumeFromIOSNativeBackgroundPlayback() {
+  const stillPlaying = isPlaying;
+  exitIOSNativeBackgroundPlayback().then(() => {
+    if (!stillPlaying || !isPlaying) return;
+    if (TRACKS[currentIndex]) ensureMediaReady(TRACKS[currentIndex]);
+    ensureAudioContextRunning();
+    if (audio) {
+      audio.play().then(() => {
+        isPlaying = true;
+        updatePlayUI();
+      }).catch(() => {});
+    }
+  });
 }
 
 function tryUpdateDuration() {
@@ -1273,7 +1352,9 @@ audio.addEventListener('timeupdate', () => {
     ensureAudioContextRunning();
 
     // If we're in background and the keep-alive isn't running yet, start it.
-    if (document.visibilityState !== 'visible' && isIOS() && !bgAudioKeepAlive) {
+    // Never start keep-alive while the native handoff element owns playback —
+    // that would revive the main element on a stale track.
+    if (document.visibilityState !== 'visible' && isIOS() && !bgAudioKeepAlive && !iosBackgroundAudio) {
       startBackgroundAudioKeepAlive();
     }
   }
@@ -1430,8 +1511,15 @@ function loadTrack(idx, autoplay) {
         stepTrack(1, { wrap: true, autoplay: true });
       });
       navigator.mediaSession.setActionHandler('previoustrack', () => {
-        if (audio.currentTime > 3) {
-          audio.currentTime = 0;
+        const cur = (isIOS() && iosBackgroundAudio)
+          ? (iosBackgroundAudio.currentTime || 0)
+          : (audio.currentTime || 0);
+        if (cur > 3) {
+          if (isIOS() && iosBackgroundAudio) {
+            try { iosBackgroundAudio.currentTime = 0; } catch (e) {}
+          } else {
+            audio.currentTime = 0;
+          }
         } else {
           stepTrack(-1, { wrap: true, autoplay: true });
         }
@@ -1446,9 +1534,12 @@ function loadTrack(idx, autoplay) {
     // Update the background player to the new track instead of the main one.
     // (repeat-all / next advance while screen is locked land here)
     try {
+      // Keep main <audio> src in lockstep (paused) so unlock cannot restore the old song
+      attachMedia(t);
+      try { audio.pause(); } catch (e) {}
       iosBackgroundAudio.pause();
       iosBackgroundAudio.src = encodeURI(t.file);
-      iosBackgroundAudio.currentTime = 0;
+      try { iosBackgroundAudio.currentTime = 0; } catch (e) {}
       applyRepeatLoopFlag();
       wireIOSBackgroundTrackEvents(iosBackgroundAudio);
       iosBackgroundAudio.play().catch(() => {});
