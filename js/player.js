@@ -794,6 +794,31 @@ function applyRepeatLoopFlag() {
 }
 
 /* Shared end-of-track routing (main player + iOS screen-off handoff player). */
+function tracklistPlayOrder() {
+  const container = document.getElementById('sidebar-tracklist');
+  const fromList = container
+    ? [...container.querySelectorAll('.track-item')]
+        .map(el => +el.dataset.idx)
+        .filter(i => Number.isInteger(i) && TRACKS[i])
+    : [];
+  return fromList.length ? fromList : TRACKS.map((_, i) => i);
+}
+
+function stepTrack(dir, { wrap = true, autoplay = isPlaying } = {}) {
+  const order = tracklistPlayOrder();
+  if (!order.length) return false;
+  let pos = order.indexOf(currentIndex);
+  if (pos < 0) pos = dir > 0 ? -1 : 0;
+  const nextPos = pos + dir;
+  if (nextPos < 0 || nextPos >= order.length) {
+    if (!wrap) return false;
+    loadTrack(order[(nextPos + order.length) % order.length], autoplay);
+    return true;
+  }
+  loadTrack(order[nextPos], autoplay);
+  return true;
+}
+
 function handleTrackEnded() {
   // Ignore teardown (pause / clear src) and mid-handoff races
   if (!isPlaying) return;
@@ -814,15 +839,13 @@ function handleTrackEnded() {
     return;
   }
 
+  const order = tracklistPlayOrder();
   if (isShuffle) {
     let ni;
-    do { ni = Math.floor(Math.random() * TRACKS.length); } while (TRACKS.length > 1 && ni === currentIndex);
+    do { ni = order[Math.floor(Math.random() * order.length)]; } while (order.length > 1 && ni === currentIndex);
     loadTrack(ni, true);
-  } else if (currentIndex < TRACKS.length - 1) {
-    loadTrack(currentIndex + 1, true);
-  } else if (repeatMode === 1) {
-    // repeat all: wrap playlist
-    loadTrack(0, true);
+  } else if (stepTrack(1, { wrap: repeatMode === 1, autoplay: true })) {
+    return;
   } else {
     pauseAndStopBackground();
   }
@@ -1404,13 +1427,13 @@ function loadTrack(idx, autoplay) {
         updatePlayUI();
       });
       navigator.mediaSession.setActionHandler('nexttrack', () => {
-        loadTrack((currentIndex + 1) % TRACKS.length, true);
+        stepTrack(1, { wrap: true, autoplay: true });
       });
       navigator.mediaSession.setActionHandler('previoustrack', () => {
         if (audio.currentTime > 3) {
           audio.currentTime = 0;
         } else {
-          loadTrack((currentIndex - 1 + TRACKS.length) % TRACKS.length, true);
+          stepTrack(-1, { wrap: true, autoplay: true });
         }
       });
     } catch (e) {}
@@ -1482,9 +1505,9 @@ document.getElementById('btn-play').addEventListener('click', () => {
 
 document.getElementById('btn-prev').addEventListener('click', () => {
   if (audio.currentTime > 3) { audio.currentTime = 0; return; }
-  loadTrack((currentIndex - 1 + TRACKS.length) % TRACKS.length, isPlaying);
+  stepTrack(-1, { wrap: true, autoplay: isPlaying });
 });
-document.getElementById('btn-next').addEventListener('click', () => loadTrack((currentIndex + 1) % TRACKS.length, isPlaying));
+document.getElementById('btn-next').addEventListener('click', () => stepTrack(1, { wrap: true, autoplay: isPlaying }));
 document.getElementById('btn-back10').addEventListener('click', () => skip(-10));
 document.getElementById('btn-fwd10').addEventListener('click', () => skip(10));
 
