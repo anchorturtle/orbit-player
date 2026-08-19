@@ -2672,9 +2672,9 @@ html.orbit-resizing .win {
   #tracklist-win .tracklist-tabs {
     position: absolute;
     top: 25%;
-    right: 3px;
+    right: 2px;
     bottom: auto;
-    width: 26px;
+    width: 28px;
     height: auto;
     max-height: calc(100% - 12px);
     margin: 0;
@@ -2682,50 +2682,55 @@ html.orbit-resizing .win {
     flex-direction: column;
     justify-content: center;
     align-items: center;
-    gap: 4px;
+    gap: 5px;
     z-index: 8;
     cursor: grab;
     transform: translateY(-50%);
   }
   #tracklist-win .tracklist-tabs .tab {
-    flex: 0 0 auto !important; /* hug text only — no empty stretch */
-    width: 100%;
-    min-width: 0;
+    flex: 0 0 auto !important;
+    width: 28px !important;
+    min-width: 28px !important;
+    max-width: 28px !important;
     min-height: 0;
-    height: auto;
-    padding: 6px 2px !important;
-    writing-mode: vertical-rl;
-    text-orientation: mixed;
-    transform: rotate(180deg); /* spine: read upward along the right edge */
-    letter-spacing: .06em;
-    font-size: 8px !important;
-    line-height: 1.1;
+    height: auto !important;
+    padding: 10px 0 !important;
+    /* Spine text: letters run vertically along the right edge */
+    writing-mode: vertical-rl !important;
+    text-orientation: mixed !important;
+    transform: rotate(180deg);
+    letter-spacing: .14em !important;
+    font-size: 9px !important;
+    line-height: 1 !important;
     border-radius: 999px;
-    justify-content: center;
-    align-items: center;
+    justify-content: center !important;
+    align-items: center !important;
+    white-space: nowrap !important;
+    overflow: visible !important;
+    text-overflow: clip !important;
   }
   #tracklist-win .tracklist-tabs .tab.active {
     flex: 0 0 auto !important;
-    padding: 7px 2px !important;
+    padding: 12px 0 !important;
   }
+  /* One vertical label only — kill horizontal short/full width animation on phone */
   #tracklist-win .tracklist-tabs .tab-short,
   #tracklist-win .tracklist-tabs .tab-full {
-    max-width: none;
-    max-height: none;
+    display: none !important;
+    max-width: none !important;
+    max-height: none !important;
+    opacity: 1 !important;
     transform: none !important;
+    writing-mode: vertical-rl !important;
+    text-orientation: mixed !important;
+    letter-spacing: inherit !important;
+    line-height: inherit !important;
   }
-  #tracklist-win .tracklist-tabs .tab-full {
-    max-height: 0;
-  }
-  #tracklist-win .tracklist-tabs .tab-short {
-    max-height: 5em;
-  }
-  #tracklist-win .tracklist-tabs .tab.active .tab-short {
-    max-height: 0;
+  #tracklist-win .tracklist-tabs .tab:not(.active) .tab-short {
+    display: inline-block !important;
   }
   #tracklist-win .tracklist-tabs .tab.active .tab-full {
-    max-height: 12em;
-    max-width: none;
+    display: inline-block !important;
   }
 
   /* ── Track rotary (no scroll — slide up/down like a dial) ── */
