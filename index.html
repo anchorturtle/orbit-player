@@ -23,7 +23,7 @@
   <link rel="dns-prefetch" href="https://unpkg.com">
 
   <!-- Modular CSS first (critical path). ?v= busts stale device caches on deploy. -->
-  <link rel="stylesheet" href="css/styles.css?v=20260819c">
+  <link rel="stylesheet" href="css/styles.css?v=20260819g">
 
   <!-- Google Fonts -->
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
@@ -75,7 +75,7 @@
       <div class="tracklist-tabs">
         <button class="tab active" data-category="all">All</button>
         <button class="tab" data-category="rap">Raps</button>
-        <button class="tab" data-category="instrumental">Instrumentals</button>
+        <button class="tab" data-category="instrumental">Inst</button>
         <button class="tab" data-category="albums">Albums</button>
       </div>
       <div style="padding:0 4px">
@@ -150,16 +150,16 @@
 
         <div class="player-song-header">
           <p id="fp-title" class="player-title">No Track</p>
-          <div class="player-artist-row">
-            <p id="fp-artist" class="player-artist phosphor">&mdash;</p>
-            <span id="fp-explicit" class="explicit-badge" hidden title="Warning! Parental Advisory: explicit language may be used in this content." aria-label="Warning! Parental Advisory: explicit language may be used in this content.">EXPLICIT</span>
-          </div>
+          <p id="fp-artist" class="player-artist phosphor">&mdash;</p>
         </div>
 
         <div class="player-info-side">
           <button id="btn-lyrics" class="ctrl-btn" title="Lyrics"><span class="material-symbols-outlined">lyrics</span></button>
           <button id="btn-info" class="ctrl-btn" title="More details / song page"><span class="material-symbols-outlined">info</span></button>
         </div>
+      </div>
+      <div class="player-advisory">
+        <span id="fp-explicit" class="explicit-badge" hidden title="Warning! Parental Advisory: explicit language may be used in this content." aria-label="Warning! Parental Advisory: explicit language may be used in this content.">EXPLICIT</span>
       </div>
 
       <!-- Transport: other buttons around the central play button (below the title/art row) -->
@@ -408,6 +408,35 @@
     </div>
   </div>
 
+  <!-- ALBUM WINDOW -->
+  <div id="album-win" class="win" style="display:none;z-index:345">
+    <div class="win-resize nw" data-dir="nw"></div><div class="win-resize ne" data-dir="ne"></div>
+    <div class="win-resize sw" data-dir="sw"></div><div class="win-resize se" data-dir="se"></div>
+    <div class="win-resize n" data-dir="n"></div><div class="win-resize s" data-dir="s"></div>
+    <div class="win-resize e" data-dir="e"></div><div class="win-resize w" data-dir="w"></div>
+    <div class="win-bar" id="album-bar">
+      <div class="win-bar-left">
+        <span class="material-symbols-outlined" style="font-size:12px;color:rgba(150,100,255,.5)">drag_indicator</span>
+        <span class="win-title" id="album-win-title">Album</span>
+      </div>
+      <div class="win-bar-right">
+        <button class="win-close" id="close-album" title="Close"><span class="material-symbols-outlined">close</span></button>
+      </div>
+    </div>
+    <div class="win-body album-win-body">
+      <div class="album-win-head">
+        <img id="album-win-art" class="album-win-art" alt="">
+        <div class="album-win-meta">
+          <h2 id="album-win-name"></h2>
+          <p id="album-win-artist" class="phosphor"></p>
+          <p id="album-win-stats"></p>
+        </div>
+      </div>
+      <p id="album-win-desc" class="album-win-desc" hidden></p>
+      <div id="album-win-tracks" class="album-win-tracks no-scrollbar"></div>
+    </div>
+  </div>
+
   <!-- LYRICS VIEWER -->
   <div id="lyrics-win" class="win" style="display:none; z-index: 580">
     <div class="win-resize nw" data-dir="nw"></div>
@@ -451,6 +480,7 @@
         <span class="dock-logo-sub">Hi-Fi</span>
       </div>
       <div class="dock-divider"></div>
+      <div class="dock-core">
       <button class="taskbar-btn win-open" id="btn-tracklist" onclick="toggleWin('tracklist-win','btn-tracklist')">
         <span class="material-symbols-outlined">library_music</span>
         <span>Tracks</span>
@@ -466,6 +496,9 @@
         <span>Player</span>
         <div class="taskbar-dot"></div>
       </button>
+      </div>
+      <div class="dock-divider dock-overflow-split" hidden></div>
+      <div id="dock-overflow" class="dock-overflow" hidden></div>
     </div>
   </div>
 
@@ -486,6 +519,7 @@
       <span>Gallery</span>
       <div class="mob-dot"></div>
     </button>
+    <div id="mob-overflow" class="mob-overflow" hidden></div>
   </div>
 
   <!-- SCRIPT IMPORTS (order matters for dependencies) -->
@@ -494,9 +528,9 @@
   <script src="https://unpkg.com/three@0.147.0/build/three.min.js"></script>
   <script src="js/utils.js?v=20260816a"></script>
   <script src="js/space3d.js?v=20260816a"></script>
-  <script src="js/player.js?v=20260819c"></script>
+  <script src="js/player.js?v=20260819h"></script>
   <script src="js/planet-swipe.js?v=20260816a"></script>
-  <script src="js/gallery.js?v=20260816a"></script>
-  <script src="js/main.js?v=20260819b"></script>
+  <script src="js/gallery.js?v=20260819d"></script>
+  <script src="js/main.js?v=20260819g"></script>
 </body>
 </html>

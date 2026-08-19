@@ -73,7 +73,7 @@ function applyDesktopLayout() {
   const gW = Math.min(300, Math.max(220, (vw - cx - PLANET_CLEARANCE - PAD) * 0.92));
   const gH = Math.min(620, usableH - 2 * PAD);
   const plW = Math.min(420, Math.max(380, Math.floor(vw * 0.30)));
-  const plH = Math.max(308, Math.min(330, Math.floor(usableH * 0.36)));
+  const plH = Math.max(328, Math.min(350, Math.floor(usableH * 0.38)));
 
   // Only force sizes/positions for windows the user hasn't manually dragged or resized
   if (tl.dataset.userPositioned !== 'true') {
@@ -147,7 +147,7 @@ function makeWindowDraggable(winId, barId) {
     if (!mode) return;
     const dx = e.clientX - sx, dy = e.clientY - sy;
     const mw = (winId === 'player-win' ? 380 : winId === 'video-win' ? 300 : 240),
-      mh = (winId === 'player-win' ? 308 : winId === 'video-win' ? 260 : 200);
+      mh = (winId === 'player-win' ? 328 : winId === 'video-win' ? 260 : 200);
     const vw = window.innerWidth, vh = window.innerHeight;
     const margin = 8;
 
@@ -306,7 +306,94 @@ function closeWin(winId, dockId, mobId) {
   if (mobId) setMobActive(mobId, false);
   if (isMob()) updateMobPlayerHeight();
   if (typeof syncWindowGlassTiers === 'function') syncWindowGlassTiers();
+  if (window.orbitDock) orbitDock.sync(winId);
 }
+
+const DOCK_META = {
+  'lyrics-win': { label: 'Lyrics', icon: 'lyrics' },
+  'song-detail-win': { label: 'Info', icon: 'info' },
+  'image-win': { label: 'Image', icon: 'image' },
+  'video-win': { label: 'Video', icon: 'movie' },
+  'album-win': { label: 'Album', icon: 'album' },
+};
+
+window.orbitDock = {
+  show(winId, meta) {
+    const rail = document.getElementById('dock-overflow');
+    const split = document.querySelector('.dock-overflow-split');
+    const mob = document.getElementById('mob-overflow');
+    if (!rail) return;
+    meta = Object.assign({}, DOCK_META[winId] || { label: 'Window', icon: 'web_asset' }, meta || {});
+    let btn = rail.querySelector(`[data-dock-win="${winId}"]`);
+    if (!btn) {
+      btn = document.createElement('button');
+      btn.className = 'taskbar-btn';
+      btn.dataset.dockWin = winId;
+      btn.innerHTML = `<span class="material-symbols-outlined">${meta.icon}</span><span></span><div class="taskbar-dot"></div>`;
+      btn.addEventListener('click', () => {
+        const w = document.getElementById(winId);
+        if (!w) return;
+        if (w.style.display === 'flex') {
+          if (winId === 'album-win' && typeof closeAlbumWindow === 'function') closeAlbumWindow();
+          else if (winId === 'lyrics-win' && typeof closeLyricsViewer === 'function') closeLyricsViewer();
+          else if (winId === 'video-win' && typeof closeVideoWin === 'function') closeVideoWin();
+          else if (winId === 'image-win' && typeof closeImageWin === 'function') closeImageWin();
+          else { w.style.display = 'none'; orbitDock.hide(winId); }
+        } else {
+          w.style.display = 'flex';
+          if (typeof bringToFront === 'function') bringToFront(winId);
+          btn.classList.add('win-open');
+        }
+      });
+      rail.appendChild(btn);
+    }
+    btn.querySelector('span:not(.material-symbols-outlined)').textContent = meta.label;
+    btn.classList.add('win-open');
+    rail.hidden = false;
+    if (split) split.hidden = false;
+    if (mob) {
+      let mbtn = mob.querySelector(`[data-dock-win="${winId}"]`);
+      if (!mbtn) {
+        mbtn = document.createElement('button');
+        mbtn.className = 'mob-btn active';
+        mbtn.dataset.dockWin = winId;
+        mbtn.innerHTML = `<span class="material-symbols-outlined">${meta.icon}</span><span></span><div class="mob-dot"></div>`;
+        mbtn.addEventListener('click', () => btn.click());
+        mob.appendChild(mbtn);
+      }
+      mbtn.querySelector('span:not(.material-symbols-outlined)').textContent = meta.label;
+      mbtn.classList.add('active');
+      mob.hidden = false;
+    }
+  },
+  hide(winId) {
+    const rail = document.getElementById('dock-overflow');
+    const split = document.querySelector('.dock-overflow-split');
+    const mob = document.getElementById('mob-overflow');
+    rail?.querySelector(`[data-dock-win="${winId}"]`)?.remove();
+    mob?.querySelector(`[data-dock-win="${winId}"]`)?.remove();
+    if (rail && !rail.children.length) {
+      rail.hidden = true;
+      if (split) split.hidden = true;
+    }
+    if (mob && !mob.children.length) mob.hidden = true;
+  },
+  sync(winId) {
+    const w = document.getElementById(winId);
+    if (!w || w.style.display !== 'flex') this.hide(winId);
+    else this.show(winId);
+  }
+};
+
+(function wireDockWheel() {
+  const rail = document.getElementById('dock-overflow');
+  if (!rail) return;
+  rail.addEventListener('wheel', (e) => {
+    if (!rail.children.length) return;
+    rail.scrollLeft += e.deltaY + e.deltaX;
+    e.preventDefault();
+  }, { passive: false });
+})();
 
 /* Mobile toggle with smart "always bring to front + second tap to dismiss" behavior */
 function mobToggle(winId, btnId) {
@@ -345,6 +432,9 @@ function mobToggle(winId, btnId) {
 document.getElementById('close-tracklist').addEventListener('click', () => closeWin('tracklist-win', 'btn-tracklist', 'btn-mob-tracks'));
 document.getElementById('close-gallery').addEventListener('click', () => closeWin('gallery-win', 'btn-gallery', 'btn-mob-gallery'));
 document.getElementById('close-player').addEventListener('click', () => closeWin('player-win', 'btn-player', 'btn-mob-player'));
+document.getElementById('close-album')?.addEventListener('click', () => {
+  if (typeof closeAlbumWindow === 'function') closeAlbumWindow();
+});
 document.getElementById('close-song-detail').addEventListener('click', () => {
   const w = document.getElementById('song-detail-win');
   if (w) w.style.display = 'none';
@@ -352,12 +442,14 @@ document.getElementById('close-song-detail').addEventListener('click', () => {
   const bd = document.getElementById('song-detail-backdrop');
   if (bd && bd.parentNode) bd.parentNode.removeChild(bd);
   document.title = 'AnchorTurtle'; // Reset title when closing song detail
+  if (window.orbitDock) orbitDock.hide('song-detail-win');
 });
 
 /* Make all windows draggable/resizable */
 makeWindowDraggable('tracklist-win', 'tracklist-bar');
 makeWindowDraggable('gallery-win', 'gallery-bar');
 makeWindowDraggable('player-win', 'player-bar');
+makeWindowDraggable('album-win', 'album-bar');
 makeWindowDraggable('image-win', 'image-win-bar');
 makeWindowDraggable('video-win', 'video-win-bar');
 makeWindowDraggable('song-detail-win', 'song-detail-bar');
@@ -509,7 +601,7 @@ makeWindowDraggable('lyrics-win', 'lyrics-bar');
         let newW = rect.width;
         let newH = rect.height;
         const minW = (id === 'player-win' ? 380 : 240);
-        const minH = (id === 'player-win' ? 308 : 200);
+        const minH = (id === 'player-win' ? 328 : 200);
         const maxW = Math.max(minW, vw - 16);
         const maxH = Math.max(minH, vh - 16);
         let changed = false;

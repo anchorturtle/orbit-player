@@ -78,7 +78,8 @@ const TRACKS = [
     year: 2020,
     description: 'Atmospheric and introspective with soaring melodies.',
     artwork: null,
-    category: 'instrumental'
+    category: 'instrumental',
+    explicit: true
   },
   {
     title: 'Follow The Flow',
@@ -317,7 +318,7 @@ const TRACKS = [
     albumTrack: 2
   },
   {
-    title: 'What Is it Now',
+    title: 'What Is it Now?',
     artist: 'jestR',
     slug: 'what-is-it-now',
     file: 'audio/albums/jestR- act like your doing something cuz i see everything/3 - What Is it Now- jestR - act like you\'re doing something cuz i see everything.mp3',
@@ -330,7 +331,7 @@ const TRACKS = [
     albumTrack: 3
   },
   {
-    title: 'got nun',
+    title: 'got nun?',
     artist: 'jestR',
     slug: 'got-nun',
     file: 'audio/albums/jestR- act like your doing something cuz i see everything/4 - got nun- jestR - act like you\'re doing something cuz i see everything.mp3',
@@ -353,7 +354,7 @@ const TRACKS = [
     explicit: true,
     album: "Don't Say Nothing About Them Building Blocks",
     albumSlug: 'building-blocks',
-    albumTrack: 1
+    albumTrack: 12
   },
   {
     title: 'Space Radio',
@@ -366,7 +367,7 @@ const TRACKS = [
     explicit: true,
     album: "Don't Say Nothing About Them Building Blocks",
     albumSlug: 'building-blocks',
-    albumTrack: 2
+    albumTrack: 9
   },
   {
     title: 'Exploding Galaxies',
@@ -379,7 +380,7 @@ const TRACKS = [
     explicit: true,
     album: "Don't Say Nothing About Them Building Blocks",
     albumSlug: 'building-blocks',
-    albumTrack: 3
+    albumTrack: 10
   },
   {
     title: 'Acid Rain',
@@ -392,7 +393,7 @@ const TRACKS = [
     explicit: true,
     album: "Don't Say Nothing About Them Building Blocks",
     albumSlug: 'building-blocks',
-    albumTrack: 4
+    albumTrack: 1
   },
   {
     title: '420',
@@ -405,7 +406,7 @@ const TRACKS = [
     explicit: true,
     album: "Don't Say Nothing About Them Building Blocks",
     albumSlug: 'building-blocks',
-    albumTrack: 5
+    albumTrack: 4
   },
   {
     title: 'Jungle Fever',
@@ -418,7 +419,7 @@ const TRACKS = [
     explicit: true,
     album: "Don't Say Nothing About Them Building Blocks",
     albumSlug: 'building-blocks',
-    albumTrack: 6
+    albumTrack: 5
   },
   {
     title: 'Get',
@@ -431,10 +432,10 @@ const TRACKS = [
     explicit: true,
     album: "Don't Say Nothing About Them Building Blocks",
     albumSlug: 'building-blocks',
-    albumTrack: 7
+    albumTrack: 11
   },
   {
-    title: 'Winning',
+    title: '"Winning"',
     artist: 'jestR',
     slug: 'winning',
     file: "audio/albums/jestR- Don't Say Nothing About Them Building Blocks/Winning.mp3",
@@ -444,7 +445,7 @@ const TRACKS = [
     explicit: true,
     album: "Don't Say Nothing About Them Building Blocks",
     albumSlug: 'building-blocks',
-    albumTrack: 8
+    albumTrack: 6
   },
   {
     title: 'My Anthem',
@@ -457,7 +458,7 @@ const TRACKS = [
     explicit: true,
     album: "Don't Say Nothing About Them Building Blocks",
     albumSlug: 'building-blocks',
-    albumTrack: 9
+    albumTrack: 2
   },
   {
     title: 'Nonnin',
@@ -470,7 +471,7 @@ const TRACKS = [
     explicit: true,
     album: "Don't Say Nothing About Them Building Blocks",
     albumSlug: 'building-blocks',
-    albumTrack: 10
+    albumTrack: 3
   },
   {
     title: 'WHOiAM2u',
@@ -483,7 +484,7 @@ const TRACKS = [
     explicit: true,
     album: "Don't Say Nothing About Them Building Blocks",
     albumSlug: 'building-blocks',
-    albumTrack: 11
+    albumTrack: 7
   },
   {
     title: 'free(dumb)',
@@ -496,7 +497,7 @@ const TRACKS = [
     explicit: true,
     album: "Don't Say Nothing About Them Building Blocks",
     albumSlug: 'building-blocks',
-    albumTrack: 12
+    albumTrack: 8
   },
   {
     title: 'death of jestR',
@@ -1730,28 +1731,135 @@ function renderTracklist(filter) {
   document.getElementById('track-count').textContent = `${items.length}/${TRACKS.length}`;
 
   if (currentTracklistCategory === 'albums') {
+    const qAlb = q;
     (ALBUMS || []).forEach(album => {
-      const groupItems = items
+      const groupItems = TRACKS
+        .map((t, i) => ({ t, origIdx: i }))
         .filter(({ t }) => t.albumSlug === album.slug)
         .sort((a, b) => (a.t.albumTrack || 0) - (b.t.albumTrack || 0));
       if (!groupItems.length) return;
-      const group = document.createElement('div');
-      group.className = 'album-group';
-      group.innerHTML = `
-        <div class="album-head">
-          <img class="album-head-art" src="${album.artwork}" alt="">
-          <div style="min-width:0">
-            <p class="album-head-title">${album.title}</p>
-            <p class="album-head-meta">${album.artist} · ${groupItems.length} tracks</p>
-          </div>
+      if (qAlb && !(album.title.toLowerCase().includes(qAlb) || album.artist.toLowerCase().includes(qAlb) || groupItems.some(({ t }) => t.title.toLowerCase().includes(qAlb)))) return;
+      const years = groupItems.map(({ t }) => t.year).filter(Boolean);
+      const yearLabel = years.length ? (Math.min(...years) === Math.max(...years) ? String(Math.min(...years)) : `${Math.min(...years)}–${Math.max(...years)}`) : '';
+      const card = document.createElement('div');
+      card.className = 'album-card';
+      card.innerHTML = `
+        <img class="album-card-art" src="${album.artwork}" alt="">
+        <div style="min-width:0">
+          <p class="album-card-title">${album.title}</p>
+          <p class="album-card-meta">${album.artist}${yearLabel ? ' · ' + yearLabel : ''} · ${groupItems.length} tracks</p>
         </div>`;
-      groupItems.forEach(({ t, origIdx }) => group.appendChild(makeTrackRow(t, origIdx)));
-      container.appendChild(group);
+      card.addEventListener('click', () => openAlbumWindow(album.slug));
+      container.appendChild(card);
     });
+    document.getElementById('track-count').textContent = `${container.querySelectorAll('.album-card').length}`;
     return;
   }
 
   items.forEach(({ t, origIdx }) => container.appendChild(makeTrackRow(t, origIdx)));
+}
+
+function fmtDur(sec) {
+  if (!sec || !isFinite(sec)) return '';
+  const s = Math.round(sec);
+  return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`;
+}
+
+function probeTrackDuration(t) {
+  if (t.duration && isFinite(t.duration)) return Promise.resolve(t.duration);
+  return new Promise(resolve => {
+    const a = new Audio();
+    a.preload = 'metadata';
+    a.src = encodeURI(t.file);
+    const done = (v) => { a.src = ''; resolve(v); };
+    a.onloadedmetadata = () => { t.duration = a.duration; done(t.duration); };
+    a.onerror = () => done(null);
+    setTimeout(() => done(t.duration || null), 8000);
+  });
+}
+
+function albumTracks(slug) {
+  return TRACKS
+    .map((t, i) => ({ t, origIdx: i }))
+    .filter(({ t }) => t.albumSlug === slug)
+    .sort((a, b) => (a.t.albumTrack || 0) - (b.t.albumTrack || 0));
+}
+
+function renderAlbumTrackList(slug) {
+  const list = document.getElementById('album-win-tracks');
+  if (!list) return;
+  list.innerHTML = '';
+  albumTracks(slug).forEach(({ t, origIdx }) => {
+    const el = document.createElement('div');
+    el.className = 'track-item' + (origIdx === currentIndex ? ' active' : '');
+    el.dataset.idx = origIdx;
+    const bits = [t.year, t.category, fmtDur(t.duration)].filter(Boolean);
+    const eBadge = trackIsExplicit(t) ? explicitChipHTML(true) : '';
+    el.innerHTML = `
+      <span class="album-track-num">${t.albumTrack || ''}</span>
+      <div style="flex:1;min-width:0">
+        <div class="track-title-row">
+          <p class="track-title" style="font-weight:700;color:rgba(233,225,222,.82);margin:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${t.title}</p>
+          ${eBadge}
+        </div>
+        <p class="album-track-meta">${bits.join(' · ')}</p>
+      </div>`;
+    el.addEventListener('click', () => loadTrack(origIdx, true));
+    list.appendChild(el);
+  });
+}
+
+function openAlbumWindow(slug) {
+  const album = (ALBUMS || []).find(a => a.slug === slug);
+  if (!album) return;
+  const tracks = albumTracks(slug);
+  const years = tracks.map(({ t }) => t.year).filter(Boolean);
+  const yearLabel = years.length ? (Math.min(...years) === Math.max(...years) ? String(Math.min(...years)) : `${Math.min(...years)}–${Math.max(...years)}`) : '';
+  const win = document.getElementById('album-win');
+  const titleBar = document.getElementById('album-win-title');
+  const nameEl = document.getElementById('album-win-name');
+  const artistEl = document.getElementById('album-win-artist');
+  const statsEl = document.getElementById('album-win-stats');
+  const artEl = document.getElementById('album-win-art');
+  const descEl = document.getElementById('album-win-desc');
+  if (titleBar) titleBar.textContent = album.title;
+  if (nameEl) nameEl.textContent = album.title;
+  if (artistEl) artistEl.textContent = album.artist;
+  if (statsEl) statsEl.textContent = [yearLabel, `${tracks.length} tracks`].filter(Boolean).join(' · ');
+  if (artEl) { artEl.src = album.artwork; artEl.alt = album.title; }
+  if (descEl) {
+    const d = (album.description || '').trim();
+    descEl.hidden = !d;
+    descEl.textContent = d;
+  }
+  renderAlbumTrackList(slug);
+  if (win) {
+    win.style.display = 'flex';
+    if (!isMob() && win.dataset.userPositioned !== 'true') {
+      const vw = window.innerWidth, vh = window.innerHeight;
+      const w = Math.min(380, vw - 40), h = Math.min(520, vh - 120);
+      win.style.width = w + 'px';
+      win.style.height = h + 'px';
+      win.style.left = Math.max(16, (vw - w) / 2) + 'px';
+      win.style.top = Math.max(16, (vh - h) / 2 - 20) + 'px';
+    }
+    if (typeof bringToFront === 'function') bringToFront('album-win');
+  }
+  if (typeof orbitDock !== 'undefined' && orbitDock.show) {
+    const short = album.title.length > 18 ? album.title.slice(0, 16) + '…' : album.title;
+    orbitDock.show('album-win', { label: short, icon: 'album', transient: true });
+  }
+  tracks.forEach(({ t }) => {
+    probeTrackDuration(t).then(() => {
+      if (document.getElementById('album-win')?.style.display === 'flex') renderAlbumTrackList(slug);
+    });
+  });
+}
+
+function closeAlbumWindow() {
+  const win = document.getElementById('album-win');
+  if (win) win.style.display = 'none';
+  if (typeof orbitDock !== 'undefined' && orbitDock.hide) orbitDock.hide('album-win');
 }
 
 /* ── TRACKLIST DRAG REORDER ── */
@@ -1993,6 +2101,7 @@ async function openLyricsViewer() {
   await updateLyricsViewer();
   initLyricsScrollHandlers();
   startLyricsSyncLoop();
+  if (window.orbitDock) orbitDock.show('lyrics-win');
 
   // On open, snap to current line then follow playback
   requestAnimationFrame(() => {
@@ -2005,6 +2114,7 @@ function closeLyricsViewer() {
   if (win) win.style.display = 'none';
   clearTimeout(lyricsResumeTimer);
   stopLyricsSyncLoop();
+  if (window.orbitDock) orbitDock.hide('lyrics-win');
 }
 
 async function updateLyricsViewer() {
@@ -2497,6 +2607,7 @@ function openSongDetail(slug) {
         clampWindowToViewport(win, isMob() ? 6 : 12);
       }
     }, 180);
+    if (window.orbitDock) orbitDock.show('song-detail-win');
   } else {
     console.error('[Song Detail] #song-detail-win not found in DOM');
   }

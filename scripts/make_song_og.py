@@ -41,11 +41,11 @@ TITLES = {
     "fat-stacks": "Fat Stacks", "chokeslam": "Chokeslam",
     "grateful-sharpie": "Grateful Sharpie",
     "tomb-of-the-creator": "Tomb of the Creator", "blockbuster": "Blockbuster",
-    "what-is-it-now": "What Is it Now", "got-nun": "got nun",
+    "what-is-it-now": "What Is it Now?", "got-nun": "got nun?",
     "sublime-beginnings": "Sublime Beginnings", "space-radio": "Space Radio",
     "exploding-galaxies": "Exploding Galaxies", "acid-rain": "Acid Rain",
     "four-twenty": "420", "jungle-fever": "Jungle Fever", "get": "Get",
-    "winning": "Winning", "my-anthem": "My Anthem", "nonnin": "Nonnin",
+    "winning": "\"Winning\"", "my-anthem": "My Anthem", "nonnin": "Nonnin",
     "whoiam2u": "WHOiAM2u", "free-dumb": "free(dumb)",
     "death-of-jestr": "death of jestR",
 }

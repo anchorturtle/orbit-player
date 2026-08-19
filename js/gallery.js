@@ -449,6 +449,7 @@ function closeImageWin() {
   const finish = () => {
     if (win) win.style.display = 'none';
     syncImageFullscreenUi();
+    if (window.orbitDock) orbitDock.hide('image-win');
   };
   if (active === win) {
     const exit = doc.exitFullscreen || doc.webkitExitFullscreen;
@@ -487,6 +488,7 @@ function openImageWin(idx) {
   }
   win.style.display = 'flex';
   bringToFront('image-win');
+  if (window.orbitDock) orbitDock.show('image-win');
 
   // Always clamp (brings back on-screen if zoom/resize made previous pos invalid) and ensure front.
   // For non-user-positioned it will have just been centered; for user ones it just safety-clamps.
@@ -985,6 +987,7 @@ function openVideoWin(idx) {
 
   win.style.display = 'flex';
   bringToFront('video-win');
+  if (window.orbitDock) orbitDock.show('video-win');
   requestAnimationFrame(() => bringToFront('video-win'));
   setVideoCaptionSource(entry);
   tryAutoplayVideo(player);
@@ -1008,6 +1011,7 @@ function closeVideoWin() {
     if (win) win.style.display = 'none';
     document.title = 'AnchorTurtle';
     syncVideoFullscreenUi();
+    if (window.orbitDock) orbitDock.hide('video-win');
   };
   if (active) {
     const exit = doc.exitFullscreen || doc.webkitExitFullscreen;

@@ -319,7 +319,7 @@ html.orbit-resizing .win {
   padding-right: 6px;
 }
 
-#player-win { min-height: 308px; min-width: 380px; }
+#player-win { min-height: 328px; min-width: 380px; }
 
 /* Song Detail Window polish */
 #song-detail-win .win-body {
@@ -346,10 +346,10 @@ html.orbit-resizing .win {
   transition: opacity 0.2s ease;
 }
 #player-win .win-body { 
-  overflow: hidden; /* never scroll the player itself — all buttons/transport/timeline must stay visible and properly spaced no matter window size */
+  overflow: hidden;
   overflow-x: hidden;
-  padding: 6px 10px 8px !important; /* tighter for compact player */
-  gap: 4px; /* reduce vertical clutter between sections */
+  padding: 12px 14px 12px !important;
+  gap: 10px;
 }
 
 /* The first child is now our improved metadata header */
@@ -417,10 +417,10 @@ html.orbit-resizing .win {
     0 4px 20px rgba(0,0,0,.5);
   position: relative;
   overflow: hidden;
-  padding: 10px 12px 10px !important;
+  padding: 12px 14px 12px !important;
   display: flex;
   flex-direction: column;
-  gap: 8px; /* better spacing between top, transport, timeline, bottom */
+  gap: 10px;
 }
 
 /* Subtle cosmic nebula texture inside the faceplate */
@@ -502,11 +502,12 @@ html.orbit-resizing .win {
 .player-bottom-row {
   display: flex;
   align-items: center;
-  justify-content: center; /* center the download + volume + share group together */
-  margin-top: 4px;
-  gap: 16px; /* proper spacing between the three */
+  justify-content: space-between;
+  margin-top: 2px;
+  gap: 12px;
   width: 100%;
   flex-shrink: 0;
+  padding: 0 4px;
 }
 
 .player-bottom-row .ctrl-btn {
@@ -593,16 +594,16 @@ html.orbit-resizing .win {
 
 .player-song-header .player-artist {
   font-size: 11px;
-  margin: 0;
+  margin: 4px 0 0;
 }
-.player-artist-row {
+.player-advisory {
   display: flex;
-  align-items: center;
   justify-content: center;
-  gap: 6px;
-  min-width: 0;
+  align-items: center;
+  min-height: 18px;
+  flex-shrink: 0;
 }
-.player-artist-row .explicit-badge { margin-top: 0; }
+.player-advisory .explicit-badge { margin: 0; }
 
 .player-info-side {
   /* grid child, auto sized */
@@ -1184,6 +1185,7 @@ html.orbit-resizing .win {
 .tracklist-tabs,
 .gallery-tabs {
   display: flex;
+  flex-wrap: nowrap;
   gap: 4px;
   padding: 0 4px;
   flex-shrink: 0;
@@ -1193,15 +1195,22 @@ html.orbit-resizing .win {
   background: rgba(255,255,255,.04);
   border: 1px solid rgba(255,255,255,.07);
   color: var(--baby-blue);
-  font-size: 10px;
+  font-size: 9px;
   font-weight: 700;
-  letter-spacing: .1em;
+  letter-spacing: .06em;
   text-transform: uppercase;
-  padding: 4px 12px;
+  padding: 5px 4px;
   border-radius: 999px;
   cursor: pointer;
+  flex: 1 1 0;
+  min-width: 0;
+  text-align: center;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
   transition: background .15s, color .15s, border-color .15s, box-shadow .2s, transform .2s var(--spring);
 }
+.gallery-tabs .tab { flex: 1 1 auto; padding: 4px 12px; }
 .tracklist-tabs .tab.active,
 .gallery-tabs .tab.active {
   background: linear-gradient(135deg, rgba(123,47,255,.22), rgba(45,91,255,.14));
@@ -1236,6 +1245,52 @@ html.orbit-resizing .win {
   color: rgba(0,200,150,.55); margin: 2px 0 0; text-transform: none;
 }
 .album-group .track-item { padding-left: 10px; }
+.album-head { cursor: pointer; }
+.album-card {
+  display: flex; align-items: center; gap: 10px;
+  padding: 8px 6px; border-radius: 10px; cursor: pointer;
+}
+.album-card:hover { background: rgba(45,91,255,.08); }
+.album-card-art {
+  width: 48px; height: 48px; border-radius: 8px; object-fit: cover; flex-shrink: 0;
+  box-shadow: 0 0 14px rgba(123,47,255,.28);
+}
+.album-card-title { font-size: 12px; font-weight: 800; color: rgba(233,225,222,.9); margin: 0; line-height: 1.25; }
+.album-card-meta { font-size: 10px; font-weight: 600; color: rgba(0,200,150,.55); margin: 3px 0 0; }
+
+#album-win { min-width: 280px; min-height: 360px; }
+.album-win-body {
+  padding: 12px 10px !important;
+  gap: 10px;
+  overflow: hidden;
+}
+.album-win-head { display: flex; gap: 12px; align-items: flex-start; flex-shrink: 0; }
+.album-win-art {
+  width: 88px; height: 88px; border-radius: 10px; object-fit: cover; flex-shrink: 0;
+  box-shadow: 0 0 20px rgba(123,47,255,.22);
+}
+.album-win-meta { min-width: 0; padding-top: 2px; }
+.album-win-meta h2 {
+  font-size: 15px; font-weight: 800; line-height: 1.2; margin: 0 0 4px; color: #e9e1de;
+}
+#album-win-artist {
+  font-size: 11px; font-weight: 700; letter-spacing: .06em; color: var(--jestr-green); margin: 0 0 6px;
+}
+#album-win-stats {
+  font-size: 10px; font-weight: 600; letter-spacing: .04em; color: rgba(233,225,222,.5); margin: 0;
+}
+.album-win-desc {
+  font-size: 11px; line-height: 1.45; color: rgba(233,225,222,.75); margin: 0;
+}
+.album-win-tracks { flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 1px; min-height: 0; }
+.album-win-tracks .track-item .album-track-num {
+  width: 22px; flex-shrink: 0; font-size: 10px; font-weight: 700;
+  color: rgba(233,225,222,.4); text-align: right; font-variant-numeric: tabular-nums;
+}
+.album-track-meta {
+  font-size: 9px; font-weight: 600; letter-spacing: .04em;
+  color: rgba(233,225,222,.38); margin: 2px 0 0;
+}
 
 /* Parental advisory — same glass chip language as .video-ai-badge */
 .explicit-badge {
@@ -2233,7 +2288,7 @@ html.orbit-resizing .win {
 /* ============ DESKTOP DOCK ============ */
 #dock-win {
   position: fixed; bottom: 12px; left: 50%; transform: translateX(-50%);
-  width: min(500px, 94vw); z-index: 400; border-radius: 999px;
+  width: min(720px, 96vw); z-index: 400; border-radius: 999px;
   /* Dock is always on-screen — keep glass look with a fixed cheap blur (not 40–52px full-window stack). */
   backdrop-filter: blur(22px) saturate(1.7) brightness(1.04);
   -webkit-backdrop-filter: blur(22px) saturate(1.7) brightness(1.04);
@@ -2252,9 +2307,27 @@ html.orbit-resizing .win {
   opacity: .55;
 }
 #dock-win .win-body {
-  flex-direction: row; align-items: center; justify-content: center;
-  gap: 8px; padding: 7px 18px;
+  flex-direction: row; align-items: center; justify-content: flex-start;
+  gap: 8px; padding: 7px 14px;
+  overflow: hidden;
 }
+.dock-core { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
+.dock-overflow {
+  display: flex; align-items: center; gap: 6px;
+  flex: 1 1 auto; min-width: 0;
+  overflow-x: auto; overflow-y: hidden;
+  scrollbar-width: none;
+  -webkit-overflow-scrolling: touch;
+}
+.dock-overflow::-webkit-scrollbar { display: none; }
+.dock-overflow .taskbar-btn { min-width: 56px; flex-shrink: 0; }
+.mob-overflow {
+  display: flex; align-items: stretch; gap: 6px;
+  flex: 1 1 auto; min-width: 0;
+  overflow-x: auto; scrollbar-width: none;
+}
+.mob-overflow::-webkit-scrollbar { display: none; }
+.mob-overflow .mob-btn { flex: 0 0 auto; max-width: 88px; }
 .dock-logo-wrap { display: flex; flex-direction: column; align-items: center; margin-right: 6px; flex-shrink: 0; }
 .dock-logo-main {
   font-size: 19px; font-weight: 900; font-style: italic; letter-spacing: -.03em;
