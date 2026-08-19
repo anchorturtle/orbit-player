@@ -8,7 +8,7 @@ const TRACKS = [
     title: 'Offers',
     artist: 'jestR',
     slug: 'offers',
-    file: 'audio/Offers.mp3',
+    file: 'audio/singles/Offers.mp3',
     year: 2026,
     description: '',
     category: 'instrumental'
@@ -17,7 +17,7 @@ const TRACKS = [
     title: 'Thousand Dragon',
     artist: 'jestR',
     slug: 'thousand-dragon',
-    file: 'audio/Thousand-Dragon-jestR.mp3',
+    file: 'audio/singles/Thousand-Dragon-jestR.mp3',
     year: 2026,
     description: '',
     category: 'instrumental'
@@ -26,7 +26,7 @@ const TRACKS = [
     title: 'K.O.',
     artist: 'jestR',
     slug: 'ko',
-    file: 'audio/KO.mp3',
+    file: 'audio/singles/KO.mp3',
     year: 2026,
     description: '',
     category: 'instrumental'
@@ -35,7 +35,7 @@ const TRACKS = [
     title: 'hyperdream.odyssey.exe',
     artist: 'jestR',
     slug: 'hyperdream-odyssey',
-    file: 'audio/hyperdream-odyssey.mp3',
+    file: 'audio/singles/hyperdream-odyssey.mp3',
     year: 2026,
     description: '',
     category: 'instrumental'
@@ -44,7 +44,7 @@ const TRACKS = [
     title: 'Soul Seer',
     artist: 'jestR',
     slug: 'soul-seer',
-    file: 'audio/Mp3-SoulSeer.mp3',
+    file: 'audio/singles/Mp3-SoulSeer.mp3',
     year: 2021,
     description: 'Mystical and introspective journey through inner vision.',
     artwork: null,
@@ -54,7 +54,7 @@ const TRACKS = [
     title: 'Geronimo',
     artist: 'jestR',
     slug: 'geronimo',
-    file: 'audio/11 - Geronimo- jestR - 2020.mp3',
+    file: 'audio/singles/11 - Geronimo- jestR - 2020.mp3',
     year: 2020,
     description: 'Explosive opener with raw energy and sharp lyricism.',
     artwork: 'images/Jesterdaze.png',
@@ -64,7 +64,7 @@ const TRACKS = [
     title: 'Spin Cycle',
     artist: 'jestR',
     slug: 'spin-cycle',
-    file: 'audio/Spin-Cycle_.mp3',
+    file: 'audio/singles/Spin-Cycle_.mp3',
     year: 2025,
     description: '',
     artwork: null,
@@ -74,7 +74,7 @@ const TRACKS = [
     title: 'Mile High',
     artist: 'jestR',
     slug: 'mile-high',
-    file: 'audio/3 - Mile High- jestR - 2020.mp3',
+    file: 'audio/singles/3 - Mile High- jestR - 2020.mp3',
     year: 2020,
     description: 'Atmospheric and introspective with soaring melodies.',
     artwork: null,
@@ -84,7 +84,7 @@ const TRACKS = [
     title: 'Follow The Flow',
     artist: 'jestR',
     slug: 'follow-the-flow',
-    file: 'audio/Mp3-FollowTheFlow.mp3',
+    file: 'audio/singles/Mp3-FollowTheFlow.mp3',
     year: 2021,
     description: 'Smooth, hypnotic groove exploring surrender and momentum.',
     artwork: null,
@@ -94,7 +94,7 @@ const TRACKS = [
     title: 'Peace',
     artist: 'jestR',
     slug: 'peace',
-    file: 'audio/Peace.mp3',
+    file: 'audio/singles/Peace.mp3',
     year: 2022,
     description: 'Minimal and meditative. A moment of stillness.',
     artwork: null,
@@ -104,7 +104,7 @@ const TRACKS = [
     title: 'Strider',
     artist: 'jestR',
     slug: 'strider',
-    file: 'audio/Strider.mp3',
+    file: 'audio/singles/Strider.mp3',
     year: 2022,
     description: 'Dark, driving beat with determined, cinematic feel.',
     artwork: null,
@@ -114,7 +114,7 @@ const TRACKS = [
     title: 'Insane Membrane',
     artist: 'jestR',
     slug: 'insane-membrane',
-    file: 'audio/Insane_membrane.mp3',
+    file: 'audio/singles/Insane_membrane.mp3',
     year: 2023,
     description: 'Chaotic, textured, and emotionally charged.',
     artwork: null,
@@ -124,7 +124,7 @@ const TRACKS = [
     title: 'Wavy',
     artist: 'jestR',
     slug: 'wavy',
-    file: 'audio/wavy.mp3',
+    file: 'audio/singles/wavy.mp3',
     year: 2023,
     description: 'Liquid, dreamy production with fluid delivery.',
     artwork: null,
@@ -134,7 +134,7 @@ const TRACKS = [
     title: 'Boa Constrictor',
     artist: 'jestR',
     slug: 'boa-constrictor',
-    file: 'audio/boaconstrictor.mp3',
+    file: 'audio/singles/boaconstrictor.mp3',
     year: 2024,
     description: 'Tense, coiled energy that slowly tightens.',
     artwork: null,
@@ -144,7 +144,7 @@ const TRACKS = [
     title: 'News',
     artist: 'jestR',
     slug: 'news',
-    file: 'audio/Newsss.mp3',
+    file: 'audio/singles/Newsss.mp3',
     year: 2024,
     description: 'Sharp commentary wrapped in heavy, distorted beats.',
     artwork: null,
@@ -154,7 +154,7 @@ const TRACKS = [
     title: 'Wheels',
     artist: 'jestR',
     slug: 'wheels',
-    file: 'audio/mp3Wheels-36.mp3',
+    file: 'audio/singles/mp3Wheels-36.mp3',
     year: 2020,
     description: 'Cyclic, hypnotic rhythm. Motion without destination.',
     artwork: null,
@@ -164,7 +164,7 @@ const TRACKS = [
     title: 'Pop',
     artist: 'jestR',
     slug: 'pop',
-    file: 'audio/pop.mp3',
+    file: 'audio/singles/pop.mp3',
     year: 2024,
     description: 'Playful yet biting take on pop culture.',
     artwork: null,
@@ -174,7 +174,7 @@ const TRACKS = [
     title: 'The Sum Of Hippy Thoughts',
     artist: 'jestR',
     slug: 'the-sum-of-hippy-thoughts',
-    file: 'audio/the sum of hippy thoughts.mp3',
+    file: 'audio/singles/the sum of hippy thoughts.mp3',
     year: 2025,
     description: 'Expansive, philosophical closer with lush textures.',
     artwork: null,
@@ -184,7 +184,7 @@ const TRACKS = [
     title: 'What Dreams May Come',
     artist: 'jestR',
     slug: 'what-dreams-may-come',
-    file: 'audio/what_dreams_may_comewavy.wav',
+    file: 'audio/singles/what_dreams_may_comewavy.wav',
     year: 2020,
     description: 'Ethereal and cinematic. A dreamlike farewell.',
     artwork: null,
@@ -194,11 +194,12 @@ const TRACKS = [
     title: 'Jazzpot',
     artist: 'jestR',
     slug: 'jazzpot',
-    file: 'audio/jazzpot3.mp3',
+    file: 'audio/singles/jazzpot3.mp3',
     year: 2026,
     description: 'Jazz pot session.',
     artwork: null,
     category: 'rap',
+    explicit: true,
     // lyrics hardcoded for reliable loading (dynamic fetch often fails when opening index.html directly via file://)
     // To regenerate: run the sync script, then copy the array here (or serve the site with a web server for dynamic load)
     lyrics: [
@@ -248,34 +249,287 @@ const TRACKS = [
       title: 'Still Going Higher',
       artist: 'jestR',
       slug: 'still-going-higher',
-      file: 'audio/Still_Going_Higher.mp3',
+      file: 'audio/singles/Still_Going_Higher.mp3',
       year: 2026,
       description: 'Motivational rap track with driving energy.',
       category: 'rap',
+      explicit: true,
       lyrics: []
     },
     {
       title: 'Fat Stacks',
       artist: 'jestR',
       slug: 'fat-stacks',
-      file: 'audio/Fat Stacks.mp3',
+      file: 'audio/singles/Fat Stacks.mp3',
       year: 2024,
       description: 'Rap track - fat stacks energy.',
       category: 'rap',
+      explicit: true,
       lyrics: []
     },
     {
       title: 'Chokeslam',
       artist: 'jestR',
       slug: 'chokeslam',
-      file: 'audio/Chokeslam.mp3',
+      file: 'audio/singles/Chokeslam.mp3',
       year: 2024,
       description: 'Rap track - chokeslam impact.',
       category: 'rap',
+      explicit: true,
       lyrics: []
-    }
-  ];
+    },
+  {
+    title: 'Grateful Sharpie',
+    artist: 'jestR',
+    slug: 'grateful-sharpie',
+    file: 'audio/singles/Grateful_Sharpie.mp3',
+    year: 2026,
+    description: '',
+    category: 'rap',
+    explicit: true
+  },
+
+  ,
+  {
+    title: 'Tomb of the Creator',
+    artist: 'jestR',
+    slug: 'tomb-of-the-creator',
+    file: 'audio/albums/jestR- act like your doing something cuz i see everything/1 - Tomb of the Creator- jestR - act like you\'re doing something cuz i see everything.mp3',
+    year: 2026,
+    description: '',
+    category: 'rap',
+    explicit: true,
+    album: "act like you're doing something cuz i see everything",
+    albumSlug: 'act-like-youre-doing-something',
+    albumTrack: 1
+  },
+  {
+    title: 'Blockbuster',
+    artist: 'jestR',
+    slug: 'blockbuster',
+    file: 'audio/albums/jestR- act like your doing something cuz i see everything/2 - Blockbuster- jestR - act like you\'re doing something cuz i see everything.mp3',
+    year: 2026,
+    description: '',
+    category: 'rap',
+    explicit: true,
+    album: "act like you're doing something cuz i see everything",
+    albumSlug: 'act-like-youre-doing-something',
+    albumTrack: 2
+  },
+  {
+    title: 'What Is it Now',
+    artist: 'jestR',
+    slug: 'what-is-it-now',
+    file: 'audio/albums/jestR- act like your doing something cuz i see everything/3 - What Is it Now- jestR - act like you\'re doing something cuz i see everything.mp3',
+    year: 2026,
+    description: '',
+    category: 'rap',
+    explicit: true,
+    album: "act like you're doing something cuz i see everything",
+    albumSlug: 'act-like-youre-doing-something',
+    albumTrack: 3
+  },
+  {
+    title: 'got nun',
+    artist: 'jestR',
+    slug: 'got-nun',
+    file: 'audio/albums/jestR- act like your doing something cuz i see everything/4 - got nun- jestR - act like you\'re doing something cuz i see everything.mp3',
+    year: 2026,
+    description: '',
+    category: 'rap',
+    explicit: true,
+    album: "act like you're doing something cuz i see everything",
+    albumSlug: 'act-like-youre-doing-something',
+    albumTrack: 4
+  },
+  {
+    title: 'Sublime Beginnings',
+    artist: 'jestR',
+    slug: 'sublime-beginnings',
+    file: "audio/albums/jestR- Don't Say Nothing About Them Building Blocks/Sublime Beginnings.mp3",
+    year: 2020,
+    description: '',
+    category: 'rap',
+    explicit: true,
+    album: "Don't Say Nothing About Them Building Blocks",
+    albumSlug: 'building-blocks',
+    albumTrack: 1
+  },
+  {
+    title: 'Space Radio',
+    artist: 'jestR',
+    slug: 'space-radio',
+    file: "audio/albums/jestR- Don't Say Nothing About Them Building Blocks/Space Radio.mp3",
+    year: 2020,
+    description: '',
+    category: 'rap',
+    explicit: true,
+    album: "Don't Say Nothing About Them Building Blocks",
+    albumSlug: 'building-blocks',
+    albumTrack: 2
+  },
+  {
+    title: 'Exploding Galaxies',
+    artist: 'jestR',
+    slug: 'exploding-galaxies',
+    file: "audio/albums/jestR- Don't Say Nothing About Them Building Blocks/Exploding Galaxies.mp3",
+    year: 2020,
+    description: '',
+    category: 'rap',
+    explicit: true,
+    album: "Don't Say Nothing About Them Building Blocks",
+    albumSlug: 'building-blocks',
+    albumTrack: 3
+  },
+  {
+    title: 'Acid Rain',
+    artist: 'jestR',
+    slug: 'acid-rain',
+    file: "audio/albums/jestR- Don't Say Nothing About Them Building Blocks/Acid Rain.mp3",
+    year: 2020,
+    description: '',
+    category: 'rap',
+    explicit: true,
+    album: "Don't Say Nothing About Them Building Blocks",
+    albumSlug: 'building-blocks',
+    albumTrack: 4
+  },
+  {
+    title: '420',
+    artist: 'jestR',
+    slug: 'four-twenty',
+    file: "audio/albums/jestR- Don't Say Nothing About Them Building Blocks/420.mp3",
+    year: 2020,
+    description: '',
+    category: 'rap',
+    explicit: true,
+    album: "Don't Say Nothing About Them Building Blocks",
+    albumSlug: 'building-blocks',
+    albumTrack: 5
+  },
+  {
+    title: 'Jungle Fever',
+    artist: 'jestR',
+    slug: 'jungle-fever',
+    file: "audio/albums/jestR- Don't Say Nothing About Them Building Blocks/Jungle Fever.mp3",
+    year: 2020,
+    description: '',
+    category: 'rap',
+    explicit: true,
+    album: "Don't Say Nothing About Them Building Blocks",
+    albumSlug: 'building-blocks',
+    albumTrack: 6
+  },
+  {
+    title: 'Get',
+    artist: 'jestR',
+    slug: 'get',
+    file: "audio/albums/jestR- Don't Say Nothing About Them Building Blocks/Get.mp3",
+    year: 2020,
+    description: '',
+    category: 'rap',
+    explicit: true,
+    album: "Don't Say Nothing About Them Building Blocks",
+    albumSlug: 'building-blocks',
+    albumTrack: 7
+  },
+  {
+    title: 'Winning',
+    artist: 'jestR',
+    slug: 'winning',
+    file: "audio/albums/jestR- Don't Say Nothing About Them Building Blocks/Winning.mp3",
+    year: 2020,
+    description: '',
+    category: 'rap',
+    explicit: true,
+    album: "Don't Say Nothing About Them Building Blocks",
+    albumSlug: 'building-blocks',
+    albumTrack: 8
+  },
+  {
+    title: 'My Anthem',
+    artist: 'jestR',
+    slug: 'my-anthem',
+    file: "audio/albums/jestR- Don't Say Nothing About Them Building Blocks/My Anthem.mp3",
+    year: 2020,
+    description: '',
+    category: 'rap',
+    explicit: true,
+    album: "Don't Say Nothing About Them Building Blocks",
+    albumSlug: 'building-blocks',
+    albumTrack: 9
+  },
+  {
+    title: 'Nonnin',
+    artist: 'jestR',
+    slug: 'nonnin',
+    file: "audio/albums/jestR- Don't Say Nothing About Them Building Blocks/Nonnin.mp3",
+    year: 2020,
+    description: '',
+    category: 'rap',
+    explicit: true,
+    album: "Don't Say Nothing About Them Building Blocks",
+    albumSlug: 'building-blocks',
+    albumTrack: 10
+  },
+  {
+    title: 'WHOiAM2u',
+    artist: 'jestR',
+    slug: 'whoiam2u',
+    file: "audio/albums/jestR- Don't Say Nothing About Them Building Blocks/WHOiAM2u.mp3",
+    year: 2020,
+    description: '',
+    category: 'rap',
+    explicit: true,
+    album: "Don't Say Nothing About Them Building Blocks",
+    albumSlug: 'building-blocks',
+    albumTrack: 11
+  },
+  {
+    title: 'free(dumb)',
+    artist: 'jestR',
+    slug: 'free-dumb',
+    file: "audio/albums/jestR- Don't Say Nothing About Them Building Blocks/free(dumb).mp3",
+    year: 2020,
+    description: '',
+    category: 'rap',
+    explicit: true,
+    album: "Don't Say Nothing About Them Building Blocks",
+    albumSlug: 'building-blocks',
+    albumTrack: 12
+  },
+  {
+    title: 'death of jestR',
+    artist: 'jestR',
+    slug: 'death-of-jestr',
+    file: "audio/albums/jestR- Don't Say Nothing About Them Building Blocks/death of jestR.mp3",
+    year: 2020,
+    description: '',
+    category: 'rap',
+    explicit: true,
+    album: "Don't Say Nothing About Them Building Blocks",
+    albumSlug: 'building-blocks',
+    albumTrack: 13
+  }
+];
   window.ORBIT_TRACKS = TRACKS;
+
+const ALBUMS = [
+  {
+    slug: 'act-like-youre-doing-something',
+    title: "act like you're doing something cuz i see everything",
+    artist: 'jestR',
+    artwork: 'images/albums/act-like-youre-doing-something.jpg'
+  },
+  {
+    slug: 'building-blocks',
+    title: "Don't Say Nothing About Them Building Blocks",
+    artist: 'jestR',
+    artwork: 'images/zbuild_blocks_album.jpg'
+  }
+];
+window.ORBIT_ALBUMS = ALBUMS;
+
 
 let currentTracklistCategory = 'all';
 
@@ -709,7 +963,7 @@ function mediaIsFor(t) {
 
 function attachMedia(t) {
   if (!t || mediaIsFor(t)) return;
-  audio.src = t.file;
+  audio.src = encodeURI(t.file);
   audio.load();
 }
 
@@ -1077,6 +1331,8 @@ function loadTrack(idx, autoplay) {
   document.getElementById('fp-artist').textContent = t.artist;
   document.getElementById('focal-title').textContent = softBreakTitle(t.title);
   document.getElementById('focal-artist').textContent = t.artist;
+  const expEl = document.getElementById('fp-explicit');
+  if (expEl) expEl.hidden = !(t.explicit || t.category === 'rap');
 
   // Lyrics button only for rap category tracks (more intuitive)
   const lyricsBtn = document.getElementById('btn-lyrics');
@@ -1164,7 +1420,7 @@ function loadTrack(idx, autoplay) {
     // (repeat-all / next advance while screen is locked land here)
     try {
       iosBackgroundAudio.pause();
-      iosBackgroundAudio.src = t.file;
+      iosBackgroundAudio.src = encodeURI(t.file);
       iosBackgroundAudio.currentTime = 0;
       applyRepeatLoopFlag();
       wireIOSBackgroundTrackEvents(iosBackgroundAudio);
@@ -1186,7 +1442,7 @@ function loadTrack(idx, autoplay) {
           precreatedIOSBackgroundAudio._orbitEndedWired = false;
         }
         precreatedIOSBackgroundAudio = new Audio();
-        precreatedIOSBackgroundAudio.src = t.file;
+        precreatedIOSBackgroundAudio.src = encodeURI(t.file);
         precreatedIOSBackgroundAudio.preload = 'auto';
         precreatedIOSBackgroundAudio.playsInline = true;
         applyRepeatLoopFlag();
@@ -1260,7 +1516,8 @@ function setVolume(v) {
 
   volSlider.value = v;
   volSlider.style.setProperty('--vol-pct', v + '%');
-  document.getElementById('vol-pct').textContent = v + '%';
+  const pctEl = document.getElementById('vol-pct');
+  if (pctEl) pctEl.textContent = v + '%';
 
   if (!isMuted) {
     updateVolumeIcon();
@@ -1421,45 +1678,80 @@ document.getElementById('btn-download').addEventListener('click', () => {
   const a = document.createElement('a'); a.href = t.file; a.download = t.file; a.click();
 });
 
+const EXPLICIT_TIP = 'Warning! Parental Advisory: explicit language may be used in this content.';
+
+function trackIsExplicit(t) {
+  return !!(t && (t.explicit || t.category === 'rap'));
+}
+
+function explicitChipHTML(compact) {
+  const label = compact ? '' : ' <span class="explicit-badge-label">explicit</span>';
+  return `<span class="explicit-badge" title="${EXPLICIT_TIP}" aria-label="${EXPLICIT_TIP}">[E]${label}</span>`;
+}
+
+function makeTrackRow(t, origIdx) {
+  const el = document.createElement('div');
+  el.className = 'track-item' + (origIdx === currentIndex ? ' active' : '');
+  el.dataset.idx = origIdx;
+  const eBadge = trackIsExplicit(t) ? explicitChipHTML(true) : '';
+  el.innerHTML = `
+      <div class="drag-handle" title="Drag to reorder"><span class="material-symbols-outlined" style="font-size:16px;pointer-events:none">drag_indicator</span></div>
+      <div style="flex:1;min-width:0">
+        <div class="track-title-row">
+          <p class="track-title" style="font-weight:700;color:rgba(233,225,222,.82);margin:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${t.title}</p>
+          ${eBadge}
+        </div>
+        <p class="track-artist" style="font-weight:600;letter-spacing:.06em;text-transform:none;color:rgba(0,200,150,.5);margin:0">${t.artist}</p>
+      </div>
+      <span class="material-symbols-outlined" style="font-size:13px;color:rgba(150,100,255,.3);flex-shrink:0;font-variation-settings:'FILL' 1">music_note</span>`;
+  el.addEventListener('click', e => {
+    if (e.target.closest('.drag-handle')) return;
+    loadTrack(origIdx, true);
+  });
+  return el;
+}
+
 /* ── TRACKLIST RENDER + DRAG-REORDER ── */
 function renderTracklist(filter) {
   const container = document.getElementById('sidebar-tracklist');
-  /* preserve drop-line element */
-  const dropLine = document.getElementById('drop-line');
-  /* clear all track items but keep drop-line */
   Array.from(container.children).forEach(el => { if (el.id !== 'drop-line') el.remove(); });
 
   const q = (filter || '').toLowerCase();
   let items = TRACKS.map((t, i) => ({ t, origIdx: i }));
 
-  // Apply category filter (tabs)
-  if (currentTracklistCategory && currentTracklistCategory !== 'all') {
+  if (currentTracklistCategory === 'albums') {
+    items = items.filter(({ t }) => !!t.albumSlug);
+  } else if (currentTracklistCategory && currentTracklistCategory !== 'all') {
     items = items.filter(({ t }) => (t.category || 'instrumental') === currentTracklistCategory);
   }
 
-  // Apply search filter
-  items = items.filter(({ t }) => !q || t.title.toLowerCase().includes(q) || t.artist.toLowerCase().includes(q));
+  items = items.filter(({ t }) => !q || t.title.toLowerCase().includes(q) || t.artist.toLowerCase().includes(q) || (t.album || '').toLowerCase().includes(q));
 
   document.getElementById('track-count').textContent = `${items.length}/${TRACKS.length}`;
 
-  items.forEach(({ t, origIdx }) => {
-    const el = document.createElement('div');
-    el.className = 'track-item' + (origIdx === currentIndex ? ' active' : '');
-    el.dataset.idx = origIdx;
-    el.innerHTML = `
-      <div class="drag-handle" title="Drag to reorder"><span class="material-symbols-outlined" style="font-size:16px;pointer-events:none">drag_indicator</span></div>
-      <div style="flex:1;min-width:0">
-        <p class="track-title" style="font-weight:700;color:rgba(233,225,222,.82);margin:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${t.title}</p>
-        <p class="track-artist" style="font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:rgba(0,200,150,.5);margin:0">${t.artist}</p>
-      </div>
-      <span class="material-symbols-outlined" style="font-size:13px;color:rgba(150,100,255,.3);flex-shrink:0;font-variation-settings:'FILL' 1">music_note</span>`;
-    el.addEventListener('click', e => { 
-      if (e.target.closest('.drag-handle')) return; 
-      loadTrack(origIdx, true); 
+  if (currentTracklistCategory === 'albums') {
+    (ALBUMS || []).forEach(album => {
+      const groupItems = items
+        .filter(({ t }) => t.albumSlug === album.slug)
+        .sort((a, b) => (a.t.albumTrack || 0) - (b.t.albumTrack || 0));
+      if (!groupItems.length) return;
+      const group = document.createElement('div');
+      group.className = 'album-group';
+      group.innerHTML = `
+        <div class="album-head">
+          <img class="album-head-art" src="${album.artwork}" alt="">
+          <div style="min-width:0">
+            <p class="album-head-title">${album.title}</p>
+            <p class="album-head-meta">${album.artist} · ${groupItems.length} tracks</p>
+          </div>
+        </div>`;
+      groupItems.forEach(({ t, origIdx }) => group.appendChild(makeTrackRow(t, origIdx)));
+      container.appendChild(group);
     });
+    return;
+  }
 
-    container.appendChild(el);
-  });
+  items.forEach(({ t, origIdx }) => container.appendChild(makeTrackRow(t, origIdx)));
 }
 
 /* ── TRACKLIST DRAG REORDER ── */

@@ -73,7 +73,7 @@ function applyDesktopLayout() {
   const gW = Math.min(300, Math.max(220, (vw - cx - PLANET_CLEARANCE - PAD) * 0.92));
   const gH = Math.min(620, usableH - 2 * PAD);
   const plW = Math.min(420, Math.max(380, Math.floor(vw * 0.30)));
-  const plH = Math.max(240, Math.min(280, Math.floor(usableH * 0.32)));
+  const plH = Math.max(308, Math.min(330, Math.floor(usableH * 0.36)));
 
   // Only force sizes/positions for windows the user hasn't manually dragged or resized
   if (tl.dataset.userPositioned !== 'true') {
@@ -147,7 +147,7 @@ function makeWindowDraggable(winId, barId) {
     if (!mode) return;
     const dx = e.clientX - sx, dy = e.clientY - sy;
     const mw = (winId === 'player-win' ? 380 : winId === 'video-win' ? 300 : 240),
-      mh = (winId === 'player-win' ? 240 : winId === 'video-win' ? 260 : 200);
+      mh = (winId === 'player-win' ? 308 : winId === 'video-win' ? 260 : 200);
     const vw = window.innerWidth, vh = window.innerHeight;
     const margin = 8;
 
@@ -509,7 +509,7 @@ makeWindowDraggable('lyrics-win', 'lyrics-bar');
         let newW = rect.width;
         let newH = rect.height;
         const minW = (id === 'player-win' ? 380 : 240);
-        const minH = (id === 'player-win' ? 240 : 200);
+        const minH = (id === 'player-win' ? 308 : 200);
         const maxW = Math.max(minW, vw - 16);
         const maxH = Math.max(minH, vh - 16);
         let changed = false;
