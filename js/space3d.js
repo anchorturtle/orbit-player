@@ -259,7 +259,8 @@
     uBass:    { value: 0 },
     uColA:    { value: palA },
     uColB:    { value: palB },
-    uColC:    { value: palC }
+    uColC:    { value: palC },
+    uFade:    { value: 1 }
   };
 
   // Segment counts tuned for shader-driven surfaces (noise hides tessellation).
@@ -270,6 +271,8 @@
     new THREE.ShaderMaterial({
       uniforms: planetUniforms,
       defines: { FBM_OCT: 2 },
+      transparent: true,
+      depthWrite: true,
       vertexShader: `
         varying vec3 vNormal;
         varying vec3 vPos;
@@ -289,6 +292,7 @@
         uniform vec3 uColA;
         uniform vec3 uColB;
         uniform vec3 uColC;
+        uniform float uFade;
         varying vec3 vNormal;
         varying vec3 vPos;
         varying vec3 vView;
@@ -319,7 +323,7 @@
           float fr = pow(1.0 - clamp(dot(normalize(vNormal), normalize(vView)), 0.0, 1.0), 2.6);
           col += mix(uColA, uColB, 0.4) * fr * (0.85 + uBass * 0.9);
 
-          gl_FragColor = vec4(col, 1.0);
+          gl_FragColor = vec4(col, uFade);
         }
       `
     })
@@ -344,6 +348,7 @@
     uniform vec3 uColA;
     uniform vec3 uColB;
     uniform vec3 uColC;
+    uniform float uFade;
     varying vec3 vNormal;
     varying vec3 vPos;
     varying vec3 vView;
@@ -419,7 +424,7 @@
       vec3 iri = 0.5 + 0.5 * cos(6.2831 * (mist * 0.7 + curtain * 0.35 + lat * 0.25 + uTime * 0.016 + uSeed + vec3(0.0, 0.33, 0.67)));
       col = mix(col, col * (0.55 + iri * 1.1), 0.4);
 
-      gl_FragColor = vec4(col * 1.5, clamp(a, 0.0, 0.85));
+      gl_FragColor = vec4(col * 1.5, clamp(a, 0.0, 0.85) * uFade);
     }
   `;
   const AURORA_VERT = `
@@ -479,7 +484,8 @@
       uFreqTex: { value: freqTex },
       uColA:    { value: palA },
       uColB:    { value: palB },
-      uColC:    { value: palC }
+      uColC:    { value: palC },
+      uFade:    { value: 1 }
     };
     const aSegW = MOBILE ? 36 : 48;
     const aSegH = MOBILE ? 24 : 32;
@@ -510,7 +516,8 @@
     uAudio: { value: 0 },
     uFreqTex: { value: freqTex },
     uColA: { value: palA },
-    uColB: { value: palB }
+    uColB: { value: palB },
+    uFade: { value: 1 }
   };
   const atmoSeg = MOBILE ? 32 : 40;
   const atmosphere = new THREE.Mesh(
@@ -538,6 +545,7 @@
         uniform sampler2D uFreqTex;
         uniform vec3 uColA;
         uniform vec3 uColB;
+        uniform float uFade;
         varying vec3 vNormal;
         varying vec3 vPos;
         ${NOISE_GLSL}
@@ -551,7 +559,7 @@
           float haze = 0.55 + 0.45 * fbm(n * 3.0 + vec3(uTime * 0.03, -uTime * 0.02, 0.0));
           float rays = 0.85 + 0.3 * f + 0.08 * sin(lon * 40.0 + uTime * 0.7);
           vec3 col = mix(uColA, uColB, 0.5 + 0.5 * sin(uTime * 0.12));
-          gl_FragColor = vec4(col, glow * haze * rays * (0.18 + uBass * 0.3 + uAudio * 0.18));
+          gl_FragColor = vec4(col, glow * haze * rays * (0.18 + uBass * 0.3 + uAudio * 0.18) * uFade);
         }
       `
     })
@@ -595,7 +603,8 @@
   const ringUniforms = {
     uTime:  { value: 0 },
     uAudio: { value: 0 },
-    uScale: { value: window.innerHeight * 0.5 }
+    uScale: { value: window.innerHeight * 0.5 },
+    uFade:  { value: 1 }
   };
   const ringPoints = new THREE.Points(ringGeo, new THREE.ShaderMaterial({
     uniforms: ringUniforms,
@@ -621,13 +630,14 @@
       }
     `,
     fragmentShader: `
-      varying vec3 vColor;
-      varying float vTw;
-      void main(){
-        vec2 d = gl_PointCoord - 0.5;
-        float a = smoothstep(0.5, 0.05, length(d));
-        gl_FragColor = vec4(vColor * vTw, a * 0.55);
-      }
+    varying vec3 vColor;
+    varying float vTw;
+    uniform float uFade;
+    void main(){
+      vec2 d = gl_PointCoord - 0.5;
+      float a = smoothstep(0.5, 0.05, length(d));
+      gl_FragColor = vec4(vColor * vTw, a * 0.55 * uFade);
+    }
     `
   }));
   ringGroup.add(ringPoints);
@@ -645,7 +655,7 @@
   scene.remove(ringGroup); heroGroup.add(ringGroup);
   for (const s of auroraShells) { scene.remove(s.mesh); heroGroup.add(s.mesh); }
 
-  const heroView = { group: heroGroup, core: planet, shells: auroraShells, atmo: atmosphere, ringU: ringUniforms, ringP: ringPoints, hero: true };
+  const heroView = { group: heroGroup, core: planet, shells: auroraShells, atmo: atmosphere, ringU: ringUniforms, ringP: ringPoints, ringGroup: ringGroup, hero: true };
   let planetViews = [heroView];
   let currentView = heroView;
   let arcAnim = null; // {out, in, t, dur, dir}
@@ -693,30 +703,81 @@
     group.add(rg);
     group.visible = false;
     scene.add(group);
-    return { group: group, core: core, shells: shells, atmo: atmo, ringU: ringU, ringP: ringP, hero: false };
+    return { group: group, core: core, shells: shells, atmo: atmo, ringU: ringU, ringP: ringP, ringGroup: rg, hero: false };
   }
 
-  function disposeView(v) {
+  function disposeClone(v) {
+    if (!v || v.hero) return;
     v.group.traverse(o => {
-      if (o.material) {
-        if (o.material.map) o.material.map.dispose();
+      if (o.material && o.material.isMaterial) {
+        // Shared audio/wave textures stay alive on the hero.
         o.material.dispose();
       }
     });
     scene.remove(v.group);
   }
 
-  function quadBezier(k, p0x, p0y, p1x, p1y, p2x, p2y) {
-    const a = 1 - k;
-    return {
-      x: a * a * p0x + 2 * a * k * p1x + k * k * p2x,
-      y: a * a * p0y + 2 * a * k * p1y + k * k * p2y
-    };
+  let swipePreviewK = 0;
+  let swipePreviewDir = 1;
+  let swipeOrbitHome = false;
+  let swipeDragging = false;
+  let swipeNudgeX = 0;
+  let swipeNudgeY = 0;
+
+  function easeInOutCubic(k) {
+    return k < 0.5 ? 4 * k * k * k : 1 - Math.pow(-2 * k + 2, 3) / 2;
   }
 
-  // Swap hook: build the incoming song's planet and start the parabola arcs.
-  // Title stays on the stationary DOM #focal-title (updated by loadTrack).
-  window.__ORBIT_PLANETS_SWAP__ = function (dir, targetIdx) {
+  // Cake-stand turntable: planets sit upright on an invisible plate.
+  // The plate rotates in 3D (lazy Susan) — no flying paths, no mechanisms.
+  const PLATE_R = PLANET_R * 5.35;
+  const PLATE_ELEV = 0.48;
+  const PLATE_SLOT = 1.22;
+  const PLATE_FADE_IN = PLATE_SLOT * 0.52;
+
+  function plateFade(angle) {
+    const a = Math.abs(angle);
+    if (a <= PLATE_FADE_IN) return 1;
+    return THREE.MathUtils.clamp(1 - (a - PLATE_FADE_IN) / Math.max(0.001, PLATE_SLOT - PLATE_FADE_IN), 0, 1);
+  }
+
+  function platePose(angle) {
+    const x = PLATE_R * Math.sin(angle);
+    const zFlat = PLATE_R * (Math.cos(angle) - 1);
+    const sE = Math.sin(PLATE_ELEV), cE = Math.cos(PLATE_ELEV);
+    const y = -zFlat * sE;
+    const z = zFlat * cE;
+    const recede = 1 - Math.cos(angle);
+    const s = Math.max(0.42, 1 - 0.28 * recede);
+    return { x, y, z, s, fade: plateFade(angle) };
+  }
+
+  function setViewFade(view, fade) {
+    const apply = (mat) => {
+      if (mat && mat.uniforms && mat.uniforms.uFade) mat.uniforms.uFade.value = fade;
+    };
+    if (view.core) {
+      apply(view.core.material);
+      if (view.core.material) view.core.material.depthWrite = fade > 0.85;
+    }
+    if (view.atmo) apply(view.atmo.material);
+    if (view.shells) {
+      for (let i = 0; i < view.shells.length; i++) apply(view.shells[i].mesh.material);
+    }
+    if (view.ringP) apply(view.ringP.material);
+    if (view.group) view.group.visible = fade > 0.025;
+  }
+
+  function applyPose(view, pose) {
+    if (!view || !view.group || !pose) return;
+    view.group.position.set(pose.x, pose.y, pose.z);
+    view.group.scale.setScalar(pose.s);
+    view.group.rotation.set(0, 0, 0);
+    setViewFade(view, pose.fade == null ? 1 : pose.fade);
+  }
+
+  window.__ORBIT_PLANETS_SWAP__ = function (dir, targetIdx, onDone) {
+    swipeOrbitHome = false;
     let slug = null;
     try {
       const t = TRACKS[targetIdx];
@@ -725,12 +786,25 @@
     const palette = slug ? paletteFor(slug) : PALETTES[0];
     const inView = buildPlanetClone(palette);
     const outView = currentView;
-    arcAnim = { out: outView, in: inView, t: 0, dur: 0.72, dir: dir };
-    // Incoming enters from the OPPOSITE side of the swipe, from deep behind.
-    inView.group.position.set(dir * 3.4 * PLANET_R, 0.5 * PLANET_R, -1.8);
-    inView.group.rotation.z = -dir * 0.8;
-    inView.group.scale.setScalar(0.7);
+    const outFrom = THREE.MathUtils.clamp(swipePreviewK, 0, 0.4) * -dir * PLATE_SLOT;
+    const outTo = -dir * PLATE_SLOT;
+    const inFrom = dir * PLATE_SLOT;
+    applyPose(inView, platePose(inFrom));
     inView.group.visible = true;
+    planetViews = [outView, inView];
+    arcAnim = {
+      out: outView,
+      in: inView,
+      t: 0,
+      dur: 1.05,
+      dir: dir,
+      outFrom: outFrom,
+      outTo: outTo,
+      inFrom: inFrom,
+      inTo: 0,
+      palette: palette,
+      onDone: onDone
+    };
   };
 
 
@@ -1408,10 +1482,9 @@
         blending: THREE.AdditiveBlending, depthWrite: false
       })
     );
-    ring.rotation.x = currentView.ringGroup.rotation.x;
-    ring.rotation.y = currentView.ringGroup.rotation.y;
+    ring.rotation.copy((currentView.ringGroup || ringGroup).rotation);
     ring.scale.setScalar(PLANET_R * 1.15);
-    scene.add(ring);
+    (currentView.group || scene).add(ring);
     let t0 = 0;
     shockwave = {
       update(dt) {
@@ -1424,33 +1497,49 @@
         return true;
       },
       dispose() {
-        scene.remove(ring);
+        if (ring.parent) ring.parent.remove(ring);
         ring.geometry.dispose(); ring.material.dispose();
       }
     };
   }
 
-  /* ════════════════ PLANET SWIPE DRIVE (touch drag moves the whole planet) ════════════════
-     planet-swipe.js drives these hooks: drag = camera pans so the planet + rings +
-     atmosphere follow the finger with the title; commit = fly out then spring back
-     (easeOutBack) while the new song's palette lerps in + shockwave fires. */
-  let swipeOffset = 0;          // current camera x offset (world units)
-  let swipeOffsetTarget = 0;    // drag target
-  let swipeDragging = false;
-  let worldPerPx = 0.009;
-
-  function refreshWorldPerPx() {
-    worldPerPx = (2 * Math.tan(THREE.MathUtils.degToRad(camera.fov / 2)) * baseZ) / window.innerHeight;
-  }
-
-  window.__PLANET_SWIPE_SET__ = function (dxPx) {
+  /* ════════════════ PLANET SWIPE DRIVE ════════════════
+     Drag turns the cake-stand plate. Commit finishes the slot rotation. */
+  window.__PLANET_SWIPE_SET__ = function (dxPx, dyPx, dxRaw) {
     swipeDragging = true;
-    // Planet follows the pointer: drag left (dx<0) => camera pans right (offset>0)
-    swipeOffsetTarget = -dxPx * worldPerPx * 0.92;
+    swipeOrbitHome = false;
+    const hx = (dxRaw != null ? dxRaw : dxPx) || 0;
+    const hy = dyPx || 0;
+    swipePreviewDir = hx < 0 ? 1 : -1;
+    swipePreviewK = THREE.MathUtils.clamp(Math.abs(dxPx) / 240, 0, 0.4);
+    const span = Math.min(window.innerWidth, window.innerHeight);
+    const pull = Math.min(1, Math.hypot(hx, hy) / Math.max(1, span * 0.35));
+    const ang = Math.atan2(-hy, hx === 0 ? 0.0001 : hx);
+    const planetPx = Math.min(360, window.innerHeight * 0.46);
+    const wpp = (PLANET_R * 2) / Math.max(1, planetPx);
+    const maxN = span * 0.018 * wpp;
+    swipeNudgeX = Math.cos(ang) * pull * maxN;
+    swipeNudgeY = Math.sin(ang) * pull * maxN;
   };
 
-  window.__PLANET_SWIPE_RELEASE__ = function (commit, dir) {
-    swipeDragging = false; // commit arcs run via __ORBIT_PLANETS_SWAP__; cancel eases home
+  window.__PLANET_SWIPE_RELEASE__ = function (commit) {
+    swipeDragging = false;
+    if (!commit) swipeOrbitHome = true;
+  };
+
+  let holdRumble = 0;
+  let holdCharging = false;
+  window.__PLANET_HOLD_TICK__ = function (p) {
+    holdCharging = true;
+    holdRumble = 0.2 + 0.55 * p;
+  };
+  window.__PLANET_HOLD_FIRE__ = function () {
+    holdCharging = false;
+    holdRumble = 1;
+  };
+  window.__PLANET_HOLD_CANCEL__ = function () {
+    holdCharging = false;
+    if (holdRumble > 0.2) holdRumble = 0.12;
   };
 
   /* ════════════════ AUDIO REACTIVITY ════════════════
@@ -1555,7 +1644,6 @@
     const z = (PLANET_R * h) / (Math.tan(THREE.MathUtils.degToRad(camera.fov / 2)) * targetPx);
     baseZ = Math.max(6.2, Math.min(13, z));
     camera.position.z = baseZ;
-    refreshWorldPerPx();
   }
 
   function resize() {
@@ -1656,52 +1744,71 @@
     camera.position.z += ((baseZ + Math.sin(t * 0.013) * 0.45) - camera.position.z) * 0.008;
     camera.lookAt(0, 0, 0);
 
-    // ── planet swipe: camera pans so the whole planet follows the finger ──
-    if (swipeDragging) {
-      swipeOffset = swipeOffsetTarget; // snappy 1:1 during drag
-      camera.rotation.z += swipeOffset * 0.045; // subtle tilt with the drag
-    } else {
-      // idle / release: ease back to center (spring feel)
-      swipeOffset += (0 - swipeOffset) * Math.min(1, dt * 5);
-      camera.rotation.z += swipeOffset * 0.045;
+    // ── drag / cancel: preview the recede-arc ──
+    if (!arcAnim && (swipeDragging || swipeOrbitHome)) {
+      if (!swipeDragging) {
+        swipePreviewK += (0 - swipePreviewK) * Math.min(1, dt * 7);
+        if (swipePreviewK < 0.004) {
+          swipePreviewK = 0;
+          swipeOrbitHome = false;
+        }
+      }
+      applyPose(currentView, platePose(-swipePreviewDir * swipePreviewK * PLATE_SLOT));
+      if (!swipeDragging) {
+        swipeNudgeX += (0 - swipeNudgeX) * Math.min(1, dt * 7);
+        swipeNudgeY += (0 - swipeNudgeY) * Math.min(1, dt * 7);
+      }
+      currentView.group.position.x += swipeNudgeX;
+      currentView.group.position.y += swipeNudgeY;
     }
-    camera.position.x += swipeOffset;
 
-    // ── orbit planet swap — parabola arcs, both planets visible + spinning ──
+    // ── commit: plate rotates one slot; cakes stay upright ──
     if (arcAnim) {
       arcAnim.t += dt;
-      const k = Math.min(1, arcAnim.t / arcAnim.dur);
-      const dir = arcAnim.dir;
-      // Outgoing: exits on the SWIPE side (left for next), arcing down and away,
-      // drifting slightly TOWARD camera (near side of the orbital exchange).
-      const out = quadBezier(k, 0, 0, -dir * 1.7 * PLANET_R, -1.4 * PLANET_R, -dir * 3.4 * PLANET_R, -0.2 * PLANET_R);
-      // Incoming: enters from the OPPOSITE side, high and far BEHIND, arcing
-      // down into center — depth separation means it never crosses the outgoing.
-      const inn = quadBezier(k, dir * 3.4 * PLANET_R, 0.5 * PLANET_R, dir * 1.5 * PLANET_R, 1.6 * PLANET_R, 0, 0);
-      if (arcAnim.out.group) {
-        arcAnim.out.group.position.set(out.x, out.y, 0.5 * k);
-        arcAnim.out.group.rotation.z = -dir * k * 2.2;  // spins out with the swipe
-        arcAnim.out.group.scale.setScalar(1 - 0.14 * k);
-      }
-      if (arcAnim.in.group) {
-        arcAnim.in.group.position.set(inn.x, inn.y, -1.8 + 1.8 * k); // from deep behind → center
-        arcAnim.in.group.rotation.z = -dir * k * 1.8;  // counter-spins in
-        arcAnim.in.group.scale.setScalar(0.7 + 0.3 * k);
-      }
-      if (k >= 1) {
-        const promoted = arcAnim.in;
-        disposeView(arcAnim.out);
-        currentView = promoted;
-        planetViews = [promoted];
+      const u = Math.min(1, arcAnim.t / arcAnim.dur);
+      const k = easeInOutCubic(u);
+      const ot = arcAnim.outFrom + (arcAnim.outTo - arcAnim.outFrom) * k;
+      const it = arcAnim.inFrom + (arcAnim.inTo - arcAnim.inFrom) * k;
+      applyPose(arcAnim.out, platePose(ot));
+      applyPose(arcAnim.in, platePose(it));
+      if (u >= 1) {
+        const done = arcAnim.onDone;
+        if (arcAnim.palette) {
+          setPaletteTargets(arcAnim.palette);
+          palA.copy(tgtA); palB.copy(tgtB); palC.copy(tgtC);
+        }
+        heroView.group.position.set(0, 0, 0);
+        heroView.group.rotation.set(0, 0, 0);
+        heroView.group.scale.setScalar(1);
+        setViewFade(heroView, 1);
+        heroView.group.visible = true;
+        disposeClone(arcAnim.in);
+        if (arcAnim.out && arcAnim.out !== heroView) disposeClone(arcAnim.out);
+        currentView = heroView;
+        planetViews = [heroView];
+        swipePreviewK = 0;
+        swipeNudgeX = 0;
+        swipeNudgeY = 0;
+        swipeOrbitHome = false;
         arcAnim = null;
+        if (typeof done === 'function') done();
       }
+    }
+
+    if (holdRumble > 0.002 && currentView && currentView.group && !arcAnim) {
+      if (!holdCharging) holdRumble *= Math.exp(-dt * 6.5);
+      const amp = 0.015 * holdRumble;
+      currentView.group.position.x += Math.sin(t * 50) * amp;
+      currentView.group.position.y += Math.cos(t * 61) * amp * 0.62;
+      currentView.group.scale.multiplyScalar(1 + Math.sin(t * 27) * 0.011 * holdRumble);
     }
 
     // ── keep DOM #focal-title glued to the planet's projected screen position ──
     // (stationary white title centered ON the planet while camera drifts on drag)
     const planetBgEl = document.getElementById('planet-bg');
     if (planetBgEl && planetBgEl.style.display !== 'none') {
-      _projPlanet.set(0, 0, 0).project(camera);
+      const follow = (arcAnim && arcAnim.in && arcAnim.in.group) ? arcAnim.in.group : currentView.group;
+      _projPlanet.copy(follow.position).project(camera);
       const tx = (_projPlanet.x * 0.5 + 0.5) * window.innerWidth - window.innerWidth / 2;
       const ty = (-_projPlanet.y * 0.5 + 0.5) * window.innerHeight - window.innerHeight / 2;
       planetBgEl.style.transform = 'translate(' + tx.toFixed(1) + 'px,' + ty.toFixed(1) + 'px)';

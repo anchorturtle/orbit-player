@@ -23,7 +23,7 @@
   <link rel="dns-prefetch" href="https://unpkg.com">
 
   <!-- Modular CSS first (critical path). ?v= busts stale device caches on deploy. -->
-  <link rel="stylesheet" href="css/styles.css?v=20260819y">
+  <link rel="stylesheet" href="css/styles.css?v=20260820k">
 
   <!-- Google Fonts -->
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
@@ -502,6 +502,7 @@
 
   <!-- MOBILE DOCK -->
   <div id="mobile-dock">
+    <div class="mob-core">
     <button class="mob-btn active" id="btn-mob-tracks" onclick="mobToggle('tracklist-win','btn-mob-tracks')">
       <span class="material-symbols-outlined">queue_music</span>
       <span>Tracks</span>
@@ -517,6 +518,7 @@
       <span>Gallery</span>
       <div class="mob-dot"></div>
     </button>
+    </div>
     <div id="mob-overflow" class="mob-overflow" hidden></div>
   </div>
 
@@ -525,9 +527,9 @@
        (offline), space3d.js bails out silently and the 2D star canvas fallback takes over. -->
   <script src="https://unpkg.com/three@0.147.0/build/three.min.js"></script>
   <script src="js/utils.js?v=20260816a"></script>
-  <script src="js/space3d.js?v=20260816a"></script>
+  <script src="js/space3d.js?v=20260820j"></script>
   <script src="js/player.js?v=20260819z"></script>
-  <script src="js/planet-swipe.js?v=20260816a"></script>
+  <script src="js/planet-swipe.js?v=20260820j"></script>
   <script src="js/gallery.js?v=20260819d"></script>
   <script src="js/main.js?v=20260819y"></script>
 </body>

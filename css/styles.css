@@ -2337,21 +2337,71 @@ html.orbit-resizing .win {
 .dock-overflow::-webkit-scrollbar { display: none; }
 .dock-overflow .taskbar-btn { min-width: 56px; flex-shrink: 0; }
 .mob-overflow {
-  display: flex; align-items: stretch; gap: 6px;
-  flex: 1 1 auto; min-width: 0;
+  display: none; align-items: stretch; gap: 6px;
+  flex: 0 1 auto; min-width: 0; max-width: 36%;
   overflow-x: auto; scrollbar-width: none;
 }
+.mob-overflow:not([hidden]) { display: flex; }
 .mob-overflow::-webkit-scrollbar { display: none; }
 .mob-overflow .mob-btn { flex: 0 0 auto; max-width: 88px; }
-.dock-logo-wrap { display: flex; flex-direction: column; align-items: center; margin-right: 6px; flex-shrink: 0; }
+.dock-logo-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-right: 6px;
+  flex-shrink: 0;
+  position: relative;
+}
+.dock-logo-wrap::before {
+  content: '';
+  position: absolute;
+  inset: -8px -14px;
+  border-radius: 22px;
+  background:
+    radial-gradient(ellipse at 28% 50%, rgba(123,47,255,.42) 0%, transparent 58%),
+    radial-gradient(ellipse at 72% 50%, rgba(0,200,150,.28) 0%, transparent 62%),
+    radial-gradient(ellipse at 50% 50%, rgba(45,91,255,.18) 0%, transparent 70%);
+  filter: blur(7px);
+  pointer-events: none;
+  z-index: 0;
+  animation: orbit-logo-bloom 16s ease-in-out infinite;
+}
 .dock-logo-main {
+  position: relative;
+  z-index: 1;
   font-size: 19px; font-weight: 900; font-style: italic; letter-spacing: -.03em;
-  background: linear-gradient(110deg, var(--jestr-purple), var(--jestr-blue) 55%, var(--jestr-green));
+  background-image: linear-gradient(
+    115deg,
+    var(--jestr-purple) 0%,
+    var(--jestr-blue) 22%,
+    var(--baby-blue) 48%,
+    var(--jestr-green) 72%,
+    var(--jestr-purple) 100%
+  );
+  background-size: 280% 100%;
+  background-position: 0% 50%;
   -webkit-background-clip: text; background-clip: text;
   -webkit-text-fill-color: transparent; color: var(--jestr-purple);
-  filter: drop-shadow(0 0 10px rgba(123,47,255,.45));
+  filter:
+    drop-shadow(0 0 3px rgba(126,200,227,.55))
+    drop-shadow(0 0 8px rgba(123,47,255,.55))
+    drop-shadow(0 0 16px rgba(0,200,150,.28));
+  animation: orbit-logo-flow 22s ease-in-out infinite, vhs-flicker 5s infinite;
 }
-.dock-logo-main.phosphor { text-shadow: none; } /* gradient text + phosphor shadow conflict */
+.dock-logo-main.phosphor { text-shadow: none; }
+@keyframes orbit-logo-flow {
+  0%, 100% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+}
+@keyframes orbit-logo-bloom {
+  0%, 100% { opacity: .55; transform: translateX(-3px) scale(0.96); }
+  50% { opacity: 1; transform: translateX(3px) scale(1.05); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .dock-logo-main,
+  .dock-logo-main.vhs-flicker,
+  .dock-logo-wrap::before { animation: none; }
+}
 #dock-win::before { border-radius: 999px; }
 .dock-logo-sub { font-size: 9px; font-weight: 700; letter-spacing: .25em; color: rgba(0,200,150,.5); text-transform: uppercase; }
 .dock-divider { width: 1px; height: 30px; background: rgba(100,60,200,.2); margin: 0 4px; flex-shrink: 0; }
@@ -2376,8 +2426,17 @@ html.orbit-resizing .win {
   display: none; position: fixed; bottom: 0; left: 0; right: 0; z-index: 500;
   background: rgba(5,3,16,.86); backdrop-filter: blur(22px) saturate(1.65); -webkit-backdrop-filter: blur(22px) saturate(1.65);
   border-top: 1px solid rgba(123,47,255,.22);
-  padding: 8px 16px calc(8px + env(safe-area-inset-bottom));
-  align-items: center; justify-content: space-around;
+  padding: 8px max(12px, env(safe-area-inset-right)) calc(8px + env(safe-area-inset-bottom)) max(12px, env(safe-area-inset-left));
+  align-items: center; justify-content: center;
+  gap: 8px;
+  box-sizing: border-box;
+}
+.mob-core {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  flex: 0 0 auto;
 }
 #mobile-dock::before {
   content: "";
@@ -2389,7 +2448,8 @@ html.orbit-resizing .win {
 }
 .mob-btn {
   display: flex; flex-direction: column; align-items: center; gap: 4px;
-  padding: 8px 18px; border-radius: 10px; cursor: pointer; flex: 1; max-width: 100px;
+  padding: 8px 14px; border-radius: 10px; cursor: pointer; flex: 0 1 auto;
+  min-width: 72px; max-width: 30vw;
   background: rgba(255,255,255,.04);
   border: 1px solid rgba(255,255,255,.07);
   border-top-color: rgba(255,255,255,.13); border-left-color: rgba(255,255,255,.10);
@@ -2417,13 +2477,17 @@ html.orbit-resizing .win {
 /* ============ MOBILE LAYOUT ============ */
 @media (max-width: 767px) {
   #dock-win { display: none; }
-  #mobile-dock { display: flex; padding: 10px 16px calc(10px + env(safe-area-inset-bottom)) !important; }
+  #mobile-dock {
+    display: flex;
+    justify-content: center;
+    padding: 10px max(12px, env(safe-area-inset-right)) calc(10px + env(safe-area-inset-bottom)) max(12px, env(safe-area-inset-left)) !important;
+  }
   #planet-bg { display: none; }
 
   /* Homogenized larger mobile nav buttons (consistent with enlarged player controls) */
   .mob-btn {
-    padding: 11px 20px !important;
-    font-size: 11px !important;
+    padding: 10px 12px !important;
+    font-size: 10px !important;
   }
   .mob-btn .material-symbols-outlined { font-size: 26px !important; }
 
