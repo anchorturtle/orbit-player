@@ -1461,6 +1461,7 @@ function loadTrack(idx, autoplay) {
   document.querySelectorAll('.track-item').forEach(el => {
     el.classList.toggle('active', +el.dataset.idx === idx);
   });
+  if (window.OrbitTrackRotary) OrbitTrackRotary.syncToIndex(idx);
 
   // If the song detail/info window is open, update its content in real-time to the new song
   const detailWin = document.getElementById('song-detail-win');
@@ -1869,10 +1870,12 @@ function renderTracklist(filter) {
       groupItems.forEach(({ t, origIdx }) => group.appendChild(makeTrackRow(t, origIdx)));
       container.appendChild(group);
     });
+    if (window.OrbitTrackRotary) OrbitTrackRotary.refresh();
     return;
   }
 
   items.forEach(({ t, origIdx }) => container.appendChild(makeTrackRow(t, origIdx)));
+  if (window.OrbitTrackRotary) OrbitTrackRotary.refresh();
 }
 
 function fmtDur(sec) {
@@ -2083,6 +2086,223 @@ document.getElementById('search-input').addEventListener('input', function () {
   renderTracklist(this.value);
 });
 
+/* ── MOBILE TRACK ROTARY (slide up/down · snap · bubbly haptic) ── */
+window.OrbitTrackRotary = (function () {
+  const SLOT = 56;
+  let items = [];
+  let pos = 0;
+  let sel = 0;
+  let lastTick = -1;
+  let dragging = false;
+  let ptrId = null;
+  let startY = 0;
+  let startPos = 0;
+  let lastY = 0;
+  let lastT = 0;
+  let vy = 0;
+  let wired = false;
+  let raf = 0;
+
+  function enabled() {
+    return window.matchMedia('(max-width: 767px)').matches;
+  }
+  function root() { return document.getElementById('track-rotary'); }
+  function list() { return document.getElementById('sidebar-tracklist'); }
+  function lens() { return root() && root().querySelector('.track-rotary-lens'); }
+
+  function collect() {
+    const c = list();
+    if (!c) return [];
+    return Array.from(c.querySelectorAll('.track-item'));
+  }
+
+  function tickFeel() {
+    try {
+      if (navigator.vibrate) navigator.vibrate(9);
+    } catch (e) {}
+    const el = lens();
+    if (!el) return;
+    el.classList.remove('tick');
+    // force reflow for re-trigger
+    void el.offsetWidth;
+    el.classList.add('tick');
+  }
+
+  function layout() {
+    const c = list();
+    const r = root();
+    if (!c) return;
+
+    if (!enabled()) {
+      if (r) r.classList.remove('is-on', 'is-dragging');
+      c.classList.remove('rotary-on');
+      collect().forEach(el => {
+        el.style.transform = '';
+        el.style.opacity = '';
+        el.style.zIndex = '';
+        el.classList.remove('rotary-center');
+      });
+      return;
+    }
+
+    if (r) r.classList.add('is-on');
+    c.classList.add('rotary-on');
+    items = collect();
+    if (!items.length) return;
+
+    const n = items.length;
+    pos = Math.max(0, Math.min(n - 1, pos));
+    sel = Math.round(pos);
+    sel = Math.max(0, Math.min(n - 1, sel));
+    const mid = c.clientHeight / 2;
+
+    items.forEach((el, i) => {
+      const y = (i - pos) * SLOT + mid - SLOT / 2;
+      const d = Math.abs(i - pos);
+      const scale = Math.max(0.78, 1 - d * 0.1);
+      const op = Math.max(0.18, 1 - d * 0.32);
+      el.style.transform = `translate3d(0,${y}px,0) scale(${scale})`;
+      el.style.opacity = String(op);
+      el.style.zIndex = String(100 - Math.round(d * 10));
+      el.classList.toggle('rotary-center', i === sel);
+      el.classList.toggle('active', +el.dataset.idx === currentIndex);
+    });
+  }
+
+  function scheduleLayout() {
+    if (raf) return;
+    raf = requestAnimationFrame(() => {
+      raf = 0;
+      layout();
+    });
+  }
+
+  function commit(autoplay) {
+    items = collect();
+    if (!items.length) return;
+    sel = Math.max(0, Math.min(items.length - 1, Math.round(pos)));
+    pos = sel;
+    lastTick = sel;
+    layout();
+    const idx = +items[sel].dataset.idx;
+    if (!Number.isInteger(idx) || !TRACKS[idx]) return;
+    if (idx !== currentIndex) {
+      loadTrack(idx, autoplay !== false);
+    } else if (autoplay) {
+      // re-tap center / snap same track → ensure playing
+      if (!isPlaying) {
+        const btn = document.getElementById('btn-play');
+        if (btn) btn.click();
+      }
+    }
+  }
+
+  function refresh() {
+    items = collect();
+    if (!enabled()) {
+      layout();
+      return;
+    }
+    const i = items.findIndex(el => +el.dataset.idx === currentIndex);
+    pos = i >= 0 ? i : 0;
+    sel = Math.round(pos);
+    lastTick = sel;
+    layout();
+  }
+
+  function syncToIndex(trackIdx) {
+    if (!enabled() || dragging) return;
+    items = collect();
+    const i = items.findIndex(el => +el.dataset.idx === trackIdx);
+    if (i < 0) return;
+    pos = i;
+    sel = i;
+    lastTick = i;
+    layout();
+  }
+
+  function onDown(e) {
+    if (!enabled()) return;
+    if (e.button != null && e.button !== 0) return;
+    const c = list();
+    const r = root();
+    if (!c || !r || !r.classList.contains('is-on')) return;
+    // don't steal search / tabs
+    if (e.target.closest && e.target.closest('input, button, a, .tracklist-tabs, .drag-handle')) return;
+
+    ptrId = e.pointerId;
+    dragging = true;
+    startY = lastY = e.clientY;
+    startPos = pos;
+    lastT = performance.now();
+    vy = 0;
+    lastTick = Math.round(pos);
+    r.classList.add('is-dragging');
+    try { r.setPointerCapture(e.pointerId); } catch (err) {}
+  }
+
+  function onMove(e) {
+    if (!dragging || ptrId == null || e.pointerId !== ptrId) return;
+    const now = performance.now();
+    const dt = Math.max(1, now - lastT);
+    vy = (e.clientY - lastY) / dt;
+    lastY = e.clientY;
+    lastT = now;
+
+    // finger up → earlier tracks (pos decreases)
+    const dy = e.clientY - startY;
+    const n = Math.max(1, collect().length);
+    pos = startPos - dy / SLOT;
+    pos = Math.max(0, Math.min(n - 1, pos));
+
+    const tickAt = Math.round(pos);
+    if (tickAt !== lastTick) {
+      lastTick = tickAt;
+      tickFeel();
+    }
+    scheduleLayout();
+  }
+
+  function onUp(e) {
+    if (!dragging || (e && e.pointerId != null && e.pointerId !== ptrId)) return;
+    dragging = false;
+    ptrId = null;
+    const r = root();
+    if (r) {
+      r.classList.remove('is-dragging');
+      try { if (e && e.pointerId != null) r.releasePointerCapture(e.pointerId); } catch (err) {}
+    }
+
+    // light inertia
+    const n = Math.max(1, collect().length);
+    let target = pos - vy * 80 / SLOT;
+    target = Math.max(0, Math.min(n - 1, target));
+    pos = Math.round(target);
+    tickFeel();
+    commit(true);
+  }
+
+  function wire() {
+    if (wired) return;
+    wired = true;
+    const r = root();
+    if (!r) return;
+    r.addEventListener('pointerdown', onDown);
+    r.addEventListener('pointermove', onMove);
+    r.addEventListener('pointerup', onUp);
+    r.addEventListener('pointercancel', onUp);
+    window.addEventListener('resize', () => {
+      if (enabled()) refresh();
+      else layout();
+    });
+  }
+
+  // boot after DOM ready (player.js is at end of body)
+  wire();
+
+  return { refresh, syncToIndex, layout, enabled };
+})();
+
 /* ── TRACKLIST CATEGORY TABS ── */
 /* Tap a tab, drag-scrub the bar, flick the bar, or swipe the tracklist
    body horizontally (not the drag handle) to change category.
@@ -2231,6 +2451,12 @@ document.getElementById('search-input').addEventListener('input', function () {
 
   list.addEventListener('pointerdown', (e) => {
     if (e.button != null && e.button !== 0) return;
+    // Mobile rotary owns vertical gestures on the list
+    if (window.OrbitTrackRotary && OrbitTrackRotary.enabled && OrbitTrackRotary.enabled()) {
+      listIgnore = true;
+      listPtr = null;
+      return;
+    }
     if (e.target.closest && e.target.closest('.drag-handle')) {
       listIgnore = true;
       listPtr = null;

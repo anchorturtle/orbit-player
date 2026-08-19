@@ -23,7 +23,7 @@
   <link rel="dns-prefetch" href="https://unpkg.com">
 
   <!-- Modular CSS first (critical path). ?v= busts stale device caches on deploy. -->
-  <link rel="stylesheet" href="css/styles.css?v=20260820r">
+  <link rel="stylesheet" href="css/styles.css?v=20260820s">
 
   <!-- Google Fonts -->
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
@@ -92,9 +92,14 @@
           <input id="search-input" placeholder="Search tracks…" type="text" autocomplete="off"/>
         </div>
       </div>
-      <!-- drop-line lives INSIDE the tracklist body so it is clipped to window width -->
-      <div style="flex:1;overflow-y:auto;display:flex;flex-direction:column;gap:1px;padding:0 4px;position:relative" class="no-scrollbar" id="sidebar-tracklist">
-        <div id="drop-line"></div>
+      <!-- Mobile rotary stage (desktop ignores chrome; list scrolls as usual) -->
+      <div class="track-rotary" id="track-rotary">
+        <div class="track-rotary-lens" aria-hidden="true"></div>
+        <div class="track-rotary-hint" aria-hidden="true">slide</div>
+        <!-- drop-line lives INSIDE the tracklist body so it is clipped to window width -->
+        <div style="flex:1;overflow-y:auto;display:flex;flex-direction:column;gap:1px;padding:0 4px;position:relative" class="no-scrollbar" id="sidebar-tracklist">
+          <div id="drop-line"></div>
+        </div>
       </div>
     </div>
   </div>
@@ -536,7 +541,7 @@
   <script src="https://unpkg.com/three@0.147.0/build/three.min.js"></script>
   <script src="js/utils.js?v=20260816a"></script>
   <script src="js/space3d.js?v=20260820j"></script>
-  <script src="js/player.js?v=20260820q"></script>
+  <script src="js/player.js?v=20260820s"></script>
   <script src="js/planet-swipe.js?v=20260820l"></script>
   <script src="js/gallery.js?v=20260819d"></script>
   <script src="js/main.js?v=20260819y"></script>

@@ -336,6 +336,23 @@ html.orbit-resizing .win {
   touch-action: pan-y;
 }
 
+/* Track rotary shell — chrome only activates on mobile (.is-on) */
+.track-rotary {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 auto;
+  min-height: 0;
+  position: relative;
+}
+.track-rotary .track-rotary-lens,
+.track-rotary .track-rotary-hint {
+  display: none;
+}
+.track-rotary > #sidebar-tracklist {
+  flex: 1 1 auto;
+  min-height: 0;
+}
+
 #player-win {
   min-height: 0;
   min-width: 380px;
@@ -2647,6 +2664,10 @@ html.orbit-resizing .win {
   #tracklist-win .win-body {
     position: relative !important;
     padding: 6px 34px 6px 6px !important; /* slim gutter for right rail */
+    display: flex !important;
+    flex-direction: column !important;
+    min-height: 0 !important;
+    gap: 8px !important;
   }
   #tracklist-win .tracklist-tabs {
     position: absolute;
@@ -2705,6 +2726,145 @@ html.orbit-resizing .win {
   #tracklist-win .tracklist-tabs .tab.active .tab-full {
     max-height: 12em;
     max-width: none;
+  }
+
+  /* ── Track rotary (no scroll — slide up/down like a dial) ── */
+  #tracklist-win .track-rotary {
+    position: relative;
+    flex: 1 1 auto;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+  }
+  #tracklist-win .track-rotary.is-on {
+    touch-action: none;
+  }
+  #tracklist-win .track-rotary.is-on #sidebar-tracklist,
+  #tracklist-win .track-rotary.is-on #sidebar-tracklist.rotary-on {
+    overflow: hidden !important;
+    flex: 1 1 auto !important;
+    min-height: 180px;
+    height: 100%;
+    position: relative !important;
+    display: block !important;
+    padding: 0 6px !important;
+    gap: 0 !important;
+    touch-action: none !important;
+    -webkit-overflow-scrolling: auto;
+    overscroll-behavior: none;
+  }
+  #tracklist-win .track-rotary.is-on #drop-line,
+  #tracklist-win .track-rotary.is-on .drag-handle,
+  #tracklist-win .track-rotary.is-on .album-head {
+    display: none !important;
+  }
+  #tracklist-win .track-rotary.is-on .album-group {
+    display: contents;
+  }
+  #tracklist-win .track-rotary.is-on #sidebar-tracklist .track-item {
+    position: absolute;
+    left: 6px;
+    right: 6px;
+    height: 52px;
+    margin: 0;
+    padding: 8px 12px !important;
+    box-sizing: border-box;
+    border-radius: 14px;
+    background: rgba(255,255,255,.03);
+    border: 1px solid transparent;
+    display: flex !important;
+    align-items: center;
+    gap: 8px !important;
+    pointer-events: none; /* selection via rotary drag only */
+    will-change: transform, opacity;
+    transition:
+      transform .16s cubic-bezier(.22, 1, .36, 1),
+      opacity .16s ease,
+      border-color .18s ease,
+      background .18s ease,
+      box-shadow .18s ease;
+  }
+  #tracklist-win .track-rotary.is-on.is-dragging #sidebar-tracklist .track-item {
+    transition: none;
+  }
+  #tracklist-win .track-rotary.is-on #sidebar-tracklist .track-item.rotary-center {
+    background: linear-gradient(135deg, rgba(123,47,255,.18), rgba(45,91,255,.1));
+    border-color: rgba(123,47,255,.4);
+    box-shadow:
+      0 0 22px -6px rgba(123,47,255,.55),
+      inset 0 1px 0 rgba(255,255,255,.1);
+  }
+  #tracklist-win .track-rotary.is-on #sidebar-tracklist .track-item.rotary-center .track-title {
+    color: #f2ece6 !important;
+  }
+  #tracklist-win .track-rotary-lens {
+    display: none;
+  }
+  #tracklist-win .track-rotary.is-on .track-rotary-lens {
+    display: block;
+    position: absolute;
+    left: 4px;
+    right: 4px;
+    top: 50%;
+    height: 56px;
+    margin-top: -28px;
+    border-radius: 16px;
+    border: 1px solid rgba(126,200,227,.22);
+    background:
+      linear-gradient(180deg, rgba(123,47,255,.12), rgba(45,91,255,.06));
+    box-shadow:
+      0 0 0 1px rgba(123,47,255,.12),
+      0 8px 28px rgba(0,0,0,.35),
+      inset 0 1px 0 rgba(255,255,255,.12);
+    pointer-events: none;
+    z-index: 4;
+  }
+  #tracklist-win .track-rotary.is-on .track-rotary-lens.tick {
+    animation: orbit-rotary-bubble .22s cubic-bezier(.34, 1.56, .64, 1);
+  }
+  @keyframes orbit-rotary-bubble {
+    0%   { transform: scale(1); filter: brightness(1); }
+    45%  { transform: scale(1.035); filter: brightness(1.18); box-shadow: 0 0 28px rgba(123,47,255,.5), inset 0 1px 0 rgba(255,255,255,.18); }
+    100% { transform: scale(1); filter: brightness(1); }
+  }
+  #tracklist-win .track-rotary.is-on::before,
+  #tracklist-win .track-rotary.is-on::after {
+    content: "";
+    position: absolute;
+    left: 0;
+    right: 0;
+    height: 26%;
+    z-index: 5;
+    pointer-events: none;
+  }
+  #tracklist-win .track-rotary.is-on::before {
+    top: 0;
+    background: linear-gradient(to bottom, rgba(7,4,20,.92), transparent);
+  }
+  #tracklist-win .track-rotary.is-on::after {
+    bottom: 0;
+    background: linear-gradient(to top, rgba(7,4,20,.92), transparent);
+  }
+  #tracklist-win .track-rotary-hint {
+    display: none;
+  }
+  #tracklist-win .track-rotary.is-on .track-rotary-hint {
+    display: block;
+    position: absolute;
+    top: 8px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 6;
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: .18em;
+    text-transform: uppercase;
+    color: rgba(126,200,227,.45);
+    pointer-events: none;
+  }
+  /* Compact search above rotary */
+  #tracklist-win .search-wrap {
+    margin: 0 2px;
   }
 
   .gallery-grid {
