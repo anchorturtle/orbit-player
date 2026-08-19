@@ -2084,128 +2084,190 @@ document.getElementById('search-input').addEventListener('input', function () {
 });
 
 /* ── TRACKLIST CATEGORY TABS ── */
-/* Click, drag-scrub across the bar, or quick horizontal flick to switch. */
+/* Tap a tab, drag-scrub the bar, flick the bar, or swipe the tracklist
+   body horizontally (not the drag handle) to change category. */
 (function wireTracklistTabs() {
   const bar = document.querySelector('#tracklist-win .tracklist-tabs');
+  const list = document.getElementById('sidebar-tracklist');
   if (!bar) return;
   const tabs = () => Array.from(bar.querySelectorAll('.tab'));
 
-  function activateTab(tab, opts) {
-    if (!tab || tab.classList.contains('active')) {
-      if (tab && opts && opts.forceRender) {
-        currentTracklistCategory = tab.dataset.category || 'all';
-        renderTracklist(document.getElementById('search-input').value);
-      }
-      return;
-    }
+  function activateTab(tab) {
+    if (!tab) return;
+    if (tab.classList.contains('active')) return;
     tabs().forEach(t => t.classList.remove('active'));
     tab.classList.add('active');
     currentTracklistCategory = tab.dataset.category || 'all';
-    renderTracklist(document.getElementById('search-input').value);
+    const search = document.getElementById('search-input');
+    renderTracklist(search ? search.value : '');
   }
 
   function tabAtPoint(clientX, clientY) {
-    const el = document.elementFromPoint(clientX, clientY);
-    if (!el) return null;
-    return el.closest ? el.closest('#tracklist-win .tracklist-tabs .tab') : null;
+    // Prefer geometry over elementFromPoint — pointer capture breaks hit-tests on iOS
+    const listTabs = tabs();
+    for (let i = 0; i < listTabs.length; i++) {
+      const r = listTabs[i].getBoundingClientRect();
+      if (clientX >= r.left && clientX <= r.right && clientY >= r.top && clientY <= r.bottom) {
+        return listTabs[i];
+      }
+    }
+    // X-only fallback while scrubbing slightly above/below the bar
+    for (let i = 0; i < listTabs.length; i++) {
+      const r = listTabs[i].getBoundingClientRect();
+      if (clientX >= r.left && clientX <= r.right) return listTabs[i];
+    }
+    return null;
   }
 
   function stepTab(dir) {
-    const list = tabs();
-    if (!list.length) return;
-    const i = list.findIndex(t => t.classList.contains('active'));
-    const next = list[Math.max(0, Math.min(list.length - 1, (i < 0 ? 0 : i) + dir))];
+    const listTabs = tabs();
+    if (!listTabs.length) return;
+    const i = listTabs.findIndex(t => t.classList.contains('active'));
+    const next = listTabs[Math.max(0, Math.min(listTabs.length - 1, (i < 0 ? 0 : i) + dir))];
     activateTab(next);
   }
 
-  let ptrId = null;
-  let startX = 0;
-  let startY = 0;
-  let lastX = 0;
-  let lastT = 0;
-  let vx = 0;
-  let scrubbing = false;
-  let moved = false;
-  let suppressClick = false;
+  /* ── Tab bar: tap + scrub + flick ── */
+  let barPtr = null;
+  let barStartX = 0, barStartY = 0, barLastX = 0, barLastT = 0, barVx = 0;
+  let barScrubbing = false, barMoved = false, barStartTab = null;
 
   bar.addEventListener('pointerdown', (e) => {
     if (e.button != null && e.button !== 0) return;
     const tab = e.target.closest && e.target.closest('.tab');
     if (!tab) return;
-    ptrId = e.pointerId;
-    startX = lastX = e.clientX;
-    startY = e.clientY;
-    lastT = performance.now();
-    vx = 0;
-    scrubbing = false;
-    moved = false;
+    barPtr = e.pointerId;
+    barStartTab = tab;
+    barStartX = barLastX = e.clientX;
+    barStartY = e.clientY;
+    barLastT = performance.now();
+    barVx = 0;
+    barScrubbing = false;
+    barMoved = false;
     try { bar.setPointerCapture(e.pointerId); } catch (_) {}
   });
 
   bar.addEventListener('pointermove', (e) => {
-    if (ptrId == null || e.pointerId !== ptrId) return;
+    if (barPtr == null || e.pointerId !== barPtr) return;
     const now = performance.now();
-    const dt = Math.max(1, now - lastT);
-    const dx = e.clientX - lastX;
-    vx = dx / dt;
-    lastX = e.clientX;
-    lastT = now;
+    const dt = Math.max(1, now - barLastT);
+    barVx = (e.clientX - barLastX) / dt;
+    barLastX = e.clientX;
+    barLastT = now;
 
-    const adx = Math.abs(e.clientX - startX);
-    const ady = Math.abs(e.clientY - startY);
-    if (!moved && adx < 6 && ady < 6) return;
-    moved = true;
+    const adx = Math.abs(e.clientX - barStartX);
+    const ady = Math.abs(e.clientY - barStartY);
+    if (!barMoved && adx < 8 && ady < 8) return;
+    barMoved = true;
 
-    // Horizontal dominance → scrub tabs under finger/cursor
     if (adx >= ady) {
-      scrubbing = true;
+      barScrubbing = true;
       const under = tabAtPoint(e.clientX, e.clientY);
-      if (under && bar.contains(under)) activateTab(under);
+      if (under) activateTab(under);
     }
   });
 
-  function endPtr(e) {
-    if (ptrId == null || (e && e.pointerId != null && e.pointerId !== ptrId)) return;
-    const totalDx = (e && e.clientX != null ? e.clientX : lastX) - startX;
-    const totalDy = (e && e.clientY != null ? e.clientY : startY) - startY;
-    const wasScrub = scrubbing;
-    const wasMoved = moved;
-    const flick = Math.abs(vx) > 0.55 || Math.abs(totalDx) > 36;
+  function endBarPtr(e) {
+    if (barPtr == null || (e && e.pointerId != null && e.pointerId !== barPtr)) return;
+    const totalDx = (e && e.clientX != null ? e.clientX : barLastX) - barStartX;
+    const totalDy = (e && e.clientY != null ? e.clientY : barStartY) - barStartY;
+    const flick = Math.abs(barVx) > 0.45 || Math.abs(totalDx) > 28;
 
-    // Scrub already picked the tab under the pointer. Flick-only (no scrub
-    // across neighbors) steps one category left/right for quick gestures.
-    if (!wasScrub && wasMoved && flick && Math.abs(totalDx) > Math.abs(totalDy) * 1.15) {
+    if (!barMoved) {
+      // Clean tap — activate the tab that was pressed
+      activateTab(barStartTab);
+    } else if (barScrubbing) {
+      // Already activated under finger during move; snap to final X
+      const under = tabAtPoint(e && e.clientX != null ? e.clientX : barLastX, e && e.clientY != null ? e.clientY : barStartY);
+      if (under) activateTab(under);
+    } else if (flick && Math.abs(totalDx) > Math.abs(totalDy) * 1.1) {
       stepTab(totalDx < 0 ? 1 : -1);
-      suppressClick = true;
-      setTimeout(() => { suppressClick = false; }, 0);
-    } else if (wasScrub) {
-      suppressClick = true;
-      setTimeout(() => { suppressClick = false; }, 0);
     }
-    ptrId = null;
-    scrubbing = false;
-    moved = false;
+
+    barPtr = null;
+    barScrubbing = false;
+    barMoved = false;
+    barStartTab = null;
     try { if (e && e.pointerId != null) bar.releasePointerCapture(e.pointerId); } catch (_) {}
   }
 
-  bar.addEventListener('pointerup', endPtr);
-  bar.addEventListener('pointercancel', endPtr);
-  bar.addEventListener('lostpointercapture', () => {
-    ptrId = null;
-    scrubbing = false;
-    moved = false;
-  });
+  bar.addEventListener('pointerup', endBarPtr);
+  bar.addEventListener('pointercancel', endBarPtr);
 
+  // Buttons still get synthetic click on some browsers — activate is idempotent
   tabs().forEach(tab => {
     tab.addEventListener('click', (e) => {
-      if (suppressClick) {
-        e.preventDefault();
-        e.stopPropagation();
-        return;
-      }
+      e.preventDefault();
       activateTab(tab);
     });
   });
+
+  /* ── Tracklist body: horizontal swipe changes category (not on drag handle) ── */
+  if (!list) return;
+
+  let listPtr = null;
+  let listStartX = 0, listStartY = 0, listLastX = 0, listLastT = 0, listVx = 0;
+  let listAxis = null; // null | 'h' | 'v'
+  let listIgnore = false;
+
+  list.addEventListener('pointerdown', (e) => {
+    if (e.button != null && e.button !== 0) return;
+    // Reorder owns the drag handle — leave it alone
+    if (e.target.closest && e.target.closest('.drag-handle')) {
+      listIgnore = true;
+      listPtr = null;
+      return;
+    }
+    listIgnore = false;
+    listPtr = e.pointerId;
+    listStartX = listLastX = e.clientX;
+    listStartY = e.clientY;
+    listLastT = performance.now();
+    listVx = 0;
+    listAxis = null;
+  }, { passive: true });
+
+  list.addEventListener('pointermove', (e) => {
+    if (listIgnore || listPtr == null || e.pointerId !== listPtr) return;
+    const now = performance.now();
+    const dt = Math.max(1, now - listLastT);
+    listVx = (e.clientX - listLastX) / dt;
+    listLastX = e.clientX;
+    listLastT = now;
+
+    const adx = Math.abs(e.clientX - listStartX);
+    const ady = Math.abs(e.clientY - listStartY);
+    if (listAxis == null && (adx > 10 || ady > 10)) {
+      listAxis = adx > ady * 1.15 ? 'h' : 'v';
+      if (listAxis === 'h') {
+        try { list.setPointerCapture(e.pointerId); } catch (_) {}
+      }
+    }
+  }, { passive: true });
+
+  function endListPtr(e) {
+    if (listIgnore) {
+      listIgnore = false;
+      return;
+    }
+    if (listPtr == null || (e && e.pointerId != null && e.pointerId !== listPtr)) return;
+
+    const totalDx = (e && e.clientX != null ? e.clientX : listLastX) - listStartX;
+    const totalDy = (e && e.clientY != null ? e.clientY : listStartY) - listStartY;
+    const flick = Math.abs(listVx) > 0.4 || Math.abs(totalDx) > 40;
+
+    if (listAxis === 'h' && flick && Math.abs(totalDx) > Math.abs(totalDy) * 1.05) {
+      // Swipe left → next category, right → previous (same as tab bar)
+      stepTab(totalDx < 0 ? 1 : -1);
+    }
+
+    try { if (e && e.pointerId != null) list.releasePointerCapture(e.pointerId); } catch (_) {}
+    listPtr = null;
+    listAxis = null;
+  }
+
+  list.addEventListener('pointerup', endListPtr);
+  list.addEventListener('pointercancel', endListPtr);
 })();
 
 /* ── PREMIUM LYRICS VIEWER ── */

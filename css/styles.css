@@ -332,6 +332,8 @@ html.orbit-resizing .win {
 /* Small right padding on the main scroll lists to keep content from touching the scrollbar */
 #sidebar-tracklist {
   padding-right: 6px;
+  /* Vertical scroll native; horizontal swipe switches category tabs */
+  touch-action: pan-y;
 }
 
 #player-win {
@@ -1216,7 +1218,7 @@ html.orbit-resizing .win {
   padding: 0 4px;
   flex-shrink: 0;
   align-items: stretch;
-  touch-action: pan-y;
+  touch-action: manipulation;
   user-select: none;
   -webkit-user-select: none;
   cursor: grab;
