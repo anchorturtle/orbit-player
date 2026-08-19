@@ -1372,7 +1372,7 @@ function updatePlayUI() {
       if (isPlaying) {
         icon.textContent = 'pause';
         icon.classList.add('material-symbols-outlined');
-        icon.style.fontSize = '28px';
+        icon.style.fontSize = '32px';
       } else {
         icon.textContent = '';
         icon.classList.remove('material-symbols-outlined');

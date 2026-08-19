@@ -561,9 +561,9 @@ html.orbit-resizing .win {
 }
 
 .player-bottom-row .ctrl-btn {
-  width: 28px;
-  height: 28px;
-  font-size: 14px;
+  width: 32px;
+  height: 32px;
+  font-size: 16px;
   padding: 4px;
 }
 
@@ -681,8 +681,8 @@ html.orbit-resizing .win {
 }
 
 .player-transport .ctrl-btn {
-  width: 32px;
-  height: 32px;
+  width: 37px;
+  height: 37px;
   border-radius: 50%;
   transition: transform .08s cubic-bezier(0.23, 1, 0.32, 1), 
               box-shadow .1s ease;
@@ -700,8 +700,8 @@ html.orbit-resizing .win {
 }
 
 .play-btn {
-  width: 46px !important;
-  height: 46px !important;
+  width: 53px !important;
+  height: 53px !important;
   border-radius: 50% !important;
   /* Match the analog glass/ctrl-btn family more closely */
   background: linear-gradient(145deg, #2a2740 0%, #1c1a2e 100%);
@@ -784,7 +784,7 @@ html.orbit-resizing .win {
   width: 0;
   height: 0;
   border-style: solid;
-  border-width: 8px 0 8px 14px;
+  border-width: 9px 0 9px 16px;
   border-color: transparent transparent transparent var(--baby-blue);
   margin-left: 3px;
   filter: drop-shadow(0 1px 2px rgba(0,0,0,.6));
@@ -1603,8 +1603,8 @@ html.orbit-resizing .win {
 }
 .orbit-image-ctrl-spacer { flex: 1 1 auto; min-width: 8px; }
 .orbit-image-controls-row .ctrl-btn {
-  width: 32px;
-  height: 32px;
+  width: 37px;
+  height: 37px;
 }
 
 .img-nav {
@@ -1967,8 +1967,8 @@ html.orbit-resizing .win {
 
 #video-win .orbit-video-controls-row > .ctrl-btn {
   flex: 0 0 auto;
-  width: 28px;
-  height: 28px;
+  width: 32px;
+  height: 32px;
 }
 
 #video-win .orbit-video-controls-row #video-btn-share.copied,
@@ -2061,8 +2061,8 @@ html.orbit-resizing .win {
 /* Calm play — no spinning conic halo / glow pulse (video focus stays on picture) */
 #video-win .orbit-video-play-calm.play-btn {
   flex: 0 0 auto;
-  width: 34px !important;
-  height: 34px !important;
+  width: 39px !important;
+  height: 39px !important;
 }
 
 #video-win .orbit-video-play-calm.play-btn::before,
@@ -2081,12 +2081,12 @@ html.orbit-resizing .win {
 }
 
 #video-win .orbit-video-play-calm .play-icon:not(.material-symbols-outlined) {
-  border-width: 7px 0 7px 12px;
+  border-width: 8px 0 8px 14px;
   margin-left: 2px;
 }
 
 #video-win .orbit-video-play-calm.playing .play-icon {
-  font-size: 22px;
+  font-size: 25px;
 }
 
 #video-win .orbit-video-progress.progress-wrap::before {
@@ -2358,15 +2358,15 @@ html.orbit-resizing .win {
 .img-nav-icon { font-size: 22px; }
 
 @media (max-width: 767px) {
-  .img-nav { width: 48px; height: 48px; }
-  .img-nav-icon { font-size: 26px; }
+  .img-nav { width: 55px; height: 55px; }
+  .img-nav-icon { font-size: 30px; }
   #video-win .orbit-video-controls-row {
     gap: 5px;
     padding: 5px 8px;
   }
   #video-win .orbit-video-play-calm.play-btn {
-    width: 30px !important;
-    height: 30px !important;
+    width: 35px !important;
+    height: 35px !important;
   }
   #video-win .orbit-video-vol #video-vol-pct {
     display: none;
@@ -2377,8 +2377,8 @@ html.orbit-resizing .win {
     display: none;
   }
   #video-win .orbit-video-controls-row > .ctrl-btn {
-    width: 26px;
-    height: 26px;
+    width: 30px;
+    height: 30px;
   }
   .orbit-video-scrub-block .time-label {
     font-size: 8px;
@@ -2604,12 +2604,12 @@ html.orbit-resizing .win {
   .player-top {
     gap: 8px !important;
     padding: 3px 6px !important;
-    grid-template-columns: 30px 1fr 30px !important;
+    grid-template-columns: 35px 1fr 35px !important;
   }
   .player-art-side {
-    width: 30px !important; height: 30px !important; flex: 0 0 30px !important;
+    width: 35px !important; height: 35px !important; flex: 0 0 35px !important;
   }
-  .player-art-side .material-symbols-outlined { font-size: 15px !important; }
+  .player-art-side .material-symbols-outlined { font-size: 17px !important; }
   .player-song-header { padding: 0 4px !important; }
   .player-title { font-size: 13px !important; }
   .player-artist { font-size: 9px !important; }
@@ -2619,31 +2619,31 @@ html.orbit-resizing .win {
     align-items: center;
   }
   .player-info-side .ctrl-btn {
-    width: 20px !important;
-    height: 20px !important;
+    width: 23px !important;
+    height: 23px !important;
   }
   .player-info-side .material-symbols-outlined {
-    font-size: 13px !important;
+    font-size: 15px !important;
   }
   .player-transport { padding: 4px 8px !important; gap: 6px !important; }
-  .player-transport .ctrl-btn { width: 30px !important; height: 30px !important; }
-  .player-transport .play-btn { width: 39px !important; height: 39px !important; }
+  .player-transport .ctrl-btn { width: 35px !important; height: 35px !important; }
+  .player-transport .play-btn { width: 45px !important; height: 45px !important; }
   /* scale play triangle + pause icon to match larger play button (no clip, good visual weight) */
   .player-transport .play-icon:not(.material-symbols-outlined) {
-    border-width: 11px 0 11px 19px !important;
+    border-width: 13px 0 13px 22px !important;
     margin-left: 4px !important;
   }
   .player-transport .play-btn.playing .play-icon {
-    font-size: 30px !important;
+    font-size: 35px !important;
   }
   .player-timeline { padding: 3px 5px !important; gap: 4px !important; }
   .time-label { font-size: 9px !important; min-width: 18px !important; }
   .progress-wrap { height: 20px !important; min-width: 48px !important; }
   .waveform-canvas { height: 20px !important; }
   .player-bottom-row { gap: 8px !important; }
-  .player-bottom-row .ctrl-btn { width: 24px !important; height: 24px !important; font-size: 15px !important; }
+  .player-bottom-row .ctrl-btn { width: 28px !important; height: 28px !important; font-size: 17px !important; }
   .player-bottom-row #vol-slider,
-  #video-win .player-bottom-row #video-vol-slider { width: 50px !important; }
+  #video-win .player-bottom-row #video-vol-slider { width: 58px !important; }
   .player-bottom-row #vol-pct,
   #video-win .player-bottom-row #video-vol-pct { font-size: 9px !important; min-width: 12px !important; }
   /* larger tap target for player close X (mobile) while keeping exact same closeWin + wireup as gallery/tracklist */
@@ -2660,21 +2660,23 @@ html.orbit-resizing .win {
   .track-title { font-size: 14px !important; }
   .track-artist { font-size: 10px !important; }
 
-  /* Vertical category rail — right border, compact + vertically centered */
-  #tracklist-win .win-body {
+  /* Vertical category rail — tracklist + gallery (phone) */
+  #tracklist-win .win-body,
+  #gallery-win .win-body {
     position: relative !important;
-    padding: 6px 34px 6px 6px !important; /* slim gutter for right rail */
+    padding: 6px 38px 6px 6px !important; /* gutter for right spine rail */
     display: flex !important;
     flex-direction: column !important;
     min-height: 0 !important;
     gap: 8px !important;
   }
-  #tracklist-win .tracklist-tabs {
+  #tracklist-win .tracklist-tabs,
+  #gallery-win .gallery-tabs {
     position: absolute;
     top: 25%;
     right: 2px;
     bottom: auto;
-    width: 28px;
+    width: 32px;
     height: auto;
     max-height: calc(100% - 12px);
     margin: 0;
@@ -2682,25 +2684,27 @@ html.orbit-resizing .win {
     flex-direction: column;
     justify-content: center;
     align-items: center;
-    gap: 5px;
+    gap: 6px;
     z-index: 8;
     cursor: grab;
     transform: translateY(-50%);
   }
-  #tracklist-win .tracklist-tabs .tab {
+  #tracklist-win .tracklist-tabs .tab,
+  #gallery-win .gallery-tabs .tab {
+    display: flex !important;
+    flex-direction: column !important;
     flex: 0 0 auto !important;
-    width: 28px !important;
-    min-width: 28px !important;
-    max-width: 28px !important;
+    width: 32px !important;
+    min-width: 32px !important;
+    max-width: 32px !important;
     min-height: 0;
     height: auto !important;
-    padding: 10px 0 !important;
-    /* Spine text: letters run vertically along the right edge */
-    writing-mode: vertical-rl !important;
-    text-orientation: mixed !important;
-    transform: rotate(180deg);
-    letter-spacing: .14em !important;
-    font-size: 9px !important;
+    padding: 12px 0 !important;
+    /* Apply spine on the inner label — writing-mode on <button> fails on iOS Firefox */
+    writing-mode: horizontal-tb !important;
+    transform: none !important;
+    letter-spacing: .16em !important;
+    font-size: 10px !important;
     line-height: 1 !important;
     border-radius: 999px;
     justify-content: center !important;
@@ -2709,28 +2713,33 @@ html.orbit-resizing .win {
     overflow: visible !important;
     text-overflow: clip !important;
   }
-  #tracklist-win .tracklist-tabs .tab.active {
+  #tracklist-win .tracklist-tabs .tab.active,
+  #gallery-win .gallery-tabs .tab.active {
     flex: 0 0 auto !important;
-    padding: 12px 0 !important;
+    padding: 14px 0 !important;
   }
-  /* One vertical label only — kill horizontal short/full width animation on phone */
   #tracklist-win .tracklist-tabs .tab-short,
-  #tracklist-win .tracklist-tabs .tab-full {
+  #tracklist-win .tracklist-tabs .tab-full,
+  #gallery-win .gallery-tabs .tab-short,
+  #gallery-win .gallery-tabs .tab-full {
     display: none !important;
     max-width: none !important;
     max-height: none !important;
     opacity: 1 !important;
-    transform: none !important;
+    transform: rotate(180deg) !important;
     writing-mode: vertical-rl !important;
     text-orientation: mixed !important;
     letter-spacing: inherit !important;
     line-height: inherit !important;
+    white-space: nowrap !important;
   }
-  #tracklist-win .tracklist-tabs .tab:not(.active) .tab-short {
-    display: inline-block !important;
+  #tracklist-win .tracklist-tabs .tab:not(.active) .tab-short,
+  #gallery-win .gallery-tabs .tab:not(.active) .tab-short {
+    display: block !important;
   }
-  #tracklist-win .tracklist-tabs .tab.active .tab-full {
-    display: inline-block !important;
+  #tracklist-win .tracklist-tabs .tab.active .tab-full,
+  #gallery-win .gallery-tabs .tab.active .tab-full {
+    display: block !important;
   }
 
   /* ── Track rotary (no scroll — slide up/down like a dial) ── */
