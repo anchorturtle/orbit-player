@@ -2118,6 +2118,8 @@ window.OrbitTrackRotary = (function () {
   let wired = false;
   let raf = 0;
   let startItem = null;
+  let springTo = null;
+  let springing = false;
 
   function enabled() {
     return window.matchMedia('(max-width: 767px)').matches;
@@ -2125,6 +2127,11 @@ window.OrbitTrackRotary = (function () {
   function root() { return document.getElementById('track-rotary'); }
   function list() { return document.getElementById('sidebar-tracklist'); }
   function lens() { return root() && root().querySelector('.track-rotary-lens'); }
+  function count() { return Math.max(1, collect().length); }
+  function clampPos(p, n) {
+    const max = Math.max(0, n - 1);
+    return Math.max(0, Math.min(max, p));
+  }
 
   function collect() {
     const c = list();
@@ -2133,15 +2140,11 @@ window.OrbitTrackRotary = (function () {
   }
 
   function tickFeel() {
-    try {
-      if (navigator.vibrate) navigator.vibrate(9);
-    } catch (e) {}
+    try { if (navigator.vibrate) navigator.vibrate(8); } catch (e) {}
     const el = lens();
     if (!el) return;
     el.classList.remove('tick');
-    // force reflow for re-trigger
-    void el.offsetWidth;
-    el.classList.add('tick');
+    requestAnimationFrame(() => { el.classList.add('tick'); });
   }
 
   function layout() {
@@ -2167,17 +2170,21 @@ window.OrbitTrackRotary = (function () {
     if (!items.length) return;
 
     const n = items.length;
-    pos = Math.max(0, Math.min(n - 1, pos));
-    sel = Math.round(pos);
-    sel = Math.max(0, Math.min(n - 1, sel));
-    const mid = c.clientHeight * FOCUS_Y;
+    const max = n - 1;
+    // Soft rubber at ends while dragging — never hard-clamp (that felt fidgety)
+    let vis = pos;
+    if (vis < 0) vis = vis * 0.32;
+    else if (vis > max) vis = max + (vis - max) * 0.32;
+
+    sel = Math.round(clampPos(vis, n));
+    const mid = Math.max(40, c.clientHeight * FOCUS_Y);
 
     items.forEach((el, i) => {
-      const y = (i - pos) * SLOT + mid - SLOT / 2;
-      // Straight rows — no scale indent
-      el.style.transform = `translate3d(0,${y}px,0)`;
+      const y = (i - vis) * SLOT + mid - SLOT / 2;
+      el.style.transform = 'translate3d(0,' + y + 'px,0)';
       el.style.opacity = '1';
-      el.style.zIndex = String(20 + (i === Math.round(pos) ? 10 : 0));
+      el.style.visibility = 'visible';
+      el.style.zIndex = String(20 + (i === sel ? 10 : 0));
       el.classList.toggle('rotary-center', i === sel);
       el.classList.toggle('active', +el.dataset.idx === currentIndex);
     });
@@ -2191,41 +2198,63 @@ window.OrbitTrackRotary = (function () {
     });
   }
 
+  function playSel() {
+    items = collect();
+    if (!items.length) return;
+    const i = Math.max(0, Math.min(items.length - 1, sel));
+    const idx = +items[i].dataset.idx;
+    if (!Number.isInteger(idx) || !TRACKS[idx]) return;
+    if (idx !== currentIndex) loadTrack(idx, true);
+    else if (!isPlaying) {
+      const btn = document.getElementById('btn-play');
+      if (btn) btn.click();
+    }
+  }
+
+  function startSpring(target, autoplay) {
+    const n = count();
+    springTo = clampPos(target, n);
+    if (springing) return;
+    springing = true;
+    const step = () => {
+      if (springTo == null) { springing = false; return; }
+      pos += (springTo - pos) * 0.24;
+      if (Math.abs(springTo - pos) < 0.012) {
+        pos = springTo;
+        sel = Math.round(pos);
+        lastTick = sel;
+        springTo = null;
+        springing = false;
+        layout();
+        if (autoplay) playSel();
+        return;
+      }
+      layout();
+      requestAnimationFrame(step);
+    };
+    requestAnimationFrame(step);
+  }
+
   function commit(autoplay) {
     items = collect();
     if (!items.length) return;
-    sel = Math.max(0, Math.min(items.length - 1, Math.round(pos)));
-    pos = sel;
-    lastTick = sel;
-    layout();
-    const idx = +items[sel].dataset.idx;
-    if (!Number.isInteger(idx) || !TRACKS[idx]) return;
-    if (idx !== currentIndex) {
-      loadTrack(idx, autoplay !== false);
-    } else if (autoplay) {
-      // re-tap center / snap same track → ensure playing
-      if (!isPlaying) {
-        const btn = document.getElementById('btn-play');
-        if (btn) btn.click();
-      }
-    }
+    startSpring(Math.round(pos), autoplay);
   }
 
   function refresh() {
     items = collect();
-    if (!enabled()) {
-      layout();
-      return;
-    }
+    if (!enabled()) { layout(); return; }
     const i = items.findIndex(el => +el.dataset.idx === currentIndex);
     pos = i >= 0 ? i : 0;
     sel = Math.round(pos);
     lastTick = sel;
+    springTo = null;
+    springing = false;
     layout();
   }
 
   function syncToIndex(trackIdx) {
-    if (!enabled() || dragging) return;
+    if (!enabled() || dragging || springing) return;
     items = collect();
     const i = items.findIndex(el => +el.dataset.idx === trackIdx);
     if (i < 0) return;
@@ -2241,9 +2270,10 @@ window.OrbitTrackRotary = (function () {
     const c = list();
     const r = root();
     if (!c || !r || !r.classList.contains('is-on')) return;
-    // don't steal search / tabs / reorder handle
     if (e.target.closest && e.target.closest('input, button, a, .tracklist-tabs, .drag-handle')) return;
 
+    springTo = null;
+    springing = false;
     ptrId = e.pointerId;
     dragging = true;
     moved = false;
@@ -2251,7 +2281,7 @@ window.OrbitTrackRotary = (function () {
     startPos = pos;
     lastT = performance.now();
     vy = 0;
-    lastTick = Math.round(pos);
+    lastTick = Math.round(clampPos(pos, count()));
     startItem = e.target.closest ? e.target.closest('.track-item') : null;
     r.classList.add('is-dragging');
     try { r.setPointerCapture(e.pointerId); } catch (err) {}
@@ -2262,18 +2292,16 @@ window.OrbitTrackRotary = (function () {
     const now = performance.now();
     const dt = Math.max(1, now - lastT);
     vy = (e.clientY - lastY) / dt;
+    lastY = e.clientX ? e.clientY : lastY;
     lastY = e.clientY;
     lastT = now;
 
     const dy = e.clientY - startY;
     if (Math.abs(dy) > 8) moved = true;
 
-    // finger up → earlier tracks (pos decreases)
-    const n = Math.max(1, collect().length);
-    pos = startPos - dy / SLOT;
-    pos = Math.max(0, Math.min(n - 1, pos));
+    pos = startPos - dy / SLOT; // unbounded — rubber applied in layout
 
-    const tickAt = Math.round(pos);
+    const tickAt = Math.round(clampPos(pos, count()));
     if (tickAt !== lastTick) {
       lastTick = tickAt;
       tickFeel();
@@ -2294,25 +2322,19 @@ window.OrbitTrackRotary = (function () {
     items = collect();
     const n = Math.max(1, items.length);
 
-    // Tap a visible row → jump to that song
     if (!moved && startItem && items.includes(startItem)) {
       const i = items.indexOf(startItem);
       if (i >= 0) {
-        pos = i;
         tickFeel();
-        commit(true);
+        startSpring(i, true);
         startItem = null;
         moved = false;
         return;
       }
     }
 
-    // light inertia after a slide
-    let target = pos - vy * 80 / SLOT;
-    target = Math.max(0, Math.min(n - 1, target));
-    pos = Math.round(target);
-    tickFeel();
-    commit(true);
+    let target = pos - vy * 90 / SLOT;
+    startSpring(Math.round(target), true);
     startItem = null;
     moved = false;
   }

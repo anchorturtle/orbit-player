@@ -2699,38 +2699,36 @@ html.orbit-resizing .win {
     max-width: 32px !important;
     min-height: 0;
     height: auto !important;
-    padding: 12px 0 !important;
-    /* Apply spine on the inner label — writing-mode on <button> fails on iOS Firefox */
+    padding: 10px 0 !important;
     writing-mode: horizontal-tb !important;
     transform: none !important;
-    letter-spacing: .16em !important;
+    letter-spacing: 0 !important;
     font-size: 10px !important;
-    line-height: 1 !important;
+    line-height: 1.05 !important;
     border-radius: 999px;
     justify-content: center !important;
     align-items: center !important;
-    white-space: nowrap !important;
     overflow: visible !important;
-    text-overflow: clip !important;
   }
   #tracklist-win .tracklist-tabs .tab.active,
   #gallery-win .gallery-tabs .tab.active {
     flex: 0 0 auto !important;
-    padding: 14px 0 !important;
+    padding: 12px 0 !important;
   }
+  /* Upright stacked letters — writing-mode+rotate on buttons fails on iOS Firefox */
   #tracklist-win .tracklist-tabs .tab-short,
   #tracklist-win .tracklist-tabs .tab-full,
   #gallery-win .gallery-tabs .tab-short,
   #gallery-win .gallery-tabs .tab-full {
     display: none !important;
+    writing-mode: vertical-lr !important;
+    text-orientation: upright !important;
+    transform: none !important;
     max-width: none !important;
     max-height: none !important;
     opacity: 1 !important;
-    transform: rotate(180deg) !important;
-    writing-mode: vertical-rl !important;
-    text-orientation: mixed !important;
-    letter-spacing: inherit !important;
-    line-height: inherit !important;
+    letter-spacing: 0.06em !important;
+    line-height: 1.08 !important;
     white-space: nowrap !important;
   }
   #tracklist-win .tracklist-tabs .tab:not(.active) .tab-short,
@@ -2778,29 +2776,29 @@ html.orbit-resizing .win {
   }
   #tracklist-win .track-rotary.is-on #sidebar-tracklist .track-item {
     position: absolute;
-    left: 0;
-    right: 0;
-    height: 52px;
+    left: 4px;
+    right: 4px;
+    height: auto;
+    min-height: 52px;
     margin: 0;
-    padding: 8px 10px 8px 4px !important;
+    padding: 10px 10px !important;
     box-sizing: border-box;
-    border-radius: 0;
-    background: rgba(12, 8, 28, .96);
-    border: none;
-    border-bottom: 1px solid rgba(255,255,255,.05);
+    /* Original rounded glass row — not square */
+    border-radius: 10px;
+    background: transparent;
+    border: 1px solid transparent;
     display: flex !important;
     align-items: center;
-    gap: 6px !important;
+    gap: 8px !important;
     pointer-events: auto;
     opacity: 1 !important;
-    transform: none; /* JS sets translateY only — no scale indent */
     will-change: transform;
-    transition:
-      transform .16s cubic-bezier(.22, 1, .36, 1),
-      background .18s ease;
+    /* NEVER transition transform — JS owns it every frame */
+    transition: background .18s ease, border-color .18s ease;
   }
   #tracklist-win .track-rotary.is-on #sidebar-tracklist .track-item:hover {
-    transform: none !important; /* kill desktop indent hover */
+    /* keep JS translateY — do not zero transform */
+    background: rgba(45,91,255,.08);
   }
   #tracklist-win .track-rotary.is-on #sidebar-tracklist .drag-handle {
     display: flex !important;
@@ -2823,26 +2821,26 @@ html.orbit-resizing .win {
     cursor: grabbing;
     color: var(--jestr-purple);
   }
-  #tracklist-win .track-rotary.is-on #sidebar-tracklist .track-item > span.material-symbols-outlined:last-child {
-    display: none; /* drop trailing music_note — cleaner straight rows */
-  }
   #tracklist-win .track-rotary.is-on.is-dragging #sidebar-tracklist .track-item {
     transition: none;
   }
-  /* Single selection chrome = lens only (no double border / left bar indent) */
+  /* Original active row look — do NOT touch transform (that was killing titles) */
   #tracklist-win .track-rotary.is-on #sidebar-tracklist .track-item.active,
   #tracklist-win .track-rotary.is-on #sidebar-tracklist .track-item.rotary-center {
-    background: rgba(18, 12, 40, .98) !important;
-    border-color: transparent !important;
-    box-shadow: none !important;
-    transform: none;
+    background: linear-gradient(90deg, rgba(123,47,255,.14), rgba(45,91,255,.08)) !important;
+    border-color: rgba(123,47,255,.3) !important;
+    box-shadow: none;
   }
-  #tracklist-win .track-rotary.is-on #sidebar-tracklist .track-item.active::before,
-  #tracklist-win .track-rotary.is-on #sidebar-tracklist .track-item.rotary-center::before {
-    display: none !important;
+  #tracklist-win .track-rotary.is-on #sidebar-tracklist .track-item.rotary-center .track-title,
+  #tracklist-win .track-rotary.is-on #sidebar-tracklist .track-item.active .track-title {
+    color: #e9e1de !important;
+    visibility: visible !important;
+    opacity: 1 !important;
   }
-  #tracklist-win .track-rotary.is-on #sidebar-tracklist .track-item.rotary-center .track-title {
-    color: #f2ece6 !important;
+  #tracklist-win .track-rotary.is-on #sidebar-tracklist .track-item .track-title,
+  #tracklist-win .track-rotary.is-on #sidebar-tracklist .track-item .track-artist {
+    visibility: visible !important;
+    opacity: 1 !important;
   }
   #tracklist-win .track-rotary-lens {
     display: none;
