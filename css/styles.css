@@ -1240,15 +1240,16 @@ html.orbit-resizing .win {
 /* Parental advisory — same glass chip language as .video-ai-badge */
 .explicit-badge {
   display: inline-flex; align-items: center; gap: 4px;
-  height: 18px; padding: 0 7px 0 6px; margin-top: 5px;
+  height: 18px; padding: 0 7px;
   border-radius: 999px;
   border: 1px solid rgba(232, 0, 61, .28);
   background: rgba(4, 3, 12, .45);
   color: rgba(233, 180, 190, .9);
-  font-size: 9px; font-weight: 700; letter-spacing: .04em;
+  font-size: 9px; font-weight: 700; letter-spacing: .12em;
+  text-transform: uppercase;
   cursor: help; backdrop-filter: blur(6px); line-height: 1;
 }
-.explicit-badge-label { letter-spacing: .1em; text-transform: lowercase; font-weight: 600; }
+#fp-explicit { letter-spacing: .14em; }
 .explicit-badge:hover {
   color: #ffd0d6;
   border-color: rgba(232, 0, 61, .5);

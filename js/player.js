@@ -1685,8 +1685,8 @@ function trackIsExplicit(t) {
 }
 
 function explicitChipHTML(compact) {
-  const label = compact ? '' : ' <span class="explicit-badge-label">explicit</span>';
-  return `<span class="explicit-badge" title="${EXPLICIT_TIP}" aria-label="${EXPLICIT_TIP}">[E]${label}</span>`;
+  const text = compact ? 'E' : 'EXPLICIT';
+  return `<span class="explicit-badge" title="${EXPLICIT_TIP}" aria-label="${EXPLICIT_TIP}">${text}</span>`;
 }
 
 function makeTrackRow(t, origIdx) {
