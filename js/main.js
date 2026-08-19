@@ -73,7 +73,6 @@ function applyDesktopLayout() {
   const gW = Math.min(300, Math.max(220, (vw - cx - PLANET_CLEARANCE - PAD) * 0.92));
   const gH = Math.min(620, usableH - 2 * PAD);
   const plW = Math.min(420, Math.max(380, Math.floor(vw * 0.30)));
-  const plH = Math.max(328, Math.min(350, Math.floor(usableH * 0.38)));
 
   // Only force sizes/positions for windows the user hasn't manually dragged or resized
   if (tl.dataset.userPositioned !== 'true') {
@@ -91,13 +90,16 @@ function applyDesktopLayout() {
   }
 
   if (pl.dataset.userPositioned !== 'true') {
-    pl.style.width = plW + 'px'; pl.style.height = plH + 'px';
+    pl.style.width = plW + 'px';
+    pl.style.height = 'auto';
     pl.style.left = Math.max(PAD, cx - plW / 2) + 'px';
-    // Place the compact player much lower so the entire central planet (including its large glowing
-    // rings and the overlaid "NOW PLAYING" + big focal track title) stays completely unobstructed.
-    // Player now hugs lower in the space, leaving the hero visual planet dominant.
-    pl.style.top = Math.max(PAD + 20, Math.min(usableH - plH - PAD - 10, cy + 300)) + 'px';
     pl.style.bottom = ''; pl.style.right = '';
+    const bar = document.getElementById('player-bar');
+    const body = pl.querySelector('.win-body');
+    const needed = Math.ceil((bar ? bar.getBoundingClientRect().height : 36) + (body ? body.scrollHeight : 220) + 2);
+    const plH = Math.max(needed, 260);
+    pl.style.height = plH + 'px';
+    pl.style.top = Math.max(PAD + 20, Math.min(usableH - plH - PAD - 10, cy + 300)) + 'px';
   }
 
   // Lyrics viewer: center top middle. Default 15% narrower. Leaves room at bottom for media player.
@@ -147,7 +149,7 @@ function makeWindowDraggable(winId, barId) {
     if (!mode) return;
     const dx = e.clientX - sx, dy = e.clientY - sy;
     const mw = (winId === 'player-win' ? 380 : winId === 'video-win' ? 300 : 240),
-      mh = (winId === 'player-win' ? 328 : winId === 'video-win' ? 260 : 200);
+      mh = (winId === 'player-win' ? 270 : winId === 'video-win' ? 260 : 200);
     const vw = window.innerWidth, vh = window.innerHeight;
     const margin = 8;
 
@@ -237,9 +239,13 @@ function makeWindowDraggable(winId, barId) {
     }
   }
 
-  bar.addEventListener('mousedown', e => startOp(e, 'drag'));
+  bar.addEventListener('mousedown', e => {
+    if (e.target.closest('.win-close, button')) return;
+    startOp(e, 'drag');
+  });
   bar.addEventListener('touchstart', e => {
     if (isMob()) return;
+    if (e.target.closest('.win-close, button')) return;
     const t = e.touches[0];
     startOp({ clientX: t.clientX, clientY: t.clientY, preventDefault: () => e.preventDefault(), stopPropagation: () => {} }, 'drag');
   }, { passive: false });
@@ -351,6 +357,7 @@ window.orbitDock = {
     btn.classList.add('win-open');
     rail.hidden = false;
     if (split) split.hidden = false;
+    document.getElementById('dock-win')?.classList.add('has-temp-tabs');
     if (mob) {
       let mbtn = mob.querySelector(`[data-dock-win="${winId}"]`);
       if (!mbtn) {
@@ -375,6 +382,7 @@ window.orbitDock = {
     if (rail && !rail.children.length) {
       rail.hidden = true;
       if (split) split.hidden = true;
+      document.getElementById('dock-win')?.classList.remove('has-temp-tabs');
     }
     if (mob && !mob.children.length) mob.hidden = true;
   },
@@ -432,8 +440,13 @@ function mobToggle(winId, btnId) {
 document.getElementById('close-tracklist').addEventListener('click', () => closeWin('tracklist-win', 'btn-tracklist', 'btn-mob-tracks'));
 document.getElementById('close-gallery').addEventListener('click', () => closeWin('gallery-win', 'btn-gallery', 'btn-mob-gallery'));
 document.getElementById('close-player').addEventListener('click', () => closeWin('player-win', 'btn-player', 'btn-mob-player'));
-document.getElementById('close-album')?.addEventListener('click', () => {
+document.getElementById('close-album')?.addEventListener('click', (e) => {
+  e.preventDefault();
+  e.stopPropagation();
   if (typeof closeAlbumWindow === 'function') closeAlbumWindow();
+});
+document.getElementById('close-album')?.addEventListener('pointerdown', (e) => {
+  e.stopPropagation();
 });
 document.getElementById('close-song-detail').addEventListener('click', () => {
   const w = document.getElementById('song-detail-win');
@@ -490,6 +503,10 @@ makeWindowDraggable('lyrics-win', 'lyrics-bar');
         const b = document.getElementById(btnId);
         if (b) b.classList.add('win-open');
       }
+    });
+    requestAnimationFrame(() => {
+      applyDesktopLayout();
+      setTimeout(applyDesktopLayout, 80);
     });
     // Ensure lyrics-win starts hidden (only shown via button click, never on refresh/load)
     const lyricsW = document.getElementById('lyrics-win');
@@ -601,7 +618,7 @@ makeWindowDraggable('lyrics-win', 'lyrics-bar');
         let newW = rect.width;
         let newH = rect.height;
         const minW = (id === 'player-win' ? 380 : 240);
-        const minH = (id === 'player-win' ? 328 : 200);
+        const minH = (id === 'player-win' ? 270 : 200);
         const maxW = Math.max(minW, vw - 16);
         const maxH = Math.max(minH, vh - 16);
         let changed = false;

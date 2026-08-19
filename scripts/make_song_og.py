@@ -40,7 +40,7 @@ TITLES = {
     "spin-cycle": "Spin Cycle", "jazzpot": "Jazzpot", "still-going-higher": "Still Going Higher",
     "fat-stacks": "Fat Stacks", "chokeslam": "Chokeslam",
     "grateful-sharpie": "Grateful Sharpie",
-    "tomb-of-the-creator": "Tomb of the Creator", "blockbuster": "Blockbuster",
+    "tomb-of-the-creator": "Tomb of the Creator ft. Tevin Page", "blockbuster": "Blockbuster ft. Tevin Page",
     "what-is-it-now": "What Is it Now?", "got-nun": "got nun?",
     "sublime-beginnings": "Sublime Beginnings", "space-radio": "Space Radio",
     "exploding-galaxies": "Exploding Galaxies", "acid-rain": "Acid Rain",
