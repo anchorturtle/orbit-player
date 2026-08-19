@@ -1214,10 +1214,11 @@ html.orbit-resizing .win {
 .gallery-tabs {
   display: flex;
   flex-wrap: nowrap;
-  gap: 4px;
-  padding: 0 4px;
+  gap: 3px;
+  padding: 0 2px;
   flex-shrink: 0;
-  align-items: stretch;
+  align-items: center;
+  justify-content: center;
   touch-action: manipulation;
   user-select: none;
   -webkit-user-select: none;
@@ -1233,12 +1234,12 @@ html.orbit-resizing .win {
   color: var(--baby-blue);
   font-size: 9px;
   font-weight: 700;
-  letter-spacing: .06em;
+  letter-spacing: .04em;
   text-transform: uppercase;
-  padding: 5px 8px;
+  padding: 4px 7px;
   border-radius: 999px;
   cursor: pointer;
-  flex: 0 1 auto;
+  flex: 0 0 auto; /* hug label — no empty pill stretch */
   min-width: 0;
   text-align: center;
   white-space: nowrap;
@@ -1246,21 +1247,21 @@ html.orbit-resizing .win {
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  line-height: 1.15;
   transition:
     background .18s ease,
     color .18s ease,
     border-color .18s ease,
     box-shadow .22s ease,
     transform .22s var(--spring),
-    flex-grow .34s var(--ease-out),
-    padding .34s var(--ease-out);
+    padding .28s var(--ease-out);
 }
-/* Active tab claims remaining row space so long labels (Instrumental) can breathe */
+/* Active stays content-sized; only label short→full grows the pill */
 .tracklist-tabs .tab.active {
-  flex: 1 1 auto;
-  padding: 5px 12px;
+  flex: 0 0 auto;
+  padding: 4px 8px;
 }
-.gallery-tabs .tab { flex: 1 1 auto; padding: 4px 12px; }
+.gallery-tabs .tab { flex: 0 0 auto; padding: 4px 10px; }
 .tracklist-tabs .tab.active,
 .gallery-tabs .tab.active {
   background: linear-gradient(135deg, rgba(123,47,255,.22), rgba(45,91,255,.14));
@@ -1280,32 +1281,28 @@ html.orbit-resizing .win {
   overflow: hidden;
   white-space: nowrap;
   vertical-align: middle;
+  line-height: inherit;
   transition:
-    max-width .34s var(--ease-out),
-    opacity .22s ease,
-    transform .34s var(--ease-out);
+    max-width .28s var(--ease-out),
+    opacity .18s ease;
 }
 .tracklist-tabs .tab-short {
-  max-width: 5.5em;
+  max-width: 5em;
   opacity: 1;
-  transform: translateY(0);
 }
 .tracklist-tabs .tab-full {
   max-width: 0;
   opacity: 0;
-  transform: translateY(2px);
   pointer-events: none;
 }
 .tracklist-tabs .tab.active .tab-short {
   max-width: 0;
   opacity: 0;
-  transform: translateY(-2px);
   pointer-events: none;
 }
 .tracklist-tabs .tab.active .tab-full {
-  max-width: 12em;
+  max-width: 11em;
   opacity: 1;
-  transform: translateY(0);
   pointer-events: auto;
 }
 
@@ -2646,59 +2643,67 @@ html.orbit-resizing .win {
   .track-title { font-size: 14px !important; }
   .track-artist { font-size: 10px !important; }
 
-  /* Vertical category rail — right border anchor (phone) */
+  /* Vertical category rail — right border, compact + vertically centered */
   #tracklist-win .win-body {
     position: relative !important;
-    padding: 6px 40px 6px 6px !important; /* leave gutter for right rail */
+    padding: 6px 34px 6px 6px !important; /* slim gutter for right rail */
   }
   #tracklist-win .tracklist-tabs {
     position: absolute;
-    top: 6px;
+    top: 50%;
     right: 3px;
-    bottom: 6px;
-    width: 32px;
+    bottom: auto;
+    width: 26px;
+    height: auto;
+    max-height: calc(100% - 12px);
     margin: 0;
-    padding: 2px 0;
+    padding: 0;
     flex-direction: column;
-    justify-content: flex-start;
-    align-items: stretch;
-    gap: 5px;
+    justify-content: center;
+    align-items: center;
+    gap: 4px;
     z-index: 8;
     cursor: grab;
+    transform: translateY(-50%);
   }
   #tracklist-win .tracklist-tabs .tab {
-    flex: 0 1 auto;
+    flex: 0 0 auto !important; /* hug text only — no empty stretch */
     width: 100%;
     min-width: 0;
     min-height: 0;
-    padding: 10px 3px !important;
+    height: auto;
+    padding: 6px 2px !important;
     writing-mode: vertical-rl;
     text-orientation: mixed;
     transform: rotate(180deg); /* spine: read upward along the right edge */
-    letter-spacing: .1em;
-    font-size: 9px !important;
+    letter-spacing: .06em;
+    font-size: 8px !important;
+    line-height: 1.1;
     border-radius: 999px;
     justify-content: center;
+    align-items: center;
   }
   #tracklist-win .tracklist-tabs .tab.active {
-    flex: 1 1 auto; /* active tab grows down the rail for full label */
-    padding: 12px 3px !important;
+    flex: 0 0 auto !important;
+    padding: 7px 2px !important;
   }
   #tracklist-win .tracklist-tabs .tab-short,
   #tracklist-win .tracklist-tabs .tab-full {
-    max-width: none; /* height is the free axis on the rail */
+    max-width: none;
+    max-height: none;
+    transform: none !important;
   }
   #tracklist-win .tracklist-tabs .tab-full {
     max-height: 0;
   }
   #tracklist-win .tracklist-tabs .tab-short {
-    max-height: 6em;
+    max-height: 5em;
   }
   #tracklist-win .tracklist-tabs .tab.active .tab-short {
     max-height: 0;
   }
   #tracklist-win .tracklist-tabs .tab.active .tab-full {
-    max-height: 14em;
+    max-height: 12em;
     max-width: none;
   }
 
