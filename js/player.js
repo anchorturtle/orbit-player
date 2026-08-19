@@ -1993,14 +1993,129 @@ document.getElementById('search-input').addEventListener('input', function () {
 });
 
 /* ── TRACKLIST CATEGORY TABS ── */
-document.querySelectorAll('#tracklist-win .tracklist-tabs .tab').forEach(tab => {
-  tab.addEventListener('click', () => {
-    document.querySelectorAll('#tracklist-win .tracklist-tabs .tab').forEach(t => t.classList.remove('active'));
+/* Click, drag-scrub across the bar, or quick horizontal flick to switch. */
+(function wireTracklistTabs() {
+  const bar = document.querySelector('#tracklist-win .tracklist-tabs');
+  if (!bar) return;
+  const tabs = () => Array.from(bar.querySelectorAll('.tab'));
+
+  function activateTab(tab, opts) {
+    if (!tab || tab.classList.contains('active')) {
+      if (tab && opts && opts.forceRender) {
+        currentTracklistCategory = tab.dataset.category || 'all';
+        renderTracklist(document.getElementById('search-input').value);
+      }
+      return;
+    }
+    tabs().forEach(t => t.classList.remove('active'));
     tab.classList.add('active');
     currentTracklistCategory = tab.dataset.category || 'all';
     renderTracklist(document.getElementById('search-input').value);
+  }
+
+  function tabAtPoint(clientX, clientY) {
+    const el = document.elementFromPoint(clientX, clientY);
+    if (!el) return null;
+    return el.closest ? el.closest('#tracklist-win .tracklist-tabs .tab') : null;
+  }
+
+  function stepTab(dir) {
+    const list = tabs();
+    if (!list.length) return;
+    const i = list.findIndex(t => t.classList.contains('active'));
+    const next = list[Math.max(0, Math.min(list.length - 1, (i < 0 ? 0 : i) + dir))];
+    activateTab(next);
+  }
+
+  let ptrId = null;
+  let startX = 0;
+  let startY = 0;
+  let lastX = 0;
+  let lastT = 0;
+  let vx = 0;
+  let scrubbing = false;
+  let moved = false;
+  let suppressClick = false;
+
+  bar.addEventListener('pointerdown', (e) => {
+    if (e.button != null && e.button !== 0) return;
+    const tab = e.target.closest && e.target.closest('.tab');
+    if (!tab) return;
+    ptrId = e.pointerId;
+    startX = lastX = e.clientX;
+    startY = e.clientY;
+    lastT = performance.now();
+    vx = 0;
+    scrubbing = false;
+    moved = false;
+    try { bar.setPointerCapture(e.pointerId); } catch (_) {}
   });
-});
+
+  bar.addEventListener('pointermove', (e) => {
+    if (ptrId == null || e.pointerId !== ptrId) return;
+    const now = performance.now();
+    const dt = Math.max(1, now - lastT);
+    const dx = e.clientX - lastX;
+    vx = dx / dt;
+    lastX = e.clientX;
+    lastT = now;
+
+    const adx = Math.abs(e.clientX - startX);
+    const ady = Math.abs(e.clientY - startY);
+    if (!moved && adx < 6 && ady < 6) return;
+    moved = true;
+
+    // Horizontal dominance → scrub tabs under finger/cursor
+    if (adx >= ady) {
+      scrubbing = true;
+      const under = tabAtPoint(e.clientX, e.clientY);
+      if (under && bar.contains(under)) activateTab(under);
+    }
+  });
+
+  function endPtr(e) {
+    if (ptrId == null || (e && e.pointerId != null && e.pointerId !== ptrId)) return;
+    const totalDx = (e && e.clientX != null ? e.clientX : lastX) - startX;
+    const totalDy = (e && e.clientY != null ? e.clientY : startY) - startY;
+    const wasScrub = scrubbing;
+    const wasMoved = moved;
+    const flick = Math.abs(vx) > 0.55 || Math.abs(totalDx) > 36;
+
+    // Scrub already picked the tab under the pointer. Flick-only (no scrub
+    // across neighbors) steps one category left/right for quick gestures.
+    if (!wasScrub && wasMoved && flick && Math.abs(totalDx) > Math.abs(totalDy) * 1.15) {
+      stepTab(totalDx < 0 ? 1 : -1);
+      suppressClick = true;
+      setTimeout(() => { suppressClick = false; }, 0);
+    } else if (wasScrub) {
+      suppressClick = true;
+      setTimeout(() => { suppressClick = false; }, 0);
+    }
+    ptrId = null;
+    scrubbing = false;
+    moved = false;
+    try { if (e && e.pointerId != null) bar.releasePointerCapture(e.pointerId); } catch (_) {}
+  }
+
+  bar.addEventListener('pointerup', endPtr);
+  bar.addEventListener('pointercancel', endPtr);
+  bar.addEventListener('lostpointercapture', () => {
+    ptrId = null;
+    scrubbing = false;
+    moved = false;
+  });
+
+  tabs().forEach(tab => {
+    tab.addEventListener('click', (e) => {
+      if (suppressClick) {
+        e.preventDefault();
+        e.stopPropagation();
+        return;
+      }
+      activateTab(tab);
+    });
+  });
+})();
 
 /* ── PREMIUM LYRICS VIEWER ── */
 const LYRICS_RESUME_MS = 1500;

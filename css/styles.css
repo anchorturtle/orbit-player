@@ -1215,6 +1215,14 @@ html.orbit-resizing .win {
   gap: 4px;
   padding: 0 4px;
   flex-shrink: 0;
+  align-items: stretch;
+  touch-action: pan-y;
+  user-select: none;
+  -webkit-user-select: none;
+  cursor: grab;
+}
+.tracklist-tabs:active {
+  cursor: grabbing;
 }
 .tracklist-tabs .tab,
 .gallery-tabs .tab {
@@ -1225,16 +1233,30 @@ html.orbit-resizing .win {
   font-weight: 700;
   letter-spacing: .06em;
   text-transform: uppercase;
-  padding: 5px 4px;
+  padding: 5px 8px;
   border-radius: 999px;
   cursor: pointer;
-  flex: 1 1 0;
+  flex: 0 1 auto;
   min-width: 0;
   text-align: center;
   white-space: nowrap;
   overflow: hidden;
-  text-overflow: ellipsis;
-  transition: background .15s, color .15s, border-color .15s, box-shadow .2s, transform .2s var(--spring);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition:
+    background .18s ease,
+    color .18s ease,
+    border-color .18s ease,
+    box-shadow .22s ease,
+    transform .22s var(--spring),
+    flex-grow .34s var(--ease-out),
+    padding .34s var(--ease-out);
+}
+/* Active tab claims remaining row space so long labels (Instrumental) can breathe */
+.tracklist-tabs .tab.active {
+  flex: 1 1 auto;
+  padding: 5px 12px;
 }
 .gallery-tabs .tab { flex: 1 1 auto; padding: 4px 12px; }
 .tracklist-tabs .tab.active,
@@ -1247,6 +1269,42 @@ html.orbit-resizing .win {
 .tracklist-tabs .tab:hover:not(.active),
 .gallery-tabs .tab:hover:not(.active) {
   background: rgba(126,200,227,.12);
+}
+
+/* Dynamic short ↔ full label (Inst → Instrumental) */
+.tracklist-tabs .tab-short,
+.tracklist-tabs .tab-full {
+  display: inline-block;
+  overflow: hidden;
+  white-space: nowrap;
+  vertical-align: middle;
+  transition:
+    max-width .34s var(--ease-out),
+    opacity .22s ease,
+    transform .34s var(--ease-out);
+}
+.tracklist-tabs .tab-short {
+  max-width: 5.5em;
+  opacity: 1;
+  transform: translateY(0);
+}
+.tracklist-tabs .tab-full {
+  max-width: 0;
+  opacity: 0;
+  transform: translateY(2px);
+  pointer-events: none;
+}
+.tracklist-tabs .tab.active .tab-short {
+  max-width: 0;
+  opacity: 0;
+  transform: translateY(-2px);
+  pointer-events: none;
+}
+.tracklist-tabs .tab.active .tab-full {
+  max-width: 12em;
+  opacity: 1;
+  transform: translateY(0);
+  pointer-events: auto;
 }
 
 .gallery-panel[hidden] { display: none !important; }

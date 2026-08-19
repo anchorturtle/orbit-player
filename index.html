@@ -23,7 +23,7 @@
   <link rel="dns-prefetch" href="https://unpkg.com">
 
   <!-- Modular CSS first (critical path). ?v= busts stale device caches on deploy. -->
-  <link rel="stylesheet" href="css/styles.css?v=20260820l">
+  <link rel="stylesheet" href="css/styles.css?v=20260820n">
 
   <!-- Google Fonts -->
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
@@ -73,10 +73,18 @@
     <div class="win-body" style="padding:10px 8px 10px;gap:8px">
       <!-- Category tabs for tracklist -->
       <div class="tracklist-tabs">
-        <button class="tab active" data-category="all">All</button>
-        <button class="tab" data-category="rap">Raps</button>
-        <button class="tab" data-category="instrumental">Inst</button>
-        <button class="tab" data-category="albums">Albums</button>
+        <button class="tab active" data-category="all" aria-label="All">
+          <span class="tab-short">All</span><span class="tab-full">All</span>
+        </button>
+        <button class="tab" data-category="rap" aria-label="Raps">
+          <span class="tab-short">Raps</span><span class="tab-full">Raps</span>
+        </button>
+        <button class="tab" data-category="instrumental" aria-label="Instrumental">
+          <span class="tab-short">Inst</span><span class="tab-full">Instrumental</span>
+        </button>
+        <button class="tab" data-category="albums" aria-label="Albums">
+          <span class="tab-short">Albums</span><span class="tab-full">Albums</span>
+        </button>
       </div>
       <div style="padding:0 4px">
         <div class="search-wrap">
@@ -528,7 +536,7 @@
   <script src="https://unpkg.com/three@0.147.0/build/three.min.js"></script>
   <script src="js/utils.js?v=20260816a"></script>
   <script src="js/space3d.js?v=20260820j"></script>
-  <script src="js/player.js?v=20260819z"></script>
+  <script src="js/player.js?v=20260820n"></script>
   <script src="js/planet-swipe.js?v=20260820l"></script>
   <script src="js/gallery.js?v=20260819d"></script>
   <script src="js/main.js?v=20260819y"></script>
