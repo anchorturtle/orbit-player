@@ -336,23 +336,6 @@ html.orbit-resizing .win {
   touch-action: pan-y;
 }
 
-/* Track rotary shell — chrome only activates on mobile (.is-on) */
-.track-rotary {
-  display: flex;
-  flex-direction: column;
-  flex: 1 1 auto;
-  min-height: 0;
-  position: relative;
-}
-.track-rotary .track-rotary-lens,
-.track-rotary .track-rotary-hint {
-  display: none;
-}
-.track-rotary > #sidebar-tracklist {
-  flex: 1 1 auto;
-  min-height: 0;
-}
-
 #player-win {
   min-height: 0;
   min-width: 380px;
@@ -1231,11 +1214,10 @@ html.orbit-resizing .win {
 .gallery-tabs {
   display: flex;
   flex-wrap: nowrap;
-  gap: 3px;
-  padding: 0 2px;
+  gap: 4px;
+  padding: 0 4px;
   flex-shrink: 0;
-  align-items: center;
-  justify-content: center;
+  align-items: stretch;
   touch-action: manipulation;
   user-select: none;
   -webkit-user-select: none;
@@ -1251,12 +1233,12 @@ html.orbit-resizing .win {
   color: var(--baby-blue);
   font-size: 9px;
   font-weight: 700;
-  letter-spacing: .04em;
+  letter-spacing: .06em;
   text-transform: uppercase;
-  padding: 4px 7px;
+  padding: 5px 8px;
   border-radius: 999px;
   cursor: pointer;
-  flex: 0 0 auto; /* hug label — no empty pill stretch */
+  flex: 0 1 auto;
   min-width: 0;
   text-align: center;
   white-space: nowrap;
@@ -1264,21 +1246,21 @@ html.orbit-resizing .win {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  line-height: 1.15;
   transition:
     background .18s ease,
     color .18s ease,
     border-color .18s ease,
     box-shadow .22s ease,
     transform .22s var(--spring),
-    padding .28s var(--ease-out);
+    flex-grow .34s var(--ease-out),
+    padding .34s var(--ease-out);
 }
-/* Active stays content-sized; only label short→full grows the pill */
+/* Active tab claims remaining row space so long labels (Instrumental) can breathe */
 .tracklist-tabs .tab.active {
-  flex: 0 0 auto;
-  padding: 4px 8px;
+  flex: 1 1 auto;
+  padding: 5px 12px;
 }
-.gallery-tabs .tab { flex: 0 0 auto; padding: 4px 10px; }
+.gallery-tabs .tab { flex: 1 1 auto; padding: 4px 12px; }
 .tracklist-tabs .tab.active,
 .gallery-tabs .tab.active {
   background: linear-gradient(135deg, rgba(123,47,255,.22), rgba(45,91,255,.14));
@@ -1298,28 +1280,32 @@ html.orbit-resizing .win {
   overflow: hidden;
   white-space: nowrap;
   vertical-align: middle;
-  line-height: inherit;
   transition:
-    max-width .28s var(--ease-out),
-    opacity .18s ease;
+    max-width .34s var(--ease-out),
+    opacity .22s ease,
+    transform .34s var(--ease-out);
 }
 .tracklist-tabs .tab-short {
-  max-width: 5em;
+  max-width: 5.5em;
   opacity: 1;
+  transform: translateY(0);
 }
 .tracklist-tabs .tab-full {
   max-width: 0;
   opacity: 0;
+  transform: translateY(2px);
   pointer-events: none;
 }
 .tracklist-tabs .tab.active .tab-short {
   max-width: 0;
   opacity: 0;
+  transform: translateY(-2px);
   pointer-events: none;
 }
 .tracklist-tabs .tab.active .tab-full {
-  max-width: 11em;
+  max-width: 12em;
   opacity: 1;
+  transform: translateY(0);
   pointer-events: auto;
 }
 
@@ -2659,257 +2645,6 @@ html.orbit-resizing .win {
   .track-item { padding: 7px 8px !important; gap: 6px !important; }
   .track-title { font-size: 14px !important; }
   .track-artist { font-size: 10px !important; }
-
-  /* Vertical category rail — tracklist + gallery (phone) */
-  #tracklist-win .win-body,
-  #gallery-win .win-body {
-    position: relative !important;
-    padding: 6px 38px 6px 6px !important; /* gutter for right spine rail */
-    display: flex !important;
-    flex-direction: column !important;
-    min-height: 0 !important;
-    gap: 8px !important;
-  }
-  #tracklist-win .tracklist-tabs,
-  #gallery-win .gallery-tabs {
-    position: absolute;
-    top: 25%;
-    right: 2px;
-    bottom: auto;
-    width: 32px;
-    height: auto;
-    max-height: calc(100% - 12px);
-    margin: 0;
-    padding: 0;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    gap: 6px;
-    z-index: 8;
-    cursor: grab;
-    transform: translateY(-50%);
-  }
-  #tracklist-win .tracklist-tabs .tab,
-  #gallery-win .gallery-tabs .tab {
-    display: flex !important;
-    flex-direction: column !important;
-    flex: 0 0 auto !important;
-    width: 32px !important;
-    min-width: 32px !important;
-    max-width: 32px !important;
-    min-height: 0;
-    height: auto !important;
-    padding: 10px 0 !important;
-    writing-mode: horizontal-tb !important;
-    transform: none !important;
-    letter-spacing: 0 !important;
-    font-size: 10px !important;
-    line-height: 1.05 !important;
-    border-radius: 999px;
-    justify-content: center !important;
-    align-items: center !important;
-    overflow: visible !important;
-  }
-  #tracklist-win .tracklist-tabs .tab.active,
-  #gallery-win .gallery-tabs .tab.active {
-    flex: 0 0 auto !important;
-    padding: 12px 0 !important;
-  }
-  /* Upright stacked letters — writing-mode+rotate on buttons fails on iOS Firefox */
-  #tracklist-win .tracklist-tabs .tab-short,
-  #tracklist-win .tracklist-tabs .tab-full,
-  #gallery-win .gallery-tabs .tab-short,
-  #gallery-win .gallery-tabs .tab-full {
-    display: none !important;
-    writing-mode: vertical-lr !important;
-    text-orientation: upright !important;
-    transform: none !important;
-    max-width: none !important;
-    max-height: none !important;
-    opacity: 1 !important;
-    letter-spacing: 0.06em !important;
-    line-height: 1.08 !important;
-    white-space: nowrap !important;
-  }
-  #tracklist-win .tracklist-tabs .tab:not(.active) .tab-short,
-  #gallery-win .gallery-tabs .tab:not(.active) .tab-short {
-    display: block !important;
-  }
-  #tracklist-win .tracklist-tabs .tab.active .tab-full,
-  #gallery-win .gallery-tabs .tab.active .tab-full {
-    display: block !important;
-  }
-
-  /* ── Track rotary (no scroll — slide up/down like a dial) ── */
-  #tracklist-win .track-rotary {
-    position: relative;
-    flex: 1 1 auto;
-    min-height: 0;
-    display: flex;
-    flex-direction: column;
-  }
-  #tracklist-win .track-rotary.is-on {
-    touch-action: none;
-  }
-  #tracklist-win .track-rotary.is-on #sidebar-tracklist,
-  #tracklist-win .track-rotary.is-on #sidebar-tracklist.rotary-on {
-    overflow: hidden !important;
-    flex: 1 1 auto !important;
-    min-height: 180px;
-    height: 100%;
-    position: relative !important;
-    display: block !important;
-    padding: 0 6px !important;
-    gap: 0 !important;
-    touch-action: none !important;
-    -webkit-overflow-scrolling: auto;
-    overscroll-behavior: none;
-  }
-  #tracklist-win .track-rotary.is-on #drop-line {
-    display: none; /* shown by JS only while reordering */
-  }
-  #tracklist-win .track-rotary.is-on .album-head {
-    display: none !important;
-  }
-  #tracklist-win .track-rotary.is-on .album-group {
-    display: contents;
-  }
-  #tracklist-win .track-rotary.is-on #sidebar-tracklist .track-item {
-    position: absolute;
-    left: 4px;
-    right: 4px;
-    height: auto;
-    min-height: 52px;
-    margin: 0;
-    padding: 10px 10px !important;
-    box-sizing: border-box;
-    /* Original rounded glass row — not square */
-    border-radius: 10px;
-    background: transparent;
-    border: 1px solid transparent;
-    display: flex !important;
-    align-items: center;
-    gap: 8px !important;
-    pointer-events: auto;
-    opacity: 1 !important;
-    will-change: transform;
-    /* NEVER transition transform — JS owns it every frame */
-    transition: background .18s ease, border-color .18s ease;
-  }
-  #tracklist-win .track-rotary.is-on #sidebar-tracklist .track-item:hover {
-    /* keep JS translateY — do not zero transform */
-    background: rgba(45,91,255,.08);
-  }
-  #tracklist-win .track-rotary.is-on #sidebar-tracklist .drag-handle {
-    display: flex !important;
-    align-items: center;
-    justify-content: center;
-    flex-shrink: 0;
-    width: 28px;
-    height: 40px;
-    margin: 0;
-    padding: 0;
-    pointer-events: auto !important;
-    touch-action: none;
-    cursor: grab;
-    color: rgba(150, 100, 255, .55);
-    z-index: 6;
-    -webkit-user-select: none;
-    user-select: none;
-  }
-  #tracklist-win .track-rotary.is-on #sidebar-tracklist .drag-handle.grabbing {
-    cursor: grabbing;
-    color: var(--jestr-purple);
-  }
-  #tracklist-win .track-rotary.is-on.is-dragging #sidebar-tracklist .track-item {
-    transition: none;
-  }
-  /* Original active row look — do NOT touch transform (that was killing titles) */
-  #tracklist-win .track-rotary.is-on #sidebar-tracklist .track-item.active,
-  #tracklist-win .track-rotary.is-on #sidebar-tracklist .track-item.rotary-center {
-    background: linear-gradient(90deg, rgba(123,47,255,.14), rgba(45,91,255,.08)) !important;
-    border-color: rgba(123,47,255,.3) !important;
-    box-shadow: none;
-  }
-  #tracklist-win .track-rotary.is-on #sidebar-tracklist .track-item.rotary-center .track-title,
-  #tracklist-win .track-rotary.is-on #sidebar-tracklist .track-item.active .track-title {
-    color: #e9e1de !important;
-    visibility: visible !important;
-    opacity: 1 !important;
-  }
-  #tracklist-win .track-rotary.is-on #sidebar-tracklist .track-item .track-title,
-  #tracklist-win .track-rotary.is-on #sidebar-tracklist .track-item .track-artist {
-    visibility: visible !important;
-    opacity: 1 !important;
-  }
-  #tracklist-win .track-rotary-lens {
-    display: none;
-  }
-  #tracklist-win .track-rotary.is-on .track-rotary-lens {
-    display: block;
-    position: absolute;
-    left: 0;
-    right: 0;
-    top: 25%;
-    height: 56px;
-    margin-top: -28px;
-    border-radius: 0;
-    border: none;
-    border-top: 1px solid rgba(123,47,255,.45);
-    border-bottom: 1px solid rgba(123,47,255,.45);
-    background: transparent;
-    box-shadow: inset 0 0 24px rgba(123,47,255,.12);
-    pointer-events: none;
-    z-index: 4;
-  }
-  #tracklist-win .track-rotary.is-on .track-rotary-lens.tick {
-    animation: orbit-rotary-bubble .22s cubic-bezier(.34, 1.56, .64, 1);
-  }
-  @keyframes orbit-rotary-bubble {
-    0%   { transform: scale(1); filter: brightness(1); }
-    45%  { transform: scale(1.035); filter: brightness(1.18); box-shadow: 0 0 28px rgba(123,47,255,.5), inset 0 1px 0 rgba(255,255,255,.18); }
-    100% { transform: scale(1); filter: brightness(1); }
-  }
-  #tracklist-win .track-rotary.is-on::before,
-  #tracklist-win .track-rotary.is-on::after {
-    content: "";
-    position: absolute;
-    left: 0;
-    right: 0;
-    z-index: 5;
-    pointer-events: none;
-  }
-  #tracklist-win .track-rotary.is-on::before {
-    top: 0;
-    height: 12%;
-    background: linear-gradient(to bottom, rgba(7,4,20,.92), transparent);
-  }
-  #tracklist-win .track-rotary.is-on::after {
-    bottom: 0;
-    height: 42%;
-    background: linear-gradient(to top, rgba(7,4,20,.92), transparent);
-  }
-  #tracklist-win .track-rotary-hint {
-    display: none;
-  }
-  #tracklist-win .track-rotary.is-on .track-rotary-hint {
-    display: block;
-    position: absolute;
-    top: 8px;
-    left: 50%;
-    transform: translateX(-50%);
-    z-index: 6;
-    font-size: 9px;
-    font-weight: 700;
-    letter-spacing: .18em;
-    text-transform: uppercase;
-    color: rgba(126,200,227,.45);
-    pointer-events: none;
-  }
-  /* Compact search above rotary */
-  #tracklist-win .search-wrap {
-    margin: 0 2px;
-  }
 
   .gallery-grid {
     grid-template-columns: repeat(2, 1fr) !important;

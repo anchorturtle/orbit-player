@@ -325,11 +325,6 @@ function toggleWin(winId, btnId) {
       renderGallery();
       // Gallery now uses the same native scroller as tracklist — no custom update needed
     }
-    if (winId === 'tracklist-win' && window.OrbitTrackRotary) {
-      // Height is 0 while display:none — layout after open
-      requestAnimationFrame(() => OrbitTrackRotary.refresh());
-      setTimeout(() => OrbitTrackRotary.refresh(), 80);
-    }
 
     // Same aggressive bring-to-front retries for reliability (desktop dock clicks)
     const doBring = () => bringToFront(winId);
@@ -568,10 +563,6 @@ makeWindowDraggable('lyrics-win', 'lyrics-bar');
     // Ensure player sheet starts above the full-height tracklist (prevents z fighting / click-through on mobile).
     if (typeof bringToFront === 'function') bringToFront('player-win');
     if (typeof syncWindowGlassTiers === 'function') syncWindowGlassTiers();
-    if (window.OrbitTrackRotary) {
-      requestAnimationFrame(() => OrbitTrackRotary.refresh());
-      setTimeout(() => OrbitTrackRotary.refresh(), 100);
-    }
   }
 
   window.addEventListener('resize', () => {

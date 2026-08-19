@@ -1461,7 +1461,6 @@ function loadTrack(idx, autoplay) {
   document.querySelectorAll('.track-item').forEach(el => {
     el.classList.toggle('active', +el.dataset.idx === idx);
   });
-  if (window.OrbitTrackRotary) OrbitTrackRotary.syncToIndex(idx);
 
   // If the song detail/info window is open, update its content in real-time to the new song
   const detailWin = document.getElementById('song-detail-win');
@@ -1870,12 +1869,10 @@ function renderTracklist(filter) {
       groupItems.forEach(({ t, origIdx }) => group.appendChild(makeTrackRow(t, origIdx)));
       container.appendChild(group);
     });
-    if (window.OrbitTrackRotary) OrbitTrackRotary.refresh();
     return;
   }
 
   items.forEach(({ t, origIdx }) => container.appendChild(makeTrackRow(t, origIdx)));
-  if (window.OrbitTrackRotary) OrbitTrackRotary.refresh();
 }
 
 function fmtDur(sec) {
@@ -2027,8 +2024,7 @@ window.openAlbumWindow = openAlbumWindow;
     dragMoved = false;
     item.classList.add('is-dragging');
     handle.classList.add('grabbing');
-    if (e && e.preventDefault) e.preventDefault();
-    if (e && e.stopPropagation) e.stopPropagation();
+    e.preventDefault();
   }
 
   function onMove(clientY) {
@@ -2068,28 +2064,17 @@ window.openAlbumWindow = openAlbumWindow;
     renderTracklist(document.getElementById('search-input').value);
   }
 
-  function onHandlePointerDown(e) {
-    const handle = e.target.closest && e.target.closest('.drag-handle');
-    if (!handle || !container.contains(handle)) return;
-    if (e.button != null && e.button !== 0) return;
-    startDrag(handle, e);
-    try { handle.setPointerCapture(e.pointerId); } catch (err) {}
-  }
-
-  container.addEventListener('pointerdown', onHandlePointerDown);
   container.addEventListener('mousedown', e => {
     const handle = e.target.closest('.drag-handle');
     if (handle) startDrag(handle, e);
   });
   container.addEventListener('touchstart', e => {
     const handle = e.target.closest('.drag-handle');
-    if (handle) { startDrag(handle, e.touches[0]); e.preventDefault(); }
+    if (handle) { startDrag(handle, e.touches[0]); }
   }, { passive: false });
 
-  window.addEventListener('pointermove', e => { if (dragging) onMove(e.clientY); });
   window.addEventListener('mousemove', e => { if (dragging) onMove(e.clientY); });
   window.addEventListener('touchmove', e => { if (dragging) { e.preventDefault(); onMove(e.touches[0].clientY); } }, { passive: false });
-  window.addEventListener('pointerup', endDrag);
   window.addEventListener('mouseup', endDrag);
   window.addEventListener('touchend', endDrag);
 })();
@@ -2098,278 +2083,14 @@ document.getElementById('search-input').addEventListener('input', function () {
   renderTracklist(this.value);
 });
 
-/* ── MOBILE TRACK ROTARY (slide up/down · snap · bubbly haptic) ── */
-window.OrbitTrackRotary = (function () {
-  const SLOT = 56;
-  /* Focus band sits above true center (25% from top) */
-  const FOCUS_Y = 0.25;
-  let items = [];
-  let pos = 0;
-  let sel = 0;
-  let lastTick = -1;
-  let dragging = false;
-  let moved = false;
-  let ptrId = null;
-  let startY = 0;
-  let startPos = 0;
-  let lastY = 0;
-  let lastT = 0;
-  let vy = 0;
-  let wired = false;
-  let raf = 0;
-  let startItem = null;
-  let springTo = null;
-  let springing = false;
-
-  function enabled() {
-    return window.matchMedia('(max-width: 767px)').matches;
-  }
-  function root() { return document.getElementById('track-rotary'); }
-  function list() { return document.getElementById('sidebar-tracklist'); }
-  function lens() { return root() && root().querySelector('.track-rotary-lens'); }
-  function count() { return Math.max(1, collect().length); }
-  function clampPos(p, n) {
-    const max = Math.max(0, n - 1);
-    return Math.max(0, Math.min(max, p));
-  }
-
-  function collect() {
-    const c = list();
-    if (!c) return [];
-    return Array.from(c.querySelectorAll('.track-item'));
-  }
-
-  function tickFeel() {
-    try { if (navigator.vibrate) navigator.vibrate(8); } catch (e) {}
-    const el = lens();
-    if (!el) return;
-    el.classList.remove('tick');
-    requestAnimationFrame(() => { el.classList.add('tick'); });
-  }
-
-  function layout() {
-    const c = list();
-    const r = root();
-    if (!c) return;
-
-    if (!enabled()) {
-      if (r) r.classList.remove('is-on', 'is-dragging');
-      c.classList.remove('rotary-on');
-      collect().forEach(el => {
-        el.style.transform = '';
-        el.style.opacity = '';
-        el.style.zIndex = '';
-        el.classList.remove('rotary-center');
-      });
-      return;
-    }
-
-    if (r) r.classList.add('is-on');
-    c.classList.add('rotary-on');
-    items = collect();
-    if (!items.length) return;
-
-    const n = items.length;
-    const max = n - 1;
-    // Soft rubber at ends while dragging — never hard-clamp (that felt fidgety)
-    let vis = pos;
-    if (vis < 0) vis = vis * 0.32;
-    else if (vis > max) vis = max + (vis - max) * 0.32;
-
-    sel = Math.round(clampPos(vis, n));
-    const mid = Math.max(40, c.clientHeight * FOCUS_Y);
-
-    items.forEach((el, i) => {
-      const y = (i - vis) * SLOT + mid - SLOT / 2;
-      el.style.transform = 'translate3d(0,' + y + 'px,0)';
-      el.style.opacity = '1';
-      el.style.visibility = 'visible';
-      el.style.zIndex = String(20 + (i === sel ? 10 : 0));
-      el.classList.toggle('rotary-center', i === sel);
-      el.classList.toggle('active', +el.dataset.idx === currentIndex);
-    });
-  }
-
-  function scheduleLayout() {
-    if (raf) return;
-    raf = requestAnimationFrame(() => {
-      raf = 0;
-      layout();
-    });
-  }
-
-  function playSel() {
-    items = collect();
-    if (!items.length) return;
-    const i = Math.max(0, Math.min(items.length - 1, sel));
-    const idx = +items[i].dataset.idx;
-    if (!Number.isInteger(idx) || !TRACKS[idx]) return;
-    if (idx !== currentIndex) loadTrack(idx, true);
-    else if (!isPlaying) {
-      const btn = document.getElementById('btn-play');
-      if (btn) btn.click();
-    }
-  }
-
-  function startSpring(target, autoplay) {
-    const n = count();
-    springTo = clampPos(target, n);
-    if (springing) return;
-    springing = true;
-    const step = () => {
-      if (springTo == null) { springing = false; return; }
-      pos += (springTo - pos) * 0.24;
-      if (Math.abs(springTo - pos) < 0.012) {
-        pos = springTo;
-        sel = Math.round(pos);
-        lastTick = sel;
-        springTo = null;
-        springing = false;
-        layout();
-        if (autoplay) playSel();
-        return;
-      }
-      layout();
-      requestAnimationFrame(step);
-    };
-    requestAnimationFrame(step);
-  }
-
-  function commit(autoplay) {
-    items = collect();
-    if (!items.length) return;
-    startSpring(Math.round(pos), autoplay);
-  }
-
-  function refresh() {
-    items = collect();
-    if (!enabled()) { layout(); return; }
-    const i = items.findIndex(el => +el.dataset.idx === currentIndex);
-    pos = i >= 0 ? i : 0;
-    sel = Math.round(pos);
-    lastTick = sel;
-    springTo = null;
-    springing = false;
-    layout();
-  }
-
-  function syncToIndex(trackIdx) {
-    if (!enabled() || dragging || springing) return;
-    items = collect();
-    const i = items.findIndex(el => +el.dataset.idx === trackIdx);
-    if (i < 0) return;
-    pos = i;
-    sel = i;
-    lastTick = i;
-    layout();
-  }
-
-  function onDown(e) {
-    if (!enabled()) return;
-    if (e.button != null && e.button !== 0) return;
-    const c = list();
-    const r = root();
-    if (!c || !r || !r.classList.contains('is-on')) return;
-    if (e.target.closest && e.target.closest('input, button, a, .tracklist-tabs, .drag-handle')) return;
-
-    springTo = null;
-    springing = false;
-    ptrId = e.pointerId;
-    dragging = true;
-    moved = false;
-    startY = lastY = e.clientY;
-    startPos = pos;
-    lastT = performance.now();
-    vy = 0;
-    lastTick = Math.round(clampPos(pos, count()));
-    startItem = e.target.closest ? e.target.closest('.track-item') : null;
-    r.classList.add('is-dragging');
-    try { r.setPointerCapture(e.pointerId); } catch (err) {}
-  }
-
-  function onMove(e) {
-    if (!dragging || ptrId == null || e.pointerId !== ptrId) return;
-    const now = performance.now();
-    const dt = Math.max(1, now - lastT);
-    vy = (e.clientY - lastY) / dt;
-    lastY = e.clientX ? e.clientY : lastY;
-    lastY = e.clientY;
-    lastT = now;
-
-    const dy = e.clientY - startY;
-    if (Math.abs(dy) > 8) moved = true;
-
-    pos = startPos - dy / SLOT; // unbounded — rubber applied in layout
-
-    const tickAt = Math.round(clampPos(pos, count()));
-    if (tickAt !== lastTick) {
-      lastTick = tickAt;
-      tickFeel();
-    }
-    scheduleLayout();
-  }
-
-  function onUp(e) {
-    if (!dragging || (e && e.pointerId != null && e.pointerId !== ptrId)) return;
-    dragging = false;
-    ptrId = null;
-    const r = root();
-    if (r) {
-      r.classList.remove('is-dragging');
-      try { if (e && e.pointerId != null) r.releasePointerCapture(e.pointerId); } catch (err) {}
-    }
-
-    items = collect();
-    const n = Math.max(1, items.length);
-
-    if (!moved && startItem && items.includes(startItem)) {
-      const i = items.indexOf(startItem);
-      if (i >= 0) {
-        tickFeel();
-        startSpring(i, true);
-        startItem = null;
-        moved = false;
-        return;
-      }
-    }
-
-    let target = pos - vy * 90 / SLOT;
-    startSpring(Math.round(target), true);
-    startItem = null;
-    moved = false;
-  }
-
-  function wire() {
-    if (wired) return;
-    wired = true;
-    const r = root();
-    if (!r) return;
-    r.addEventListener('pointerdown', onDown);
-    r.addEventListener('pointermove', onMove);
-    r.addEventListener('pointerup', onUp);
-    r.addEventListener('pointercancel', onUp);
-    window.addEventListener('resize', () => {
-      if (enabled()) refresh();
-      else layout();
-    });
-  }
-
-  // boot after DOM ready (player.js is at end of body)
-  wire();
-
-  return { refresh, syncToIndex, layout, enabled };
-})();
-
 /* ── TRACKLIST CATEGORY TABS ── */
 /* Tap a tab, drag-scrub the bar, flick the bar, or swipe the tracklist
-   body horizontally (not the drag handle) to change category.
-   On phone the bar is a vertical rail on the right — scrub axis follows. */
+   body horizontally (not the drag handle) to change category. */
 (function wireTracklistTabs() {
   const bar = document.querySelector('#tracklist-win .tracklist-tabs');
   const list = document.getElementById('sidebar-tracklist');
   if (!bar) return;
   const tabs = () => Array.from(bar.querySelectorAll('.tab'));
-  const railVertical = () => window.matchMedia('(max-width: 767px)').matches;
 
   function activateTab(tab) {
     if (!tab) return;
@@ -2382,7 +2103,7 @@ window.OrbitTrackRotary = (function () {
   }
 
   function tabAtPoint(clientX, clientY) {
-    // Geometry hit-test (pointer capture breaks elementFromPoint on iOS)
+    // Prefer geometry over elementFromPoint — pointer capture breaks hit-tests on iOS
     const listTabs = tabs();
     for (let i = 0; i < listTabs.length; i++) {
       const r = listTabs[i].getBoundingClientRect();
@@ -2390,17 +2111,10 @@ window.OrbitTrackRotary = (function () {
         return listTabs[i];
       }
     }
-    // Axis fallback while scrubbing slightly off the rail
-    if (railVertical()) {
-      for (let i = 0; i < listTabs.length; i++) {
-        const r = listTabs[i].getBoundingClientRect();
-        if (clientY >= r.top && clientY <= r.bottom) return listTabs[i];
-      }
-    } else {
-      for (let i = 0; i < listTabs.length; i++) {
-        const r = listTabs[i].getBoundingClientRect();
-        if (clientX >= r.left && clientX <= r.right) return listTabs[i];
-      }
+    // X-only fallback while scrubbing slightly above/below the bar
+    for (let i = 0; i < listTabs.length; i++) {
+      const r = listTabs[i].getBoundingClientRect();
+      if (clientX >= r.left && clientX <= r.right) return listTabs[i];
     }
     return null;
   }
@@ -2415,7 +2129,7 @@ window.OrbitTrackRotary = (function () {
 
   /* ── Tab bar: tap + scrub + flick ── */
   let barPtr = null;
-  let barStartX = 0, barStartY = 0, barLastX = 0, barLastY = 0, barLastT = 0, barVx = 0, barVy = 0;
+  let barStartX = 0, barStartY = 0, barLastX = 0, barLastT = 0, barVx = 0;
   let barScrubbing = false, barMoved = false, barStartTab = null;
 
   bar.addEventListener('pointerdown', (e) => {
@@ -2425,10 +2139,9 @@ window.OrbitTrackRotary = (function () {
     barPtr = e.pointerId;
     barStartTab = tab;
     barStartX = barLastX = e.clientX;
-    barStartY = barLastY = e.clientY;
+    barStartY = e.clientY;
     barLastT = performance.now();
     barVx = 0;
-    barVy = 0;
     barScrubbing = false;
     barMoved = false;
     try { bar.setPointerCapture(e.pointerId); } catch (_) {}
@@ -2439,9 +2152,7 @@ window.OrbitTrackRotary = (function () {
     const now = performance.now();
     const dt = Math.max(1, now - barLastT);
     barVx = (e.clientX - barLastX) / dt;
-    barVy = (e.clientY - barLastY) / dt;
     barLastX = e.clientX;
-    barLastY = e.clientY;
     barLastT = now;
 
     const adx = Math.abs(e.clientX - barStartX);
@@ -2449,9 +2160,7 @@ window.OrbitTrackRotary = (function () {
     if (!barMoved && adx < 8 && ady < 8) return;
     barMoved = true;
 
-    const vert = railVertical();
-    const alongRail = vert ? ady >= adx : adx >= ady;
-    if (alongRail) {
+    if (adx >= ady) {
       barScrubbing = true;
       const under = tabAtPoint(e.clientX, e.clientY);
       if (under) activateTab(under);
@@ -2460,25 +2169,19 @@ window.OrbitTrackRotary = (function () {
 
   function endBarPtr(e) {
     if (barPtr == null || (e && e.pointerId != null && e.pointerId !== barPtr)) return;
-    const cx = e && e.clientX != null ? e.clientX : barLastX;
-    const cy = e && e.clientY != null ? e.clientY : barLastY;
-    const totalDx = cx - barStartX;
-    const totalDy = cy - barStartY;
-    const vert = railVertical();
-    const mainDelta = vert ? totalDy : totalDx;
-    const crossDelta = vert ? totalDx : totalDy;
-    const mainV = vert ? barVy : barVx;
-    const flick = Math.abs(mainV) > 0.45 || Math.abs(mainDelta) > 28;
+    const totalDx = (e && e.clientX != null ? e.clientX : barLastX) - barStartX;
+    const totalDy = (e && e.clientY != null ? e.clientY : barStartY) - barStartY;
+    const flick = Math.abs(barVx) > 0.45 || Math.abs(totalDx) > 28;
 
     if (!barMoved) {
+      // Clean tap — activate the tab that was pressed
       activateTab(barStartTab);
     } else if (barScrubbing) {
-      const under = tabAtPoint(cx, cy);
+      // Already activated under finger during move; snap to final X
+      const under = tabAtPoint(e && e.clientX != null ? e.clientX : barLastX, e && e.clientY != null ? e.clientY : barStartY);
       if (under) activateTab(under);
-    } else if (flick && Math.abs(mainDelta) > Math.abs(crossDelta) * 1.1) {
-      // Vertical rail: swipe up = next (down the list visually after 180° spine),
-      // keep same mental model as horizontal (negative main axis → next).
-      stepTab(mainDelta < 0 ? 1 : -1);
+    } else if (flick && Math.abs(totalDx) > Math.abs(totalDy) * 1.1) {
+      stepTab(totalDx < 0 ? 1 : -1);
     }
 
     barPtr = null;
@@ -2491,6 +2194,7 @@ window.OrbitTrackRotary = (function () {
   bar.addEventListener('pointerup', endBarPtr);
   bar.addEventListener('pointercancel', endBarPtr);
 
+  // Buttons still get synthetic click on some browsers — activate is idempotent
   tabs().forEach(tab => {
     tab.addEventListener('click', (e) => {
       e.preventDefault();
@@ -2508,12 +2212,7 @@ window.OrbitTrackRotary = (function () {
 
   list.addEventListener('pointerdown', (e) => {
     if (e.button != null && e.button !== 0) return;
-    // Mobile rotary owns vertical gestures on the list
-    if (window.OrbitTrackRotary && OrbitTrackRotary.enabled && OrbitTrackRotary.enabled()) {
-      listIgnore = true;
-      listPtr = null;
-      return;
-    }
+    // Reorder owns the drag handle — leave it alone
     if (e.target.closest && e.target.closest('.drag-handle')) {
       listIgnore = true;
       listPtr = null;
@@ -2558,6 +2257,7 @@ window.OrbitTrackRotary = (function () {
     const flick = Math.abs(listVx) > 0.4 || Math.abs(totalDx) > 40;
 
     if (listAxis === 'h' && flick && Math.abs(totalDx) > Math.abs(totalDy) * 1.05) {
+      // Swipe left → next category, right → previous (same as tab bar)
       stepTab(totalDx < 0 ? 1 : -1);
     }
 

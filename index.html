@@ -23,7 +23,7 @@
   <link rel="dns-prefetch" href="https://unpkg.com">
 
   <!-- Modular CSS first (critical path). ?v= busts stale device caches on deploy. -->
-  <link rel="stylesheet" href="css/styles.css?v=20260820y">
+  <link rel="stylesheet" href="css/styles.css?v=20260820z">
 
   <!-- Google Fonts -->
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
@@ -80,7 +80,7 @@
           <span class="tab-short">Raps</span><span class="tab-full">Raps</span>
         </button>
         <button class="tab" data-category="instrumental" aria-label="Instrumental">
-          <span class="tab-short">INST</span><span class="tab-full">INSTRUMENTAL</span>
+          <span class="tab-short">Inst</span><span class="tab-full">Instrumental</span>
         </button>
         <button class="tab" data-category="albums" aria-label="Albums">
           <span class="tab-short">Albums</span><span class="tab-full">Albums</span>
@@ -92,14 +92,9 @@
           <input id="search-input" placeholder="Search tracks…" type="text" autocomplete="off"/>
         </div>
       </div>
-      <!-- Mobile rotary stage (desktop ignores chrome; list scrolls as usual) -->
-      <div class="track-rotary" id="track-rotary">
-        <div class="track-rotary-lens" aria-hidden="true"></div>
-        <div class="track-rotary-hint" aria-hidden="true">slide</div>
-        <!-- drop-line lives INSIDE the tracklist body so it is clipped to window width -->
-        <div style="flex:1;overflow-y:auto;display:flex;flex-direction:column;gap:1px;padding:0 4px;position:relative" class="no-scrollbar" id="sidebar-tracklist">
-          <div id="drop-line"></div>
-        </div>
+      <!-- drop-line lives INSIDE the tracklist body so it is clipped to window width -->
+      <div style="flex:1;overflow-y:auto;display:flex;flex-direction:column;gap:1px;padding:0 4px;position:relative" class="no-scrollbar" id="sidebar-tracklist">
+        <div id="drop-line"></div>
       </div>
     </div>
   </div>
@@ -124,12 +119,8 @@
     </div>
     <div class="win-body" style="padding:10px;gap:8px">
       <div class="gallery-tabs">
-        <button class="tab active" data-gallery-tab="images" aria-label="Images">
-          <span class="tab-short">Images</span><span class="tab-full">Images</span>
-        </button>
-        <button class="tab" data-gallery-tab="videos" aria-label="AI videos">
-          <span class="tab-short">AI</span><span class="tab-full">AI videos</span>
-        </button>
+        <button class="tab active" data-gallery-tab="images">Images</button>
+        <button class="tab" data-gallery-tab="videos">AI videos</button>
       </div>
       <!-- Same scroller pattern as tracklist (#sidebar-tracklist) -->
       <div style="flex:1; overflow-y:auto; display:block; padding:0 6px 0 0; position:relative" class="no-scrollbar" id="gallery-scroll-container">
@@ -545,9 +536,9 @@
   <script src="https://unpkg.com/three@0.147.0/build/three.min.js"></script>
   <script src="js/utils.js?v=20260816a"></script>
   <script src="js/space3d.js?v=20260820j"></script>
-  <script src="js/player.js?v=20260820y"></script>
+  <script src="js/player.js?v=20260820z"></script>
   <script src="js/planet-swipe.js?v=20260820l"></script>
   <script src="js/gallery.js?v=20260819d"></script>
-  <script src="js/main.js?v=20260820s"></script>
+  <script src="js/main.js?v=20260820z"></script>
 </body>
 </html>
