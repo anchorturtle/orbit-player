@@ -34,7 +34,22 @@
 
 * { box-sizing: border-box; }
 html, body { margin: 0; padding: 0; overflow: hidden; width: 100%; height: 100%; }
-body { font-family: 'Plus Jakarta Sans', sans-serif; background: #06040f; color: #e9e1de; }
+html, body, #planet-swipe-layer, #planet-bg, .focal-orbit, .focal-text, .focal-title, .focal-artist, .focal-eyebrow {
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  user-select: none;
+  -webkit-touch-callout: none;
+}
+body {
+  font-family: 'Plus Jakarta Sans', sans-serif; background: #06040f; color: #e9e1de;
+}
+/* Typing only — no free-range page select. Copy = lyrics/share buttons. */
+input, textarea {
+  -webkit-user-select: text;
+  -moz-user-select: text;
+  user-select: text;
+  -webkit-touch-callout: default;
+}
 
 #space-bg {
   position: fixed; inset: 0; z-index: 0; pointer-events: none;

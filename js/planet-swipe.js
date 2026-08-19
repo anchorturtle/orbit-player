@@ -134,6 +134,13 @@
   layer.addEventListener('pointermove', moveSwipe, { passive: true });
   layer.addEventListener('pointerup', endSwipe, { passive: true });
   layer.addEventListener('contextmenu', function (e) { e.preventDefault(); });
+  // iOS Firefox: long-press hold-to-pause must not open text-select / callout UI
+  layer.addEventListener('selectstart', function (e) { e.preventDefault(); });
+  document.addEventListener('selectstart', function (e) {
+    var t = e.target;
+    if (t && (t.tagName === 'INPUT' || t.tagName === 'TEXTAREA' || t.isContentEditable)) return;
+    e.preventDefault();
+  }, true);
   layer.addEventListener('pointercancel', function () {
     if (!active) return;
     active = false;
