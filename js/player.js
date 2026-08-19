@@ -2161,10 +2161,9 @@ window.OrbitTrackRotary = (function () {
     items.forEach((el, i) => {
       const y = (i - pos) * SLOT + mid - SLOT / 2;
       const d = Math.abs(i - pos);
-      const scale = Math.max(0.78, 1 - d * 0.1);
-      const op = Math.max(0.18, 1 - d * 0.32);
+      const scale = Math.max(0.9, 1 - d * 0.04);
       el.style.transform = `translate3d(0,${y}px,0) scale(${scale})`;
-      el.style.opacity = String(op);
+      el.style.opacity = '1';
       el.style.zIndex = String(100 - Math.round(d * 10));
       el.classList.toggle('rotary-center', i === sel);
       el.classList.toggle('active', +el.dataset.idx === currentIndex);

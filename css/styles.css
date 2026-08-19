@@ -2775,16 +2775,16 @@ html.orbit-resizing .win {
     padding: 8px 12px !important;
     box-sizing: border-box;
     border-radius: 14px;
-    background: rgba(255,255,255,.03);
-    border: 1px solid transparent;
+    background: rgba(12, 8, 28, .94);
+    border: 1px solid rgba(255,255,255,.06);
     display: flex !important;
     align-items: center;
     gap: 8px !important;
     pointer-events: none; /* selection via rotary drag only */
-    will-change: transform, opacity;
+    opacity: 1 !important;
+    will-change: transform;
     transition:
       transform .16s cubic-bezier(.22, 1, .36, 1),
-      opacity .16s ease,
       border-color .18s ease,
       background .18s ease,
       box-shadow .18s ease;
@@ -2792,12 +2792,16 @@ html.orbit-resizing .win {
   #tracklist-win .track-rotary.is-on.is-dragging #sidebar-tracklist .track-item {
     transition: none;
   }
+  /* Single selection chrome = lens only (no double border on the row) */
+  #tracklist-win .track-rotary.is-on #sidebar-tracklist .track-item.active,
   #tracklist-win .track-rotary.is-on #sidebar-tracklist .track-item.rotary-center {
-    background: linear-gradient(135deg, rgba(123,47,255,.18), rgba(45,91,255,.1));
-    border-color: rgba(123,47,255,.4);
-    box-shadow:
-      0 0 22px -6px rgba(123,47,255,.55),
-      inset 0 1px 0 rgba(255,255,255,.1);
+    background: rgba(18, 12, 40, .98) !important;
+    border-color: transparent !important;
+    box-shadow: none !important;
+  }
+  #tracklist-win .track-rotary.is-on #sidebar-tracklist .track-item.active::before,
+  #tracklist-win .track-rotary.is-on #sidebar-tracklist .track-item.rotary-center::before {
+    display: none !important;
   }
   #tracklist-win .track-rotary.is-on #sidebar-tracklist .track-item.rotary-center .track-title {
     color: #f2ece6 !important;
@@ -2814,13 +2818,11 @@ html.orbit-resizing .win {
     height: 56px;
     margin-top: -28px;
     border-radius: 16px;
-    border: 1px solid rgba(126,200,227,.22);
-    background:
-      linear-gradient(180deg, rgba(123,47,255,.12), rgba(45,91,255,.06));
+    border: 1px solid rgba(123,47,255,.45);
+    background: transparent;
     box-shadow:
-      0 0 0 1px rgba(123,47,255,.12),
-      0 8px 28px rgba(0,0,0,.35),
-      inset 0 1px 0 rgba(255,255,255,.12);
+      0 0 18px -4px rgba(123,47,255,.4),
+      inset 0 0 0 1px rgba(255,255,255,.06);
     pointer-events: none;
     z-index: 4;
   }
