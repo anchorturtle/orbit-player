@@ -319,7 +319,26 @@ html.orbit-resizing .win {
   padding-right: 6px;
 }
 
-#player-win { min-height: 0; min-width: 380px; contain: layout style; }
+#player-win {
+  min-height: 0;
+  min-width: 380px;
+  height: auto;
+  contain: layout style;
+  overflow: hidden !important;
+}
+#player-win .win-body,
+#player-win .player-faceplate {
+  overflow: hidden !important;
+  overflow-x: hidden !important;
+  overflow-y: hidden !important;
+  overscroll-behavior: none;
+}
+#player-win .win-resize.n,
+#player-win .win-resize.s,
+#player-win .win-resize.ne,
+#player-win .win-resize.nw,
+#player-win .win-resize.se,
+#player-win .win-resize.sw { display: none; }
 
 /* Song Detail Window polish */
 #song-detail-win .win-body {
@@ -346,11 +365,10 @@ html.orbit-resizing .win {
   transition: opacity 0.2s ease;
 }
 #player-win .win-body { 
-  overflow: hidden;
-  overflow-x: hidden;
+  overflow: hidden !important;
   padding: 6px 10px 8px !important;
   gap: 4px;
-  flex: 1 1 auto;
+  flex: 0 0 auto;
 }
 
 /* The first child is now our improved metadata header */
@@ -2415,10 +2433,11 @@ html.orbit-resizing .win {
     width: 100% !important; max-width: 100% !important; min-width: 0 !important;
     border-radius: 16px 16px 0 0 !important;
     border-left: none !important; border-right: none !important; border-bottom: none !important;
-    height: 36vh !important;
-    min-height: 200px !important;
-    max-height: 260px !important;
-    z-index: 600 !important; /* ensure player sheet is always above tracklist on mobile */
+    height: auto !important;
+    min-height: 0 !important;
+    max-height: none !important;
+    overflow: hidden !important;
+    z-index: 600 !important;
   }
   #player-win .win-bar {
     padding: 4px 10px 3px !important;

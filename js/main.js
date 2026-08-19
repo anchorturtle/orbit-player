@@ -47,6 +47,38 @@
   window.addEventListener('resize', () => { resize(); mkStars(); });
 })();
 
+/* ── PLAYER: never scroll — window height always matches chrome ── */
+function fitPlayerWindow() {
+  const pl = document.getElementById('player-win');
+  if (!pl || pl.style.display === 'none') return;
+  const body = pl.querySelector('.win-body');
+  if (body) {
+    body.style.overflow = 'hidden';
+    body.style.overflowY = 'hidden';
+    body.scrollTop = 0;
+  }
+  pl.scrollTop = 0;
+  if (typeof isMob === 'function' && isMob()) {
+    pl.style.height = 'auto';
+    if (typeof updateMobPlayerHeight === 'function') updateMobPlayerHeight();
+    return;
+  }
+  const keepTop = pl.style.top;
+  const keepLeft = pl.style.left;
+  const keepW = pl.style.width;
+  pl.style.height = 'auto';
+  const bar = document.getElementById('player-bar');
+  const needed = Math.ceil(
+    (bar ? bar.getBoundingClientRect().height : 36) +
+    (body ? Math.max(body.scrollHeight, body.offsetHeight) : 220)
+  );
+  pl.style.height = needed + 'px';
+  if (keepW) pl.style.width = keepW;
+  if (keepLeft) pl.style.left = keepLeft;
+  if (keepTop) pl.style.top = keepTop;
+}
+window.fitPlayerWindow = fitPlayerWindow;
+
 /* ── DESKTOP LAYOUT (auto-position windows) — tuned for good visual alignment around the central planet.
    Player is intentionally compact + low so the big glowing planet + overlaid "NOW PLAYING" focal
    title/artist remain the hero visual and are not covered by the media player. */
@@ -94,11 +126,8 @@ function applyDesktopLayout() {
     pl.style.height = 'auto';
     pl.style.left = Math.max(PAD, cx - plW / 2) + 'px';
     pl.style.bottom = ''; pl.style.right = '';
-    const bar = document.getElementById('player-bar');
-    const body = pl.querySelector('.win-body');
-    const needed = Math.ceil((bar ? bar.getBoundingClientRect().height : 36) + (body ? body.scrollHeight : 220) + 2);
-    const plH = Math.max(needed, 260);
-    pl.style.height = plH + 'px';
+    if (typeof fitPlayerWindow === 'function') fitPlayerWindow();
+    const plH = pl.offsetHeight || 260;
     pl.style.top = Math.max(PAD + 20, Math.min(usableH - plH - PAD - 10, cy + 300)) + 'px';
   }
 
@@ -203,12 +232,17 @@ function makeWindowDraggable(winId, barId) {
     // Ensure scrollbars recalculate properly after the window has been resized
     const scrollers = win.querySelectorAll('.win-body, #sidebar-tracklist');
     scrollers.forEach(el => {
+      if (winId === 'player-win' || el.closest('#player-win')) {
+        el.style.overflow = 'hidden';
+        el.style.overflowY = 'hidden';
+        return;
+      }
       const prev = el.style.overflowY;
       el.style.overflowY = 'hidden';
-      // force reflow
       void el.offsetHeight;
       el.style.overflowY = prev || 'auto';
     });
+    if (winId === 'player-win' && typeof fitPlayerWindow === 'function') fitPlayerWindow();
 
     // Clamp after manual resize/drag so the window can't end up partially off-screen or cut off.
     if (typeof clampWindowToViewport === 'function') {
@@ -618,7 +652,7 @@ makeWindowDraggable('lyrics-win', 'lyrics-bar');
         let newW = rect.width;
         let newH = rect.height;
         const minW = (id === 'player-win' ? 380 : 240);
-        const minH = (id === 'player-win' ? 270 : 200);
+        const minH = (id === 'player-win' ? (w.offsetHeight || 200) : 200);
         const maxW = Math.max(minW, vw - 16);
         const maxH = Math.max(minH, vh - 16);
         let changed = false;

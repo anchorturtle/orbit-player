@@ -1366,6 +1366,10 @@ function loadTrack(idx, autoplay) {
     syncDetailPlayIcon();
   }
 
+  if (typeof fitPlayerWindow === 'function') {
+    requestAnimationFrame(() => fitPlayerWindow());
+  }
+
   // Media Session API — makes it behave like a real music player on mobile
   // (lock screen controls, background playback, screen off, notification)
   if ('mediaSession' in navigator) {
