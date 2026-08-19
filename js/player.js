@@ -2027,7 +2027,8 @@ window.openAlbumWindow = openAlbumWindow;
     dragMoved = false;
     item.classList.add('is-dragging');
     handle.classList.add('grabbing');
-    e.preventDefault();
+    if (e && e.preventDefault) e.preventDefault();
+    if (e && e.stopPropagation) e.stopPropagation();
   }
 
   function onMove(clientY) {
@@ -2067,17 +2068,28 @@ window.openAlbumWindow = openAlbumWindow;
     renderTracklist(document.getElementById('search-input').value);
   }
 
+  function onHandlePointerDown(e) {
+    const handle = e.target.closest && e.target.closest('.drag-handle');
+    if (!handle || !container.contains(handle)) return;
+    if (e.button != null && e.button !== 0) return;
+    startDrag(handle, e);
+    try { handle.setPointerCapture(e.pointerId); } catch (err) {}
+  }
+
+  container.addEventListener('pointerdown', onHandlePointerDown);
   container.addEventListener('mousedown', e => {
     const handle = e.target.closest('.drag-handle');
     if (handle) startDrag(handle, e);
   });
   container.addEventListener('touchstart', e => {
     const handle = e.target.closest('.drag-handle');
-    if (handle) { startDrag(handle, e.touches[0]); }
+    if (handle) { startDrag(handle, e.touches[0]); e.preventDefault(); }
   }, { passive: false });
 
+  window.addEventListener('pointermove', e => { if (dragging) onMove(e.clientY); });
   window.addEventListener('mousemove', e => { if (dragging) onMove(e.clientY); });
   window.addEventListener('touchmove', e => { if (dragging) { e.preventDefault(); onMove(e.touches[0].clientY); } }, { passive: false });
+  window.addEventListener('pointerup', endDrag);
   window.addEventListener('mouseup', endDrag);
   window.addEventListener('touchend', endDrag);
 })();
@@ -2096,6 +2108,7 @@ window.OrbitTrackRotary = (function () {
   let sel = 0;
   let lastTick = -1;
   let dragging = false;
+  let moved = false;
   let ptrId = null;
   let startY = 0;
   let startPos = 0;
@@ -2104,6 +2117,7 @@ window.OrbitTrackRotary = (function () {
   let vy = 0;
   let wired = false;
   let raf = 0;
+  let startItem = null;
 
   function enabled() {
     return window.matchMedia('(max-width: 767px)').matches;
@@ -2160,11 +2174,10 @@ window.OrbitTrackRotary = (function () {
 
     items.forEach((el, i) => {
       const y = (i - pos) * SLOT + mid - SLOT / 2;
-      const d = Math.abs(i - pos);
-      const scale = Math.max(0.9, 1 - d * 0.04);
-      el.style.transform = `translate3d(0,${y}px,0) scale(${scale})`;
+      // Straight rows — no scale indent
+      el.style.transform = `translate3d(0,${y}px,0)`;
       el.style.opacity = '1';
-      el.style.zIndex = String(100 - Math.round(d * 10));
+      el.style.zIndex = String(20 + (i === Math.round(pos) ? 10 : 0));
       el.classList.toggle('rotary-center', i === sel);
       el.classList.toggle('active', +el.dataset.idx === currentIndex);
     });
@@ -2228,16 +2241,18 @@ window.OrbitTrackRotary = (function () {
     const c = list();
     const r = root();
     if (!c || !r || !r.classList.contains('is-on')) return;
-    // don't steal search / tabs
+    // don't steal search / tabs / reorder handle
     if (e.target.closest && e.target.closest('input, button, a, .tracklist-tabs, .drag-handle')) return;
 
     ptrId = e.pointerId;
     dragging = true;
+    moved = false;
     startY = lastY = e.clientY;
     startPos = pos;
     lastT = performance.now();
     vy = 0;
     lastTick = Math.round(pos);
+    startItem = e.target.closest ? e.target.closest('.track-item') : null;
     r.classList.add('is-dragging');
     try { r.setPointerCapture(e.pointerId); } catch (err) {}
   }
@@ -2250,8 +2265,10 @@ window.OrbitTrackRotary = (function () {
     lastY = e.clientY;
     lastT = now;
 
-    // finger up → earlier tracks (pos decreases)
     const dy = e.clientY - startY;
+    if (Math.abs(dy) > 8) moved = true;
+
+    // finger up → earlier tracks (pos decreases)
     const n = Math.max(1, collect().length);
     pos = startPos - dy / SLOT;
     pos = Math.max(0, Math.min(n - 1, pos));
@@ -2274,13 +2291,30 @@ window.OrbitTrackRotary = (function () {
       try { if (e && e.pointerId != null) r.releasePointerCapture(e.pointerId); } catch (err) {}
     }
 
-    // light inertia
-    const n = Math.max(1, collect().length);
+    items = collect();
+    const n = Math.max(1, items.length);
+
+    // Tap a visible row → jump to that song
+    if (!moved && startItem && items.includes(startItem)) {
+      const i = items.indexOf(startItem);
+      if (i >= 0) {
+        pos = i;
+        tickFeel();
+        commit(true);
+        startItem = null;
+        moved = false;
+        return;
+      }
+    }
+
+    // light inertia after a slide
     let target = pos - vy * 80 / SLOT;
     target = Math.max(0, Math.min(n - 1, target));
     pos = Math.round(target);
     tickFeel();
     commit(true);
+    startItem = null;
+    moved = false;
   }
 
   function wire() {
