@@ -1407,7 +1407,7 @@ function syncDetailPlayIcon() {
     if (currentIndex === detailIdx && isPlaying) {
       icon.textContent = 'pause';
       icon.classList.add('material-symbols-outlined');
-      icon.style.fontSize = '32px';
+      icon.style.fontSize = '37px';
     } else {
       icon.textContent = '';
       icon.classList.remove('material-symbols-outlined');
