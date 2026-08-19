@@ -2089,6 +2089,8 @@ document.getElementById('search-input').addEventListener('input', function () {
 /* ── MOBILE TRACK ROTARY (slide up/down · snap · bubbly haptic) ── */
 window.OrbitTrackRotary = (function () {
   const SLOT = 56;
+  /* Focus band sits above true center (25% from top) */
+  const FOCUS_Y = 0.25;
   let items = [];
   let pos = 0;
   let sel = 0;
@@ -2154,7 +2156,7 @@ window.OrbitTrackRotary = (function () {
     pos = Math.max(0, Math.min(n - 1, pos));
     sel = Math.round(pos);
     sel = Math.max(0, Math.min(n - 1, sel));
-    const mid = c.clientHeight / 2;
+    const mid = c.clientHeight * FOCUS_Y;
 
     items.forEach((el, i) => {
       const y = (i - pos) * SLOT + mid - SLOT / 2;
