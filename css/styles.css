@@ -2646,6 +2646,62 @@ html.orbit-resizing .win {
   .track-title { font-size: 14px !important; }
   .track-artist { font-size: 10px !important; }
 
+  /* Vertical category rail — right border anchor (phone) */
+  #tracklist-win .win-body {
+    position: relative !important;
+    padding: 6px 40px 6px 6px !important; /* leave gutter for right rail */
+  }
+  #tracklist-win .tracklist-tabs {
+    position: absolute;
+    top: 6px;
+    right: 3px;
+    bottom: 6px;
+    width: 32px;
+    margin: 0;
+    padding: 2px 0;
+    flex-direction: column;
+    justify-content: flex-start;
+    align-items: stretch;
+    gap: 5px;
+    z-index: 8;
+    cursor: grab;
+  }
+  #tracklist-win .tracklist-tabs .tab {
+    flex: 0 1 auto;
+    width: 100%;
+    min-width: 0;
+    min-height: 0;
+    padding: 10px 3px !important;
+    writing-mode: vertical-rl;
+    text-orientation: mixed;
+    transform: rotate(180deg); /* spine: read upward along the right edge */
+    letter-spacing: .1em;
+    font-size: 9px !important;
+    border-radius: 999px;
+    justify-content: center;
+  }
+  #tracklist-win .tracklist-tabs .tab.active {
+    flex: 1 1 auto; /* active tab grows down the rail for full label */
+    padding: 12px 3px !important;
+  }
+  #tracklist-win .tracklist-tabs .tab-short,
+  #tracklist-win .tracklist-tabs .tab-full {
+    max-width: none; /* height is the free axis on the rail */
+  }
+  #tracklist-win .tracklist-tabs .tab-full {
+    max-height: 0;
+  }
+  #tracklist-win .tracklist-tabs .tab-short {
+    max-height: 6em;
+  }
+  #tracklist-win .tracklist-tabs .tab.active .tab-short {
+    max-height: 0;
+  }
+  #tracklist-win .tracklist-tabs .tab.active .tab-full {
+    max-height: 14em;
+    max-width: none;
+  }
+
   .gallery-grid {
     grid-template-columns: repeat(2, 1fr) !important;
     gap: 4px !important;

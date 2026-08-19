@@ -2085,12 +2085,14 @@ document.getElementById('search-input').addEventListener('input', function () {
 
 /* ── TRACKLIST CATEGORY TABS ── */
 /* Tap a tab, drag-scrub the bar, flick the bar, or swipe the tracklist
-   body horizontally (not the drag handle) to change category. */
+   body horizontally (not the drag handle) to change category.
+   On phone the bar is a vertical rail on the right — scrub axis follows. */
 (function wireTracklistTabs() {
   const bar = document.querySelector('#tracklist-win .tracklist-tabs');
   const list = document.getElementById('sidebar-tracklist');
   if (!bar) return;
   const tabs = () => Array.from(bar.querySelectorAll('.tab'));
+  const railVertical = () => window.matchMedia('(max-width: 767px)').matches;
 
   function activateTab(tab) {
     if (!tab) return;
@@ -2103,7 +2105,7 @@ document.getElementById('search-input').addEventListener('input', function () {
   }
 
   function tabAtPoint(clientX, clientY) {
-    // Prefer geometry over elementFromPoint — pointer capture breaks hit-tests on iOS
+    // Geometry hit-test (pointer capture breaks elementFromPoint on iOS)
     const listTabs = tabs();
     for (let i = 0; i < listTabs.length; i++) {
       const r = listTabs[i].getBoundingClientRect();
@@ -2111,10 +2113,17 @@ document.getElementById('search-input').addEventListener('input', function () {
         return listTabs[i];
       }
     }
-    // X-only fallback while scrubbing slightly above/below the bar
-    for (let i = 0; i < listTabs.length; i++) {
-      const r = listTabs[i].getBoundingClientRect();
-      if (clientX >= r.left && clientX <= r.right) return listTabs[i];
+    // Axis fallback while scrubbing slightly off the rail
+    if (railVertical()) {
+      for (let i = 0; i < listTabs.length; i++) {
+        const r = listTabs[i].getBoundingClientRect();
+        if (clientY >= r.top && clientY <= r.bottom) return listTabs[i];
+      }
+    } else {
+      for (let i = 0; i < listTabs.length; i++) {
+        const r = listTabs[i].getBoundingClientRect();
+        if (clientX >= r.left && clientX <= r.right) return listTabs[i];
+      }
     }
     return null;
   }
@@ -2129,7 +2138,7 @@ document.getElementById('search-input').addEventListener('input', function () {
 
   /* ── Tab bar: tap + scrub + flick ── */
   let barPtr = null;
-  let barStartX = 0, barStartY = 0, barLastX = 0, barLastT = 0, barVx = 0;
+  let barStartX = 0, barStartY = 0, barLastX = 0, barLastY = 0, barLastT = 0, barVx = 0, barVy = 0;
   let barScrubbing = false, barMoved = false, barStartTab = null;
 
   bar.addEventListener('pointerdown', (e) => {
@@ -2139,9 +2148,10 @@ document.getElementById('search-input').addEventListener('input', function () {
     barPtr = e.pointerId;
     barStartTab = tab;
     barStartX = barLastX = e.clientX;
-    barStartY = e.clientY;
+    barStartY = barLastY = e.clientY;
     barLastT = performance.now();
     barVx = 0;
+    barVy = 0;
     barScrubbing = false;
     barMoved = false;
     try { bar.setPointerCapture(e.pointerId); } catch (_) {}
@@ -2152,7 +2162,9 @@ document.getElementById('search-input').addEventListener('input', function () {
     const now = performance.now();
     const dt = Math.max(1, now - barLastT);
     barVx = (e.clientX - barLastX) / dt;
+    barVy = (e.clientY - barLastY) / dt;
     barLastX = e.clientX;
+    barLastY = e.clientY;
     barLastT = now;
 
     const adx = Math.abs(e.clientX - barStartX);
@@ -2160,7 +2172,9 @@ document.getElementById('search-input').addEventListener('input', function () {
     if (!barMoved && adx < 8 && ady < 8) return;
     barMoved = true;
 
-    if (adx >= ady) {
+    const vert = railVertical();
+    const alongRail = vert ? ady >= adx : adx >= ady;
+    if (alongRail) {
       barScrubbing = true;
       const under = tabAtPoint(e.clientX, e.clientY);
       if (under) activateTab(under);
@@ -2169,19 +2183,25 @@ document.getElementById('search-input').addEventListener('input', function () {
 
   function endBarPtr(e) {
     if (barPtr == null || (e && e.pointerId != null && e.pointerId !== barPtr)) return;
-    const totalDx = (e && e.clientX != null ? e.clientX : barLastX) - barStartX;
-    const totalDy = (e && e.clientY != null ? e.clientY : barStartY) - barStartY;
-    const flick = Math.abs(barVx) > 0.45 || Math.abs(totalDx) > 28;
+    const cx = e && e.clientX != null ? e.clientX : barLastX;
+    const cy = e && e.clientY != null ? e.clientY : barLastY;
+    const totalDx = cx - barStartX;
+    const totalDy = cy - barStartY;
+    const vert = railVertical();
+    const mainDelta = vert ? totalDy : totalDx;
+    const crossDelta = vert ? totalDx : totalDy;
+    const mainV = vert ? barVy : barVx;
+    const flick = Math.abs(mainV) > 0.45 || Math.abs(mainDelta) > 28;
 
     if (!barMoved) {
-      // Clean tap — activate the tab that was pressed
       activateTab(barStartTab);
     } else if (barScrubbing) {
-      // Already activated under finger during move; snap to final X
-      const under = tabAtPoint(e && e.clientX != null ? e.clientX : barLastX, e && e.clientY != null ? e.clientY : barStartY);
+      const under = tabAtPoint(cx, cy);
       if (under) activateTab(under);
-    } else if (flick && Math.abs(totalDx) > Math.abs(totalDy) * 1.1) {
-      stepTab(totalDx < 0 ? 1 : -1);
+    } else if (flick && Math.abs(mainDelta) > Math.abs(crossDelta) * 1.1) {
+      // Vertical rail: swipe up = next (down the list visually after 180° spine),
+      // keep same mental model as horizontal (negative main axis → next).
+      stepTab(mainDelta < 0 ? 1 : -1);
     }
 
     barPtr = null;
@@ -2194,7 +2214,6 @@ document.getElementById('search-input').addEventListener('input', function () {
   bar.addEventListener('pointerup', endBarPtr);
   bar.addEventListener('pointercancel', endBarPtr);
 
-  // Buttons still get synthetic click on some browsers — activate is idempotent
   tabs().forEach(tab => {
     tab.addEventListener('click', (e) => {
       e.preventDefault();
@@ -2212,7 +2231,6 @@ document.getElementById('search-input').addEventListener('input', function () {
 
   list.addEventListener('pointerdown', (e) => {
     if (e.button != null && e.button !== 0) return;
-    // Reorder owns the drag handle — leave it alone
     if (e.target.closest && e.target.closest('.drag-handle')) {
       listIgnore = true;
       listPtr = null;
@@ -2257,7 +2275,6 @@ document.getElementById('search-input').addEventListener('input', function () {
     const flick = Math.abs(listVx) > 0.4 || Math.abs(totalDx) > 40;
 
     if (listAxis === 'h' && flick && Math.abs(totalDx) > Math.abs(totalDy) * 1.05) {
-      // Swipe left → next category, right → previous (same as tab bar)
       stepTab(totalDx < 0 ? 1 : -1);
     }
 
