@@ -403,19 +403,6 @@ const TRACKS = [
     albumTrack: 4
   },
   {
-    title: 'Jungle Fever',
-    artist: 'jestR',
-    slug: 'jungle-fever',
-    file: "audio/albums/jestR- Don't Say Nothing About Them Building Blocks/Jungle Fever.mp3",
-    year: 2017,
-    description: '',
-    category: 'rap',
-    explicit: true,
-    album: "Don't Say Nothing About Them Building Blocks",
-    albumSlug: 'building-blocks',
-    albumTrack: 5
-  },
-  {
     title: 'Get',
     artist: 'jestR',
     slug: 'get',
@@ -427,18 +414,6 @@ const TRACKS = [
     album: "Don't Say Nothing About Them Building Blocks",
     albumSlug: 'building-blocks',
     albumTrack: 11
-  },
-  {
-    title: '"Winning"',
-    artist: 'jestR',
-    slug: 'winning',
-    file: "audio/albums/jestR- Don't Say Nothing About Them Building Blocks/Winning.mp3",
-    year: 2017,
-    description: '',
-    category: 'instrumental',
-    album: "Don't Say Nothing About Them Building Blocks",
-    albumSlug: 'building-blocks',
-    albumTrack: 6
   },
   {
     title: 'My Anthem',
@@ -1799,7 +1774,7 @@ document.getElementById('btn-download').addEventListener('click', () => {
 const EXPLICIT_TIP = 'Warning! Parental Advisory: explicit language may be used in this content.';
 
 function trackIsExplicit(t) {
-  return !!(t && (t.category === 'rap' || t.slug === 'mile-high' || t.slug === 'winning' || t.slug === 'exploding-galaxies'));
+  return !!(t && (t.category === 'rap' || t.slug === 'mile-high' || t.slug === 'exploding-galaxies'));
 }
 
 function explicitChipHTML(compact) {

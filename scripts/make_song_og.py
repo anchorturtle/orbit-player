@@ -25,7 +25,7 @@ SLUGS = [
     "jazzpot", "still-going-higher", "fat-stacks", "chokeslam",
     "grateful-sharpie", "tomb-of-the-creator", "blockbuster", "what-is-it-now",
     "got-nun", "sublime-beginnings", "space-radio", "exploding-galaxies",
-    "acid-rain", "four-twenty", "jungle-fever", "get", "winning", "my-anthem",
+    "acid-rain", "four-twenty", "get", "my-anthem",
     "nonnin", "whoiam2u", "free-dumb", "death-of-jestr",
 ]
 
@@ -44,8 +44,8 @@ TITLES = {
     "what-is-it-now": "What Is it Now?", "got-nun": "got nun?",
     "sublime-beginnings": "Sublime Beginnings", "space-radio": "Space Radio",
     "exploding-galaxies": "Exploding Galaxies", "acid-rain": "Acid Rain",
-    "four-twenty": "420", "jungle-fever": "Jungle Fever", "get": "Get",
-    "winning": "\"Winning\"", "my-anthem": "My Anthem", "nonnin": "Nonnin",
+    "four-twenty": "420", "get": "Get",
+    "my-anthem": "My Anthem", "nonnin": "Nonnin",
     "whoiam2u": "WHOiAM2u", "free-dumb": "free(dumb)",
     "death-of-jestr": "death of jestR",
 }
