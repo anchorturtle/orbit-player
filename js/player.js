@@ -455,19 +455,6 @@ const TRACKS = [
     albumTrack: 7
   },
   {
-    title: 'free(dumb)',
-    artist: 'jestR',
-    slug: 'free-dumb',
-    file: "audio/albums/jestR- Don't Say Nothing About Them Building Blocks/free(dumb).mp3",
-    year: 2017,
-    description: '',
-    category: 'rap',
-    explicit: true,
-    album: "Don't Say Nothing About Them Building Blocks",
-    albumSlug: 'building-blocks',
-    albumTrack: 8
-  },
-  {
     title: 'death of jestR',
     artist: 'jestR',
     slug: 'death-of-jestr',

@@ -26,7 +26,7 @@ SLUGS = [
     "grateful-sharpie", "tomb-of-the-creator", "blockbuster", "what-is-it-now",
     "got-nun", "sublime-beginnings", "space-radio", "exploding-galaxies",
     "acid-rain", "four-twenty", "get", "my-anthem",
-    "nonnin", "whoiam2u", "free-dumb", "death-of-jestr",
+    "nonnin", "whoiam2u", "death-of-jestr",
 ]
 
 TITLES = {
@@ -46,7 +46,7 @@ TITLES = {
     "exploding-galaxies": "Exploding Galaxies", "acid-rain": "Acid Rain",
     "four-twenty": "420", "get": "Get",
     "my-anthem": "My Anthem", "nonnin": "Nonnin",
-    "whoiam2u": "WHOiAM2u", "free-dumb": "free(dumb)",
+    "whoiam2u": "WHOiAM2u",
     "death-of-jestr": "death of jestR",
 }
 

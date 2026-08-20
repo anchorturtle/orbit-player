@@ -40,7 +40,6 @@ export async function onRequest(context) {
     'my-anthem': { title: 'My Anthem', artist: 'jestR' },
     'nonnin': { title: 'Nonnin', artist: 'jestR' },
     'whoiam2u': { title: 'WHOiAM2u', artist: 'jestR' },
-    'free-dumb': { title: 'free(dumb)', artist: 'jestR' },
     'death-of-jestr': { title: 'death of jestR', artist: 'jestR' },
   };
 
