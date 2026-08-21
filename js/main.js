@@ -315,20 +315,19 @@ function toggleWin(winId, btnId) {
     }
     win.style.display = 'none'; btn.classList.remove('win-open');
   } else {
+    const wasHidden = !vis;
     win.style.display = 'flex'; btn.classList.add('win-open');
-    if (!isMob() && typeof restoreSessionWindowPosition === 'function') {
+    if (wasHidden && !isMob() && typeof restoreSessionWindowPosition === 'function') {
       // Restore the position from when this window was last closed in this session.
       // This makes nav-bar close/reopen remember the exact location.
       // On full page refresh we do NOT restore (standard layout is applied in init).
       restoreSessionWindowPosition(winId);
     }
     bringToFront(winId);
-    if (winId === 'gallery-win') {
+    if (winId === 'gallery-win' && wasHidden) {
       renderGallery();
-      // Gallery now uses the same native scroller as tracklist — no custom update needed
     }
 
-    // Same aggressive bring-to-front retries for reliability (desktop dock clicks)
     const doBring = () => bringToFront(winId);
     requestAnimationFrame(doBring);
     setTimeout(doBring, 80);

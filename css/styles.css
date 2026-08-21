@@ -597,6 +597,7 @@ html.orbit-resizing .win {
   justify-content: center;
   flex-shrink: 0;
   overflow: hidden;
+  justify-self: start;
 }
 
 .player-art-side .material-symbols-outlined {
@@ -635,10 +636,10 @@ html.orbit-resizing .win {
 }
 
 .player-info-side {
-  /* grid child, auto sized */
   display: flex;
   gap: 6px;
   align-items: center;
+  justify-self: end;
 }
 
 #btn-lyrics {
