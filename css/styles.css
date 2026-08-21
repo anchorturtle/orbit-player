@@ -605,12 +605,13 @@ html.orbit-resizing .win {
   filter: drop-shadow(0 0 6px rgba(123,47,255,.6));
 }
 
-/* Top row: art (music symbol), title, info button -- all at same y-position, properly spaced */
+/* Top row: equal side columns so the title stays on the play-button axis
+   even when the lyrics button appears on the right. */
 .player-top {
   display: grid;
-  grid-template-columns: auto 1fr auto;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.4fr) minmax(0, 1fr);
   align-items: start;
-  gap: 12px;
+  gap: 8px;
   width: 100%;
 }
 .player-song-header {
@@ -2588,9 +2589,9 @@ html.orbit-resizing .win {
     overflow: hidden !important; /* remove any internal scrolling on mobile player so all buttons are directly pressable */
   }
   .player-top {
-    gap: 8px !important;
+    gap: 6px !important;
     padding: 3px 6px !important;
-    grid-template-columns: 35px 1fr 35px !important;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1.4fr) minmax(0, 1fr) !important;
   }
   .player-art-side {
     width: 35px !important; height: 35px !important; flex: 0 0 35px !important;
