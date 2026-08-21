@@ -15,13 +15,51 @@ function isIOS() {
 /* ── Z-INDEX MANAGEMENT ── */
 let _zBase = 300;
 
+function isWinVisible(el) {
+  if (!el || el.id === 'dock-win') return false;
+  if (el.style.display === 'none') return false;
+  if (el.style.display === 'flex' || el.style.display === 'block') return true;
+  try {
+    return getComputedStyle(el).display !== 'none';
+  } catch (e) {
+    return false;
+  }
+}
+
+function winZ(el) {
+  const inline = parseInt(el && el.style.zIndex, 10);
+  if (inline) return inline;
+  try {
+    const css = parseInt(getComputedStyle(el).zIndex, 10);
+    if (css) return css;
+  } catch (e) { /* ignore */ }
+  return 0;
+}
+
+function highestVisibleWinZ(exceptId) {
+  let max = _zBase;
+  document.querySelectorAll('.win').forEach((el) => {
+    if (el.id === 'dock-win') return;
+    if (exceptId && el.id === exceptId) return;
+    if (!isWinVisible(el)) return;
+    const z = winZ(el);
+    if (z > max) max = z;
+  });
+  return max;
+}
+
+function isWinFront(el) {
+  if (!isWinVisible(el)) return false;
+  return winZ(el) >= highestVisibleWinZ(el.id);
+}
+
 /** Only the topmost visible window gets heavy glass blur; others use lite glass (same look, far cheaper). */
 function syncWindowGlassTiers() {
-  const wins = [...document.querySelectorAll('.win:not(#dock-win)')].filter(w => w.style.display === 'flex');
+  const wins = [...document.querySelectorAll('.win:not(#dock-win)')].filter(isWinVisible);
   let topZ = -1;
   let topWin = null;
   wins.forEach(w => {
-    const z = parseInt(w.style.zIndex, 10) || 0;
+    const z = winZ(w);
     if (z >= topZ) {
       topZ = z;
       topWin = w;
@@ -35,36 +73,35 @@ function syncWindowGlassTiers() {
 }
 
 function bringToFront(winId) {
-  _zBase++;
   const w = document.getElementById(winId);
-  if (w) {
-    let z = _zBase + 10;
-    // Modal viewers (gallery lightbox + video) sit above the normal desktop stack.
-    if (winId === 'image-win' || winId === 'video-win') {
-      z = Math.max(z, 640);
-      _zBase = Math.max(_zBase, z - 10);
-    }
-    if (winId === 'lyrics-win') {
-      z = Math.max(z, 650);
-      _zBase = Math.max(_zBase, z - 10);
-    }
-    if (isMob() && winId === 'gallery-win') {
-      z = Math.max(z, 650);
-      _zBase = Math.max(_zBase, z - 10);
-    }
-    // On mobile, the tracklist element is now full-height to the nav bar (to give "entire screen").
-    // Always keep it below the player sheet in z-order. This stops the tracklist from
-    // randomly coming to the front when tapping the (overlaid) media player, and ensures
-    // clicks cannot pass through / hit the wrong window.
-    if (isMob() && winId === 'tracklist-win') {
-      const pl = document.getElementById('player-win');
-      if (pl && pl.style.display === 'flex') {
-        const pz = parseInt(pl.style.zIndex) || 600;
-        z = Math.max(300, pz - 5); // stay below player
-      }
-    }
-    w.style.zIndex = z;
+  if (!w) {
+    syncWindowGlassTiers();
+    return;
   }
+  let z = highestVisibleWinZ(winId) + 10;
+  // Modal viewers (gallery lightbox + video) sit above the normal desktop stack.
+  if (winId === 'image-win' || winId === 'video-win') {
+    z = Math.max(z, 640);
+  }
+  if (winId === 'lyrics-win') {
+    z = Math.max(z, 650);
+  }
+  if (isMob() && winId === 'gallery-win') {
+    z = Math.max(z, 650);
+  }
+  // On mobile, the tracklist element is now full-height to the nav bar (to give "entire screen").
+  // Always keep it below the player sheet in z-order. This stops the tracklist from
+  // randomly coming to the front when tapping the (overlaid) media player, and ensures
+  // clicks cannot pass through / hit the wrong window.
+  if (isMob() && winId === 'tracklist-win') {
+    const pl = document.getElementById('player-win');
+    if (isWinVisible(pl)) {
+      const pz = winZ(pl) || 600;
+      z = Math.max(300, pz - 5);
+    }
+  }
+  w.style.zIndex = String(z);
+  _zBase = Math.max(_zBase, z);
   syncWindowGlassTiers();
 }
 

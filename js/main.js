@@ -307,7 +307,9 @@ function makeWindowDraggable(winId, barId) {
 function toggleWin(winId, btnId) {
   const win = document.getElementById(winId), btn = document.getElementById(btnId);
   if (!win || !btn) return;
-  if (win.style.display === 'flex') {
+  const vis = win.style.display === 'flex';
+  const front = typeof isWinFront === 'function' ? isWinFront(win) : vis;
+  if (vis && front) {
     if (!isMob() && typeof saveSessionWindowPosition === 'function') {
       saveSessionWindowPosition(winId);
     }
@@ -373,7 +375,7 @@ window.orbitDock = {
       btn.addEventListener('click', () => {
         const w = document.getElementById(winId);
         if (!w) return;
-        if (w.style.display === 'flex') {
+        if (w.style.display === 'flex' && typeof isWinFront === 'function' && isWinFront(w)) {
           if (winId === 'album-win' && typeof closeAlbumWindow === 'function') closeAlbumWindow();
           else if (winId === 'lyrics-win' && typeof closeLyricsViewer === 'function') closeLyricsViewer();
           else if (winId === 'video-win' && typeof closeVideoWin === 'function') closeVideoWin();
@@ -441,9 +443,7 @@ window.orbitDock = {
 function mobToggle(winId, btnId) {
   const win = document.getElementById(winId);
   const vis = win.style.display === 'flex';
-
-  const currentZ = parseInt(win.style.zIndex) || 0;
-  const isOnTop = currentZ >= _zBase + 10;
+  const isOnTop = typeof isWinFront === 'function' ? isWinFront(win) : ((parseInt(win.style.zIndex) || 0) >= _zBase + 10);
 
   if (vis && isOnTop) {
     /* second tap on the front window → hide */
