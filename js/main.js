@@ -312,6 +312,7 @@ function toggleWin(winId, btnId) {
       saveSessionWindowPosition(winId);
     }
     win.style.display = 'none'; btn.classList.remove('win-open');
+    if (winId === 'shop-win' && window.OrbitShop3D) OrbitShop3D.stop();
   } else {
     win.style.display = 'flex'; btn.classList.add('win-open');
     if (!isMob() && typeof restoreSessionWindowPosition === 'function') {
@@ -324,6 +325,9 @@ function toggleWin(winId, btnId) {
     if (winId === 'gallery-win') {
       renderGallery();
       // Gallery now uses the same native scroller as tracklist — no custom update needed
+    }
+    if (winId === 'shop-win' && typeof openShop === 'function') {
+      openShop();
     }
 
     // Same aggressive bring-to-front retries for reliability (desktop dock clicks)
@@ -341,6 +345,7 @@ function closeWin(winId, dockId, mobId) {
       saveSessionWindowPosition(winId);
     }
     w.style.display = 'none';
+    if (winId === 'shop-win' && window.OrbitShop3D) OrbitShop3D.stop();
   }
   if (dockId) { const b = document.getElementById(dockId); if (b) b.classList.remove('win-open'); }
   if (mobId) setMobActive(mobId, false);
@@ -449,6 +454,7 @@ function mobToggle(winId, btnId) {
     /* second tap on the front window → hide */
     win.style.display = 'none';
     setMobActive(btnId, false);
+    if (winId === 'shop-win' && window.OrbitShop3D) OrbitShop3D.stop();
   } else {
     /* first tap, or window was behind others → always show + front */
     win.style.display = 'flex';
@@ -458,6 +464,9 @@ function mobToggle(winId, btnId) {
     if (winId === 'gallery-win') {
       renderGallery();
       // Gallery now uses the same native scroller as tracklist — no custom update needed
+    }
+    if (winId === 'shop-win' && typeof openShop === 'function') {
+      openShop();
     }
 
     // Aggressive retries for gallery (and any window) on mobile for bringToFront reliability.
@@ -474,6 +483,10 @@ function mobToggle(winId, btnId) {
 document.getElementById('close-tracklist').addEventListener('click', () => closeWin('tracklist-win', 'btn-tracklist', 'btn-mob-tracks'));
 document.getElementById('close-gallery').addEventListener('click', () => closeWin('gallery-win', 'btn-gallery', 'btn-mob-gallery'));
 document.getElementById('close-player').addEventListener('click', () => closeWin('player-win', 'btn-player', 'btn-mob-player'));
+document.getElementById('close-shop')?.addEventListener('click', () => {
+  if (typeof closeShop === 'function') closeShop();
+  else closeWin('shop-win', 'btn-shop', 'btn-mob-shop');
+});
 document.getElementById('close-album')?.addEventListener('click', (e) => {
   e.preventDefault();
   e.stopPropagation();
@@ -501,6 +514,7 @@ makeWindowDraggable('image-win', 'image-win-bar');
 makeWindowDraggable('video-win', 'video-win-bar');
 makeWindowDraggable('song-detail-win', 'song-detail-bar');
 makeWindowDraggable('lyrics-win', 'lyrics-bar');
+makeWindowDraggable('shop-win', 'shop-bar');
 
 /* ── INIT ── */
 (function init() {

@@ -23,7 +23,7 @@
   <link rel="dns-prefetch" href="https://unpkg.com">
 
   <!-- Modular CSS first (critical path). ?v= busts stale device caches on deploy. -->
-  <link rel="stylesheet" href="css/styles.css?v=20260820z">
+  <link rel="stylesheet" href="css/styles.css?v=20260821d">
 
   <!-- Google Fonts -->
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
@@ -246,6 +246,9 @@
         <div class="orbit-image-controls-row" id="image-controls-row">
           <button type="button" id="img-btn-prev" class="ctrl-btn" title="Previous"><span class="material-symbols-outlined">chevron_left</span></button>
           <button type="button" id="img-btn-next" class="ctrl-btn" title="Next"><span class="material-symbols-outlined">chevron_right</span></button>
+          <button type="button" id="img-btn-merch" class="ctrl-btn" title="Wear this art">
+            <span class="material-symbols-outlined">checkroom</span>
+          </button>
           <span class="orbit-image-ctrl-spacer"></span>
           <button type="button" id="img-btn-fs-bar" class="ctrl-btn" title="Exit fullscreen">
             <span class="material-symbols-outlined" id="img-fs-bar-icon">fullscreen_exit</span>
@@ -478,6 +481,65 @@
     </div>
   </div>
 
+  <!-- SHOP WINDOW (opt-in merch; closed by default, no third-party until config) -->
+  <div id="shop-win" class="win" style="display:none;z-index:340">
+    <div class="win-resize nw" data-dir="nw"></div><div class="win-resize ne" data-dir="ne"></div>
+    <div class="win-resize sw" data-dir="sw"></div><div class="win-resize se" data-dir="se"></div>
+    <div class="win-resize n" data-dir="n"></div><div class="win-resize s" data-dir="s"></div>
+    <div class="win-resize e" data-dir="e"></div><div class="win-resize w" data-dir="w"></div>
+    <div class="win-bar" id="shop-bar">
+      <div class="win-bar-left">
+        <span class="material-symbols-outlined" style="font-size:12px;color:rgba(150,100,255,.5)">drag_indicator</span>
+        <span class="win-title" id="shop-win-title">Merch</span>
+        <span class="tape-counter" style="opacity:.6">POD</span>
+      </div>
+      <div class="win-bar-right">
+        <button class="win-close" id="shop-setup-toggle" title="Store link"><span class="material-symbols-outlined">settings</span></button>
+        <button class="win-close" id="close-shop" title="Close"><span class="material-symbols-outlined">close</span></button>
+      </div>
+    </div>
+    <div class="win-body shop-body">
+      <div class="shop-tabs shop-object-slider" id="shop-kinds" role="tablist" aria-label="Product"></div>
+      <div id="shop-setup" class="shop-setup" hidden>
+        <p class="shop-setup-kicker">Fourthwall URL</p>
+        <p>Paste the live store when the slug is ready. Visitors never see this panel.</p>
+        <div class="shop-url-row">
+          <input id="shop-url-input" type="url" placeholder="https://anchorturtle.fourthwall.com" autocomplete="off" spellcheck="false"/>
+          <button type="button" id="shop-url-save" class="shop-url-save">Save</button>
+        </div>
+        <a id="shop-signup-link" class="shop-signup-link" href="https://fourthwall.com/" target="_blank" rel="noopener noreferrer">Fourthwall dashboard</a>
+      </div>
+      <div class="shop-main">
+        <div class="shop-viewport">
+          <canvas id="shop-3d-canvas" class="shop-3d-canvas" aria-label="Spin the merch preview"></canvas>
+          <p class="shop-hint">Drag to spin · scroll to zoom</p>
+        </div>
+        <div class="shop-art-col">
+          <div class="shop-art-head">
+            <span class="win-title">Art</span>
+            <span class="tape-counter" id="shop-art-count" style="opacity:.6"></span>
+          </div>
+          <div id="shop-rail" class="shop-rail no-scrollbar"></div>
+        </div>
+      </div>
+      <div class="shop-edits">
+        <div class="shop-edits-meta">
+          <p class="tape-counter phosphor shop-kicker">Preview · not a photo mockup</p>
+          <h2 id="shop-design-name" class="shop-design-name">Pick a drop</h2>
+          <p id="shop-sku" class="shop-sku">Bella+Canvas 3001 · Front DTG chest</p>
+        </div>
+        <div id="shop-colors-wrap" class="shop-colors-wrap">
+          <span class="shop-colors-label">Color</span>
+          <div id="shop-colors" class="shop-colors"></div>
+        </div>
+        <button type="button" id="shop-order-btn" class="shop-order-btn">
+          <span class="material-symbols-outlined">open_in_new</span> Fourthwall
+        </button>
+      </div>
+      <p class="shop-note">Placement preview only. Tee is Bella+Canvas 3001–style front DTG. Mug default is Mugz WGM78 white glossy. Posters are unframed prints. Size and exact color are set at checkout.</p>
+    </div>
+  </div>
+
   <!-- DESKTOP DOCK -->
   <div id="dock-win" class="win">
     <div class="win-body">
@@ -500,6 +562,11 @@
       <button class="taskbar-btn win-open" id="btn-player" onclick="toggleWin('player-win','btn-player')">
         <span class="material-symbols-outlined">equalizer</span>
         <span>Player</span>
+        <div class="taskbar-dot"></div>
+      </button>
+      <button class="taskbar-btn" id="btn-shop" onclick="toggleWin('shop-win','btn-shop')">
+        <span class="material-symbols-outlined">checkroom</span>
+        <span>Shop</span>
         <div class="taskbar-dot"></div>
       </button>
       </div>
@@ -526,6 +593,11 @@
       <span>Gallery</span>
       <div class="mob-dot"></div>
     </button>
+    <button class="mob-btn" id="btn-mob-shop" onclick="mobToggle('shop-win','btn-mob-shop')">
+      <span class="material-symbols-outlined">checkroom</span>
+      <span>Shop</span>
+      <div class="mob-dot"></div>
+    </button>
     </div>
     <div id="mob-overflow" class="mob-overflow" hidden></div>
   </div>
@@ -539,6 +611,9 @@
   <script src="js/player.js?v=20260820ab"></script>
   <script src="js/planet-swipe.js?v=20260820l"></script>
   <script src="js/gallery.js?v=20260819d"></script>
+  <script src="js/shop-config.js?v=20260821d"></script>
+  <script src="js/shop-3d.js?v=20260821g"></script>
+  <script src="js/shop.js?v=20260821e"></script>
   <script src="js/main.js?v=20260820z"></script>
 </body>
 </html>

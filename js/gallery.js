@@ -152,7 +152,7 @@ let currentGalleryTab = 'images';
 
 function setGalleryTab(tab) {
   currentGalleryTab = tab;
-  document.querySelectorAll('.gallery-tabs .tab').forEach(t => {
+  document.querySelectorAll('#gallery-win .gallery-tabs .tab').forEach(t => {
     t.classList.toggle('active', t.dataset.galleryTab === tab);
   });
   const imgPanel = document.getElementById('gallery-panel-images');
@@ -161,16 +161,19 @@ function setGalleryTab(tab) {
   if (vidPanel) vidPanel.hidden = tab !== 'videos';
 }
 
-document.querySelectorAll('.gallery-tabs .tab').forEach(tab => {
+document.querySelectorAll('#gallery-win .gallery-tabs .tab').forEach(tab => {
   tab.addEventListener('click', () => setGalleryTab(tab.dataset.galleryTab));
 });
 
 function renderGalleryImages() {
   const grid = document.getElementById('gw-grid');
   if (!grid) return;
-  grid.innerHTML = GALLERY.map((g, i) =>
-    `<div class="gallery-item" data-gi="${i}"><img src="${g.src}" alt="" loading="lazy"/><button class="gallery-view-btn" title="Open in Viewer"><span class="material-symbols-outlined">zoom_in</span></button></div>`
-  ).join('');
+  grid.innerHTML = GALLERY.map((g, i) => {
+    const merch = (typeof shopIsSellable === 'function' && shopIsSellable(g.src))
+      ? `<button class="gallery-merch-btn" type="button" title="Wear this art"><span class="material-symbols-outlined">checkroom</span></button>`
+      : '';
+    return `<div class="gallery-item" data-gi="${i}"><img src="${g.src}" alt="" loading="lazy"/><button class="gallery-view-btn" title="Open in Viewer"><span class="material-symbols-outlined">zoom_in</span></button>${merch}</div>`;
+  }).join('');
 
   grid.querySelectorAll('.gallery-item').forEach(el => {
     const idx = +el.dataset.gi;
@@ -193,12 +196,21 @@ function renderGalleryImages() {
       if (Math.abs(e.clientX - sx) > MOVE_TOL || Math.abs(e.clientY - sy) > MOVE_TOL) { moved = true; }
     });
     el.addEventListener('pointerup', e => {
+      if (e.target.closest && e.target.closest('button')) return;
       if (e.pointerType === 'mouse' || e.pointerType === 'pen') { openImageWin(idx); return; }
       if (!ts) return;
       const dt = performance.now() - ts;
       ts = 0;
       if (!moved && dt >= TAP_MIN_MS && dt <= TAP_MAX_MS) { openImageWin(idx); }
     });
+    const merchBtn = el.querySelector('.gallery-merch-btn');
+    if (merchBtn) {
+      merchBtn.addEventListener('click', e => {
+        e.preventDefault();
+        e.stopPropagation();
+        if (typeof openShop === 'function') openShop(GALLERY[idx].src);
+      });
+    }
     el.addEventListener('pointercancel', () => { ts = 0; });
   });
 }
@@ -465,6 +477,10 @@ function openImageWin(idx) {
   const win = document.getElementById('image-win');
   _imgIdx = idx;
   document.getElementById('image-win-img').src = GALLERY[idx].src;
+  const merchBar = document.getElementById('img-btn-merch');
+  if (merchBar) {
+    merchBar.hidden = !(typeof shopIsSellable === 'function' && shopIsSellable(GALLERY[idx].src));
+  }
 
   if (isMob()) {
     /* FIX: on mobile force true full-screen dimensions via inline style
@@ -511,12 +527,23 @@ document.addEventListener('webkitfullscreenchange', syncImageFullscreenUi);
   if (fsBar) fsBar.addEventListener('click', (e) => { e.stopPropagation(); toggleImageFullscreen(); });
   if (prevBar) prevBar.addEventListener('click', (e) => { e.stopPropagation(); imgNavGo(-1); });
   if (nextBar) nextBar.addEventListener('click', (e) => { e.stopPropagation(); imgNavGo(1); });
+  const merchBar = document.getElementById('img-btn-merch');
+  if (merchBar) merchBar.addEventListener('click', (e) => {
+    e.stopPropagation();
+    const src = GALLERY[_imgIdx] && GALLERY[_imgIdx].src;
+    if (src && typeof openShop === 'function') openShop(src);
+  });
 })();
 
 /* ── IMAGE NAV ── */
 function imgNavGo(dir) {
   _imgIdx = (_imgIdx + dir + GALLERY.length) % GALLERY.length;
   document.getElementById('image-win-img').src = GALLERY[_imgIdx].src;
+  const merchBar = document.getElementById('img-btn-merch');
+  if (merchBar) {
+    const src = GALLERY[_imgIdx] && GALLERY[_imgIdx].src;
+    merchBar.hidden = !(typeof shopIsSellable === 'function' && shopIsSellable(src));
+  }
 }
 
 document.getElementById('img-nav-prev').addEventListener('click', () => imgNavGo(-1));
