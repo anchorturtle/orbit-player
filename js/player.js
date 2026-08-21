@@ -246,38 +246,27 @@ const TRACKS = [
     ],
   },
   {
-      title: 'Still Going Higher',
-      artist: 'jestR',
-      slug: 'still-going-higher',
-      file: 'audio/singles/Still_Going_Higher.mp3',
-      year: 2026,
-      description: 'Motivational rap track with driving energy.',
-      category: 'rap',
-      explicit: true,
-      lyrics: []
-    },
-    {
-      title: 'Fat Stacks',
-      artist: 'jestR',
-      slug: 'fat-stacks',
-      file: 'audio/singles/Fat Stacks.mp3',
-      year: 2024,
-      description: 'Rap track - fat stacks energy.',
-      category: 'rap',
-      explicit: true,
-      lyrics: []
-    },
-    {
-      title: 'Chokeslam',
-      artist: 'jestR',
-      slug: 'chokeslam',
-      file: 'audio/singles/Chokeslam.mp3',
-      year: 2024,
-      description: 'Rap track - chokeslam impact.',
-      category: 'rap',
-      explicit: true,
-      lyrics: []
-    },
+    title: 'Fat Stacks',
+    artist: 'jestR',
+    slug: 'fat-stacks',
+    file: 'audio/singles/Fat Stacks.mp3',
+    year: 2024,
+    description: 'Rap track - fat stacks energy.',
+    category: 'rap',
+    explicit: true,
+    lyrics: []
+  },
+  {
+    title: 'Chokeslam',
+    artist: 'jestR',
+    slug: 'chokeslam',
+    file: 'audio/singles/Chokeslam.mp3',
+    year: 2024,
+    description: 'Rap track - chokeslam impact.',
+    category: 'rap',
+    explicit: true,
+    lyrics: []
+  },
   {
     title: 'Grateful Sharpie',
     artist: 'jestR',
@@ -288,8 +277,69 @@ const TRACKS = [
     category: 'rap',
     explicit: true
   },
-
-  ,
+  {
+    title: 'My Anthem',
+    artist: 'jestR',
+    slug: 'my-anthem',
+    file: "audio/albums/jestR- Don't Say Nothing About Them Building Blocks/My Anthem.mp3",
+    year: 2017,
+    description: '',
+    category: 'rap',
+    explicit: true,
+    album: "Don't Say Nothing About Them Building Blocks",
+    albumSlug: 'building-blocks',
+    albumTrack: 2
+  },
+  {
+    title: 'Sublime Beginnings',
+    artist: 'jestR',
+    slug: 'sublime-beginnings',
+    file: "audio/albums/jestR- Don't Say Nothing About Them Building Blocks/Sublime Beginnings.mp3",
+    year: 2017,
+    description: '',
+    category: 'rap',
+    explicit: true,
+    album: "Don't Say Nothing About Them Building Blocks",
+    albumSlug: 'building-blocks',
+    albumTrack: 12
+  },
+  {
+    title: 'Nonnin',
+    artist: 'jestR',
+    slug: 'nonnin',
+    file: "audio/albums/jestR- Don't Say Nothing About Them Building Blocks/Nonnin.mp3",
+    year: 2017,
+    description: '',
+    category: 'rap',
+    explicit: true,
+    album: "Don't Say Nothing About Them Building Blocks",
+    albumSlug: 'building-blocks',
+    albumTrack: 3
+  },
+  {
+    title: 'WHOiAM2u',
+    artist: 'jestR',
+    slug: 'whoiam2u',
+    file: "audio/albums/jestR- Don't Say Nothing About Them Building Blocks/WHOiAM2u.mp3",
+    year: 2017,
+    description: '',
+    category: 'rap',
+    explicit: true,
+    album: "Don't Say Nothing About Them Building Blocks",
+    albumSlug: 'building-blocks',
+    albumTrack: 7
+  },
+  {
+    title: 'Still Going Higher',
+    artist: 'jestR',
+    slug: 'still-going-higher',
+    file: 'audio/singles/Still_Going_Higher.mp3',
+    year: 2026,
+    description: 'Motivational rap track with driving energy.',
+    category: 'rap',
+    explicit: true,
+    lyrics: []
+  },
   {
     title: 'Tomb of the Creator ft. Tevin Page',
     artist: 'jestR',
@@ -302,18 +352,6 @@ const TRACKS = [
     album: "act like you're doing something cuz i see everything",
     albumSlug: 'act-like-youre-doing-something',
     albumTrack: 1
-  },
-  {
-    title: 'Blockbuster ft. Tevin Page',
-    artist: 'jestR',
-    slug: 'blockbuster',
-    file: "audio/albums/jestR- act like your doing something cuz i see everything/2 - Blockbuster- jestR - act like you're doing something cuz i see everything.mp3",
-    year: 2018,
-    description: '',
-    category: 'instrumental',
-    album: "act like you're doing something cuz i see everything",
-    albumSlug: 'act-like-youre-doing-something',
-    albumTrack: 2
   },
   {
     title: 'What Is it Now?',
@@ -329,6 +367,57 @@ const TRACKS = [
     albumTrack: 3
   },
   {
+    title: '420',
+    artist: 'jestR',
+    slug: 'four-twenty',
+    file: "audio/albums/jestR- Don't Say Nothing About Them Building Blocks/420.mp3",
+    year: 2017,
+    description: '',
+    category: 'rap',
+    explicit: true,
+    album: "Don't Say Nothing About Them Building Blocks",
+    albumSlug: 'building-blocks',
+    albumTrack: 4
+  },
+  {
+    title: 'Get',
+    artist: 'jestR',
+    slug: 'get',
+    file: "audio/albums/jestR- Don't Say Nothing About Them Building Blocks/Get.mp3",
+    year: 2017,
+    description: '',
+    category: 'rap',
+    explicit: true,
+    album: "Don't Say Nothing About Them Building Blocks",
+    albumSlug: 'building-blocks',
+    albumTrack: 11
+  },
+  {
+    title: 'death of jestR',
+    artist: 'jestR',
+    slug: 'death-of-jestr',
+    file: "audio/albums/jestR- Don't Say Nothing About Them Building Blocks/death of jestR.mp3",
+    year: 2017,
+    description: '',
+    category: 'rap',
+    explicit: true,
+    album: "Don't Say Nothing About Them Building Blocks",
+    albumSlug: 'building-blocks',
+    albumTrack: 13
+  },
+  {
+    title: 'Blockbuster ft. Tevin Page',
+    artist: 'jestR',
+    slug: 'blockbuster',
+    file: "audio/albums/jestR- act like your doing something cuz i see everything/2 - Blockbuster- jestR - act like you're doing something cuz i see everything.mp3",
+    year: 2018,
+    description: '',
+    category: 'instrumental',
+    album: "act like you're doing something cuz i see everything",
+    albumSlug: 'act-like-youre-doing-something',
+    albumTrack: 2
+  },
+  {
     title: 'got nun?',
     artist: 'jestR',
     slug: 'got-nun',
@@ -339,19 +428,6 @@ const TRACKS = [
     album: "act like you're doing something cuz i see everything",
     albumSlug: 'act-like-youre-doing-something',
     albumTrack: 4
-  },
-  {
-    title: 'Sublime Beginnings',
-    artist: 'jestR',
-    slug: 'sublime-beginnings',
-    file: "audio/albums/jestR- Don't Say Nothing About Them Building Blocks/Sublime Beginnings.mp3",
-    year: 2017,
-    description: '',
-    category: 'rap',
-    explicit: true,
-    album: "Don't Say Nothing About Them Building Blocks",
-    albumSlug: 'building-blocks',
-    albumTrack: 12
   },
   {
     title: 'Space Radio',
@@ -388,84 +464,6 @@ const TRACKS = [
     album: "Don't Say Nothing About Them Building Blocks",
     albumSlug: 'building-blocks',
     albumTrack: 1
-  },
-  {
-    title: '420',
-    artist: 'jestR',
-    slug: 'four-twenty',
-    file: "audio/albums/jestR- Don't Say Nothing About Them Building Blocks/420.mp3",
-    year: 2017,
-    description: '',
-    category: 'rap',
-    explicit: true,
-    album: "Don't Say Nothing About Them Building Blocks",
-    albumSlug: 'building-blocks',
-    albumTrack: 4
-  },
-  {
-    title: 'Get',
-    artist: 'jestR',
-    slug: 'get',
-    file: "audio/albums/jestR- Don't Say Nothing About Them Building Blocks/Get.mp3",
-    year: 2017,
-    description: '',
-    category: 'rap',
-    explicit: true,
-    album: "Don't Say Nothing About Them Building Blocks",
-    albumSlug: 'building-blocks',
-    albumTrack: 11
-  },
-  {
-    title: 'My Anthem',
-    artist: 'jestR',
-    slug: 'my-anthem',
-    file: "audio/albums/jestR- Don't Say Nothing About Them Building Blocks/My Anthem.mp3",
-    year: 2017,
-    description: '',
-    category: 'rap',
-    explicit: true,
-    album: "Don't Say Nothing About Them Building Blocks",
-    albumSlug: 'building-blocks',
-    albumTrack: 2
-  },
-  {
-    title: 'Nonnin',
-    artist: 'jestR',
-    slug: 'nonnin',
-    file: "audio/albums/jestR- Don't Say Nothing About Them Building Blocks/Nonnin.mp3",
-    year: 2017,
-    description: '',
-    category: 'rap',
-    explicit: true,
-    album: "Don't Say Nothing About Them Building Blocks",
-    albumSlug: 'building-blocks',
-    albumTrack: 3
-  },
-  {
-    title: 'WHOiAM2u',
-    artist: 'jestR',
-    slug: 'whoiam2u',
-    file: "audio/albums/jestR- Don't Say Nothing About Them Building Blocks/WHOiAM2u.mp3",
-    year: 2017,
-    description: '',
-    category: 'rap',
-    explicit: true,
-    album: "Don't Say Nothing About Them Building Blocks",
-    albumSlug: 'building-blocks',
-    albumTrack: 7
-  },
-  {
-    title: 'death of jestR',
-    artist: 'jestR',
-    slug: 'death-of-jestr',
-    file: "audio/albums/jestR- Don't Say Nothing About Them Building Blocks/death of jestR.mp3",
-    year: 2017,
-    description: '',
-    category: 'rap',
-    explicit: true,
-    album: "Don't Say Nothing About Them Building Blocks",
-    albumSlug: 'building-blocks',
-    albumTrack: 13
   }
 ];
   window.ORBIT_TRACKS = TRACKS;
