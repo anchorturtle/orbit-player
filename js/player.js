@@ -1182,8 +1182,9 @@ function drawWaveform(playedFrac = 0) {
 
   // per-song palette (set by the 3D scene) so the wave rides the theme.
   // B = mid-brightness swirl color (readable when unplayed), C = bright accent.
-  const colB = cssVar('--track-b', '#7B2FFF');
-  const colC = cssVar('--track-c', '#00DCAA');
+  const holo = document.documentElement.classList.contains('theme-holo');
+  const colB = holo ? '#1A58E8' : cssVar('--track-b', cssVar('--jestr-blue', '#2D5BFF'));
+  const colC = holo ? '#C41422' : cssVar('--track-c', cssVar('--jestr-green', '#00C896'));
 
   const centerY = cssH * 0.42;            // asymmetric: tape-style reflection below
   const maxAmp = cssH * 0.40;
@@ -1781,9 +1782,9 @@ function makeTrackRow(t, origIdx) {
           <p class="track-title" style="font-weight:700;color:rgba(233,225,222,.82);margin:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${t.title}</p>
           ${eBadge}
         </div>
-        <p class="track-artist" style="font-weight:600;letter-spacing:.06em;text-transform:none;color:rgba(0,200,150,.5);margin:0">${t.artist}</p>
+        <p class="track-artist" style="font-weight:600;letter-spacing:.06em;text-transform:none;margin:0">${t.artist}</p>
       </div>
-      <span class="material-symbols-outlined" style="font-size:13px;color:rgba(150,100,255,.3);flex-shrink:0;font-variation-settings:'FILL' 1">music_note</span>`;
+      <span class="material-symbols-outlined track-note-icon" style="font-size:13px;opacity:.35;flex-shrink:0;font-variation-settings:'FILL' 1">music_note</span>`;
   el.addEventListener('click', e => {
     if (e.target.closest('.drag-handle')) return;
     loadTrack(origIdx, true);
@@ -2405,7 +2406,7 @@ async function updateLyricsViewer() {
         const orig = copyBtn.innerHTML;
         const origColor = copyBtn.style.color;
         copyBtn.innerHTML = '<span class="material-symbols-outlined">check</span>';
-        copyBtn.style.color = 'rgba(0,200,150,0.95)';
+        copyBtn.style.color = 'var(--jestr-green)';
         setTimeout(() => {
           copyBtn.innerHTML = orig;
           copyBtn.style.color = origColor || '';
@@ -2700,7 +2701,7 @@ function populateSongDetail(idx) {
       if (track.artwork) {
         const img = document.createElement('img');
         img.src = track.artwork;
-        img.style.cssText = 'width:100%;height:100%;object-fit:cover;border-radius:14px;';
+        img.style.cssText = 'width:100%;height:100%;object-fit:cover;border-radius:var(--win-radius, 14px);';
         artContainer.appendChild(img);
       } else {
         const icon = document.createElement('span');

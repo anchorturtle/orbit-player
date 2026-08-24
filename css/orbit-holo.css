@@ -1,0 +1,795 @@
+/* Holo skin: wire + light in air. Not painted plastic plates.
+   Off-black void. Cyan structure. Red only as grit. */
+
+html.theme-holo {
+  --grain-opacity: .42;
+  --scanline-opacity: 0;
+  --vignette-strength: .62;
+  --jestr-blue: #1A58E8;
+  --jestr-green: #1A58E8;
+  --jestr-purple: #0A1020;
+  --jestr-red: #C41422;
+  --baby-blue: #2D6BFF;
+  --track-a: #0A1020;
+  --track-b: #1A58E8;
+  --track-c: #C41422;
+  --win-bg: rgba(5, 6, 8, .92);
+  --win-border: #1A58E8;
+  --win-radius: 0px;
+  --win-shadow: 0 0 16px rgba(26, 88, 232, .22);
+}
+
+html.theme-holo,
+html.theme-holo body {
+  background: #050608;
+  color: #1A58E8;
+  font-family: 'Share Tech Mono', 'Rajdhani', sans-serif;
+}
+
+html.theme-holo body {
+  perspective: none;
+}
+
+html.theme-holo .holo-paper,
+html.theme-holo .scanlines,
+html.theme-holo #holo-iso-grid {
+  display: none !important;
+}
+
+html.theme-holo .grain-overlay {
+  display: block !important;
+  opacity: 0.55;
+  mix-blend-mode: multiply;
+  z-index: 190;
+  animation: none;
+  background-image:
+    radial-gradient(circle, #050608 0.55px, transparent 0.7px),
+    radial-gradient(circle, #C41422 0.4px, transparent 0.65px);
+  background-size: 3px 3px, 5px 7px;
+  background-position: 0 0, 1px 2px;
+}
+
+html.theme-holo .vignette {
+  background: radial-gradient(ellipse at center, transparent 52%, rgba(4, 6, 10, .7) 100%);
+}
+
+html.theme-holo #space-bg {
+  background: transparent;
+}
+
+html.theme-holo #planet-bg {
+  opacity: 1 !important;
+  visibility: visible !important;
+  pointer-events: none !important;
+}
+html.theme-holo .focal-orbit,
+html.theme-holo .focal-text {
+  opacity: 1 !important;
+  visibility: visible !important;
+}
+html.theme-holo .focal-text {
+  justify-content: flex-end !important;
+  padding-bottom: 20% !important;
+}
+html.theme-holo .focal-eyebrow,
+html.theme-holo .tape-counter.focal-eyebrow {
+  color: #1A58E8 !important;
+  opacity: 1 !important;
+  visibility: visible !important;
+  letter-spacing: 0.32em;
+  text-shadow:
+    0 0 8px rgba(26, 88, 232, .95),
+    0 0 18px rgba(26, 88, 232, .55),
+    0 1px 0 #050608 !important;
+}
+html.theme-holo .focal-title,
+html.theme-holo #focal-title {
+  position: relative;
+  isolation: isolate;
+  color: #C41422 !important;
+  -webkit-text-fill-color: #C41422 !important;
+  opacity: 1 !important;
+  visibility: visible !important;
+  text-shadow:
+    0 0 4px rgba(26, 88, 232, .95),
+    0 0 12px rgba(26, 88, 232, .85),
+    0 0 28px rgba(26, 88, 232, .55),
+    0 0 52px rgba(26, 88, 232, .32),
+    0 2px 0 #050608 !important;
+  filter:
+    drop-shadow(0 0 10px rgba(26, 88, 232, .75))
+    drop-shadow(0 0 26px rgba(26, 88, 232, .4));
+  font-size: clamp(28px, 4.2vw, 52px) !important;
+  animation: holoTitleFlicker 3.2s ease-in-out infinite;
+}
+html.theme-holo .focal-title::before,
+html.theme-holo #focal-title::before {
+  content: '';
+  position: absolute;
+  left: 50%;
+  top: 58%;
+  width: 118%;
+  height: 140%;
+  transform: translate(-50%, -50%);
+  background: radial-gradient(ellipse at 50% 55%,
+    rgba(26, 88, 232, .42) 0%,
+    rgba(26, 88, 232, .16) 38%,
+    transparent 72%);
+  pointer-events: none;
+  z-index: -1;
+  filter: blur(10px);
+  animation: holoHaloPulse 4.2s ease-in-out infinite;
+}
+html.theme-holo .focal-artist,
+html.theme-holo #focal-artist {
+  color: #1A58E8 !important;
+  opacity: 1 !important;
+  visibility: visible !important;
+  text-shadow:
+    0 0 8px rgba(26, 88, 232, .9),
+    0 0 20px rgba(26, 88, 232, .45) !important;
+}
+@keyframes holoTitleFlicker {
+  0%, 100% {
+    filter:
+      drop-shadow(0 0 8px rgba(26, 88, 232, .7))
+      drop-shadow(0 0 22px rgba(26, 88, 232, .35));
+  }
+  38% {
+    filter:
+      drop-shadow(0 0 14px rgba(26, 88, 232, .95))
+      drop-shadow(0 0 36px rgba(26, 88, 232, .55));
+  }
+  46% {
+    filter:
+      drop-shadow(0 0 6px rgba(26, 88, 232, .55))
+      drop-shadow(0 0 16px rgba(26, 88, 232, .28));
+  }
+  62% {
+    filter:
+      drop-shadow(0 0 16px rgba(26, 88, 232, 1))
+      drop-shadow(0 0 42px rgba(26, 88, 232, .5));
+  }
+}
+@keyframes holoHaloPulse {
+  0%, 100% { opacity: 0.72; transform: translate(-50%, -50%) scale(1); }
+  50% { opacity: 1; transform: translate(-50%, -50%) scale(1.08); }
+}
+
+html.theme-holo .phosphor:not(.focal-eyebrow):not(.focal-artist) {
+  color: #1A58E8 !important;
+  text-shadow: none !important;
+}
+html.theme-holo .tape-counter:not(.focal-eyebrow) {
+  color: #1A58E8 !important;
+  text-shadow: none !important;
+}
+html.theme-holo ::placeholder {
+  color: #1A58E8 !important;
+  opacity: 0.5;
+}
+html.theme-holo input,
+html.theme-holo textarea {
+  caret-color: #1A58E8;
+}
+
+/* Glass plate: see the grid through it. Wire edge only. */
+html.theme-holo .win {
+  overflow: hidden;
+  contain: layout style !important;
+  transform: none !important;
+  filter: none;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  background: rgba(4, 8, 14, .88) !important;
+  border: 2px solid transparent !important;
+  border-radius: 0 !important;
+  color: #1A58E8 !important;
+  box-shadow:
+    0 0 22px rgba(26, 88, 232, .16),
+    inset 0 0 14px rgba(26, 88, 232, .04) !important;
+}
+html.theme-holo .win::before,
+html.theme-holo .win::after,
+html.theme-holo .win.win-glass-lite::after,
+html.theme-holo .win:not(#dock-win)::after,
+html.theme-holo .win.win-glass-lite:not(#dock-win)::after {
+  display: none !important;
+  opacity: 0 !important;
+  background: none !important;
+  content: none !important;
+}
+
+html.theme-holo .win.win-glass-lite,
+html.theme-holo .win.win-glass-lite:not(#dock-win) {
+  background: rgba(4, 8, 14, .88) !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+
+html.theme-holo .search-wrap {
+  background: rgba(8, 14, 24, .92) !important;
+  border: 1px solid #1A58E8 !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+}
+
+html.theme-holo #player-win {
+  overflow: hidden !important;
+  contain: layout style;
+}
+html.theme-holo #player-win .win-body,
+html.theme-holo #player-win .player-faceplate {
+  overflow: hidden !important;
+  background: transparent !important;
+}
+html.theme-holo .player-transport {
+  overflow: visible;
+}
+
+html.theme-holo #sidebar-tracklist,
+html.theme-holo #gallery-scroll-container,
+html.theme-holo .lyrics-scroll,
+html.theme-holo .album-win-tracks {
+  overflow-x: hidden;
+  overflow-y: auto;
+}
+
+html.theme-holo .win-bar {
+  background: rgba(2, 6, 12, .95) !important;
+  border-bottom: 2px solid #1A58E8 !important;
+  padding: 10px 18px !important;
+  overflow: visible;
+}
+html.theme-holo .win-bar::after {
+  display: none !important;
+}
+
+html.theme-holo .win-title,
+html.theme-holo .dock-logo-main,
+html.theme-holo .dock-logo-main.phosphor {
+  color: #1A58E8 !important;
+  -webkit-text-fill-color: #1A58E8 !important;
+  background: none !important;
+  background-image: none !important;
+  text-shadow: none !important;
+  filter: none;
+}
+html.theme-holo .player-title {
+  color: #C41422 !important;
+  -webkit-text-fill-color: #C41422 !important;
+  background: none !important;
+  background-image: none !important;
+  text-shadow: 0 0 10px rgba(196, 20, 34, .35) !important;
+  filter: none;
+}
+
+html.theme-holo .dock-logo-wrap::before {
+  display: none !important;
+}
+html.theme-holo .dock-logo-sub {
+  color: rgba(26, 88, 232, .7) !important;
+}
+
+/* Controls = empty frames of light, not filled tiles */
+html.theme-holo .ctrl-btn,
+html.theme-holo .taskbar-btn,
+html.theme-holo .tab,
+html.theme-holo .mob-btn,
+html.theme-holo .orbit-mode-btn,
+html.theme-holo .win-close {
+  background: transparent !important;
+  border: 1px solid rgba(26, 88, 232, .55) !important;
+  color: #1A58E8 !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+  clip-path: none !important;
+  filter: none;
+  backdrop-filter: none !important;
+  text-shadow: none;
+}
+
+html.theme-holo .ctrl-btn.active-state,
+html.theme-holo .taskbar-btn.win-open,
+html.theme-holo .tab.active,
+html.theme-holo .mob-btn.active {
+  background: rgba(26, 88, 232, .14) !important;
+  color: #1A58E8 !important;
+  border-color: #2D6BFF !important;
+  box-shadow: 0 0 12px rgba(26, 88, 232, .25) !important;
+}
+
+html.theme-holo .taskbar-btn.win-open .material-symbols-outlined,
+html.theme-holo .mob-btn.active .material-symbols-outlined {
+  background: none !important;
+  color: #1A58E8 !important;
+}
+
+html.theme-holo .taskbar-dot,
+html.theme-holo .mob-dot {
+  background: #1A58E8 !important;
+  box-shadow: 0 0 6px rgba(26, 88, 232, .7) !important;
+}
+
+html.theme-holo #dock-win .win-body {
+  overflow: visible;
+  padding: 10px 20px;
+}
+
+html.theme-holo .player-faceplate,
+html.theme-holo .player-faceplate {
+  background: transparent !important;
+  box-shadow: none !important;
+  border: none !important;
+  filter: none;
+  gap: 10px !important;
+  padding: 12px 14px 10px !important;
+}
+html.theme-holo .player-faceplate::before {
+  display: none !important;
+}
+
+html.theme-holo .player-art-side,
+html.theme-holo .player-art {
+  background: transparent !important;
+  border: 1px solid rgba(26, 88, 232, .5) !important;
+  box-shadow: none !important;
+  filter: none !important;
+  border-radius: 0 !important;
+}
+html.theme-holo .player-art-side .material-symbols-outlined,
+html.theme-holo .player-art .material-symbols-outlined {
+  color: #2D6BFF !important;
+  filter: none !important;
+}
+
+html.theme-holo .player-artist,
+html.theme-holo .track-artist,
+html.theme-holo .time-label,
+html.theme-holo .time-current,
+html.theme-holo .time-total,
+html.theme-holo .tab {
+  color: #1A58E8 !important;
+}
+html.theme-holo .track-title {
+  color: #1A58E8 !important;
+}
+
+html.theme-holo .player-transport {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 8px 0;
+  overflow: visible;
+}
+
+html.theme-holo .player-transport .ctrl-btn {
+  width: 36px !important;
+  height: 36px !important;
+  min-width: 36px !important;
+  min-height: 36px !important;
+  flex: 0 0 36px !important;
+  padding: 0 !important;
+  clip-path: none !important;
+  border-radius: 0 !important;
+}
+
+/* Play = hollow ring of light, not a painted puck */
+html.theme-holo .player-transport .play-btn,
+html.theme-holo .play-btn,
+html.theme-holo #btn-play,
+html.theme-holo #song-detail-play.play-btn {
+  width: 56px !important;
+  height: 56px !important;
+  min-width: 56px !important;
+  min-height: 56px !important;
+  flex: 0 0 56px !important;
+  margin: 0 10px !important;
+  border-radius: 50% !important;
+  clip-path: none !important;
+  overflow: visible !important;
+  isolation: isolate;
+  background: transparent !important;
+  border: 2px solid #1A58E8 !important;
+  box-shadow:
+    0 0 14px rgba(26, 88, 232, .4),
+    inset 0 0 10px rgba(26, 88, 232, .12) !important;
+  filter: none !important;
+}
+html.theme-holo .player-transport .play-btn::before,
+html.theme-holo .player-transport .play-btn::after,
+html.theme-holo .play-btn::before,
+html.theme-holo .play-btn::after,
+html.theme-holo #btn-play::before,
+html.theme-holo #btn-play::after {
+  content: none !important;
+  display: none !important;
+  background: none !important;
+  opacity: 0 !important;
+  animation: none !important;
+  filter: none !important;
+}
+html.theme-holo .player-transport .play-btn.playing,
+html.theme-holo .play-btn.playing,
+html.theme-holo #btn-play.playing {
+  background: rgba(26, 88, 232, .16) !important;
+  box-shadow:
+    0 0 18px rgba(26, 88, 232, .55),
+    inset 0 0 12px rgba(26, 88, 232, .18) !important;
+  animation: none !important;
+}
+html.theme-holo .play-btn .play-icon,
+html.theme-holo .play-btn.playing .play-icon,
+html.theme-holo .play-icon:not(.material-symbols-outlined) {
+  color: #C41422 !important;
+  filter: drop-shadow(0 0 6px rgba(26, 88, 232, .7)) !important;
+  border-color: transparent transparent transparent #C41422 !important;
+}
+
+html.theme-holo .progress-fill-bar,
+html.theme-holo .progress-thumb {
+  background: #C41422 !important;
+  animation: none !important;
+  filter: none !important;
+  box-shadow: 0 0 8px rgba(26, 88, 232, .45) !important;
+}
+html.theme-holo .progress-track-bg {
+  background: rgba(26, 88, 232, .12) !important;
+}
+
+html.theme-holo #vol-slider,
+html.theme-holo #video-vol-slider {
+  background: linear-gradient(to right, #1A58E8 0%, #1A58E8 var(--vol-pct, 80%), rgba(26, 88, 232, .12) var(--vol-pct, 80%), rgba(26, 88, 232, .12) 100%) !important;
+  box-shadow: none !important;
+}
+html.theme-holo #vol-slider::-webkit-slider-thumb,
+html.theme-holo #video-vol-slider::-webkit-slider-thumb {
+  background: #2D6BFF !important;
+  border: 1px solid #1A58E8 !important;
+  box-shadow: 0 0 8px rgba(26, 88, 232, .6) !important;
+}
+
+html.theme-holo .track-item {
+  background: transparent !important;
+  border-color: transparent !important;
+}
+html.theme-holo .track-item.active {
+  background: rgba(26, 88, 232, .12) !important;
+  border-color: rgba(26, 88, 232, .35) !important;
+}
+html.theme-holo .track-item.active .track-title,
+html.theme-holo .track-item.active .track-artist {
+  color: #1A58E8 !important;
+}
+html.theme-holo .track-item.active::before {
+  background: #9A1218 !important;
+  width: 2px !important;
+  box-shadow: none !important;
+  border-radius: 0 !important;
+}
+
+html.theme-holo .gallery-item {
+  border: 1px solid rgba(26, 88, 232, .4) !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+  background: transparent !important;
+}
+
+html.theme-holo #drop-line,
+html.theme-holo #drop-line::before,
+html.theme-holo #drop-line::after {
+  background: #1A58E8 !important;
+  box-shadow: 0 0 8px rgba(26, 88, 232, .5) !important;
+}
+
+html.theme-holo .explicit-badge {
+  background: transparent !important;
+  color: #C41422 !important;
+  border: 1px solid #9A1218 !important;
+}
+
+html.theme-holo .orbit-mode-track {
+  background: transparent !important;
+  border: 1px solid rgba(26, 88, 232, .55) !important;
+}
+html.theme-holo .orbit-mode-knob {
+  background: #9A1218 !important;
+  box-shadow: none !important;
+}
+
+html.theme-holo ::-webkit-scrollbar-thumb {
+  background: #1A58E8 !important;
+  border-radius: 0 !important;
+}
+html.theme-holo ::-webkit-scrollbar-track {
+  background: rgba(5, 6, 8, .9) !important;
+}
+
+html.theme-holo .no-scrollbar {
+  scrollbar-width: thin;
+  scrollbar-color: #1A58E8 rgba(5, 6, 8, .9);
+}
+html.theme-holo .no-scrollbar::-webkit-scrollbar {
+  width: 10px;
+}
+html.theme-holo .no-scrollbar::-webkit-scrollbar-track {
+  background: rgba(5, 6, 8, .9) !important;
+  border-radius: 0 !important;
+}
+html.theme-holo .no-scrollbar::-webkit-scrollbar-thumb {
+  background: #1A58E8 !important;
+  border-radius: 0 !important;
+  border: 1px solid #0A1020 !important;
+}
+html.theme-holo .no-scrollbar::-webkit-scrollbar-thumb:hover,
+html.theme-holo .no-scrollbar::-webkit-scrollbar-thumb:active {
+  background: #2D6BFF !important;
+}
+
+html.theme-holo #space3d-canvas {
+  display: block !important;
+  opacity: 1 !important;
+  visibility: visible !important;
+  contain: none !important;
+  z-index: 0 !important;
+}
+html.theme-holo #stars-canvas {
+  display: none !important;
+}
+html.theme-holo .focal-backdrop {
+  display: none !important;
+  opacity: 0 !important;
+}
+html.theme-holo .planet-fallback-glow {
+  display: none !important;
+}
+
+#holo-strings {
+  display: none !important;
+  pointer-events: none;
+}
+html.theme-holo #holo-strings {
+  display: none !important;
+}
+
+#holo-hud {
+  display: none;
+  position: fixed;
+  inset: 0;
+  z-index: 7;
+  pointer-events: none;
+}
+html.theme-holo #holo-hud {
+  display: block;
+  will-change: transform;
+}
+html.theme-holo #holo-hud .holo-hud-wave {
+  fill: none;
+  stroke: #1A58E8;
+  stroke-width: 1.15;
+  stroke-linecap: square;
+  filter: drop-shadow(0 0 6px rgba(26, 88, 232, .55));
+}
+
+#holo-tubes {
+  display: none;
+  position: fixed;
+  inset: 0;
+  z-index: 380;
+  pointer-events: none;
+}
+html.theme-holo #holo-tubes {
+  display: block;
+  will-change: transform;
+}
+html.theme-holo #holo-tubes .holo-tube-glass {
+  fill: none;
+  stroke: #1A58E8;
+  stroke-width: 1.7;
+  stroke-linejoin: miter;
+  stroke-linecap: square;
+}
+html.theme-holo #holo-tubes .holo-tube-cornerhide {
+  fill: #050608;
+  stroke: none;
+  filter: url(#holo-corner-fade);
+}
+html.theme-holo #holo-tubes .holo-tube-hash {
+  display: none;
+}
+html.theme-holo #holo-tubes .holo-tube-ghost {
+  fill: none;
+  stroke: #1A58E8;
+  stroke-width: 12;
+  stroke-linecap: square;
+  opacity: 0.14;
+  filter: drop-shadow(0 0 16px rgba(26, 88, 232, .65));
+}
+html.theme-holo #holo-tubes .holo-tube-wake {
+  fill: none;
+  stroke: #1A58E8;
+  stroke-width: 8;
+  stroke-linecap: square;
+  opacity: 0.28;
+  filter: drop-shadow(0 0 12px rgba(26, 88, 232, .8));
+}
+html.theme-holo #holo-tubes .holo-tube-trail {
+  fill: none;
+  stroke: #1A58E8;
+  stroke-width: 5.4;
+  stroke-linecap: square;
+  stroke-linejoin: miter;
+  opacity: 0.62;
+  filter: drop-shadow(0 0 10px rgba(26, 88, 232, .95)) drop-shadow(0 0 22px rgba(26, 88, 232, .45));
+}
+html.theme-holo #holo-tubes .holo-tube-hot {
+  fill: none;
+  stroke: #1A58E8;
+  stroke-width: 3.4;
+  stroke-linecap: square;
+  filter: drop-shadow(0 0 7px #1A58E8) drop-shadow(0 0 18px rgba(26, 88, 232, .85));
+}
+html.theme-holo #holo-tubes .holo-tube-ember {
+  fill: none;
+  stroke: #2D6BFF;
+  stroke-width: 2.4;
+  stroke-linecap: square;
+  filter: drop-shadow(0 0 8px #1A58E8);
+}
+html.theme-holo #holo-tubes .holo-tube-tick {
+  fill: none;
+  stroke: #1A58E8;
+  stroke-width: 2.2;
+  stroke-linecap: square;
+  stroke-linejoin: miter;
+}
+
+html.theme-holo .ctrl-btn,
+html.theme-holo .taskbar-btn,
+html.theme-holo .tab,
+html.theme-holo .mob-btn,
+html.theme-holo .orbit-mode-btn,
+html.theme-holo .play-btn,
+html.theme-holo .win-close {
+  animation: none;
+  transform: none !important;
+}
+html.theme-holo .ctrl-btn:hover,
+html.theme-holo .taskbar-btn:hover,
+html.theme-holo .tab:hover,
+html.theme-holo .mob-btn:hover,
+html.theme-holo .play-btn:hover,
+html.theme-holo .orbit-mode-btn:hover {
+  animation: none;
+  transform: none !important;
+  filter: none;
+  box-shadow: 0 0 14px rgba(26, 88, 232, .45), inset 0 0 8px rgba(26, 88, 232, .1) !important;
+}
+
+html.theme-holo #holo-strings path {
+  filter: none;
+}
+
+html.theme-holo.holo-playing #holo-strings path {
+  animation: holoDash 2.4s linear infinite;
+}
+@keyframes holoDash {
+  to { stroke-dashoffset: -48; }
+}
+
+@media (max-width: 767px) {
+  html.theme-holo #player-win {
+    overflow: visible !important;
+    border-radius: 0 !important;
+  }
+  html.theme-holo #player-win .player-faceplate {
+    overflow: visible !important;
+    padding: 10px 12px !important;
+  }
+  html.theme-holo .player-transport .play-btn,
+  html.theme-holo .play-btn {
+    width: 48px !important;
+    height: 48px !important;
+    min-width: 48px !important;
+    min-height: 48px !important;
+    flex: 0 0 48px !important;
+  }
+  html.theme-holo #mobile-dock {
+    overflow: visible;
+    gap: 6px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html.theme-holo .win,
+  html.theme-holo .play-btn,
+  html.theme-holo .ctrl-btn {
+    animation: none !important;
+    transition: none !important;
+    box-shadow: none !important;
+  }
+  html.theme-holo .grain-overlay {
+    animation: none !important;
+    opacity: 0.08 !important;
+  }
+  html.theme-holo #holo-tubes .holo-tube-hot,
+  html.theme-holo #holo-tubes .holo-tube-ember,
+  html.theme-holo #holo-tubes .holo-tube-trail,
+  html.theme-holo #holo-tubes .holo-tube-ghost,
+  html.theme-holo #holo-tubes .holo-tube-wake,
+  html.theme-holo #holo-hud {
+    display: none;
+  }
+  html.theme-holo .focal-title,
+  html.theme-holo #focal-title,
+  html.theme-holo .focal-title::before {
+    animation: none !important;
+  }
+}
+
+/* Holo HUD cursors — electric-blue wire. Live cosmic unchanged. */
+html.theme-holo,
+html.theme-holo body {
+  cursor: url('../assets/holo-cursors/default.svg') 1 1, default;
+}
+html.theme-holo a,
+html.theme-holo button,
+html.theme-holo .ctrl-btn,
+html.theme-holo .play-btn,
+html.theme-holo .tab,
+html.theme-holo .taskbar-btn,
+html.theme-holo .mob-btn,
+html.theme-holo .orbit-mode-btn,
+html.theme-holo .track-item,
+html.theme-holo .gallery-item,
+html.theme-holo .album-head,
+html.theme-holo .win-close,
+html.theme-holo [role="button"] {
+  cursor: url('../assets/holo-cursors/pointer.svg') 1 1, pointer;
+}
+html.theme-holo .win-bar {
+  cursor: url('../assets/holo-cursors/grab.svg') 12 12, grab;
+}
+html.theme-holo .win-bar:active,
+html.theme-holo .win.holo-dragging,
+html.theme-holo .win.holo-dragging .win-bar,
+html.theme-holo .drag-handle.grabbing {
+  cursor: url('../assets/holo-cursors/grabbing.svg') 12 12, grabbing;
+}
+html.theme-holo .win-bar .win-close {
+  cursor: url('../assets/holo-cursors/pointer.svg') 1 1, pointer;
+}
+html.theme-holo input,
+html.theme-holo textarea,
+html.theme-holo [contenteditable] {
+  cursor: url('../assets/holo-cursors/text.svg') 12 12, text;
+}
+html.theme-holo .win-resize.n,
+html.theme-holo .win-resize.s {
+  cursor: url('../assets/holo-cursors/ns.svg') 12 12, ns-resize;
+}
+html.theme-holo .win-resize.e,
+html.theme-holo .win-resize.w {
+  cursor: url('../assets/holo-cursors/ew.svg') 12 12, ew-resize;
+}
+html.theme-holo .win-resize.ne,
+html.theme-holo .win-resize.sw {
+  cursor: url('../assets/holo-cursors/nesw.svg') 12 12, nesw-resize;
+}
+html.theme-holo .win-resize.nw,
+html.theme-holo .win-resize.se {
+  cursor: url('../assets/holo-cursors/nwse.svg') 12 12, nwse-resize;
+}
+html.theme-holo .album-head[title],
+html.theme-holo [cursor='help'] {
+  cursor: url('../assets/holo-cursors/help.svg') 1 1, help;
+}
+html.theme-holo :disabled,
+html.theme-holo [aria-disabled='true'] {
+  cursor: url('../assets/holo-cursors/not-allowed.svg') 12 12, not-allowed;
+}
+html.theme-holo.holo-wait,
+html.theme-holo .is-loading {
+  cursor: url('../assets/holo-cursors/wait.svg') 12 12, wait;
+}

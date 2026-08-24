@@ -43,14 +43,18 @@
   const MOBILE = (typeof isMob === 'function') ? isMob() : (window.innerWidth < 768);
   // Cap DPR: planet/aurora are foggy; extra retina pixels rarely read as quality.
   const DPR_CAP = MOBILE ? 1.25 : 1.5;
+  const HOLO_DPR_CAP = MOBILE ? 1.5 : 2;
 
   // ── Adaptive resolution governor ──
   // Holds 60fps by trading render resolution (it's mostly fog and glow, so
   // a softer buffer is invisible; dropped frames are not).
+  let holoOn = false;
   let renderScale = 1.0;
   const SCALE_MIN = 0.5, SCALE_MAX = 1.0;
   function effectiveDPR() {
-    return Math.min(window.devicePixelRatio || 1, DPR_CAP) * renderScale;
+    const cap = holoOn ? HOLO_DPR_CAP : DPR_CAP;
+    const scale = holoOn ? Math.max(renderScale, 0.88) : renderScale;
+    return Math.min(window.devicePixelRatio || 1, cap) * scale;
   }
   function applyRenderScale() {
     renderer.setPixelRatio(effectiveDPR());
@@ -102,7 +106,8 @@
   const keyLight = new THREE.DirectionalLight(0xd9ccff, 0.95);
   keyLight.position.set(-5, 4, 7);
   scene.add(keyLight);
-  scene.add(new THREE.AmbientLight(0x241a3a, 1.1));
+  const ambientLight = new THREE.AmbientLight(0x241a3a, 1.1);
+  scene.add(ambientLight);
 
   /* Brand palette (matches CSS custom props) */
   const COL_PURPLE = new THREE.Color('#7B2FFF');
@@ -134,23 +139,60 @@
     for (let i = 0; i < s.length; i++) h = (h * 31 + s.charCodeAt(i)) >>> 0;
     return h;
   }
+  const PALETTES_HOLO = [
+    ['#050608', '#1A58E8', '#C41422'],
+    ['#07080A', '#C41422', '#1A58E8'],
+    ['#030407', '#2D6BFF', '#9A1018'],
+    ['#0A0C10', '#A01018', '#1A58E8'],
+    ['#050608', '#0E3AA8', '#C41422'],
+    ['#080406', '#E82830', '#2D6BFF'],
+    ['#040508', '#2D6BFF', '#C41422'],
+    ['#06070A', '#8A0C14', '#1A4AD0'],
+    ['#050608', '#1A58E8', '#D41424'],
+    ['#0A0808', '#C41422', '#2450D8'],
+    ['#04060A', '#1A58E8', '#B01018'],
+    ['#08090C', '#E01828', '#2D6BFF'],
+    ['#050608', '#1238A8', '#C41422'],
+    ['#07080B', '#9A0C14', '#1A58E8']
+  ];
+  let lastSlug = null;
   function paletteFor(slug) {
-    if (!slug) return PALETTES[0];
-    return PALETTES[hashStr(slug) % PALETTES.length];
+    const set = holoOn ? PALETTES_HOLO : PALETTES;
+    if (!slug) return set[0];
+    return set[hashStr(slug) % set.length];
   }
 
   /* Live palette state (lerped smoothly toward targets on track change) */
   const palA = COL_PURPLE.clone(), palB = COL_BLUE.clone(), palC = COL_GREEN.clone();
   const tgtA = palA.clone(), tgtB = palB.clone(), tgtC = palC.clone();
 
+  function applyHoloSeed(seed) {
+    const s = seed || 0;
+    if (planetUniforms && planetUniforms.uSeed) planetUniforms.uSeed.value = s;
+    for (let i = 0; i < planetViews.length; i++) {
+      const u = planetViews[i].core && planetViews[i].core.material && planetViews[i].core.material.uniforms;
+      if (u && u.uSeed) u.uSeed.value = s;
+    }
+  }
+
   function setPaletteTargets(p) {
     tgtA.set(p[0]); tgtB.set(p[1]); tgtC.set(p[2]);
     // Bleed the song color into the UI (focal glow, progress fill)
     try {
       const root = document.documentElement.style;
-      root.setProperty('--track-a', p[0]);
-      root.setProperty('--track-b', p[1]);
-      root.setProperty('--track-c', p[2]);
+      if (holoOn) {
+        root.setProperty('--track-a', '#0A1020');
+        root.setProperty('--track-b', '#1A58E8');
+        root.setProperty('--track-c', '#C41422');
+        root.setProperty('--jestr-green', '#1A58E8');
+        root.setProperty('--jestr-blue', '#1A58E8');
+        root.setProperty('--jestr-red', '#C41422');
+        applyHoloSeed(lastSlug ? (hashStr(lastSlug) % 997) / 997 : 0.37);
+      } else {
+        root.setProperty('--track-a', p[0]);
+        root.setProperty('--track-b', p[1]);
+        root.setProperty('--track-c', p[2]);
+      }
     } catch (e) {}
   }
 
@@ -253,33 +295,44 @@
 
   /* ════════════════ PLANET (calm solid body — the aurora does the dancing) ════════════════ */
   const PLANET_R = 1.25;
+  const HOLO_PLANET_SCALE = 1.72;
   const planetUniforms = {
-    uTime:    { value: 0 },
-    uAudio:   { value: 0 },
-    uBass:    { value: 0 },
-    uColA:    { value: palA },
-    uColB:    { value: palB },
-    uColC:    { value: palC },
-    uFade:    { value: 1 }
+    uTime:     { value: 0 },
+    uAudio:    { value: 0 },
+    uBass:     { value: 0 },
+    uColA:     { value: palA },
+    uColB:     { value: palB },
+    uColC:     { value: palC },
+    uFade:     { value: 1 },
+    uHolo:     { value: 0 },
+    uHoloFlow: { value: 1 },
+    uSpin:     { value: 0 },
+    uSeed:     { value: 0.37 },
+    uPulse:    { value: 0 }
   };
 
   // Segment counts tuned for shader-driven surfaces (noise hides tessellation).
-  const PLANET_SEG_W = MOBILE ? 48 : 64;
-  const PLANET_SEG_H = MOBILE ? 32 : 48;
+  const PLANET_SEG_W = MOBILE ? 64 : 96;
+  const PLANET_SEG_H = MOBILE ? 48 : 72;
   const planet = new THREE.Mesh(
     new THREE.SphereGeometry(PLANET_R, PLANET_SEG_W, PLANET_SEG_H),
     new THREE.ShaderMaterial({
       uniforms: planetUniforms,
-      defines: { FBM_OCT: 2 },
-      transparent: true,
+      defines: { FBM_OCT: 4 },
+      extensions: { derivatives: true },
+      transparent: true, // live fade uses alpha; holo attachWire forces opaque
       depthWrite: true,
+      depthTest: true,
+      side: THREE.FrontSide,
       vertexShader: `
         varying vec3 vNormal;
         varying vec3 vPos;
         varying vec3 vView;
+        varying vec3 vWorld;
         void main(){
           vNormal = normalize(normalMatrix * normal);
           vPos = position;
+          vWorld = (modelMatrix * vec4(position, 1.0)).xyz;
           vec4 mv = modelViewMatrix * vec4(position, 1.0);
           vView = -mv.xyz;
           gl_Position = projectionMatrix * mv;
@@ -293,12 +346,53 @@
         uniform vec3 uColB;
         uniform vec3 uColC;
         uniform float uFade;
+        uniform float uHolo;
+        uniform float uHoloFlow;
+        uniform float uSpin;
+        uniform float uSeed;
+        uniform float uPulse;
         varying vec3 vNormal;
         varying vec3 vPos;
         varying vec3 vView;
+        varying vec3 vWorld;
         ${NOISE_GLSL}
         void main(){
           vec3 n = normalize(vPos);
+
+          if (uHolo > 0.5) {
+            /* Opaque off-black body. Red/black fbm mountains. Grid lives on a sibling cage. */
+            vec3 body = vec3(0.0196, 0.0235, 0.0314);
+            vec3 ink = vec3(0.7686, 0.0784, 0.1333);
+            float seed = uSeed;
+            float stormS = mix(0.8, 2.2, fract(seed * 5.91));
+            float ht = uTime * 0.022 * uHoloFlow;
+
+            float climate = fbm(n * stormS + vec3(seed * 17.0, ht, -seed * 9.0));
+            float bands = fbm(n * vec3(1.2, 3.8, 1.2) + vec3(ht * 0.7, seed * 8.0, -ht * 0.4));
+            float ridge = 1.0 - abs(fbm(n * mix(2.4, 5.0, fract(seed * 6.1))
+                              + vec3(ht * 0.25, seed * 5.0, -ht * 0.15)) * 2.0 - 1.0);
+            float height = mix(climate, bands, 0.45);
+            height = mix(height, ridge, 0.4);
+            height = clamp(height + uBass * 0.10 * smoothstep(0.45, 0.8, height), 0.0, 1.0);
+
+            float basin = 1.0 - smoothstep(0.22, 0.42, height);
+            float mountain = smoothstep(0.48, 0.78, height);
+            vec3 topo = mix(body, body * 0.22, basin);
+            topo = mix(topo, ink * 0.18, smoothstep(0.32, 0.52, height) * (1.0 - mountain));
+            topo = mix(topo, ink, mountain * (0.55 + height * 0.45));
+            topo = mix(topo, ink * 1.15, ridge * mountain * 0.45);
+
+            /* Idle = full topo. uPulse 0..1 is a slow south→north refresh wave. */
+            float lat01 = clamp(n.y * 0.5 + 0.5, 0.0, 1.0);
+            float pulseOn = step(0.002, uPulse) * uHoloFlow;
+            float dist = abs(lat01 - uPulse);
+            float band = (1.0 - smoothstep(0.0, 0.13, dist)) * pulseOn;
+            float wake = (1.0 - smoothstep(0.0, 0.40, uPulse - lat01)) * step(lat01, uPulse) * pulseOn;
+            vec3 col = mix(topo, mix(topo * 1.35, ink, 0.28), max(band, wake * 0.32));
+
+            gl_FragColor = vec4(col, 1.0);
+            return;
+          }
 
           // slow drifting storm bands + swirl
           float t = uTime * 0.045;
@@ -330,6 +424,7 @@
   );
   planet.rotation.z = 0.18;
   scene.add(planet);
+  const sphereGeo = planet.geometry;
 
   /* ════════════════ AURORA VISUALIZER SHELLS ════════════════
      The audio visualizer: misty, luminous aurora wrapping the planet.
@@ -349,6 +444,7 @@
     uniform vec3 uColB;
     uniform vec3 uColC;
     uniform float uFade;
+    uniform float uHolo;
     varying vec3 vNormal;
     varying vec3 vPos;
     varying vec3 vView;
@@ -424,6 +520,12 @@
       vec3 iri = 0.5 + 0.5 * cos(6.2831 * (mist * 0.7 + curtain * 0.35 + lat * 0.25 + uTime * 0.016 + uSeed + vec3(0.0, 0.33, 0.67)));
       col = mix(col, col * (0.55 + iri * 1.1), 0.4);
 
+      if (uHolo > 0.01) {
+        vec3 holoMix = mix(uColA, uColB, curtain);
+        holoMix = mix(holoMix, uColC, curtain2 * 0.35);
+        col = mix(col, holoMix, uHolo * 0.42);
+      }
+
       gl_FragColor = vec4(col * 1.5, clamp(a, 0.0, 0.85) * uFade);
     }
   `;
@@ -485,7 +587,8 @@
       uColA:    { value: palA },
       uColB:    { value: palB },
       uColC:    { value: palC },
-      uFade:    { value: 1 }
+      uFade:    { value: 1 },
+      uHolo:    { value: 0 }
     };
     const aSegW = MOBILE ? 36 : 48;
     const aSegH = MOBILE ? 24 : 32;
@@ -660,6 +763,409 @@
   let currentView = heroView;
   let arcAnim = null; // {out, in, t, dur, dir}
 
+  /* Holo floor: sparse world grid, no warp. Perspective + fog imply depth.
+     A laser bar tracks planet spin so the room and globe share one physics. */
+  const HOLO_GRID_SIZE = 220;
+  const holoGridUniforms = {
+    uTime: { value: 0 },
+    uSpin: { value: 0 }
+  };
+  const holoGrid = new THREE.Mesh(
+    new THREE.PlaneGeometry(HOLO_GRID_SIZE, HOLO_GRID_SIZE),
+    new THREE.ShaderMaterial({
+      uniforms: holoGridUniforms,
+      transparent: true,
+      depthWrite: false,
+      depthTest: true,
+      side: THREE.DoubleSide,
+      extensions: { derivatives: true },
+      vertexShader: `
+        varying vec3 vWorld;
+        void main(){
+          vec4 w = modelMatrix * vec4(position, 1.0);
+          vWorld = w.xyz;
+          gl_Position = projectionMatrix * viewMatrix * w;
+        }
+      `,
+      fragmentShader: `
+        uniform float uTime;
+        uniform float uSpin;
+        varying vec3 vWorld;
+        void main(){
+          vec2 xz = vWorld.xz;
+          float dist = length(xz);
+          float cell = 5.5;
+          vec2 g = abs(fract(xz / cell) - 0.5);
+          float line = 1.0 - smoothstep(0.0, 0.016, min(g.x, g.y) * 2.0);
+          float fade = exp(-dist * 0.026) * (1.0 - smoothstep(72.0, 118.0, dist));
+          float under = exp(-dist * dist * 0.10) * 0.22;
+          vec2 sp = floor(xz * 7.0);
+          float sand = fract(sin(dot(sp, vec2(12.9898, 78.233))) * 43758.5453);
+          vec3 ink = vec3(0.10, 0.34, 0.91);
+          vec3 col = ink * (0.40 + line * 0.85 + under * 0.25);
+          col = mix(col, vec3(0.77, 0.07, 0.09), sand * 0.18 * (1.0 - line));
+          float alpha = (line * 0.55 + under * 0.10 + sand * 0.05) * fade;
+          if (alpha < 0.015) discard;
+          gl_FragColor = vec4(col, alpha);
+        }
+      `
+    })
+  );
+  holoGrid.rotation.x = -Math.PI / 2;
+  holoGrid.position.set(0, -(PLANET_R * HOLO_PLANET_SCALE + 0.42), 0);
+  holoGrid.visible = false;
+  holoGrid.renderOrder = 0;
+  scene.add(holoGrid);
+
+  /* 80s cyberspace layer — Tron floor already exists; this fills the room
+     with wire objects, lights, and orbiting junk. Live cosmic stays intact. */
+  const HOLO_BLUE = 0x1A58E8;
+  const holoSpace = new THREE.Group();
+  holoSpace.visible = false;
+  scene.add(holoSpace);
+
+  const holoKey = new THREE.PointLight(0x2D6BFF, 0, 48, 2);
+  holoKey.position.set(3.6, 5.2, 6.2);
+  holoSpace.add(holoKey);
+  const holoFill = new THREE.PointLight(0xC81830, 0, 32, 2);
+  holoFill.position.set(-6.2, 0.6, 2.4);
+  holoSpace.add(holoFill);
+  const holoRim = new THREE.DirectionalLight(0x1A58E8, 0);
+  holoRim.position.set(1.5, -2.2, -7);
+  holoSpace.add(holoRim);
+
+  const holoLine = new THREE.LineBasicMaterial({
+    color: HOLO_BLUE, transparent: true, opacity: 0.72, depthWrite: false, depthTest: true
+  });
+  const holoLineDim = new THREE.LineBasicMaterial({
+    color: HOLO_BLUE, transparent: true, opacity: 0.38, depthWrite: false, depthTest: true
+  });
+  const holoLineRed = new THREE.LineBasicMaterial({
+    color: 0xE02040, transparent: true, opacity: 0.55, depthWrite: false, depthTest: true
+  });
+
+  function wireMesh(geo, mat) {
+    return new THREE.LineSegments(new THREE.WireframeGeometry(geo), mat);
+  }
+
+  /* Floor grid is holoGrid. No standing pillars / rectangle beacons. */
+
+  if (window.HoloProps && typeof window.HoloProps.spawn === 'function') {
+    window.HoloProps.spawn(THREE, holoSpace, { planetR: PLANET_R * HOLO_PLANET_SCALE });
+  }
+
+  function tickHoloSpace(t, dt, bass) {
+    if (!holoOn) return;
+    holoKey.intensity = 1.55 + bass * 0.9;
+    holoFill.intensity = 0.5 + bass * 0.55;
+    holoRim.intensity = 0.65 + bass * 0.25;
+    if (window.HoloProps && typeof window.HoloProps.tick === 'function') {
+      window.HoloProps.tick(t, dt, bass);
+    }
+  }
+
+  function forceOpaquePlanet(mat, mesh) {
+    if (!mat) return;
+    mat.transparent = false;
+    mat.opacity = 1;
+    mat.alphaTest = 0;
+    mat.depthWrite = true;
+    mat.depthTest = true;
+    mat.blending = THREE.NoBlending;
+    mat.side = THREE.FrontSide;
+    mat.polygonOffset = false;
+    if ('colorWrite' in mat) mat.colorWrite = true;
+    mat.needsUpdate = true;
+    if (mesh) {
+      mesh.renderOrder = 1;
+      mesh.frustumCulled = false;
+    }
+  }
+
+  function ensureOccluder(view) {
+    if (!view || !view.core) return;
+    const host = view.group || view.core;
+    const staleChild = view.core.getObjectByName('holoOccluder');
+    if (staleChild && staleChild.parent === view.core) view.core.remove(staleChild);
+    let occ = host.getObjectByName && host.getObjectByName('holoOccluder');
+    if (holoOn) {
+      if (!occ) {
+        occ = new THREE.Mesh(
+          sphereGeo,
+          new THREE.MeshBasicMaterial({
+            color: 0x050608,
+            transparent: false,
+            opacity: 1,
+            depthWrite: true,
+            depthTest: true,
+            blending: THREE.NoBlending,
+            side: THREE.FrontSide,
+            fog: false
+          })
+        );
+        occ.name = 'holoOccluder';
+        occ.renderOrder = 0;
+        occ.frustumCulled = false;
+        host.add(occ);
+      }
+      occ.visible = true;
+      occ.position.copy(view.core.position);
+      occ.scale.copy(view.core.scale);
+      occ.scale.multiplyScalar(0.998);
+      occ.material.transparent = false;
+      occ.material.opacity = 1;
+      occ.material.depthWrite = true;
+      occ.material.depthTest = true;
+      occ.material.blending = THREE.NoBlending;
+      occ.material.colorWrite = true;
+    } else if (occ) {
+      occ.visible = false;
+    }
+  }
+
+  function makeHoloCage() {
+    const r = PLANET_R * 1.018;
+    const pos = [];
+    const meridians = 24;
+    const segs = 112;
+    for (let m = 0; m < meridians; m++) {
+      const lon = (m / meridians) * Math.PI * 2;
+      for (let i = 0; i < segs; i++) {
+        const t0 = (i / segs) * Math.PI;
+        const t1 = ((i + 1) / segs) * Math.PI;
+        pos.push(
+          Math.sin(t0) * Math.cos(lon) * r, Math.cos(t0) * r, Math.sin(t0) * Math.sin(lon) * r,
+          Math.sin(t1) * Math.cos(lon) * r, Math.cos(t1) * r, Math.sin(t1) * Math.sin(lon) * r
+        );
+      }
+    }
+    const parallels = 14;
+    for (let p = 0; p < parallels; p++) {
+      const lat = -0.88 + (p / (parallels - 1)) * 1.76;
+      const y = Math.sin(lat) * r;
+      const rr = Math.cos(lat) * r;
+      for (let i = 0; i < segs; i++) {
+        const a0 = (i / segs) * Math.PI * 2;
+        const a1 = ((i + 1) / segs) * Math.PI * 2;
+        pos.push(
+          Math.cos(a0) * rr, y, Math.sin(a0) * rr,
+          Math.cos(a1) * rr, y, Math.sin(a1) * rr
+        );
+      }
+    }
+    const geo = new THREE.BufferGeometry();
+    geo.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3));
+    const cage = new THREE.LineSegments(geo, new THREE.LineBasicMaterial({
+      color: 0x1A58E8,
+      transparent: false,
+      opacity: 1,
+      depthTest: true,
+      depthWrite: false
+    }));
+    cage.name = 'holoCage';
+    cage.renderOrder = 2;
+    cage.frustumCulled = false;
+    window.__HOLO_QA__ = {
+      cageColor: '#1A58E8',
+      meridians: meridians,
+      parallels: parallels,
+      segs: segs,
+      floorPillars: 0
+    };
+    return cage;
+  }
+
+  function attachWire(view) {
+    if (!view || !view.core) return;
+    const host = view.group || view.core;
+    const stale = (host.getObjectByName && host.getObjectByName('holoWire'))
+      || view.core.getObjectByName('holoWire')
+      || view.wire;
+    if (stale && stale.parent) stale.parent.remove(stale);
+    const staleInner = view.core.getObjectByName('holoInner');
+    if (staleInner && staleInner.parent) staleInner.parent.remove(staleInner);
+    const staleCage = host.getObjectByName && host.getObjectByName('holoCage');
+    if (staleCage && staleCage.parent) staleCage.parent.remove(staleCage);
+    view.wire = null;
+    view.cage = null;
+    view.core.geometry = sphereGeo;
+    view.core.scale.setScalar(holoOn ? HOLO_PLANET_SCALE : 1);
+    if (view.core.material) {
+      if (holoOn) {
+        forceOpaquePlanet(view.core.material, view.core);
+      } else {
+        view.core.material.polygonOffset = false;
+        view.core.material.depthWrite = true;
+        view.core.material.depthTest = true;
+        view.core.material.transparent = true;
+        view.core.material.blending = THREE.NormalBlending;
+        view.core.material.side = THREE.FrontSide;
+        view.core.material.needsUpdate = true;
+        view.core.renderOrder = 0;
+      }
+    }
+    if (holoOn) {
+      view.cage = makeHoloCage();
+      view.cage.scale.setScalar(HOLO_PLANET_SCALE);
+      host.add(view.cage);
+    }
+    ensureOccluder(view);
+  }
+
+  const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
+  let holoPulseWait = 20 + Math.random() * 10;
+  let holoPulseAge = -1;
+  const HOLO_PULSE_DUR = 6.2;
+
+  function applyHoloPulse(k) {
+    if (planetUniforms.uPulse) planetUniforms.uPulse.value = k;
+    for (let i = 0; i < planetViews.length; i++) {
+      const u = planetViews[i].core && planetViews[i].core.material && planetViews[i].core.material.uniforms;
+      if (u && u.uPulse) u.uPulse.value = k;
+    }
+  }
+
+  function tickHoloPulse(dt) {
+    if (!holoOn || reduceMotion.matches) {
+      applyHoloPulse(0);
+      return;
+    }
+    if (holoPulseAge < 0) {
+      holoPulseWait -= dt;
+      if (holoPulseWait <= 0) holoPulseAge = 0;
+    } else {
+      holoPulseAge += dt;
+      applyHoloPulse(Math.min(1, holoPulseAge / HOLO_PULSE_DUR));
+      if (holoPulseAge >= HOLO_PULSE_DUR) {
+        holoPulseAge = -1;
+        holoPulseWait = 20 + Math.random() * 10;
+        applyHoloPulse(0);
+      }
+    }
+  }
+
+  function setHoloFlag(on) {
+    const v = on ? 1 : 0;
+    if (planetUniforms.uHolo) planetUniforms.uHolo.value = v;
+    for (let i = 0; i < auroraShells.length; i++) {
+      if (auroraShells[i].u.uHolo) auroraShells[i].u.uHolo.value = v;
+    }
+    for (let i = 0; i < planetViews.length; i++) {
+      const view = planetViews[i];
+      if (view.core.material.uniforms.uHolo) view.core.material.uniforms.uHolo.value = v;
+      for (let s = 0; s < view.shells.length; s++) {
+        if (view.shells[s].u.uHolo) view.shells[s].u.uHolo.value = v;
+      }
+    }
+  }
+
+  function applyHoloSkin(on) {
+    holoOn = !!on;
+    holoGrid.visible = holoOn;
+    setHoloFlag(holoOn);
+    for (let i = 0; i < planetViews.length; i++) {
+      const view = planetViews[i];
+      attachWire(view);
+      if (view.shells) {
+        for (let s = 0; s < view.shells.length; s++) {
+          if (view.shells[s].mesh) view.shells[s].mesh.visible = !holoOn;
+        }
+      }
+      if (view.atmo) view.atmo.visible = !holoOn;
+      if (view.ringGroup) view.ringGroup.visible = !holoOn;
+    }
+    applyRenderScale();
+    holoSpace.visible = holoOn;
+    if (starUniforms.uHolo) starUniforms.uHolo.value = holoOn ? 1 : 0;
+    for (let i = 0; i < nebulae.length; i++) {
+      const n = nebulae[i];
+      if (holoOn) {
+        n.u.uC1.value.set('#1A58E8');
+        n.u.uC2.value.set('#C41422');
+        n.u.uOpacity.value = n.baseO * 0.35;
+      } else {
+        n.u.uC1.value.copy(n.origC1);
+        n.u.uC2.value.copy(n.origC2);
+        n.u.uOpacity.value = n.baseO;
+      }
+    }
+    if (holoOn) {
+      keyLight.color.set('#1A58E8');
+      keyLight.intensity = 1.45;
+      ambientLight.color.set('#081018');
+      ambientLight.intensity = 0.55;
+      holoKey.intensity = 1.55;
+      holoFill.intensity = 0.5;
+      holoRim.intensity = 0.7;
+      renderer.setClearColor(0x07090E, 1);
+      renderer.sortObjects = true;
+      holoGrid.position.set(0, -(PLANET_R * HOLO_PLANET_SCALE + 0.42), 0);
+      camera.position.set(0, 0.95, baseZ * 1.04);
+      camera.lookAt(0, 0.2, 0);
+      galaxyU.uC1.value.set('#1A4A88');
+      galaxyU.uC2.value.set('#7A1020');
+      holoGrid.material.depthTest = true;
+      holoGrid.material.depthWrite = false;
+      holoGrid.material.transparent = true;
+      holoGrid.renderOrder = 2;
+      [holoLine, holoLineDim, holoLineRed].forEach(function (m) {
+        m.depthTest = true;
+        m.depthWrite = false;
+        m.transparent = true;
+      });
+      stars.material.depthTest = true;
+      galaxy.material.depthTest = true;
+      for (let ni = 0; ni < nebulae.length; ni++) nebulae[ni].mesh.material.depthTest = true;
+      holoSpace.traverse(function (o) {
+        if (!o.material) return;
+        const mats = Array.isArray(o.material) ? o.material : [o.material];
+        for (let mi = 0; mi < mats.length; mi++) {
+          mats[mi].depthTest = true;
+          if (o.isLine || o.isLineSegments || o.isPoints) mats[mi].depthWrite = false;
+        }
+      });
+    } else {
+      holoPulseAge = -1;
+      holoPulseWait = 20 + Math.random() * 10;
+      applyHoloPulse(0);
+      keyLight.color.set('#d9ccff');
+      keyLight.intensity = 0.95;
+      ambientLight.color.set('#241a3a');
+      ambientLight.intensity = 1.1;
+      holoKey.intensity = 0;
+      holoFill.intensity = 0;
+      holoRim.intensity = 0;
+      renderer.setClearColor(0x000000, 0);
+      renderer.sortObjects = false;
+      galaxyU.uC1.value.copy(COL_PURPLE).multiplyScalar(0.8);
+      galaxyU.uC2.value.copy(COL_BABY).multiplyScalar(0.7);
+      camera.position.set(0, 0, baseZ);
+      camera.lookAt(0, 0, 0);
+    }
+    fitCamera();
+    setPaletteTargets(paletteFor(lastSlug));
+    window.__HOLO_ON__ = holoOn;
+    window.__HOLO_DBG__ = function () {
+      const occ = (heroGroup.getObjectByName && heroGroup.getObjectByName('holoOccluder'))
+        || planet.getObjectByName('holoOccluder');
+      return {
+        transparent: planet.material.transparent,
+        depthWrite: planet.material.depthWrite,
+        blending: planet.material.blending,
+        opacity: planet.material.opacity,
+        renderOrder: planet.renderOrder,
+        occ: !!(occ && occ.visible),
+        occParent: occ && occ.parent && occ.parent.type,
+        occTW: occ && occ.material.transparent,
+        occDW: occ && occ.material.depthWrite,
+        sortObjects: renderer.sortObjects,
+        gridDT: holoGrid.material.depthTest,
+        starDT: stars.material.depthTest
+      };
+    };
+  }
+  window.__ORBIT_SKIN_APPLY__ = applyHoloSkin;
+
   function freshMaterial(srcMat, paletteHex) {
     const cols = paletteHex.map(h => new THREE.Color(h));
     const m = srcMat.clone();
@@ -677,10 +1183,13 @@
     return m;
   }
 
-  function buildPlanetClone(paletteHex) {
+  function buildPlanetClone(paletteHex, slug) {
     const group = new THREE.Group();
     const core = planet.clone();
     core.material = freshMaterial(planet.material, paletteHex);
+    if (core.material.uniforms.uSeed) {
+      core.material.uniforms.uSeed.value = slug ? (hashStr(slug) % 997) / 997 : 0.37;
+    }
     group.add(core);
     const shells = auroraShells.map(s => {
       const mesh = s.mesh.clone();
@@ -703,7 +1212,9 @@
     group.add(rg);
     group.visible = false;
     scene.add(group);
-    return { group: group, core: core, shells: shells, atmo: atmo, ringU: ringU, ringP: ringP, ringGroup: rg, hero: false };
+    const view = { group: group, core: core, shells: shells, atmo: atmo, ringU: ringU, ringP: ringP, ringGroup: rg, hero: false };
+    if (holoOn) attachWire(view);
+    return view;
   }
 
   function disposeClone(v) {
@@ -758,7 +1269,13 @@
     };
     if (view.core) {
       apply(view.core.material);
-      if (view.core.material) view.core.material.depthWrite = fade > 0.85;
+      if (view.core.material) {
+        if (holoOn) {
+          forceOpaquePlanet(view.core.material, view.core);
+        } else {
+          view.core.material.depthWrite = fade > 0.85;
+        }
+      }
     }
     if (view.atmo) apply(view.atmo.material);
     if (view.shells) {
@@ -784,7 +1301,7 @@
       slug = t && t.slug;
     } catch (e) {}
     const palette = slug ? paletteFor(slug) : PALETTES[0];
-    const inView = buildPlanetClone(palette);
+    const inView = buildPlanetClone(palette, slug);
     const outView = currentView;
     const outFrom = THREE.MathUtils.clamp(swipePreviewK, 0, 0.4) * -dir * PLATE_SLOT;
     const outTo = -dir * PLATE_SLOT;
@@ -842,7 +1359,8 @@
   const starUniforms = {
     uTime:  { value: 0 },
     uAudio: { value: 0 },
-    uScale: { value: window.innerHeight * 0.5 }
+    uScale: { value: window.innerHeight * 0.5 },
+    uHolo:  { value: 0 }
   };
   const stars = new THREE.Points(starGeo, new THREE.ShaderMaterial({
     uniforms: starUniforms,
@@ -856,10 +1374,11 @@
       uniform float uTime;
       uniform float uAudio;
       uniform float uScale;
+      uniform float uHolo;
       varying vec3 vColor;
       varying float vTw;
       void main(){
-        vColor = aColor;
+        vColor = mix(aColor, vec3(0.10, 0.34, 0.91), uHolo);
         vTw = 0.5 + 0.5 * sin(uTime * (0.6 + fract(aPhase) * 1.7) + aPhase);
         vec4 mv = modelViewMatrix * vec4(position, 1.0);
         gl_PointSize = aSize * (0.8 + uAudio * 0.35) * uScale * 0.085 / max(0.1, -mv.z);
@@ -986,7 +1505,10 @@
     );
     m.position.set(d.x, d.y, d.z);
     m.rotation.z = Math.random() * Math.PI;
-    nebulae.push({ mesh: m, u, rs: (Math.random() - 0.5) * 0.0035, tint: i < 2 });
+    nebulae.push({
+      mesh: m, u, rs: (Math.random() - 0.5) * 0.0035, tint: i < 2,
+      origC1: d.c1.clone(), origC2: d.c2.clone(), baseO: d.o
+    });
     scene.add(m);
   });
 
@@ -1578,6 +2100,7 @@
       all = all / Math.max(1, (freqData.length / 2)) / 255;
       bassSm += (bass - bassSm) * 0.18;
       levelSm += (all - levelSm) * 0.12;
+      window.__ORBIT_AUDIO__ = { bass: bassSm, level: levelSm };
 
       // GPU texture uploads at ~30Hz — aurora still reads smooth due to shader lerp
       _audioTexFrame++;
@@ -1610,7 +2133,6 @@
   }
 
   /* ════════════════ PER-SONG PALETTE WATCHER ════════════════ */
-  let lastSlug = null;
   let trackPollAcc = 0;
   function watchTrack(dt) {
     trackPollAcc += dt;
@@ -1640,10 +2162,12 @@
   let baseZ = 8;
   function fitCamera() {
     const h = window.innerHeight;
-    const targetPx = Math.min(360, h * 0.46);
-    const z = (PLANET_R * h) / (Math.tan(THREE.MathUtils.degToRad(camera.fov / 2)) * targetPx);
+    const pr = holoOn ? PLANET_R * HOLO_PLANET_SCALE : PLANET_R;
+    const targetPx = holoOn ? Math.min(440, h * 0.58) : Math.min(360, h * 0.46);
+    const z = (pr * h) / (Math.tan(THREE.MathUtils.degToRad(camera.fov / 2)) * targetPx);
     baseZ = Math.max(6.2, Math.min(13, z));
-    camera.position.z = baseZ;
+    if (holoOn) camera.position.set(0, 0.95, baseZ * 1.04);
+    else camera.position.z = baseZ;
   }
 
   function resize() {
@@ -1696,6 +2220,12 @@
       v.core.material.uniforms.uTime.value = t;
       v.core.material.uniforms.uAudio.value = levelSm;
       v.core.material.uniforms.uBass.value = bassSm;
+      if (v.core.material.uniforms.uHoloFlow) {
+        v.core.material.uniforms.uHoloFlow.value = (holoOn && !reduceMotion.matches) ? 1 : 0;
+      }
+      if (v.core.material.uniforms.uSpin) {
+        v.core.material.uniforms.uSpin.value = v.core.rotation.y;
+      }
       for (let ai = 0; ai < v.shells.length; ai++) {
         v.shells[ai].u.uTime.value = t;
         v.shells[ai].u.uAudio.value = levelSm;
@@ -1715,7 +2245,7 @@
       n.u.uTime.value = t;
       n.u.uAudio.value = levelSm;
       n.mesh.rotation.z += n.rs * dt;
-      if (n.tint) {
+      if (n.tint && !holoOn) {
         // the two nearest nebulae slowly absorb the song's palette
         n.u.uC1.value.lerp(tgtA, 0.004);
         n.u.uC2.value.lerp(tgtB, 0.004);
@@ -1723,8 +2253,23 @@
     }
 
     // motion — the settled planet only (in-flight views are arc-animated below)
-    currentView.core.rotation.y += dt * (0.045 + bassSm * 0.08);
-    currentView.core.rotation.x = Math.sin(t * 0.02) * 0.04; // slow axis precession
+    /* Holo fill spins slowly; blue meridian cage is a sibling and turns slower. */
+    currentView.core.rotation.y += dt * (holoOn ? 0.09 : (0.045 + bassSm * 0.08));
+    currentView.core.rotation.x = Math.sin(t * 0.02) * (holoOn ? 0.012 : 0.04);
+    if (holoOn) {
+      tickHoloPulse(dt);
+      if (currentView.cage && !reduceMotion.matches) {
+        currentView.cage.rotation.y += dt * 0.032;
+        currentView.cage.rotation.x = Math.sin(t * 0.015) * 0.035;
+      }
+      holoGridUniforms.uTime.value = t;
+      holoGridUniforms.uSpin.value = currentView.core.rotation.y;
+      if (currentView.core.material.uniforms.uSpin) {
+        currentView.core.material.uniforms.uSpin.value = currentView.core.rotation.y;
+      }
+      document.documentElement.style.setProperty('--holo-spin', currentView.core.rotation.y.toFixed(4));
+      tickHoloSpace(t, dt, bassSm);
+    }
     // fog layers counter-drift for parallax depth
     currentView.shells[0].mesh.rotation.y -= dt * 0.016;
     currentView.shells[0].mesh.rotation.z = Math.sin(t * 0.013) * 0.06;
@@ -1737,12 +2282,22 @@
     // ── adrift: layered slow lissajous + very lazy mouse parallax ──
     const driftX = Math.sin(t * 0.031) * 0.55 + Math.sin(t * 0.011 + 2.0) * 0.35;
     const driftY = Math.cos(t * 0.023) * 0.34 + Math.sin(t * 0.017 + 1.0) * 0.22;
-    const mx = mouse.has ? mouse.x * 0.5 : 0;
-    const my = mouse.has ? -mouse.y * 0.3 : 0;
-    camera.position.x += ((driftX + mx) - camera.position.x) * 0.012;
-    camera.position.y += ((driftY + my) - camera.position.y) * 0.012;
-    camera.position.z += ((baseZ + Math.sin(t * 0.013) * 0.45) - camera.position.z) * 0.008;
-    camera.lookAt(0, 0, 0);
+    const mx = mouse.has ? mouse.x * (holoOn ? 0.38 : 0.5) : 0;
+    const my = mouse.has ? -mouse.y * (holoOn ? 0.24 : 0.3) : 0;
+    const isoX = 0;
+    const isoY = holoOn ? 0.95 : 0;
+    const isoZ = holoOn ? baseZ * 1.04 : baseZ;
+    const dX = holoOn ? driftX * 0.12 : driftX;
+    const dY = holoOn ? driftY * 0.12 : driftY;
+    const camK = holoOn ? 0.06 : 0.012;
+    camera.position.x += ((isoX + dX + mx) - camera.position.x) * camK;
+    camera.position.y += ((isoY + dY + my) - camera.position.y) * camK;
+    camera.position.z += ((isoZ + Math.sin(t * 0.013) * 0.45) - camera.position.z) * (holoOn ? 0.05 : 0.008);
+    camera.lookAt(
+      holoOn && mouse.has ? mouse.x * 0.42 : 0,
+      holoOn ? (0.2 + (mouse.has ? -mouse.y * 0.22 : 0)) : 0,
+      0
+    );
 
     // ── drag / cancel: preview the recede-arc ──
     if (!arcAnim && (swipeDragging || swipeOrbitHome)) {
@@ -1858,7 +2413,54 @@
       shockwave = null;
     }
 
+    if (holoOn) {
+      renderHoloScene();
+    } else {
+      renderer.autoClear = true;
+      renderer.render(scene, camera);
+    }
+  }
+
+  function setHoloFxVisible(on) {
+    holoGrid.visible = on;
+    holoSpace.visible = on;
+    stars.visible = on;
+    galaxy.visible = on;
+    for (let ni = 0; ni < nebulae.length; ni++) nebulae[ni].mesh.visible = on;
+  }
+
+  function setHoloGlobeVisible(on) {
+    for (let i = 0; i < planetViews.length; i++) {
+      const v = planetViews[i];
+      if (v.core) v.core.visible = on;
+      if (v.cage) v.cage.visible = on && holoOn;
+      const host = v.group || v.core;
+      const occ = host && host.getObjectByName && host.getObjectByName('holoOccluder');
+      if (occ) occ.visible = on && holoOn;
+    }
+  }
+
+  function renderHoloScene() {
+    /* Globe first (opaque depth). Then room/props depth-test against it:
+       fly-throughs in front of the disc show; behind hide; floor never leaks. */
+    setHoloGlobeVisible(true);
+    setHoloFxVisible(false);
+    renderer.autoClear = true;
+    renderer.autoClearColor = true;
+    renderer.autoClearDepth = true;
     renderer.render(scene, camera);
+
+    setHoloGlobeVisible(false);
+    setHoloFxVisible(true);
+    renderer.autoClear = false;
+    renderer.autoClearColor = false;
+    renderer.autoClearDepth = false;
+    renderer.render(scene, camera);
+
+    setHoloGlobeVisible(true);
+    renderer.autoClear = true;
+    renderer.autoClearColor = true;
+    renderer.autoClearDepth = true;
   }
 
   // Pause rendering when the tab is hidden (battery + perf)
@@ -1870,6 +2472,10 @@
       frame();
     }
   });
+
+  if (document.documentElement.classList.contains('theme-holo')) {
+    applyHoloSkin(true);
+  }
 
   frame();
 })();

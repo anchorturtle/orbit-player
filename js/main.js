@@ -37,7 +37,9 @@
       s.y += s.speed; if (s.y > H) { s.y = 0; s.x = Math.random() * W; }
       ctx.beginPath();
       ctx.arc(s.x, s.y, s.r, 0, Math.PI * 2);
-      ctx.fillStyle = `rgba(220,210,255,${Math.max(0, Math.min(1, s.a))})`;
+      ctx.fillStyle = document.documentElement.classList.contains('theme-holo')
+        ? `rgba(61,230,255,${Math.max(0, Math.min(1, s.a))})`
+        : `rgba(220,210,255,${Math.max(0, Math.min(1, s.a))})`;
       ctx.fill();
     }
     requestAnimationFrame(draw);
@@ -154,9 +156,11 @@ function makeWindowDraggable(winId, barId) {
 
   function pin() {
     if (isMob()) return;
-    const r = win.getBoundingClientRect();
+    const r = typeof winLayoutRect === 'function' ? winLayoutRect(win) : {
+      left: win.offsetLeft, top: win.offsetTop, width: win.offsetWidth, height: win.offsetHeight
+    };
     win.style.left = r.left + 'px'; win.style.top = r.top + 'px';
-    win.style.width = r.width + 'px'; win.style.height = (r.height || win.offsetHeight) + 'px';
+    win.style.width = r.width + 'px'; win.style.height = r.height + 'px';
     win.style.bottom = ''; win.style.right = '';
     win.dataset.userPositioned = 'true';  // prevent applyDesktopLayout from overriding user positions on zoom/resize
     if (typeof saveWindowPosition === 'function') {
@@ -167,7 +171,9 @@ function makeWindowDraggable(winId, barId) {
   function startOp(e, m) {
     if (isMob()) return;
     pin();
-    const r = win.getBoundingClientRect();
+    const r = typeof winLayoutRect === 'function' ? winLayoutRect(win) : {
+      left: win.offsetLeft, top: win.offsetTop, width: win.offsetWidth, height: win.offsetHeight
+    };
     mode = m; sx = e.clientX; sy = e.clientY; sl = r.left; st = r.top; sw = r.width; sh = r.height;
     e.preventDefault(); if (e.stopPropagation) e.stopPropagation();
     document.documentElement.classList.add('orbit-resizing');
@@ -646,7 +652,7 @@ makeWindowDraggable('lyrics-win', 'lyrics-bar');
     ['tracklist-win', 'gallery-win', 'player-win'].forEach(id => {
       const w = document.getElementById(id);
       if (w && w.style.display === 'flex' && w.dataset.userPositioned === 'true') {
-        const rect = w.getBoundingClientRect();
+        const rect = typeof winLayoutRect === 'function' ? winLayoutRect(w) : { width: w.offsetWidth, height: w.offsetHeight };
         const vw = window.innerWidth;
         const vh = window.innerHeight;
         let newW = rect.width;
