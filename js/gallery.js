@@ -75,8 +75,9 @@ const VIDEOS = [
     poster: 'videos/jazzpotwax-poster.jpg',
     /** Reuse timed lyrics from TRACKS (player.js) for on-video captions */
     lyricsTrackSlug: 'jazzpot',
-    /** Over 200MB — exceeds the GitHub media CDN limit; streamed from a public Release asset instead */
-    cdnSrc: 'https://github.com/anchorturtle/orbit-player/releases/download/video-assets/jazzpotwax.mp4',
+    // Do not set cdnSrc to GitHub Releases: those URLs send
+    // Content-Disposition: attachment and <video> will not play.
+    // 221MB now streams from media.githubusercontent.com / media-store.
   },
 ];
 
