@@ -2559,44 +2559,25 @@ html.orbit-resizing .win {
   #dock-win { display: none; }
   #mobile-dock {
     display: flex;
-    flex-direction: column;
-    justify-content: center;
+    flex-direction: row;
+    align-items: center;
+    justify-content: flex-start;
     gap: 6px;
-    padding: 8px max(10px, env(safe-area-inset-right)) calc(8px + env(safe-area-inset-bottom)) max(10px, env(safe-area-inset-left)) !important;
+    padding: 6px max(8px, env(safe-area-inset-right)) calc(6px + env(safe-area-inset-bottom)) max(8px, env(safe-area-inset-left)) !important;
   }
-  .mob-brand {
+  #mobile-dock .dock-logo-wrap {
     display: flex;
-    align-items: baseline;
-    justify-content: center;
-    gap: 7px;
-    text-decoration: none;
-    line-height: 1;
+    margin: 0 2px 0 4px;
   }
-  .mob-brand-main {
-    font-size: 17px;
-    font-weight: 800;
-    font-style: italic;
-    letter-spacing: -.03em;
-    background-image: linear-gradient(115deg, var(--jestr-purple) 0%, var(--jestr-blue) 28%, var(--baby-blue) 58%, var(--jestr-green) 100%);
-    -webkit-background-clip: text;
-    background-clip: text;
-    -webkit-text-fill-color: transparent;
-    color: var(--baby-blue);
-  }
-  .mob-brand-sub {
-    font-size: 9px;
-    font-weight: 700;
-    letter-spacing: .22em;
-    text-transform: uppercase;
-    color: rgba(0,200,150,.55);
-  }
-  .mob-core { width: 100%; gap: 8px; }
+  #mobile-dock .dock-logo-main { font-size: 15px; }
+  #mobile-dock .dock-logo-sub { font-size: 7px; letter-spacing: .2em; }
+  .mob-core { width: auto; flex: 1; gap: 5px; }
   .mob-btn {
-    padding: 8px 6px !important;
-    min-height: 52px;
-    font-size: 10px !important;
+    padding: 4px 2px !important;
+    min-height: 42px;
+    font-size: 8px !important;
   }
-  .mob-btn .material-symbols-outlined { font-size: 24px !important; }
+  .mob-btn .material-symbols-outlined { font-size: 18px !important; }
   #planet-bg { display: none; }
 
   #player-win {
@@ -2788,10 +2769,10 @@ html.orbit-resizing .win {
   .vol-row { padding: 7px 12px !important; }
   #vol-slider::-webkit-slider-thumb { width: 20px !important; height: 20px !important; }
   #vol-pct { font-size: 13px !important; }
-  .taskbar-btn { font-size: 14px !important; padding: 8px 12px !important; min-width: 72px !important; }
-  .taskbar-btn .material-symbols-outlined { font-size: 22px !important; }
-  .mob-btn { padding: 10px 22px !important; font-size: 13px !important; }
-  .mob-btn .material-symbols-outlined { font-size: 26px !important; }
+  .taskbar-btn { font-size: 10px !important; padding: 5px 7px !important; min-width: 52px !important; }
+  .taskbar-btn .material-symbols-outlined { font-size: 18px !important; }
+  .mob-btn { padding: 6px 8px !important; font-size: 9px !important; }
+  .mob-btn .material-symbols-outlined { font-size: 18px !important; }
   #fp-title { font-size: 16px !important; }
   #fp-artist { font-size: 13px !important; }
 }
@@ -3023,7 +3004,7 @@ html.orbit-resizing .win {
 
 /* Tablet tweak for dock */
 @media (min-width: 768px) and (max-width: 1180px) {
-  #dock-win { width: min(460px, 92vw) !important; }
+  #dock-win { width: max-content !important; max-width: calc(100vw - 16px) !important; }
 }
 
 a.taskbar-btn,
