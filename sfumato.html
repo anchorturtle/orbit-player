@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html class="dark" lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+  <title>Sfumato — Orbit</title>
+  <link rel="icon" type="image/png" sizes="256x256" href="images/at-sea-trans-256.png">
+  <link rel="apple-touch-icon" href="images/at-sea-trans-256.png">
+  <meta property="og:title" content="Sfumato">
+  <meta property="og:description" content="Living oil studio by jestR — Orbit / AnchorTurtle">
+  <meta property="og:image" content="images/at-sea-trans-256.png">
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="AnchorTurtle">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="css/styles.css?v=20260913sfumato">
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+  <style>
+    a.taskbar-btn, a.mob-btn { text-decoration: none; color: var(--baby-blue); }
+    .sfumato-stage {
+      position: fixed; inset: 0; z-index: 2;
+      display: flex; align-items: center; justify-content: center;
+      padding: 88px 16px 96px;
+      pointer-events: none;
+    }
+    .sfumato-card {
+      pointer-events: auto;
+      width: min(32rem, 100%);
+      padding: 28px 24px 24px;
+      text-align: center;
+    }
+    .sfumato-card h1 {
+      margin: 0 0 8px;
+      font-size: 42px; font-weight: 800; font-style: italic;
+      letter-spacing: -0.04em;
+      background-image: linear-gradient(115deg, #7b2fff, #2d5bff, #7ec8e3, #00c896);
+      background-clip: text; -webkit-background-clip: text; color: transparent;
+    }
+    .sfumato-card p { margin: 0 0 18px; color: rgba(233,225,222,.78); }
+    .sfumato-go {
+      display: inline-flex; align-items: center; gap: 8px;
+      padding: 12px 18px; border-radius: 999px;
+      background: #7ec8e3; color: #071018;
+      font-size: 12px; font-weight: 800; letter-spacing: .14em;
+      text-transform: uppercase; text-decoration: none;
+    }
+  </style>
+</head>
+<body>
+  <div id="space-bg"></div>
+  <canvas id="stars-canvas"></canvas>
+  <div class="vignette"></div>
+  <div class="scanlines"></div>
+  <div class="grain-overlay"></div>
+
+  <div class="sfumato-stage">
+    <div class="win sfumato-card">
+      <p class="tape-counter phosphor" style="margin-bottom:10px">ORBIT STUDIO</p>
+      <h1>Sfumato</h1>
+      <p>Living oil on linen. Mix on glass. Keep it local.</p>
+      <a class="sfumato-go" href="https://github.com/anchorturtle/sfumato">Open the studio</a>
+    </div>
+  </div>
+
+  <div id="dock-win" class="win">
+    <div class="win-body">
+      <a class="dock-logo-wrap" href="index.html" style="text-decoration:none;color:inherit">
+        <span class="dock-logo-main vhs-flicker phosphor">Orbit</span>
+        <span class="dock-logo-sub">Hi-Fi</span>
+      </a>
+      <div class="dock-divider"></div>
+      <div class="dock-core">
+        <a class="taskbar-btn" href="index.html">
+          <span class="material-symbols-outlined">library_music</span>
+          <span>Tracks</span>
+          <div class="taskbar-dot"></div>
+        </a>
+        <a class="taskbar-btn" href="index.html">
+          <span class="material-symbols-outlined">photo_library</span>
+          <span>Gallery</span>
+          <div class="taskbar-dot"></div>
+        </a>
+        <a class="taskbar-btn" href="index.html">
+          <span class="material-symbols-outlined">equalizer</span>
+          <span>Player</span>
+          <div class="taskbar-dot"></div>
+        </a>
+        <a class="taskbar-btn win-open" href="sfumato.html" aria-current="page">
+          <span class="material-symbols-outlined">palette</span>
+          <span>Sfumato</span>
+          <div class="taskbar-dot"></div>
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <div id="mobile-dock">
+    <div class="mob-core">
+      <a class="mob-btn" href="index.html">
+        <span class="material-symbols-outlined">queue_music</span>
+        <span>Tracks</span>
+        <div class="mob-dot"></div>
+      </a>
+      <a class="mob-btn" href="index.html">
+        <span class="material-symbols-outlined">play_circle</span>
+        <span>Player</span>
+        <div class="mob-dot"></div>
+      </a>
+      <a class="mob-btn" href="index.html">
+        <span class="material-symbols-outlined">image</span>
+        <span>Gallery</span>
+        <div class="mob-dot"></div>
+      </a>
+      <a class="mob-btn active" href="sfumato.html">
+        <span class="material-symbols-outlined">palette</span>
+        <span>Sfumato</span>
+        <div class="mob-dot"></div>
+      </a>
+    </div>
+  </div>
+</body>
+</html>

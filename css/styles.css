@@ -2994,3 +2994,10 @@ html.orbit-resizing .win {
 @media (min-width: 768px) and (max-width: 1180px) {
   #dock-win { width: min(460px, 92vw) !important; }
 }
+
+a.taskbar-btn,
+a.mob-btn {
+  text-decoration: none;
+  color: var(--baby-blue);
+  box-sizing: border-box;
+}
