@@ -2559,17 +2559,45 @@ html.orbit-resizing .win {
   #dock-win { display: none; }
   #mobile-dock {
     display: flex;
+    flex-direction: column;
     justify-content: center;
-    padding: 10px max(12px, env(safe-area-inset-right)) calc(10px + env(safe-area-inset-bottom)) max(12px, env(safe-area-inset-left)) !important;
+    gap: 6px;
+    padding: 8px max(10px, env(safe-area-inset-right)) calc(8px + env(safe-area-inset-bottom)) max(10px, env(safe-area-inset-left)) !important;
   }
-  #planet-bg { display: none; }
-
-  /* Homogenized larger mobile nav buttons (consistent with enlarged player controls) */
+  .mob-brand {
+    display: flex;
+    align-items: baseline;
+    justify-content: center;
+    gap: 7px;
+    text-decoration: none;
+    line-height: 1;
+  }
+  .mob-brand-main {
+    font-size: 17px;
+    font-weight: 800;
+    font-style: italic;
+    letter-spacing: -.03em;
+    background-image: linear-gradient(115deg, var(--jestr-purple) 0%, var(--jestr-blue) 28%, var(--baby-blue) 58%, var(--jestr-green) 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    color: var(--baby-blue);
+  }
+  .mob-brand-sub {
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: .22em;
+    text-transform: uppercase;
+    color: rgba(0,200,150,.55);
+  }
+  .mob-core { width: 100%; gap: 8px; }
   .mob-btn {
-    padding: 10px 12px !important;
+    padding: 8px 6px !important;
+    min-height: 52px;
     font-size: 10px !important;
   }
-  .mob-btn .material-symbols-outlined { font-size: 26px !important; }
+  .mob-btn .material-symbols-outlined { font-size: 24px !important; }
+  #planet-bg { display: none; }
 
   #player-win {
     position: fixed !important; left: 0 !important; right: 0 !important;
@@ -3003,4 +3031,43 @@ a.mob-btn {
   text-decoration: none;
   color: var(--baby-blue);
   box-sizing: border-box;
+  -webkit-tap-highlight-color: transparent;
+}
+a.taskbar-btn:visited,
+a.mob-btn:visited {
+  color: var(--baby-blue);
+}
+#btn-sfumato:not(:active),
+#btn-mob-sfumato:not(:active):not(.active) {
+  background: rgba(255,255,255,.045);
+  transform: none;
+  color: var(--baby-blue);
+  box-shadow: 0 3px 6px rgba(0,0,0,.45), 0 1px 0 rgba(0,0,0,.3), inset 0 1px 0 rgba(255,255,255,.10);
+  border-top-color: rgba(255,255,255,.15);
+  border-left-color: rgba(255,255,255,.12);
+  border-bottom-color: rgba(0,0,0,.45);
+  border-right-color: rgba(0,0,0,.28);
+}
+@media (hover: none) {
+  .taskbar-btn:hover,
+  .mob-btn:hover,
+  a.taskbar-btn:hover,
+  a.mob-btn:hover,
+  a.taskbar-btn:focus,
+  a.mob-btn:focus {
+    background: rgba(255,255,255,.045);
+    transform: none;
+    color: var(--baby-blue);
+    box-shadow: 0 3px 6px rgba(0,0,0,.45), 0 1px 0 rgba(0,0,0,.3), inset 0 1px 0 rgba(255,255,255,.10);
+  }
+  .mob-btn.active:hover {
+    background: rgba(10,6,30,.78);
+    transform: translateY(1px);
+    color: var(--jestr-green);
+    box-shadow: inset 0 2px 6px rgba(0,0,0,.55);
+  }
+}
+
+.mob-brand {
+  display: none;
 }
