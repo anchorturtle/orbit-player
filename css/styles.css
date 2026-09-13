@@ -2377,7 +2377,7 @@ html.orbit-resizing .win {
 /* ============ DESKTOP DOCK ============ */
 #dock-win {
   position: fixed; bottom: 12px; left: 50%; transform: translateX(-50%);
-  width: max-content; max-width: min(720px, 96vw); z-index: 400; border-radius: 999px;
+  width: max-content; max-width: min(960px, calc(100vw - 12px)); z-index: 400; border-radius: 999px;
   /* Dock is always on-screen — keep glass look with a fixed cheap blur (not 40–52px full-window stack). */
   backdrop-filter: blur(22px) saturate(1.7) brightness(1.04);
   -webkit-backdrop-filter: blur(22px) saturate(1.7) brightness(1.04);
@@ -2397,12 +2397,14 @@ html.orbit-resizing .win {
 }
 #dock-win .win-body {
   flex-direction: row; align-items: center; justify-content: center;
-  gap: 8px; padding: 7px 18px;
-  overflow: hidden;
+  gap: 8px; padding: 7px 14px;
+  overflow-x: auto; overflow-y: hidden;
+  scrollbar-width: none;
 }
+#dock-win .win-body::-webkit-scrollbar { display: none; }
 #dock-win.has-temp-tabs { width: min(720px, 96vw); }
 #dock-win.has-temp-tabs .win-body { justify-content: flex-start; padding: 7px 14px; }
-.dock-core { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
+.dock-core { display: flex; align-items: center; gap: 6px; flex-shrink: 1; min-width: 0; }
 .dock-overflow {
   display: none; align-items: center; gap: 6px;
   flex: 1 1 auto; min-width: 0;
@@ -2512,8 +2514,9 @@ html.orbit-resizing .win {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 8px;
-  flex: 0 0 auto;
+  gap: 6px;
+  flex: 1 1 auto;
+  min-width: 0;
 }
 #mobile-dock::before {
   content: "";
@@ -2525,8 +2528,8 @@ html.orbit-resizing .win {
 }
 .mob-btn {
   display: flex; flex-direction: column; align-items: center; gap: 4px;
-  padding: 8px 14px; border-radius: 10px; cursor: pointer; flex: 0 1 auto;
-  min-width: 72px; max-width: 30vw;
+  padding: 8px 6px; border-radius: 10px; cursor: pointer; flex: 1 1 0;
+  min-width: 0; max-width: none;
   background: rgba(255,255,255,.04);
   border: 1px solid rgba(255,255,255,.07);
   border-top-color: rgba(255,255,255,.13); border-left-color: rgba(255,255,255,.10);
