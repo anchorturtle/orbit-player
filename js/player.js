@@ -1391,7 +1391,7 @@ function focalPlainTitle(title) {
 function loadTrack(idx, autoplay) {
   currentIndex = idx;
   const t = TRACKS[idx];
-  document.getElementById('fp-title').textContent = t.title;
+  document.getElementById('fp-title').textContent = softBreakTitle(t.title);
   document.getElementById('fp-artist').textContent = t.artist;
   document.getElementById('focal-title').textContent = softBreakTitle(focalPlainTitle(t.title));
   document.getElementById('focal-artist').textContent = t.artist;
@@ -2388,7 +2388,7 @@ async function updateLyricsViewer() {
   }
 
   const track = TRACKS[currentIndex];
-  titleEl.textContent = track.title || '—';
+  titleEl.textContent = softBreakTitle(track.title || '—');
   artistEl.textContent = track.artist || '';
 
   // Wire copy lyrics button (near title, right side)
@@ -2686,7 +2686,7 @@ function populateSongDetail(idx) {
     const titleBarEl = document.getElementById('song-detail-title-bar');
     const yearEl = document.getElementById('song-detail-year');
 
-    if (titleEl) titleEl.textContent = track.title;
+    if (titleEl) titleEl.textContent = softBreakTitle(track.title);
     if (artistEl) artistEl.textContent = track.artist;
     if (titleBarEl) titleBarEl.textContent = track.title;
     if (yearEl) yearEl.textContent = track.year ? track.year : '';
