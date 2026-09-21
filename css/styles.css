@@ -28,7 +28,7 @@
   --track-a: #7B2FFF;
   --track-b: #2D5BFF;
   --track-c: #00C896;
-  --mob-dock-h: 70px;
+  --mob-dock-h: 88px;
   --mob-player-h: 160px;
 }
 
@@ -2560,12 +2560,14 @@ html.orbit-resizing .win {
 /* ============ MOBILE LAYOUT ============ */
 @media (max-width: 767px) {
   #dock-win { display: none; }
+  html { --mob-dock-h: 88px; }
   #mobile-dock {
     display: flex;
     flex-direction: row;
     align-items: center;
     justify-content: flex-start;
     gap: 6px;
+    overflow: visible !important;
     padding: 6px max(8px, env(safe-area-inset-right)) calc(6px + env(safe-area-inset-bottom)) max(8px, env(safe-area-inset-left)) !important;
   }
   #mobile-dock .dock-logo-wrap {
@@ -2574,7 +2576,7 @@ html.orbit-resizing .win {
   }
   #mobile-dock .dock-logo-main { font-size: 15px; }
   #mobile-dock .dock-logo-sub { font-size: 7px; letter-spacing: .2em; }
-  .mob-core { width: auto; flex: 1; gap: 5px; }
+  .mob-core { width: auto; flex: 1; min-width: 0; gap: 5px; }
   .mob-btn {
     padding: 4px 2px !important;
     min-height: 42px;
@@ -2583,7 +2585,19 @@ html.orbit-resizing .win {
   .mob-btn .material-symbols-outlined { font-size: 18px !important; }
   #planet-bg { display: none; }
 
-  #player-win {
+  html #mobile-dock button.orbit-mode-btn.orbit-mode-btn-mob {
+    flex: 0 0 auto !important;
+    align-self: center;
+    min-width: 44px !important;
+    min-height: 44px !important;
+    max-width: none !important;
+    overflow: visible !important;
+    padding: 8px 10px !important;
+    margin: 0;
+    z-index: 2;
+  }
+
+  html #player-win {
     position: fixed !important; left: 0 !important; right: 0 !important;
     bottom: var(--mob-dock-h) !important; top: auto !important;
     width: 100% !important; max-width: 100% !important; min-width: 0 !important;
@@ -2591,9 +2605,11 @@ html.orbit-resizing .win {
     border-left: none !important; border-right: none !important; border-bottom: none !important;
     height: auto !important;
     min-height: 0 !important;
-    max-height: none !important;
+    max-height: min(42dvh, calc(100dvh - var(--mob-dock-h) - env(safe-area-inset-top, 0px) - 8px)) !important;
     overflow: hidden !important;
     z-index: 600 !important;
+    padding-left: env(safe-area-inset-left, 0px);
+    padding-right: env(safe-area-inset-right, 0px);
   }
   #player-win .win-bar {
     padding: 4px 10px 3px !important;
@@ -2628,9 +2644,16 @@ html.orbit-resizing .win {
   .player-info-side .material-symbols-outlined {
     font-size: 15px !important;
   }
-  .player-transport { padding: 4px 8px !important; gap: 6px !important; }
-  .player-transport .ctrl-btn { width: 35px !important; height: 35px !important; }
-  .player-transport .play-btn { width: 45px !important; height: 45px !important; }
+  .player-transport { padding: 4px 8px !important; gap: 6px !important; overflow: visible !important; }
+  html #player-win .player-transport button.ctrl-btn {
+    min-width: 44px !important; min-height: 44px !important;
+    width: 44px !important; height: 44px !important;
+  }
+  html #player-win .player-transport .play-btn,
+  html #player-win .player-transport button.play-btn {
+    min-width: 52px !important; min-height: 52px !important;
+    width: 52px !important; height: 52px !important;
+  }
   /* scale play triangle + pause icon to match larger play button (no clip, good visual weight) */
   .player-transport .play-icon:not(.material-symbols-outlined) {
     border-width: 13px 0 13px 22px !important;
@@ -3056,4 +3079,75 @@ a.mob-btn:visited {
 
 .mob-brand {
   display: none;
+}
+
+/* Visual mode switch — pill track + knob, not a text tile */
+.orbit-mode-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  min-width: 0;
+  padding: 4px 9px;
+  margin-left: 2px;
+  background: transparent;
+  border: 1px solid rgba(255, 255, 255, .08);
+  border-radius: 999px;
+  color: rgba(233, 225, 222, .38);
+  cursor: pointer;
+  flex-shrink: 0;
+  opacity: .72;
+  transition: color .2s ease, border-color .2s ease, background .2s ease, opacity .2s ease;
+  -webkit-tap-highlight-color: transparent;
+}
+.orbit-mode-btn:hover,
+.orbit-mode-btn:focus-visible {
+  color: rgba(233, 225, 222, .78);
+  border-color: rgba(150, 100, 255, .35);
+  background: rgba(255, 255, 255, .04);
+  outline: none;
+}
+.orbit-mode-track {
+  position: relative;
+  display: block;
+  width: 22px;
+  height: 9px;
+  border-radius: 999px;
+  border: 1px solid currentColor;
+  opacity: .7;
+  box-sizing: border-box;
+}
+.orbit-mode-knob {
+  position: absolute;
+  top: 1px;
+  left: 1px;
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: currentColor;
+  transition: transform .22s cubic-bezier(.22, 1, .36, 1);
+}
+.orbit-mode-btn.is-holo .orbit-mode-knob {
+  transform: translateX(12px);
+}
+.orbit-mode-label {
+  font-size: 7px;
+  font-weight: 700;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  line-height: 1;
+  white-space: nowrap;
+}
+.orbit-mode-btn-mob {
+  padding: 6px 8px;
+  align-self: center;
+}
+.orbit-mode-btn-mob .orbit-mode-label { font-size: 8px; letter-spacing: .12em; }
+
+@media (max-width: 767px) {
+  #mobile-dock { gap: 8px; overflow: visible; }
+  html #mobile-dock button.orbit-mode-btn.orbit-mode-btn-mob {
+    max-width: none;
+  }
 }

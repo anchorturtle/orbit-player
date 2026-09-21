@@ -1,0 +1,1552 @@
+/* Holo skin: wire + light in air. Not painted plastic plates.
+   Off-black void. Cyan structure. Red only as grit. */
+
+html.theme-holo {
+  --grain-opacity: .42;
+  --scanline-opacity: 0;
+  --vignette-strength: .62;
+  --jestr-blue: #1A58E8;
+  --jestr-green: #1A58E8;
+  --jestr-purple: #0A1020;
+  --jestr-red: #C41422;
+  --baby-blue: #2D6BFF;
+  --track-a: #0A1020;
+  --track-b: #1A58E8;
+  --track-c: #C41422;
+  --win-bg: rgba(5, 6, 8, .92);
+  --win-border: #1A58E8;
+  --win-radius: 20px;
+  --win-shadow: 0 0 16px rgba(26, 88, 232, .22);
+}
+
+html.theme-holo,
+html.theme-holo body {
+  background: #050608;
+  color: #1A58E8;
+  font-family: 'Share Tech Mono', 'Rajdhani', sans-serif;
+}
+
+html.theme-holo body {
+  perspective: none;
+}
+
+html.theme-holo .holo-paper {
+  display: none !important;
+}
+html.theme-holo #holo-iso-grid {
+  display: none !important;
+}
+html.theme-holo .scanlines {
+  display: block !important;
+  pointer-events: none;
+  z-index: 185;
+  mix-blend-mode: overlay;
+  opacity: calc(0.22 * var(--holo-flick, 1));
+  background: repeating-linear-gradient(
+    to bottom,
+    rgba(26, 88, 232, 0.09) 0 1px,
+    transparent 1px 3px
+  );
+}
+
+html.theme-holo .grain-overlay {
+  display: block !important;
+  opacity: 0.55;
+  mix-blend-mode: multiply;
+  z-index: 190;
+  animation: none;
+  background-image:
+    radial-gradient(circle, #050608 0.55px, transparent 0.7px),
+    radial-gradient(circle, #C41422 0.4px, transparent 0.65px);
+  background-size: 3px 3px, 5px 7px;
+  background-position: 0 0, 1px 2px;
+}
+
+html.theme-holo .vignette {
+  background: radial-gradient(ellipse at center, transparent 52%, rgba(4, 6, 10, .7) 100%);
+}
+
+html.theme-holo #space-bg {
+  background: transparent;
+}
+
+html.theme-holo #planet-bg {
+  opacity: 1 !important;
+  visibility: visible !important;
+  pointer-events: none !important;
+}
+html.theme-holo .focal-orbit,
+html.theme-holo .focal-text {
+  opacity: 1 !important;
+  visibility: visible !important;
+}
+html.theme-holo .focal-text {
+  justify-content: flex-end !important;
+  padding-bottom: 20% !important;
+}
+html.theme-holo .focal-eyebrow,
+html.theme-holo .tape-counter.focal-eyebrow {
+  color: #1A58E8 !important;
+  opacity: 1 !important;
+  visibility: visible !important;
+  letter-spacing: 0.32em;
+  text-shadow:
+    0 0 8px rgba(26, 88, 232, .95),
+    0 0 18px rgba(26, 88, 232, .55),
+    0 1px 0 #050608 !important;
+}
+html.theme-holo .focal-title,
+html.theme-holo #focal-title {
+  position: relative;
+  isolation: isolate;
+  color: #C41422 !important;
+  -webkit-text-fill-color: #C41422 !important;
+  opacity: 1 !important;
+  visibility: visible !important;
+  text-shadow:
+    0 0 4px rgba(26, 88, 232, .95),
+    0 0 12px rgba(26, 88, 232, .85),
+    0 0 28px rgba(26, 88, 232, .55),
+    0 0 52px rgba(26, 88, 232, .32),
+    0 2px 0 #050608 !important;
+  filter:
+    drop-shadow(0 0 10px rgba(26, 88, 232, .75))
+    drop-shadow(0 0 26px rgba(26, 88, 232, .4));
+  font-size: clamp(28px, 4.2vw, 52px) !important;
+  animation: holoTitleFlicker 3.2s ease-in-out infinite;
+}
+html.theme-holo .focal-title::before,
+html.theme-holo #focal-title::before {
+  content: '';
+  position: absolute;
+  left: 50%;
+  top: 58%;
+  width: 118%;
+  height: 140%;
+  transform: translate(-50%, -50%);
+  background: radial-gradient(ellipse at 50% 55%,
+    rgba(26, 88, 232, .42) 0%,
+    rgba(26, 88, 232, .16) 38%,
+    transparent 72%);
+  pointer-events: none;
+  z-index: -1;
+  filter: blur(10px);
+  animation: holoHaloPulse 4.2s ease-in-out infinite;
+}
+html.theme-holo .focal-artist,
+html.theme-holo #focal-artist {
+  color: #1A58E8 !important;
+  opacity: 1 !important;
+  visibility: visible !important;
+  text-shadow:
+    0 0 8px rgba(26, 88, 232, .9),
+    0 0 20px rgba(26, 88, 232, .45) !important;
+}
+@keyframes holoTitleFlicker {
+  0%, 100% {
+    filter:
+      drop-shadow(0 0 8px rgba(26, 88, 232, .7))
+      drop-shadow(0 0 22px rgba(26, 88, 232, .35));
+  }
+  38% {
+    filter:
+      drop-shadow(0 0 14px rgba(26, 88, 232, .95))
+      drop-shadow(0 0 36px rgba(26, 88, 232, .55));
+  }
+  46% {
+    filter:
+      drop-shadow(0 0 6px rgba(26, 88, 232, .55))
+      drop-shadow(0 0 16px rgba(26, 88, 232, .28));
+  }
+  62% {
+    filter:
+      drop-shadow(0 0 16px rgba(26, 88, 232, 1))
+      drop-shadow(0 0 42px rgba(26, 88, 232, .5));
+  }
+}
+@keyframes holoHaloPulse {
+  0%, 100% { opacity: 0.72; transform: translate(-50%, -50%) scale(1); }
+  50% { opacity: 1; transform: translate(-50%, -50%) scale(1.08); }
+}
+
+html.theme-holo .phosphor:not(.focal-eyebrow):not(.focal-artist) {
+  color: #1A58E8 !important;
+  text-shadow: none !important;
+}
+html.theme-holo .tape-counter:not(.focal-eyebrow) {
+  color: #1A58E8 !important;
+  text-shadow: none !important;
+}
+html.theme-holo ::placeholder {
+  color: #1A58E8 !important;
+  opacity: 0.5;
+}
+html.theme-holo input,
+html.theme-holo textarea {
+  caret-color: #1A58E8;
+}
+
+/* Glass plate: see the grid through it. Wire edge only. */
+html.theme-holo .win {
+  overflow: hidden;
+  contain: layout style !important;
+  transform: none !important;
+  filter: none;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  background: #050608 !important;
+  border: 2px solid transparent !important;
+  border-radius: 20px !important;
+  color: #1A58E8 !important;
+  box-shadow: none !important;
+}
+/* Spread the void past the wire so clip-path can hug the tube from outside
+   without a planet/grid halo at the inner edge. Dock stays tight/unclipped. */
+html.theme-holo .win:not(#dock-win) {
+  overflow: visible !important;
+  /* 12px is the void past the wire; 40px is paint the clip-path can cut
+     to the outward wave so big music bulges do not halo the planet. */
+  box-shadow: 0 0 0 12px #050608, 0 0 0 40px #050608 !important;
+}
+html.theme-holo .win.holo-dragging {
+  transform: none !important;
+}
+html.theme-holo .win::before,
+html.theme-holo .win::after,
+html.theme-holo .win.win-glass-lite::after,
+html.theme-holo .win:not(#dock-win)::after,
+html.theme-holo .win.win-glass-lite:not(#dock-win)::after {
+  display: none !important;
+  opacity: 0 !important;
+  background: none !important;
+  content: none !important;
+}
+
+html.theme-holo .win.win-glass-lite,
+html.theme-holo .win.win-glass-lite:not(#dock-win) {
+  background: #050608 !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+
+html.theme-holo .search-wrap {
+  background: rgba(8, 14, 24, .92) !important;
+  border: 1px solid #1A58E8 !important;
+  border-radius: 14px !important;
+  box-shadow: none !important;
+}
+
+html.theme-holo #player-win {
+  overflow: visible !important;
+  contain: layout style;
+}
+html.theme-holo #player-win .win-resize.ne,
+html.theme-holo #player-win .win-resize.nw,
+html.theme-holo #player-win .win-resize.se,
+html.theme-holo #player-win .win-resize.sw {
+  display: block !important;
+}
+html.theme-holo .win-resize.n,
+html.theme-holo .win-resize.s,
+html.theme-holo .win-resize.e,
+html.theme-holo .win-resize.w,
+html.theme-holo #player-win .win-resize.n,
+html.theme-holo #player-win .win-resize.s,
+html.theme-holo #player-win .win-resize.e,
+html.theme-holo #player-win .win-resize.w {
+  display: none !important;
+  pointer-events: none !important;
+}
+
+html.theme-holo #dock-win {
+  left: 0 !important;
+  right: 0 !important;
+  width: max-content;
+  max-width: min(720px, 96vw);
+  margin-left: auto;
+  margin-right: auto;
+  bottom: 32px !important;
+  transform: none !important;
+  border-radius: 22px !important;
+  overflow: visible !important;
+  contain: none !important;
+  z-index: 1300 !important;
+  clip-path: none !important;
+  box-sizing: border-box;
+}
+html.theme-holo #dock-win .win-body {
+  overflow: visible !important;
+  padding: 20px 36px !important;
+}
+html.theme-holo #dock-win .dock-core,
+html.theme-holo #dock-win .orbit-mode-btn,
+html.theme-holo #dock-win .dock-logo-wrap {
+  overflow: visible;
+}
+html.theme-holo #dock-win .taskbar-btn {
+  padding: 4px 8px !important;
+  overflow: visible;
+}
+
+html.theme-holo .win-resize {
+  pointer-events: auto !important;
+  z-index: 80 !important;
+  opacity: 0;
+}
+html.theme-holo .win-resize.n,
+html.theme-holo .win-resize.s {
+  height: 12px;
+}
+html.theme-holo .win-resize.e,
+html.theme-holo .win-resize.w {
+  width: 12px;
+}
+html.theme-holo .win-resize.nw,
+html.theme-holo .win-resize.ne,
+html.theme-holo .win-resize.sw,
+html.theme-holo .win-resize.se {
+  display: block !important;
+  pointer-events: auto !important;
+  width: 18px;
+  height: 18px;
+}
+html.theme-holo #player-win .win-body,
+html.theme-holo #player-win .player-faceplate {
+  overflow: hidden !important;
+  background: transparent !important;
+}
+html.theme-holo .player-transport {
+  overflow: visible;
+}
+
+html.theme-holo #sidebar-tracklist,
+html.theme-holo #gallery-scroll-container,
+html.theme-holo .lyrics-scroll,
+html.theme-holo .album-win-tracks {
+  overflow-x: hidden;
+  overflow-y: auto;
+}
+
+html.theme-holo .win-bar {
+  background: rgba(2, 6, 12, .95) !important;
+  border-bottom: 1px solid rgba(26, 88, 232, .28) !important;
+  padding: 10px 18px !important;
+  overflow: visible;
+}
+html.theme-holo .win-bar::after {
+  display: none !important;
+}
+
+html.theme-holo .win-title,
+html.theme-holo .dock-logo-main,
+html.theme-holo .dock-logo-main.phosphor {
+  color: #1A58E8 !important;
+  -webkit-text-fill-color: #1A58E8 !important;
+  background: none !important;
+  background-image: none !important;
+  text-shadow: none !important;
+  filter: none;
+}
+html.theme-holo .player-title {
+  color: #C41422 !important;
+  -webkit-text-fill-color: #C41422 !important;
+  background: none !important;
+  background-image: none !important;
+  text-shadow: 0 0 10px rgba(196, 20, 34, .35) !important;
+  filter: none;
+}
+
+html.theme-holo .dock-logo-wrap::before {
+  display: none !important;
+}
+html.theme-holo .dock-logo-sub {
+  color: rgba(26, 88, 232, .7) !important;
+}
+
+/* Controls = empty frames of light, not filled tiles */
+html.theme-holo .ctrl-btn,
+html.theme-holo .taskbar-btn,
+html.theme-holo .tab,
+html.theme-holo .mob-btn,
+html.theme-holo .orbit-mode-btn,
+html.theme-holo .win-close {
+  background: transparent !important;
+  border: 1px solid rgba(26, 88, 232, .55) !important;
+  color: #1A58E8 !important;
+  border-radius: 14px !important;
+  box-shadow: none !important;
+  clip-path: none !important;
+  filter: none;
+  backdrop-filter: none !important;
+  text-shadow: none;
+}
+
+html.theme-holo .ctrl-btn.active-state,
+html.theme-holo .taskbar-btn.win-open,
+html.theme-holo .tab.active,
+html.theme-holo .mob-btn.active {
+  background: rgba(26, 88, 232, .14) !important;
+  color: #1A58E8 !important;
+  border-color: #2D6BFF !important;
+  box-shadow: 0 0 12px rgba(26, 88, 232, .25) !important;
+}
+html.theme-holo #btn-shuffle.active-state,
+html.theme-holo #btn-repeat.active-state,
+html.theme-holo .tracklist-tabs .tab.active,
+html.theme-holo .gallery-tabs .tab.active,
+html.theme-holo .custom-pl-chip.is-on {
+  background: rgba(196, 20, 34, .18) !important;
+  color: #E02040 !important;
+  border-color: rgba(196, 20, 34, .75) !important;
+  box-shadow: 0 0 10px rgba(196, 20, 34, .32) !important;
+}
+html.theme-holo #btn-shuffle.active-state .material-symbols-outlined,
+html.theme-holo #btn-repeat.active-state .material-symbols-outlined,
+html.theme-holo .tracklist-tabs .tab.active {
+  color: #E02040 !important;
+}
+
+html.theme-holo .taskbar-btn.win-open .material-symbols-outlined,
+html.theme-holo .mob-btn.active .material-symbols-outlined {
+  background: none !important;
+  color: #1A58E8 !important;
+}
+
+html.theme-holo .taskbar-dot,
+html.theme-holo .mob-dot {
+  background: #1A58E8 !important;
+  box-shadow: 0 0 6px rgba(26, 88, 232, .7) !important;
+}
+
+html.theme-holo .player-faceplate,
+html.theme-holo .player-faceplate {
+  background: transparent !important;
+  box-shadow: none !important;
+  border: none !important;
+  filter: none;
+  gap: 10px !important;
+  padding: 12px 14px 10px !important;
+}
+html.theme-holo .player-faceplate::before {
+  display: none !important;
+}
+
+html.theme-holo .player-art-side,
+html.theme-holo .player-art {
+  background: transparent !important;
+  border: 1px solid rgba(26, 88, 232, .5) !important;
+  box-shadow: none !important;
+  filter: none !important;
+  border-radius: 14px !important;
+}
+html.theme-holo .player-art-side .material-symbols-outlined,
+html.theme-holo .player-art .material-symbols-outlined {
+  color: #2D6BFF !important;
+  filter: none !important;
+}
+
+html.theme-holo .player-artist,
+html.theme-holo .track-artist,
+html.theme-holo .time-label,
+html.theme-holo .time-current,
+html.theme-holo .time-total,
+html.theme-holo .tab {
+  color: #1A58E8 !important;
+}
+html.theme-holo .track-title {
+  color: #1A58E8 !important;
+}
+
+html.theme-holo .player-transport {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 8px 0;
+  overflow: visible;
+}
+
+html.theme-holo .player-transport .ctrl-btn {
+  width: 36px !important;
+  height: 36px !important;
+  min-width: 36px !important;
+  min-height: 36px !important;
+  flex: 0 0 36px !important;
+  padding: 0 !important;
+  clip-path: none !important;
+  border-radius: 14px !important;
+}
+
+/* Play = hollow ring of light, not a painted puck */
+html.theme-holo .player-transport .play-btn,
+html.theme-holo .play-btn,
+html.theme-holo #btn-play,
+html.theme-holo #song-detail-play.play-btn {
+  width: 56px !important;
+  height: 56px !important;
+  min-width: 56px !important;
+  min-height: 56px !important;
+  flex: 0 0 56px !important;
+  margin: 0 10px !important;
+  border-radius: 50% !important;
+  clip-path: none !important;
+  overflow: visible !important;
+  isolation: isolate;
+  background: transparent !important;
+  border: 2px solid #1A58E8 !important;
+  box-shadow:
+    0 0 14px rgba(26, 88, 232, .4),
+    inset 0 0 10px rgba(26, 88, 232, .12) !important;
+  filter: none !important;
+}
+html.theme-holo .player-transport .play-btn::before,
+html.theme-holo .player-transport .play-btn::after,
+html.theme-holo .play-btn::before,
+html.theme-holo .play-btn::after,
+html.theme-holo #btn-play::before,
+html.theme-holo #btn-play::after {
+  content: none !important;
+  display: none !important;
+  background: none !important;
+  opacity: 0 !important;
+  animation: none !important;
+  filter: none !important;
+}
+html.theme-holo .player-transport .play-btn.playing,
+html.theme-holo .play-btn.playing,
+html.theme-holo #btn-play.playing {
+  background: rgba(26, 88, 232, .16) !important;
+  box-shadow:
+    0 0 18px rgba(26, 88, 232, .55),
+    inset 0 0 12px rgba(26, 88, 232, .18) !important;
+  animation: none !important;
+}
+html.theme-holo .play-btn .play-icon,
+html.theme-holo .play-btn.playing .play-icon,
+html.theme-holo .play-icon:not(.material-symbols-outlined) {
+  color: #C41422 !important;
+  filter: drop-shadow(0 0 6px rgba(26, 88, 232, .7)) !important;
+  border-color: transparent transparent transparent #C41422 !important;
+}
+
+html.theme-holo .progress-fill-bar,
+html.theme-holo .progress-thumb {
+  background: #C41422 !important;
+  animation: none !important;
+  filter: none !important;
+  box-shadow: 0 0 8px rgba(26, 88, 232, .45) !important;
+}
+html.theme-holo .progress-track-bg {
+  background: rgba(26, 88, 232, .12) !important;
+}
+
+html.theme-holo #vol-slider,
+html.theme-holo #video-vol-slider {
+  background: linear-gradient(to right, #1A58E8 0%, #1A58E8 var(--vol-pct, 80%), rgba(26, 88, 232, .12) var(--vol-pct, 80%), rgba(26, 88, 232, .12) 100%) !important;
+  box-shadow: none !important;
+}
+html.theme-holo #vol-slider::-webkit-slider-thumb,
+html.theme-holo #video-vol-slider::-webkit-slider-thumb {
+  background: #2D6BFF !important;
+  border: 1px solid #1A58E8 !important;
+  box-shadow: 0 0 8px rgba(26, 88, 232, .6) !important;
+}
+
+html.theme-holo .track-item {
+  background: transparent !important;
+  border: none !important;
+  border-bottom: 1px solid rgba(26, 88, 232, .16) !important;
+  border-radius: 14px !important;
+  padding: 8px 6px !important;
+}
+html.theme-holo .track-item .track-title,
+html.theme-holo .track-item .track-artist {
+  display: inline-block;
+}
+html.theme-holo .track-item .track-title {
+  color: #8EB4FF !important;
+  font-family: "Share Tech Mono", ui-monospace, monospace !important;
+  font-weight: 500 !important;
+  letter-spacing: 0.04em !important;
+}
+html.theme-holo .track-item .track-artist {
+  color: rgba(26, 88, 232, .62) !important;
+  font-family: "Share Tech Mono", ui-monospace, monospace !important;
+  font-size: 10px !important;
+  letter-spacing: 0.12em !important;
+  text-transform: uppercase !important;
+}
+html.theme-holo .track-item .track-note-icon {
+  color: #1A58E8 !important;
+  opacity: 0.28 !important;
+}
+html.theme-holo .track-item.active {
+  background: linear-gradient(90deg, rgba(26, 88, 232, .2), transparent 78%) !important;
+  border-bottom-color: rgba(26, 88, 232, .45) !important;
+  transform: none;
+}
+html.theme-holo .track-item.active .track-title,
+html.theme-holo .track-item.active .track-artist {
+  color: #C8DCFF !important;
+}
+html.theme-holo .track-item.active::before {
+  background: #C41422 !important;
+  width: 2px !important;
+  box-shadow: 0 0 8px rgba(196, 20, 34, .7) !important;
+  border-radius: 14px !important;
+}
+html.theme-holo .track-item:hover {
+  background: rgba(26, 88, 232, .08) !important;
+}
+
+html.theme-holo .track-item {
+  overflow: visible !important;
+  padding: 12px 6px !important;
+}
+html.theme-holo .track-item .track-title,
+html.theme-holo .track-item .track-artist,
+html.theme-holo .win-title,
+html.theme-holo .player-title,
+html.theme-holo #focal-title,
+html.theme-holo .focal-title {
+  overflow: visible !important;
+  text-overflow: clip !important;
+  line-height: 1.35 !important;
+  white-space: normal !important;
+  word-break: normal !important;
+  overflow-wrap: break-word !important;
+}
+
+/* Per-letter carousel — JS drives transform. Keep room so glyphs don't clip. */
+html.theme-holo .holo-word {
+  display: inline-block;
+  white-space: nowrap;
+}
+html.theme-holo .holo-ch {
+  display: inline-block;
+  vertical-align: baseline;
+  will-change: transform;
+  backface-visibility: hidden;
+}
+html.theme-holo .holo-sp {
+  display: inline;
+  white-space: normal;
+}
+
+/* Same 4.8s clock. Background rides the word right→left; player left→right.
+   Different paths so they don't mirror. Mouse-clear still kills both. */
+html.theme-holo.holo-letter-drift .holo-title-bg .holo-ch,
+html.theme-holo.holo-playing .holo-title-bg .holo-ch {
+  animation: holoTitleBg 4.8s ease-in-out infinite;
+  animation-delay: calc((var(--n, 8) - var(--i, 0)) * 4.8s / var(--n, 8));
+}
+html.theme-holo.holo-letter-drift .holo-title-pl .holo-ch,
+html.theme-holo.holo-playing .holo-title-pl .holo-ch {
+  animation: holoTitlePl 4.8s ease-in-out infinite;
+  animation-delay: calc(var(--i, 0) * 4.8s / var(--n, 8));
+}
+@keyframes holoTitleBg {
+  0%, 100% { transform: translate(0, 0) rotate(0deg); }
+  28% { transform: translate(-0.04em, -0.16em) rotate(-6deg); }
+  62% { transform: translate(0.07em, 0.10em) rotate(4deg); }
+}
+@keyframes holoTitlePl {
+  0%, 100% { transform: translate(0, 0) rotate(0deg); }
+  22% { transform: translate(0.10em, 0.05em) rotate(5deg); }
+  58% { transform: translate(-0.06em, -0.14em) rotate(-3deg); }
+}
+@media (prefers-reduced-motion: reduce) {
+  html.theme-holo .holo-ch {
+    transform: none !important;
+    filter: none !important;
+  }
+}
+
+html.theme-holo .gallery-item {
+  border: 1px solid rgba(26, 88, 232, .4) !important;
+  border-radius: 14px !important;
+  box-shadow: none !important;
+  background: transparent !important;
+}
+
+html.theme-holo #drop-line,
+html.theme-holo #drop-line::before,
+html.theme-holo #drop-line::after {
+  background: #1A58E8 !important;
+  box-shadow: 0 0 8px rgba(26, 88, 232, .5) !important;
+}
+
+html.theme-holo .explicit-badge {
+  background: transparent !important;
+  color: #C41422 !important;
+  border: 1px solid #9A1218 !important;
+}
+
+html.theme-holo .orbit-mode-btn,
+html.theme-holo .orbit-mode-btn-mob {
+  pointer-events: auto !important;
+  position: relative;
+  z-index: 1400 !important;
+  cursor: pointer !important;
+  display: flex !important;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  border-radius: 999px !important;
+  padding: 6px 10px !important;
+  background: transparent !important;
+  border: 1px solid rgba(26, 88, 232, .45) !important;
+}
+html.theme-holo .orbit-mode-track {
+  display: block !important;
+  position: relative !important;
+  width: 28px !important;
+  height: 12px !important;
+  border-radius: 999px !important;
+  background: rgba(26, 88, 232, .12) !important;
+  border: 1px solid #1A58E8 !important;
+  box-shadow: 0 0 8px rgba(26, 88, 232, .35) !important;
+  opacity: 1 !important;
+}
+html.theme-holo .orbit-mode-knob {
+  position: absolute !important;
+  top: 2px !important;
+  left: 2px !important;
+  width: 8px !important;
+  height: 8px !important;
+  border-radius: 50% !important;
+  background: #C41422 !important;
+  box-shadow: 0 0 6px rgba(196, 20, 34, .7) !important;
+}
+html.theme-holo .orbit-mode-btn.is-holo .orbit-mode-knob {
+  transform: translateX(14px);
+}
+html.theme-holo .orbit-mode-label {
+  font-size: 7px !important;
+  letter-spacing: .16em;
+  opacity: .55;
+}
+
+html.theme-holo ::-webkit-scrollbar-thumb {
+  background: #1A58E8 !important;
+  border-radius: 14px !important;
+}
+html.theme-holo ::-webkit-scrollbar-track {
+  background: rgba(5, 6, 8, .9) !important;
+}
+
+html.theme-holo .no-scrollbar {
+  scrollbar-width: thin;
+  scrollbar-color: #1A58E8 rgba(5, 6, 8, .9);
+}
+html.theme-holo .no-scrollbar::-webkit-scrollbar {
+  width: 10px;
+}
+html.theme-holo .no-scrollbar::-webkit-scrollbar-track {
+  background: rgba(5, 6, 8, .9) !important;
+  border-radius: 14px !important;
+}
+html.theme-holo .no-scrollbar::-webkit-scrollbar-thumb {
+  background: #1A58E8 !important;
+  border-radius: 14px !important;
+  border: 1px solid #0A1020 !important;
+}
+html.theme-holo .no-scrollbar::-webkit-scrollbar-thumb:hover,
+html.theme-holo .no-scrollbar::-webkit-scrollbar-thumb:active {
+  background: #2D6BFF !important;
+}
+
+html.theme-holo #space3d-canvas {
+  display: block !important;
+  opacity: 1 !important;
+  visibility: visible !important;
+  contain: none !important;
+  z-index: 0 !important;
+}
+html.theme-holo #stars-canvas {
+  display: none !important;
+}
+html.theme-holo .focal-backdrop {
+  display: none !important;
+  opacity: 0 !important;
+}
+html.theme-holo .planet-fallback-glow {
+  display: none !important;
+}
+
+#holo-strings {
+  display: none !important;
+  pointer-events: none;
+}
+html.theme-holo #holo-strings {
+  display: none !important;
+}
+
+#holo-hud {
+  display: none;
+  position: fixed;
+  inset: 0;
+  z-index: 7;
+  pointer-events: none;
+}
+html.theme-holo #holo-hud {
+  display: block;
+  will-change: transform;
+}
+html.theme-holo #holo-hud .holo-hud-wave,
+html.theme-holo #holo-hud .holo-hud-rip {
+  fill: none;
+  stroke: #1A58E8;
+  stroke-width: 1.15;
+  stroke-linecap: square;
+  filter: drop-shadow(0 0 6px rgba(26, 88, 232, .55));
+}
+
+#holo-tubes {
+  display: none;
+  position: fixed;
+  inset: 0;
+  z-index: 1200;
+  pointer-events: none;
+}
+html.theme-holo #holo-tubes {
+  display: block;
+  overflow: visible;
+  will-change: transform;
+  top: -48px;
+  left: -48px;
+  width: calc(100% + 96px);
+  height: calc(100% + 96px);
+}
+html.theme-holo #holo-tubes .holo-tube-glass {
+  fill: none;
+  stroke: #1A58E8;
+  stroke-width: 1.7;
+  stroke-linejoin: round;
+  stroke-linecap: round;
+  stroke-dasharray: none;
+}
+html.theme-holo #holo-tubes .holo-tube-plasma,
+html.theme-holo #holo-tubes .holo-tube-trail,
+html.theme-holo #holo-tubes .holo-tube-hot {
+  fill: #1A58E8;
+  stroke: none;
+}
+html.theme-holo #holo-tubes .holo-tube-ember {
+  fill: #F4F8FF;
+  stroke: none;
+  opacity: 0.95;
+}
+html.theme-holo #holo-tubes .holo-tube-platehide,
+html.theme-holo #holo-tubes .holo-tube-cornerhide-core,
+html.theme-holo #holo-tubes .holo-tube-cornerhide,
+html.theme-holo #holo-tubes .holo-tube-hash,
+html.theme-holo #holo-tubes .holo-tube-ghost,
+html.theme-holo #holo-tubes .holo-tube-wake {
+  display: none;
+}
+html.theme-holo #holo-tubes .holo-tube-tick {
+  fill: none;
+  stroke: #1A58E8;
+  stroke-width: 1.6;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  opacity: 0.85;
+}
+
+/* Magnetic lean + kick bounce. Never lock .ctrl-btn with transform:none. */
+html.theme-holo .ctrl-btn:not(.play-btn),
+html.theme-holo .taskbar-btn,
+html.theme-holo .tab,
+html.theme-holo .mob-btn,
+html.theme-holo .orbit-mode-btn,
+html.theme-holo .win-close {
+  --holo-near-s: 1;
+  animation: none;
+  overflow: visible !important;
+  will-change: transform;
+  transform:
+    translate(var(--holo-nx, 0px), calc(var(--holo-ny, 0px) + var(--holo-bounce-y, 0px))) !important;
+  transform-origin: center center;
+  transition: box-shadow 0.15s ease, border-color 0.15s ease, filter 0.15s ease;
+}
+html.theme-holo #dock-win .taskbar-btn,
+html.theme-holo #dock-win .orbit-mode-btn {
+  animation: none;
+  transform:
+    translate(var(--holo-nx, 0px), calc(var(--holo-ny, 0px) + var(--holo-bounce-y, 0px))) !important;
+}
+html.theme-holo .ctrl-btn:hover,
+html.theme-holo .taskbar-btn:hover,
+html.theme-holo .tab:hover,
+html.theme-holo .mob-btn:hover,
+html.theme-holo .orbit-mode-btn:hover,
+html.theme-holo .win-close:hover,
+html.theme-holo .holo-near {
+  filter: brightness(1.18) saturate(1.1);
+  box-shadow: 0 0 16px rgba(26, 88, 232, .55), inset 0 0 8px rgba(26, 88, 232, .14) !important;
+  border-color: #2D6BFF !important;
+}
+html.theme-holo .ctrl-btn:not(.play-btn):active,
+html.theme-holo .taskbar-btn:active,
+html.theme-holo .tab:active,
+html.theme-holo .mob-btn:active,
+html.theme-holo .orbit-mode-btn:active,
+html.theme-holo .win-close:active {
+  transform:
+    translate(var(--holo-nx, 0px), calc(var(--holo-ny, 0px) + var(--holo-bounce-y, 0px))) !important;
+}
+/* Play ring size-lock. Not a .ctrl-btn transform:none. */
+html.theme-holo .play-btn,
+html.theme-holo #btn-play,
+html.theme-holo .play-btn:hover,
+html.theme-holo #btn-play:hover,
+html.theme-holo .play-btn:active,
+html.theme-holo #btn-play:active {
+  animation: none;
+  transform: none !important;
+  will-change: auto;
+}
+html.theme-holo .play-btn:hover,
+html.theme-holo #btn-play:hover {
+  filter: none;
+  box-shadow:
+    0 0 18px rgba(26, 88, 232, .55),
+    inset 0 0 10px rgba(26, 88, 232, .16) !important;
+}
+html.theme-holo .play-btn.playing .play-icon,
+html.theme-holo #btn-play.playing .play-icon {
+  transform: translate(-50%, -50%) !important;
+}
+
+/* Music bounce: inner content only. Never transform .win or the play ring. */
+html.theme-holo:not(.holo-still) .ctrl-btn .material-symbols-outlined,
+html.theme-holo:not(.holo-still) .taskbar-btn .material-symbols-outlined,
+html.theme-holo:not(.holo-still) .mob-btn .material-symbols-outlined,
+html.theme-holo:not(.holo-still) .win-close .material-symbols-outlined,
+html.theme-holo:not(.holo-still) .tab .tab-short,
+html.theme-holo:not(.holo-still) .tab .tab-full,
+html.theme-holo:not(.holo-still) .orbit-mode-btn .orbit-mode-track,
+html.theme-holo:not(.holo-still) .dock-logo-wrap {
+  transform: translateY(var(--holo-bounce-y, 0px));
+  transform-origin: center center;
+}
+html.theme-holo:not(.holo-still) .win-title,
+html.theme-holo:not(.holo-still) .player-title,
+html.theme-holo:not(.holo-still) .player-artist,
+html.theme-holo:not(.holo-still) .track-item,
+html.theme-holo:not(.holo-still) .gallery-item img,
+html.theme-holo:not(.holo-still) .time-label,
+html.theme-holo:not(.holo-still) .focal-eyebrow,
+html.theme-holo:not(.holo-still) .focal-artist,
+html.theme-holo:not(.holo-still) .dock-logo-sub {
+  transform: translateY(var(--holo-bounce-y, 0px));
+  transform-origin: center center;
+}
+/* Keep the -50%/-50% center on the rail. Scale-only bounce was parking the
+   circle's top-left on the line. */
+html.theme-holo .progress-thumb,
+html.theme-holo #video-progress-thumb {
+  top: 50%;
+  transform: translate(-50%, -50%);
+  transform-origin: center center;
+}
+html.theme-holo .progress-wrap.dragging .progress-thumb,
+html.theme-holo .orbit-video-progress.dragging .progress-thumb {
+  transform: translate(-50%, -50%);
+}
+html.theme-holo:not(.holo-still) .progress-fill-bar {
+  filter: brightness(calc(1 + var(--holo-stim, 0) * 0.18));
+}
+html.theme-holo:not(.holo-still)::-webkit-scrollbar-thumb {
+  box-shadow: 0 0 calc(6px + var(--holo-stim, 0) * 8px) rgba(26, 88, 232, calc(0.35 + var(--holo-stim, 0) * 0.4)) !important;
+}
+
+html.theme-holo #holo-strings path {
+  filter: none;
+}
+
+html.theme-holo.holo-playing #holo-strings path {
+  animation: holoDash 2.4s linear infinite;
+}
+@keyframes holoDash {
+  to { stroke-dashoffset: -48; }
+}
+
+@media (max-width: 767px) {
+  html.theme-holo {
+    --holo-ui-scale: 1 !important;
+    --holo-ui-scale-soft: 1 !important;
+  }
+  html.theme-holo .ctrl-btn,
+  html.theme-holo .taskbar-btn,
+  html.theme-holo .tab,
+  html.theme-holo .mob-btn,
+  html.theme-holo .orbit-mode-btn,
+  html.theme-holo .win-close {
+    animation: none !important;
+  }
+  html.theme-holo .win {
+    clip-path: none !important;
+    -webkit-clip-path: none !important;
+  }
+  html.theme-holo #player-win {
+    overflow: hidden !important;
+    contain: layout style;
+    border-radius: 22px !important;
+    min-width: 0 !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    left: 0 !important;
+    right: 0 !important;
+    clip-path: none !important;
+  }
+  html.theme-holo #player-win .win-body,
+  html.theme-holo #player-win .player-faceplate {
+    overflow: hidden !important;
+    padding: 8px 8px 10px !important;
+    min-width: 0 !important;
+  }
+  html.theme-holo .player-transport {
+    gap: 3px !important;
+    padding: 4px 0 !important;
+    overflow: visible !important;
+    flex-wrap: nowrap;
+    min-width: 0;
+    border-radius: 14px !important;
+    background: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+  }
+  html.theme-holo .player-transport .ctrl-btn {
+    width: 30px !important;
+    height: 30px !important;
+    min-width: 30px !important;
+    min-height: 30px !important;
+    flex: 0 0 30px !important;
+  }
+  html.theme-holo .player-transport .play-btn,
+  html.theme-holo .play-btn,
+  html.theme-holo #btn-play {
+    width: 42px !important;
+    height: 42px !important;
+    min-width: 42px !important;
+    min-height: 42px !important;
+    flex: 0 0 42px !important;
+    margin: 0 3px !important;
+  }
+  html.theme-holo .player-transport .play-icon:not(.material-symbols-outlined) {
+    border-width: 10px 0 10px 16px !important;
+    margin-left: 3px !important;
+  }
+  html.theme-holo .player-bottom-row {
+    gap: 6px !important;
+    min-width: 0;
+    overflow: hidden;
+  }
+  html.theme-holo .player-bottom-row .ctrl-btn {
+    width: 28px !important;
+    height: 28px !important;
+    min-width: 28px !important;
+    flex: 0 0 28px !important;
+  }
+  html.theme-holo .player-bottom-row #vol-slider {
+    width: min(72px, 22vw) !important;
+  }
+  html.theme-holo #mobile-dock {
+    overflow: visible;
+    gap: 6px;
+    z-index: 700 !important;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
+    padding-left: 8px !important;
+    padding-right: 8px !important;
+    padding-top: 10px !important;
+    padding-bottom: calc(12px + env(safe-area-inset-bottom)) !important;
+  }
+  html.theme-holo .win-resize {
+    display: none !important;
+  }
+  html.theme-holo #mobile-dock .mob-core {
+    flex: 1 1 auto;
+    min-width: 0;
+    gap: 4px;
+  }
+  html.theme-holo #mobile-dock .mob-btn {
+    animation: none !important;
+    overflow: visible;
+    min-width: 0 !important;
+    max-width: none;
+    flex: 1 1 0;
+    padding: 8px 4px !important;
+  }
+  html.theme-holo #mobile-dock .orbit-mode-btn-mob {
+    animation: none !important;
+    overflow: visible;
+    flex: 0 0 auto !important;
+    min-width: 0 !important;
+    max-width: 52px !important;
+    padding: 6px 4px !important;
+  }
+  html.theme-holo #video-win,
+  html.theme-holo #image-win {
+    top: 0 !important;
+    bottom: var(--mob-dock-h, 68px) !important;
+    height: auto !important;
+    width: 100% !important;
+    max-height: none !important;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html.theme-holo {
+    --holo-ui-scale: 1 !important;
+    --holo-ui-scale-soft: 1 !important;
+    --holo-stim: 0 !important;
+  }
+  html.theme-holo .win,
+  html.theme-holo .play-btn,
+  html.theme-holo .ctrl-btn,
+  html.theme-holo .taskbar-btn,
+  html.theme-holo .tab,
+  html.theme-holo .mob-btn,
+  html.theme-holo .orbit-mode-btn,
+  html.theme-holo .win-close,
+  html.theme-holo .play-icon {
+    animation: none !important;
+    transition: none !important;
+    box-shadow: none !important;
+  }
+  html.theme-holo .grain-overlay {
+    animation: none !important;
+    opacity: 0.08 !important;
+  }
+  html.theme-holo #holo-tubes .holo-tube-hot,
+  html.theme-holo #holo-tubes .holo-tube-ember,
+  html.theme-holo #holo-tubes .holo-tube-trail,
+  html.theme-holo #holo-tubes .holo-tube-plasma,
+  html.theme-holo #holo-tubes .holo-tube-ghost,
+  html.theme-holo #holo-tubes .holo-tube-wake,
+  html.theme-holo #holo-hud {
+    display: none;
+  }
+  html.theme-holo .focal-title,
+  html.theme-holo #focal-title,
+  html.theme-holo .focal-title::before {
+    animation: none !important;
+  }
+  html.theme-holo #holo-click-ring,
+  html.theme-holo #holo-cursor {
+    display: none !important;
+  }
+  html.theme-holo.holo-trip-warp #space3d-canvas,
+  html.theme-holo.holo-trip-chroma #space3d-canvas,
+  html.theme-holo.holo-trip-warp.holo-trip-chroma #space3d-canvas {
+    filter: none !important;
+  }
+  html.theme-holo #holo-flare,
+  html.theme-holo.holo-trip-flare #holo-flare {
+    display: none !important;
+    animation: none !important;
+  }
+  html.theme-holo .holo-ch {
+    animation: none !important;
+    transform: none !important;
+    filter: none !important;
+  }
+}
+
+/* Idle trip — mouse still = free reign. Warp the void, never the window glass. */
+html.theme-holo #holo-flare,
+html.theme-holo.holo-trip-flare #holo-flare,
+html.theme-holo #holo-idle-ping,
+html.theme-holo #holo-idle-glow {
+  display: none !important;
+  opacity: 0 !important;
+  animation: none !important;
+  background: none !important;
+}
+@keyframes holoTripFlare {
+  0%, 100% { opacity: 0.35; filter: blur(10px); }
+  42% { opacity: 0.85; filter: blur(2px); }
+  68% { opacity: 0.55; filter: blur(7px); }
+}
+
+html.theme-holo.holo-trip-warp #space3d-canvas {
+  filter: url(#holo-wrap-filter);
+}
+html.theme-holo.holo-trip-chroma #space3d-canvas {
+  filter:
+    drop-shadow(1.4px 0 0 rgba(196, 20, 34, .5))
+    drop-shadow(-1.4px 0 0 rgba(26, 88, 232, .6));
+}
+html.theme-holo.holo-trip-warp.holo-trip-chroma #space3d-canvas {
+  filter:
+    url(#holo-wrap-filter)
+    drop-shadow(1.4px 0 0 rgba(196, 20, 34, .45))
+    drop-shadow(-1.4px 0 0 rgba(26, 88, 232, .55));
+}
+html.theme-holo.holo-trip-warp .win,
+html.theme-holo.holo-trip-chroma .win,
+html.theme-holo.holo-trip-melt .win {
+  filter: none;
+}
+
+html.theme-holo.holo-trip-grain .grain-overlay {
+  opacity: 0.88;
+  background-image:
+    radial-gradient(circle, #050608 0.4px, transparent 0.6px),
+    radial-gradient(circle, #C41422 0.32px, transparent 0.5px),
+    radial-gradient(circle, #1A58E8 0.28px, transparent 0.48px);
+  background-size: 2px 3px, 3px 5px, 4px 6px;
+  animation: holoTripPepper 0.16s steps(3) infinite;
+}
+@keyframes holoTripPepper {
+  0% { background-position: 0 0, 1px 2px, 2px 1px; }
+  33% { background-position: 1px 2px, 2px 0, 0 3px; }
+  66% { background-position: 2px 1px, 0 3px, 1px 0; }
+  100% { background-position: 0 0, 1px 2px, 2px 1px; }
+}
+
+html.theme-holo.holo-trip-pulse #space3d-canvas {
+  animation: holoTripPulse 2.8s ease-in-out infinite;
+}
+@keyframes holoTripPulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.74; }
+}
+
+html.theme-holo.holo-trip-well .vignette {
+  background: radial-gradient(ellipse at var(--holo-mx, 50%) var(--holo-my, 46%),
+    transparent 22%,
+    rgba(4, 6, 10, .55) 58%,
+    rgba(4, 6, 10, .9) 100%);
+  animation: holoTripWell 5.2s ease-in-out infinite;
+}
+@keyframes holoTripWell {
+  0%, 100% { opacity: 0.82; }
+  50% { opacity: 1; }
+}
+
+html.theme-holo.holo-trip-drift .grain-overlay {
+  animation: holoTripDrift 16s linear infinite;
+}
+html.theme-holo.holo-trip-grain.holo-trip-drift .grain-overlay {
+  animation:
+    holoTripPepper 0.16s steps(3) infinite,
+    holoTripDrift 16s linear infinite;
+}
+@keyframes holoTripDrift {
+  0% { background-position: 0 0, 1px 2px; }
+  100% { background-position: 48px -36px, 31px 42px; }
+}
+
+html.theme-holo.holo-trip-melt .holo-ch {
+  animation: holoTripMelt 3.4s ease-in-out infinite;
+  animation-delay: calc(var(--i, 0) * 0.05s);
+}
+@keyframes holoTripMelt {
+  0%, 100% { transform: translateY(0) scaleY(1); filter: blur(0); }
+  40% { transform: translateY(0.18em) scaleY(1.18); filter: blur(0.35px); }
+  70% { transform: translateY(-0.06em) scaleY(0.92); filter: blur(0); }
+}
+
+html.theme-holo.holo-trip-fall .holo-ch {
+  animation: holoTripFall 2.7s ease-in-out infinite;
+  animation-delay: calc(var(--i, 0) * 0.07s);
+}
+@keyframes holoTripFall {
+  0%, 100% { transform: translateY(0) rotate(0deg); opacity: 1; }
+  38% { transform: translateY(0.42em) rotate(9deg); opacity: 0.62; }
+  72% { transform: translateY(-0.08em) rotate(-3deg); opacity: 1; }
+}
+
+html.theme-holo.holo-trip-orbit .holo-ch {
+  animation: holoTripOrbit 3.2s ease-in-out infinite;
+  animation-delay: calc(var(--i, 0) * 0.09s);
+}
+@keyframes holoTripOrbit {
+  0%, 100% { transform: translate(0, 0) rotate(0deg); }
+  25% { transform: translate(0.2em, -0.14em) rotate(14deg); }
+  50% { transform: translate(0, -0.26em) rotate(0deg); }
+  75% { transform: translate(-0.2em, -0.14em) rotate(-14deg); }
+}
+
+html.theme-holo.holo-trip-fall.holo-trip-orbit .holo-ch {
+  animation: holoTripFallOrbit 3s ease-in-out infinite;
+  animation-delay: calc(var(--i, 0) * 0.08s);
+}
+@keyframes holoTripFallOrbit {
+  0%, 100% { transform: translate(0, 0) rotate(0deg); }
+  30% { transform: translate(0.16em, 0.28em) rotate(10deg); }
+  60% { transform: translate(-0.18em, -0.2em) rotate(-12deg); }
+}
+
+/* Mouse moving: letters sit still and readable. */
+html.theme-holo.holo-letter-clear .holo-ch {
+  animation: none !important;
+  transform: none !important;
+  filter: none !important;
+}
+
+/* Holo HUD cursors — OS-drawn url() (zero lag). Hotspots in the url() args.
+   Touch + reduced-motion stay native keywords. Live cosmic untouched.
+   Never 3D-transform .win. */
+html.theme-holo,
+html.theme-holo body {
+  cursor: url('../assets/holo-cursors/default.svg?v=20260824h29') 1 1, default;
+}
+html.theme-holo a,
+html.theme-holo button,
+html.theme-holo .ctrl-btn,
+html.theme-holo .play-btn,
+html.theme-holo .tab,
+html.theme-holo .taskbar-btn,
+html.theme-holo .mob-btn,
+html.theme-holo .orbit-mode-btn,
+html.theme-holo .track-item,
+html.theme-holo .gallery-item,
+html.theme-holo .album-head,
+html.theme-holo .win-close,
+html.theme-holo [role="button"],
+html.theme-holo .progress-wrap,
+html.theme-holo .gallery-view-btn,
+html.theme-holo .orbit-image-enlarge-btn,
+html.theme-holo .img-nav,
+html.theme-holo .lyrics-copy-btn,
+html.theme-holo .lyric-line,
+html.theme-holo .video-ai-badge,
+html.theme-holo .m-tab,
+html.theme-holo #vol-icon-wrap,
+html.theme-holo #video-vol-icon-wrap,
+html.theme-holo #vol-slider,
+html.theme-holo #video-vol-slider,
+html.theme-holo #video-win-player,
+html.theme-holo #video-seek {
+  cursor: url('../assets/holo-cursors/pointer.svg?v=20260831cyb') 10 2, pointer;
+}
+html.theme-holo a:active,
+html.theme-holo button:active,
+html.theme-holo .ctrl-btn:active,
+html.theme-holo .play-btn:active,
+html.theme-holo .tab:active,
+html.theme-holo .taskbar-btn:active,
+html.theme-holo .mob-btn:active,
+html.theme-holo .orbit-mode-btn:active,
+html.theme-holo .track-item:active,
+html.theme-holo .gallery-item:active,
+html.theme-holo .album-head:active,
+html.theme-holo .win-close:active,
+html.theme-holo [role="button"]:active,
+html.theme-holo .progress-wrap:active,
+html.theme-holo .gallery-view-btn:active,
+html.theme-holo .orbit-image-enlarge-btn:active,
+html.theme-holo .img-nav:active,
+html.theme-holo .lyrics-copy-btn:active,
+html.theme-holo .lyric-line:active,
+html.theme-holo .video-ai-badge:active,
+html.theme-holo .m-tab:active,
+html.theme-holo #vol-icon-wrap:active,
+html.theme-holo #video-vol-icon-wrap:active,
+html.theme-holo #vol-slider:active,
+html.theme-holo #video-vol-slider:active,
+html.theme-holo #video-win-player:active,
+html.theme-holo #video-seek:active,
+html.theme-holo.holo-cursor-press a,
+html.theme-holo.holo-cursor-press button,
+html.theme-holo.holo-cursor-press .ctrl-btn,
+html.theme-holo.holo-cursor-press .play-btn,
+html.theme-holo.holo-cursor-press .tab,
+html.theme-holo.holo-cursor-press .taskbar-btn,
+html.theme-holo.holo-cursor-press .mob-btn,
+html.theme-holo.holo-cursor-press .orbit-mode-btn,
+html.theme-holo.holo-cursor-press .track-item,
+html.theme-holo.holo-cursor-press .gallery-item,
+html.theme-holo.holo-cursor-press .album-head,
+html.theme-holo.holo-cursor-press .win-close,
+html.theme-holo.holo-cursor-press [role="button"],
+html.theme-holo.holo-cursor-press .progress-wrap,
+html.theme-holo.holo-cursor-press .gallery-view-btn,
+html.theme-holo.holo-cursor-press .orbit-image-enlarge-btn,
+html.theme-holo.holo-cursor-press .img-nav,
+html.theme-holo.holo-cursor-press .lyrics-copy-btn,
+html.theme-holo.holo-cursor-press .lyric-line,
+html.theme-holo.holo-cursor-press .video-ai-badge,
+html.theme-holo.holo-cursor-press .m-tab,
+html.theme-holo.holo-cursor-press #vol-icon-wrap,
+html.theme-holo.holo-cursor-press #video-vol-icon-wrap,
+html.theme-holo.holo-cursor-press #vol-slider,
+html.theme-holo.holo-cursor-press #video-vol-slider,
+html.theme-holo.holo-cursor-press #video-win-player,
+html.theme-holo.holo-cursor-press #video-seek,
+html.theme-holo input[type="button"]:active,
+html.theme-holo input[type="submit"]:active,
+html.theme-holo input[type="reset"]:active,
+html.theme-holo input[type="checkbox"]:active,
+html.theme-holo input[type="radio"]:active,
+html.theme-holo input[type="file"]:active,
+html.theme-holo input[type="range"]:active,
+html.theme-holo input[type="color"]:active,
+html.theme-holo.holo-cursor-press input[type="button"],
+html.theme-holo.holo-cursor-press input[type="submit"],
+html.theme-holo.holo-cursor-press input[type="reset"],
+html.theme-holo.holo-cursor-press input[type="checkbox"],
+html.theme-holo.holo-cursor-press input[type="radio"],
+html.theme-holo.holo-cursor-press input[type="file"],
+html.theme-holo.holo-cursor-press input[type="range"],
+html.theme-holo.holo-cursor-press input[type="color"] {
+  cursor: url('../assets/holo-cursors/pressed.svg?v=20260824h29') 8 1, pointer;
+}
+html.theme-holo .win-bar {
+  cursor: url('../assets/holo-cursors/grab.svg?v=20260824h29') 13 13, grab;
+}
+html.theme-holo .win-bar:active,
+html.theme-holo .win.holo-dragging,
+html.theme-holo .win.holo-dragging .win-bar,
+html.theme-holo .drag-handle.grabbing,
+html.theme-holo .tracklist-tabs:active {
+  cursor: url('../assets/holo-cursors/grabbing.svg?v=20260824h29') 13 13, grabbing;
+}
+html.theme-holo .drag-handle,
+html.theme-holo .tracklist-tabs {
+  cursor: url('../assets/holo-cursors/grab.svg?v=20260824h29') 13 13, grab;
+}
+html.theme-holo .win-bar .win-close,
+html.theme-holo .win-bar button,
+html.theme-holo .tracklist-tabs .tab,
+html.theme-holo .gallery-tabs .tab {
+  cursor: url('../assets/holo-cursors/pointer.svg?v=20260831cyb') 10 2, pointer;
+}
+html.theme-holo input,
+html.theme-holo textarea,
+html.theme-holo [contenteditable] {
+  cursor: url('../assets/holo-cursors/text.svg?v=20260824h29') 13 13, text;
+}
+html.theme-holo input[type="button"],
+html.theme-holo input[type="submit"],
+html.theme-holo input[type="reset"],
+html.theme-holo input[type="checkbox"],
+html.theme-holo input[type="radio"],
+html.theme-holo input[type="file"],
+html.theme-holo input[type="range"],
+html.theme-holo input[type="color"] {
+  cursor: url('../assets/holo-cursors/pointer.svg?v=20260831cyb') 10 2, pointer;
+}
+html.theme-holo .win-resize.n,
+html.theme-holo .win-resize.s {
+  cursor: url('../assets/holo-cursors/ns.svg?v=20260824h29') 13 13, ns-resize;
+}
+html.theme-holo .win-resize.e,
+html.theme-holo .win-resize.w {
+  cursor: url('../assets/holo-cursors/ew.svg?v=20260824h29') 13 13, ew-resize;
+}
+html.theme-holo .win-resize.ne,
+html.theme-holo .win-resize.sw {
+  cursor: url('../assets/holo-cursors/nesw.svg?v=20260824h29') 13 13, nesw-resize;
+}
+html.theme-holo .win-resize.nw,
+html.theme-holo .win-resize.se {
+  cursor: url('../assets/holo-cursors/nwse.svg?v=20260824h29') 13 13, nwse-resize;
+}
+html.theme-holo :disabled,
+html.theme-holo [aria-disabled='true'] {
+  cursor: url('../assets/holo-cursors/not-allowed.svg?v=20260824h29') 13 13, not-allowed;
+}
+html.theme-holo.holo-wait,
+html.theme-holo .is-loading {
+  cursor: url('../assets/holo-cursors/wait.svg?v=20260824h29') 13 13, wait;
+}
+
+@media (prefers-reduced-motion: reduce), (hover: none), (pointer: coarse) {
+  html.theme-holo,
+  html.theme-holo body { cursor: default; }
+  html.theme-holo a,
+  html.theme-holo button,
+  html.theme-holo .ctrl-btn,
+  html.theme-holo .play-btn,
+  html.theme-holo .tab,
+  html.theme-holo .taskbar-btn,
+  html.theme-holo .mob-btn,
+  html.theme-holo .orbit-mode-btn,
+  html.theme-holo .track-item,
+  html.theme-holo .gallery-item,
+  html.theme-holo .album-head,
+  html.theme-holo .win-close,
+  html.theme-holo [role="button"],
+  html.theme-holo .progress-wrap,
+  html.theme-holo .gallery-view-btn,
+  html.theme-holo .orbit-image-enlarge-btn,
+  html.theme-holo .img-nav,
+  html.theme-holo .lyrics-copy-btn,
+  html.theme-holo .lyric-line,
+  html.theme-holo .video-ai-badge,
+  html.theme-holo .m-tab,
+  html.theme-holo #vol-icon-wrap,
+  html.theme-holo #video-vol-icon-wrap,
+  html.theme-holo #vol-slider,
+  html.theme-holo #video-vol-slider,
+  html.theme-holo #video-win-player,
+  html.theme-holo #video-seek,
+  html.theme-holo .win-bar .win-close,
+  html.theme-holo .win-bar button,
+  html.theme-holo .tracklist-tabs .tab,
+  html.theme-holo .gallery-tabs .tab { cursor: pointer; }
+  html.theme-holo .win-bar,
+  html.theme-holo .drag-handle,
+  html.theme-holo .tracklist-tabs { cursor: grab; }
+  html.theme-holo .win-bar:active,
+  html.theme-holo .win.holo-dragging,
+  html.theme-holo .win.holo-dragging .win-bar,
+  html.theme-holo .drag-handle.grabbing,
+  html.theme-holo .tracklist-tabs:active { cursor: grabbing; }
+  html.theme-holo input,
+  html.theme-holo textarea,
+  html.theme-holo [contenteditable] { cursor: text; }
+  html.theme-holo input[type="button"],
+  html.theme-holo input[type="submit"],
+  html.theme-holo input[type="reset"],
+  html.theme-holo input[type="checkbox"],
+  html.theme-holo input[type="radio"],
+  html.theme-holo input[type="file"],
+  html.theme-holo input[type="range"],
+  html.theme-holo input[type="color"] { cursor: pointer; }
+  html.theme-holo .win-resize.n,
+  html.theme-holo .win-resize.s { cursor: ns-resize; }
+  html.theme-holo .win-resize.e,
+  html.theme-holo .win-resize.w { cursor: ew-resize; }
+  html.theme-holo .win-resize.ne,
+  html.theme-holo .win-resize.sw { cursor: nesw-resize; }
+  html.theme-holo .win-resize.nw,
+  html.theme-holo .win-resize.se { cursor: nwse-resize; }
+  html.theme-holo :disabled,
+  html.theme-holo [aria-disabled='true'] { cursor: not-allowed; }
+  html.theme-holo.holo-wait,
+  html.theme-holo .is-loading { cursor: wait; }
+}
+
+#holo-cursor { display: none !important; }
+#holo-click-ring {
+  display: none;
+  position: fixed;
+  width: 14px;
+  height: 14px;
+  margin: -7px 0 0 -7px;
+  border: 1.15px solid #1A58E8;
+  border-radius: 50%;
+  pointer-events: none;
+  z-index: 2147483000;
+  box-shadow: 0 0 6px rgba(26, 88, 232, 0.7);
+}
+html.theme-holo #holo-click-ring.is-on {
+  display: block;
+  animation: holo-click-ring 100ms ease-out;
+}
+@keyframes holo-click-ring {
+  0% { opacity: 1; transform: scale(0.4); }
+  100% { opacity: 0; transform: scale(1.55); }
+}
+

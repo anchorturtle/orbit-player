@@ -43,14 +43,18 @@
   const MOBILE = (typeof isMob === 'function') ? isMob() : (window.innerWidth < 768);
   // Cap DPR: planet/aurora are foggy; extra retina pixels rarely read as quality.
   const DPR_CAP = MOBILE ? 1.25 : 1.5;
+  const HOLO_DPR_CAP = MOBILE ? 1.5 : 2;
 
   // ── Adaptive resolution governor ──
   // Holds 60fps by trading render resolution (it's mostly fog and glow, so
   // a softer buffer is invisible; dropped frames are not).
+  let holoOn = false;
   let renderScale = 1.0;
   const SCALE_MIN = 0.5, SCALE_MAX = 1.0;
   function effectiveDPR() {
-    return Math.min(window.devicePixelRatio || 1, DPR_CAP) * renderScale;
+    const cap = holoOn ? HOLO_DPR_CAP : DPR_CAP;
+    const scale = holoOn ? Math.max(renderScale, 0.88) : renderScale;
+    return Math.min(window.devicePixelRatio || 1, cap) * scale;
   }
   function applyRenderScale() {
     renderer.setPixelRatio(effectiveDPR());
@@ -96,13 +100,14 @@
   renderer.sortObjects = false;
 
   const scene = new THREE.Scene();
-  const camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 500);
+  const camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 1200);
 
   // Soft lighting only for physical props (asteroids / moons)
   const keyLight = new THREE.DirectionalLight(0xd9ccff, 0.95);
   keyLight.position.set(-5, 4, 7);
   scene.add(keyLight);
-  scene.add(new THREE.AmbientLight(0x241a3a, 1.1));
+  const ambientLight = new THREE.AmbientLight(0x241a3a, 1.1);
+  scene.add(ambientLight);
 
   /* Brand palette (matches CSS custom props) */
   const COL_PURPLE = new THREE.Color('#7B2FFF');
@@ -134,23 +139,60 @@
     for (let i = 0; i < s.length; i++) h = (h * 31 + s.charCodeAt(i)) >>> 0;
     return h;
   }
+  const PALETTES_HOLO = [
+    ['#050608', '#1A58E8', '#C41422'],
+    ['#07080A', '#C41422', '#1A58E8'],
+    ['#030407', '#2D6BFF', '#9A1018'],
+    ['#0A0C10', '#A01018', '#1A58E8'],
+    ['#050608', '#0E3AA8', '#C41422'],
+    ['#080406', '#E82830', '#2D6BFF'],
+    ['#040508', '#2D6BFF', '#C41422'],
+    ['#06070A', '#8A0C14', '#1A4AD0'],
+    ['#050608', '#1A58E8', '#D41424'],
+    ['#0A0808', '#C41422', '#2450D8'],
+    ['#04060A', '#1A58E8', '#B01018'],
+    ['#08090C', '#E01828', '#2D6BFF'],
+    ['#050608', '#1238A8', '#C41422'],
+    ['#07080B', '#9A0C14', '#1A58E8']
+  ];
+  let lastSlug = null;
   function paletteFor(slug) {
-    if (!slug) return PALETTES[0];
-    return PALETTES[hashStr(slug) % PALETTES.length];
+    const set = holoOn ? PALETTES_HOLO : PALETTES;
+    if (!slug) return set[0];
+    return set[hashStr(slug) % set.length];
   }
 
   /* Live palette state (lerped smoothly toward targets on track change) */
   const palA = COL_PURPLE.clone(), palB = COL_BLUE.clone(), palC = COL_GREEN.clone();
   const tgtA = palA.clone(), tgtB = palB.clone(), tgtC = palC.clone();
 
+  function applyHoloSeed(seed) {
+    const s = seed || 0;
+    if (planetUniforms && planetUniforms.uSeed) planetUniforms.uSeed.value = s;
+    for (let i = 0; i < planetViews.length; i++) {
+      const u = planetViews[i].core && planetViews[i].core.material && planetViews[i].core.material.uniforms;
+      if (u && u.uSeed) u.uSeed.value = s;
+    }
+  }
+
   function setPaletteTargets(p) {
     tgtA.set(p[0]); tgtB.set(p[1]); tgtC.set(p[2]);
     // Bleed the song color into the UI (focal glow, progress fill)
     try {
       const root = document.documentElement.style;
-      root.setProperty('--track-a', p[0]);
-      root.setProperty('--track-b', p[1]);
-      root.setProperty('--track-c', p[2]);
+      if (holoOn) {
+        root.setProperty('--track-a', '#0A1020');
+        root.setProperty('--track-b', '#1A58E8');
+        root.setProperty('--track-c', '#C41422');
+        root.setProperty('--jestr-green', '#1A58E8');
+        root.setProperty('--jestr-blue', '#1A58E8');
+        root.setProperty('--jestr-red', '#C41422');
+        applyHoloSeed(lastSlug ? (hashStr(lastSlug) % 997) / 997 : 0.37);
+      } else {
+        root.setProperty('--track-a', p[0]);
+        root.setProperty('--track-b', p[1]);
+        root.setProperty('--track-c', p[2]);
+      }
     } catch (e) {}
   }
 
@@ -253,33 +295,44 @@
 
   /* ════════════════ PLANET (calm solid body — the aurora does the dancing) ════════════════ */
   const PLANET_R = 1.25;
+  const HOLO_PLANET_SCALE = 1.72;
   const planetUniforms = {
-    uTime:    { value: 0 },
-    uAudio:   { value: 0 },
-    uBass:    { value: 0 },
-    uColA:    { value: palA },
-    uColB:    { value: palB },
-    uColC:    { value: palC },
-    uFade:    { value: 1 }
+    uTime:     { value: 0 },
+    uAudio:    { value: 0 },
+    uBass:     { value: 0 },
+    uColA:     { value: palA },
+    uColB:     { value: palB },
+    uColC:     { value: palC },
+    uFade:     { value: 1 },
+    uHolo:     { value: 0 },
+    uHoloFlow: { value: 1 },
+    uSpin:     { value: 0 },
+    uSeed:     { value: 0.37 },
+    uPulse:    { value: 0 }
   };
 
   // Segment counts tuned for shader-driven surfaces (noise hides tessellation).
-  const PLANET_SEG_W = MOBILE ? 48 : 64;
-  const PLANET_SEG_H = MOBILE ? 32 : 48;
+  const PLANET_SEG_W = MOBILE ? 64 : 96;
+  const PLANET_SEG_H = MOBILE ? 48 : 72;
   const planet = new THREE.Mesh(
     new THREE.SphereGeometry(PLANET_R, PLANET_SEG_W, PLANET_SEG_H),
     new THREE.ShaderMaterial({
       uniforms: planetUniforms,
-      defines: { FBM_OCT: 2 },
-      transparent: true,
+      defines: { FBM_OCT: 4 },
+      extensions: { derivatives: true },
+      transparent: true, // live fade uses alpha; holo attachWire forces opaque
       depthWrite: true,
+      depthTest: true,
+      side: THREE.FrontSide,
       vertexShader: `
         varying vec3 vNormal;
         varying vec3 vPos;
         varying vec3 vView;
+        varying vec3 vWorld;
         void main(){
           vNormal = normalize(normalMatrix * normal);
           vPos = position;
+          vWorld = (modelMatrix * vec4(position, 1.0)).xyz;
           vec4 mv = modelViewMatrix * vec4(position, 1.0);
           vView = -mv.xyz;
           gl_Position = projectionMatrix * mv;
@@ -293,12 +346,53 @@
         uniform vec3 uColB;
         uniform vec3 uColC;
         uniform float uFade;
+        uniform float uHolo;
+        uniform float uHoloFlow;
+        uniform float uSpin;
+        uniform float uSeed;
+        uniform float uPulse;
         varying vec3 vNormal;
         varying vec3 vPos;
         varying vec3 vView;
+        varying vec3 vWorld;
         ${NOISE_GLSL}
         void main(){
           vec3 n = normalize(vPos);
+
+          if (uHolo > 0.5) {
+            /* Opaque off-black body. Red/black fbm mountains. Grid lives on a sibling cage. */
+            vec3 body = vec3(0.0196, 0.0235, 0.0314);
+            vec3 ink = vec3(0.7686, 0.0784, 0.1333);
+            float seed = uSeed;
+            float stormS = mix(0.8, 2.2, fract(seed * 5.91));
+            float ht = uTime * 0.022 * uHoloFlow;
+
+            float climate = fbm(n * stormS + vec3(seed * 17.0, ht, -seed * 9.0));
+            float bands = fbm(n * vec3(1.2, 3.8, 1.2) + vec3(ht * 0.7, seed * 8.0, -ht * 0.4));
+            float ridge = 1.0 - abs(fbm(n * mix(2.4, 5.0, fract(seed * 6.1))
+                              + vec3(ht * 0.25, seed * 5.0, -ht * 0.15)) * 2.0 - 1.0);
+            float height = mix(climate, bands, 0.45);
+            height = mix(height, ridge, 0.4);
+            height = clamp(height + uBass * 0.10 * smoothstep(0.45, 0.8, height), 0.0, 1.0);
+
+            float basin = 1.0 - smoothstep(0.22, 0.42, height);
+            float mountain = smoothstep(0.48, 0.78, height);
+            vec3 topo = mix(body, body * 0.22, basin);
+            topo = mix(topo, ink * 0.18, smoothstep(0.32, 0.52, height) * (1.0 - mountain));
+            topo = mix(topo, ink, mountain * (0.55 + height * 0.45));
+            topo = mix(topo, ink * 1.15, ridge * mountain * 0.45);
+
+            /* Idle = full topo. uPulse 0..1 is a slow south→north refresh wave. */
+            float lat01 = clamp(n.y * 0.5 + 0.5, 0.0, 1.0);
+            float pulseOn = step(0.002, uPulse) * uHoloFlow;
+            float dist = abs(lat01 - uPulse);
+            float band = (1.0 - smoothstep(0.0, 0.13, dist)) * pulseOn;
+            float wake = (1.0 - smoothstep(0.0, 0.40, uPulse - lat01)) * step(lat01, uPulse) * pulseOn;
+            vec3 col = mix(topo, mix(topo * 1.35, ink, 0.28), max(band, wake * 0.32));
+
+            gl_FragColor = vec4(col, 1.0);
+            return;
+          }
 
           // slow drifting storm bands + swirl
           float t = uTime * 0.045;
@@ -330,6 +424,7 @@
   );
   planet.rotation.z = 0.18;
   scene.add(planet);
+  const sphereGeo = planet.geometry;
 
   /* ════════════════ AURORA VISUALIZER SHELLS ════════════════
      The audio visualizer: misty, luminous aurora wrapping the planet.
@@ -349,6 +444,7 @@
     uniform vec3 uColB;
     uniform vec3 uColC;
     uniform float uFade;
+    uniform float uHolo;
     varying vec3 vNormal;
     varying vec3 vPos;
     varying vec3 vView;
@@ -378,17 +474,16 @@
       //    phase-danced by the live waveform, lit by the spectrum ──
       float ribbonPhase = (lon + warp * 0.45) * 24.0 + uTime * 0.5 + wave * 5.0;
       float curtain = 0.5 + 0.5 * sin(ribbonPhase);
-      curtain = pow(curtain, 3.0 + 3.0 * (1.0 - fMid)); // crisper ribbons when quiet, wider blooms when loud
+      curtain = pow(curtain, 1.55 + 1.2 * (1.0 - fMid));
       float ribbonPhase2 = (lon - warp2 * 0.3) * 11.0 - uTime * 0.32 - wave * 3.0;
-      float curtain2 = pow(0.5 + 0.5 * sin(ribbonPhase2), 4.0);
+      float curtain2 = pow(0.5 + 0.5 * sin(ribbonPhase2), 2.2);
 
-      // curtains live in two soft belts; mist covers everywhere
-      float belt = exp(-pow((abs(lat) - 0.40) * 2.6, 2.0));
-      float polar = smoothstep(0.55, 0.95, abs(lat)); // faint polar crown
+      float belt = exp(-pow((abs(lat) - 0.28) * 1.55, 2.0));
+      float polar = smoothstep(0.42, 0.92, abs(lat));
 
       // ── ethereal mist (cosmic fog, breathes with the music) ──
       float mist = fbm(n * 3.3 + vec3(-t * 1.2, t * 0.9, t * 0.6) + wave * 0.7 + warp * 0.8);
-      mist = smoothstep(0.25, 0.95, mist);
+      mist = smoothstep(0.12, 0.92, mist);
 
       // ── limb weighting: fog hugs the edge of the planet ──
       float ndv = abs(dot(normalize(vNormal), normalize(vView)));
@@ -398,10 +493,10 @@
       //    standing off the planet's edge ──
       float limbBoost = 0.45 + fres * 1.1;
       float energy =
-          curtain  * belt * (0.18 + fLow * 1.7) * limbBoost +
-          curtain2 * belt * (0.10 + fMid * 1.2) * limbBoost +
-          polar * (0.05 + fHigh * 0.8) * (0.5 + 0.5 * curtain) +
-          mist * (0.10 + uAudio * 0.85);
+          curtain  * belt * (0.10 + fLow * 1.15) * limbBoost +
+          curtain2 * belt * (0.08 + fMid * 0.85) * limbBoost +
+          polar * (0.04 + fHigh * 0.55) * (0.5 + 0.5 * curtain) +
+          mist * (0.22 + uAudio * 1.05);
 
       // analog shimmer — faint scan-flicker riding the high end
       energy *= 0.88 + 0.12 * sin(uTime * 1.7 + lon * 60.0 + wave * 8.0 + warp2 * 4.0);
@@ -409,7 +504,8 @@
       // 3D depth: outward-vibrating lumps glow hotter, valleys fall dark
       energy *= 0.55 + smoothstep(-0.06, 0.16, vDisp) * 1.5;
 
-      float a = energy * (0.16 + fres * 1.05) * (0.45 + uAudio * 1.25 + uBass * 0.35) * uGain;
+      float a = energy * (0.10 + fres * 0.72) * (0.38 + uAudio * 0.95 + uBass * 0.28) * uGain;
+      a *= 0.62;
 
       // ── luminous color: deep palette with iridescent play, never neon-flat ──
       // each band carries its own color family
@@ -424,7 +520,13 @@
       vec3 iri = 0.5 + 0.5 * cos(6.2831 * (mist * 0.7 + curtain * 0.35 + lat * 0.25 + uTime * 0.016 + uSeed + vec3(0.0, 0.33, 0.67)));
       col = mix(col, col * (0.55 + iri * 1.1), 0.4);
 
-      gl_FragColor = vec4(col * 1.5, clamp(a, 0.0, 0.85) * uFade);
+      if (uHolo > 0.01) {
+        vec3 holoMix = mix(uColA, uColB, curtain);
+        holoMix = mix(holoMix, uColC, curtain2 * 0.35);
+        col = mix(col, holoMix, uHolo * 0.42);
+      }
+
+      gl_FragColor = vec4(col * 1.12, clamp(a, 0.0, 0.42) * uFade);
     }
   `;
   const AURORA_VERT = `
@@ -459,7 +561,7 @@
           f * 0.17 * (0.35 + abs(lump) * 1.8) +
           wave * 0.12 * exp(-n.y * n.y * 3.0) +
           uBass * 0.05;
-      disp *= uPuff;
+      disp *= uPuff * 1.35;
       vDisp = disp;
 
       vec3 p = position + normal * disp;
@@ -485,7 +587,8 @@
       uColA:    { value: palA },
       uColB:    { value: palB },
       uColC:    { value: palC },
-      uFade:    { value: 1 }
+      uFade:    { value: 1 },
+      uHolo:    { value: 0 }
     };
     const aSegW = MOBILE ? 36 : 48;
     const aSegH = MOBILE ? 24 : 32;
@@ -505,8 +608,8 @@
     return { mesh, u };
   }
   const auroraShells = [
-    makeAuroraShell(1.07, 0.0, 0.72, 1.0, 2),  // dense inner fog (2 octaves — quality preserved via soft additive)
-    makeAuroraShell(1.21, 7.3, 1.45, 0.5, 2)   // wild outer veil, cheap noise (it's faint)
+    makeAuroraShell(1.22, 0.0, 1.15, 0.62, 2),
+    makeAuroraShell(1.62, 7.3, 2.05, 0.38, 2)
   ];
 
   /* Outer halo — soft glow with frequency-driven aurora rays bleeding outward */
@@ -521,7 +624,7 @@
   };
   const atmoSeg = MOBILE ? 32 : 40;
   const atmosphere = new THREE.Mesh(
-    new THREE.SphereGeometry(PLANET_R * 1.5, atmoSeg, atmoSeg),
+    new THREE.SphereGeometry(PLANET_R * 1.85, atmoSeg, atmoSeg),
     new THREE.ShaderMaterial({
       uniforms: atmoUniforms,
       defines: { FBM_OCT: 2 },
@@ -660,6 +763,667 @@
   let currentView = heroView;
   let arcAnim = null; // {out, in, t, dur, dir}
 
+  /* Inception bowl: the GROUND they like, curved up toward the camera.
+     Plane maps onto a sphere sitting above the floor so xz stays a grid
+     and the horizon lifts into a dish — not a cube, not a full sky sphere. */
+  const HOLO_FLOOR_Y = -(PLANET_R * HOLO_PLANET_SCALE + 0.38);
+  /* Locked Inception bowl: ground folds to a horizon. R~48, ang cap ~1.0
+     so the dish never wraps over the camera (that read as "below the room"). */
+  const HOLO_BOWL_R = 48;
+  const HOLO_CAM_Y = 3.55;
+  const HOLO_LOOK_Y = 0.12;
+  const HOLO_CAM_Z_MUL = 0.82;
+  const HOLO_GRID_VERT = `
+    uniform float uTime;
+    uniform float uBass;
+    uniform vec3 uMouse;
+    uniform float uHasMouse;
+    uniform float uFloorY;
+    uniform float uBowlR;
+    uniform float uRipR;
+    varying vec3 vWorld;
+    varying vec2 vXZ;
+    varying float vWave;
+    varying float vFall;
+    vec3 bowlPos(vec2 xz){
+      float dist = length(xz);
+      float ang = min(dist / max(0.001, uBowlR), 1.02);
+      vec2 dir = dist > 0.0008 ? xz / dist : vec2(0.0, 1.0);
+      float rad = uBowlR * sin(ang);
+      return vec3(dir.x * rad, uBowlR * (1.0 - cos(ang)), dir.y * rad);
+    }
+    vec3 bowlN(vec2 xz){
+      float dist = length(xz);
+      float ang = min(dist / max(0.001, uBowlR), 1.02);
+      vec2 dir = dist > 0.0008 ? xz / dist : vec2(0.0, 1.0);
+      return normalize(vec3(dir.x * cos(ang), sin(ang), dir.y * cos(ang)));
+    }
+    void main(){
+      vec2 xz = vec2(position.x, position.z);
+      vXZ = xz;
+      vec3 local = bowlPos(xz);
+      vec3 nrm = bowlN(xz);
+      float rd = length(xz - uMouse.xz);
+      float rr = max(10.0, uRipR);
+      float fall = uHasMouse * (1.0 - smoothstep(0.0, rr, rd));
+      float k = 6.2832 / max(4.0, rr * 0.55);
+      float env = exp(-rd / max(1.0, rr * 0.7));
+      float ring = sin(rd * k - uTime * 0.52);
+      float ring2 = sin(rd * k * 0.5 - uTime * 0.26);
+      float dip = fall * env * (ring * 0.85 + ring2 * 0.32);
+      dip -= fall * (1.0 - smoothstep(0.0, rr * 0.3, rd)) * 0.22;
+      float weave = sin(xz.x * 0.14 + uTime * 0.22) * sin(xz.y * 0.12 - uTime * 0.18);
+      dip += weave * 0.018;
+      dip *= (1.0 + uBass * 0.12);
+      vWave = ring * fall * env;
+      vFall = fall;
+      local += nrm * dip;
+      vec4 w = modelMatrix * vec4(local, 1.0);
+      vWorld = w.xyz;
+      gl_Position = projectionMatrix * viewMatrix * w;
+    }
+  `;
+  const HOLO_GRID_FRAG = `
+    uniform float uTime;
+    uniform float uBass;
+    uniform vec3 uMouse;
+    uniform float uHasMouse;
+    uniform float uFloorY;
+    uniform float uBowlR;
+    uniform float uRipR;
+    varying vec3 vWorld;
+    varying vec2 vXZ;
+    varying float vWave;
+    varying float vFall;
+    void main(){
+      vec2 uv = vXZ;
+      vec2 md = uv - uMouse.xz;
+      float mdlen = length(md);
+      vec2 radial = mdlen > 0.001 ? md / mdlen : vec2(0.0);
+      uv += radial * vWave * 0.55;
+      float cell = 4.0;
+      vec2 gv = uv / cell;
+      float fw = max(fwidth(gv.x), fwidth(gv.y));
+      vec2 g = abs(fract(gv) - 0.5);
+      float line = 1.0 - smoothstep(0.0, max(fw, 0.002) * 1.15, min(g.x, g.y));
+      vec2 gvm = uv / (cell * 4.0);
+      float fwm = max(fwidth(gvm.x), fwidth(gvm.y));
+      vec2 gm = abs(fract(gvm) - 0.5);
+      float major = 1.0 - smoothstep(0.0, max(fwm, 0.0015) * 1.05, min(gm.x, gm.y));
+      float crest = pow(1.0 - abs(vWave), 3.5) * vFall;
+      float L = max(max(line * 0.78, major * 1.0), crest * 0.42);
+      vec3 ink = vec3(0.14, 0.42, 0.98);
+      vec3 col = ink * (0.22 + L * 1.15);
+      col += ink * (crest * 0.18 + vFall * 0.08);
+      col *= 1.0 + uBass * 0.14;
+      float riseAng = length(vXZ) / max(0.001, uBowlR);
+      float fade = 1.0 - smoothstep(0.70, 1.00, riseAng);
+      float alpha = (0.05 + L * 0.62 + crest * 0.16) * fade * (0.7 + uBass * 0.16);
+      gl_FragColor = vec4(col, alpha);
+    }
+  `;
+  function makeHoloGridMat(uniforms) {
+    return new THREE.ShaderMaterial({
+      uniforms: uniforms,
+      transparent: true,
+      depthWrite: false,
+      depthTest: true,
+      polygonOffset: true,
+      polygonOffsetFactor: 1,
+      polygonOffsetUnits: 1,
+      side: THREE.DoubleSide,
+      vertexShader: HOLO_GRID_VERT,
+      fragmentShader: HOLO_GRID_FRAG
+    });
+  }
+  const holoTimeU = { value: 0 };
+  const holoBassU = { value: 0 };
+  const holoGridUniforms = {
+    uTime: holoTimeU,
+    uBass: holoBassU,
+    uMouse: { value: new THREE.Vector3(0, HOLO_FLOOR_Y, 0) },
+    uHasMouse: { value: 0 },
+    uFloorY: { value: HOLO_FLOOR_Y },
+    uBowlR: { value: HOLO_BOWL_R },
+    uRipR: { value: 8 }
+  };
+  const holoGridGeo = new THREE.PlaneGeometry(128, 128, 48, 48);
+  holoGridGeo.rotateX(-Math.PI / 2);
+  const holoGrid = new THREE.Mesh(holoGridGeo, makeHoloGridMat(holoGridUniforms));
+  holoGrid.position.set(0, HOLO_FLOOR_Y, 0);
+  holoGrid.visible = false;
+  holoGrid.renderOrder = 2;
+  scene.add(holoGrid);
+  const holoRoom = [holoGrid];
+  const _holoRay = new THREE.Raycaster();
+  const _holoFloor = new THREE.Plane(new THREE.Vector3(0, 1, 0), -HOLO_FLOOR_Y);
+  const _holoSphere = new THREE.Sphere(new THREE.Vector3(0, HOLO_FLOOR_Y + HOLO_BOWL_R, 0), HOLO_BOWL_R);
+  const _holoNdc = new THREE.Vector2();
+  const _holoHit = new THREE.Vector3();
+  const _holoMouseSm = new THREE.Vector3(0, HOLO_FLOOR_Y, 0);
+  const _holoMouseT = new THREE.Vector3(0, HOLO_FLOOR_Y, 0);
+  let holoMouseAmt = 0;
+  const HOLO_CLOUD_N = MOBILE ? 1800 : 4200;
+  const holoCloudGeo = new THREE.BufferGeometry();
+  {
+    const pos = new Float32Array(HOLO_CLOUD_N * 3);
+    const col = new Float32Array(HOLO_CLOUD_N * 3);
+    const sz = new Float32Array(HOLO_CLOUD_N);
+    const ph = new Float32Array(HOLO_CLOUD_N);
+    const kind = new Float32Array(HOLO_CLOUD_N);
+    const pr = PLANET_R * HOLO_PLANET_SCALE;
+    const BLUE = [0.10, 0.34, 0.91];
+    const RED = [0.77, 0.08, 0.13];
+    const BLACK = [0.02, 0.024, 0.03];
+    const minR = pr * 2.8;
+    for (let i = 0; i < HOLO_CLOUD_N; i++) {
+      const roll = Math.random();
+      let knd, span, lift;
+      if (roll < 0.34) {
+        knd = 0;
+        span = 14;
+        lift = 8;
+        sz[i] = 0.7 + Math.random() * 1.1;
+      } else if (roll < 0.7) {
+        knd = 1;
+        span = 26;
+        lift = 13;
+        sz[i] = 0.5 + Math.random() * 0.85;
+      } else {
+        knd = 2;
+        span = 42;
+        lift = 18;
+        sz[i] = 0.28 + Math.random() * 0.5;
+      }
+      let x = (Math.random() * 2 - 1) * span;
+      let z = (Math.random() * 2 - 1) * span;
+      let y = HOLO_FLOOR_Y + 0.8 + Math.random() * lift;
+      let d2 = x * x + y * y + z * z;
+      if (d2 < minR * minR) {
+        const s = minR / Math.sqrt(Math.max(d2, 1e-5));
+        x *= s; y *= s; z *= s;
+      }
+      pos[i * 3] = x;
+      pos[i * 3 + 1] = y;
+      pos[i * 3 + 2] = z;
+      kind[i] = knd;
+      const ink = Math.random();
+      const c = ink < 0.12 ? RED : ink < 0.55 ? BLUE : BLACK;
+      col[i * 3] = c[0];
+      col[i * 3 + 1] = c[1];
+      col[i * 3 + 2] = c[2];
+      ph[i] = Math.random() * Math.PI * 2;
+    }
+    holoCloudGeo.setAttribute('position', new THREE.BufferAttribute(pos, 3));
+    holoCloudGeo.setAttribute('aColor', new THREE.BufferAttribute(col, 3));
+    holoCloudGeo.setAttribute('aSize', new THREE.BufferAttribute(sz, 1));
+    holoCloudGeo.setAttribute('aPhase', new THREE.BufferAttribute(ph, 1));
+    holoCloudGeo.setAttribute('aKind', new THREE.BufferAttribute(kind, 1));
+  }
+  const holoCloudUniforms = {
+    uTime: { value: 0 },
+    uAudio: { value: 0 },
+    uBass: { value: 0 },
+    uBeat: { value: 0 },
+    uBpm: { value: 108 },
+    uBeatPhase: { value: 0 },
+    uScale: { value: window.innerHeight * 0.5 }
+  };
+  const holoCloud = new THREE.Points(holoCloudGeo, new THREE.ShaderMaterial({
+    uniforms: holoCloudUniforms,
+    transparent: true,
+    depthWrite: false,
+    depthTest: true,
+    blending: THREE.AdditiveBlending,
+    vertexShader: `
+      attribute vec3 aColor;
+      attribute float aSize;
+      attribute float aPhase;
+      attribute float aKind;
+      uniform float uTime;
+      uniform float uAudio;
+      uniform float uBass;
+      uniform float uBeat;
+      uniform float uBpm;
+      uniform float uBeatPhase;
+      uniform float uScale;
+      varying vec3 vColor;
+      varying float vG;
+      varying float vHot;
+      varying float vBri;
+      void main(){
+        float inner = 1.0 - step(0.5, aKind);
+        float far = step(1.5, aKind);
+        vec3 p = position;
+        float t = uTime;
+        float flow = t * 0.22 + aPhase;
+        p.x += sin(flow * 0.71 + p.z * 0.055 + p.y * 0.04) * mix(0.35, 1.85, far);
+        p.z += cos(flow * 0.63 + p.x * 0.05 - p.y * 0.03) * mix(0.35, 1.85, far);
+        p.y += sin(flow * 0.41 + aPhase * 2.0) * mix(0.22, 1.15, far);
+        p.y += uBeatPhase * mix(0.06, 0.55, far) * (0.4 + fract(aPhase));
+        p.y += uBass * mix(0.08, 0.45, far);
+        float flick = pow(abs(sin(uBeatPhase * 1.4 + aPhase * 6.0)), 5.0);
+        vHot = clamp(uBass * 0.35 + uAudio * 0.25 + uBeat * 0.2 + flick * 0.15, 0.0, 1.0);
+        vColor = aColor;
+        vG = (0.55 + 0.45 * (0.5 + 0.5 * sin(t * 0.7 + aPhase)))
+           * mix(1.0, 0.72, far)
+           * (0.65 + uAudio * 0.55 + uBass * 0.5);
+        float music = clamp(uBass * 0.5 + uAudio * 0.35 + uBeat * 0.25, 0.0, 1.0);
+        float wavy = 0.5 + 0.5 * sin(t * 0.9 + aPhase * 2.2 + p.x * 0.12 + p.z * 0.1);
+        float rip = 0.5 + 0.5 * sin(length(p.xz) * 0.18 - t * 0.65);
+        vBri = 0.5 * music * wavy * rip;
+        vec4 mv = modelViewMatrix * vec4(p, 1.0);
+        float size = aSize * (2.2 + uBass * 1.1 + uAudio * 0.7) * mix(1.8, 2.6, far);
+        gl_PointSize = size * uScale * 0.085 / max(0.12, -mv.z);
+        gl_Position = projectionMatrix * mv;
+      }
+    `,
+    fragmentShader: `
+      varying vec3 vColor;
+      varying float vG;
+      varying float vHot;
+      varying float vBri;
+      void main(){
+        vec2 d = gl_PointCoord - 0.5;
+        float r = length(d);
+        float smoke = smoothstep(0.5, 0.0, r);
+        smoke *= smoothstep(0.5, 0.04, r);
+        float grain = fract(sin(dot(gl_PointCoord * 23.0, vec2(12.9898, 78.233))) * 43758.5453);
+        float a = smoke * (0.34 + grain * 0.2) * vG * (0.2 + vBri * 1.6);
+        if (a < 0.012) discard;
+        vec3 col = vColor * (0.35 + vBri);
+        gl_FragColor = vec4(col, clamp(a, 0.0, 0.7));
+      }
+    `
+  }));
+  holoCloud.visible = false;
+  holoCloud.renderOrder = 3;
+  holoCloud.frustumCulled = false;
+  scene.add(holoCloud);
+
+  /* 80s cyberspace layer — Tron floor already exists; this fills the room
+     with wire objects, lights, and orbiting junk. Live cosmic stays intact. */
+  const HOLO_BLUE = 0x1A58E8;
+  const holoSpace = new THREE.Group();
+  holoSpace.visible = false;
+  scene.add(holoSpace);
+
+  const holoKey = new THREE.PointLight(0x2D6BFF, 0, 48, 2);
+  holoKey.position.set(3.6, 5.2, 6.2);
+  holoSpace.add(holoKey);
+  const holoFill = new THREE.PointLight(0xC81830, 0, 32, 2);
+  holoFill.position.set(-6.2, 0.6, 2.4);
+  holoSpace.add(holoFill);
+  const holoRim = new THREE.DirectionalLight(0x1A58E8, 0);
+  holoRim.position.set(1.5, -2.2, -7);
+  holoSpace.add(holoRim);
+
+  const holoLine = new THREE.LineBasicMaterial({
+    color: HOLO_BLUE, transparent: true, opacity: 0.72, depthWrite: false, depthTest: true
+  });
+  const holoLineDim = new THREE.LineBasicMaterial({
+    color: HOLO_BLUE, transparent: true, opacity: 0.38, depthWrite: false, depthTest: true
+  });
+  const holoLineRed = new THREE.LineBasicMaterial({
+    color: 0xE02040, transparent: true, opacity: 0.55, depthWrite: false, depthTest: true
+  });
+
+  function wireMesh(geo, mat) {
+    return new THREE.LineSegments(new THREE.WireframeGeometry(geo), mat);
+  }
+
+  /* Floor grid is holoGrid. No standing pillars / rectangle beacons. */
+
+  if (window.HoloProps && typeof window.HoloProps.spawn === 'function') {
+    window.HoloProps.spawn(THREE, holoSpace, { planetR: PLANET_R * HOLO_PLANET_SCALE });
+  }
+
+  function tickHoloSpace(t, dt, bass) {
+    if (!holoOn) return;
+    const music = reduceMotion.matches ? 0 : bass;
+    holoKey.intensity = 1.55 + music * 0.18;
+    holoFill.intensity = 0.5 + music * 0.12;
+    holoRim.intensity = 0.65 + music * 0.08;
+    if (window.HoloProps && typeof window.HoloProps.tick === 'function') {
+      window.HoloProps.tick(t, dt, music);
+    }
+  }
+
+  function forceOpaquePlanet(mat, mesh) {
+    if (!mat) return;
+    mat.transparent = false;
+    mat.opacity = 1;
+    mat.alphaTest = 0;
+    mat.depthWrite = true;
+    mat.depthTest = true;
+    mat.blending = THREE.NoBlending;
+    mat.side = THREE.FrontSide;
+    mat.polygonOffset = false;
+    if ('colorWrite' in mat) mat.colorWrite = true;
+    mat.needsUpdate = true;
+    if (mesh) {
+      mesh.renderOrder = 1;
+      mesh.frustumCulled = false;
+    }
+  }
+
+  function ensureOccluder(view) {
+    if (!view || !view.core) return;
+    const host = view.group || view.core;
+    const staleChild = view.core.getObjectByName('holoOccluder');
+    if (staleChild && staleChild.parent === view.core) view.core.remove(staleChild);
+    let occ = host.getObjectByName && host.getObjectByName('holoOccluder');
+    if (holoOn) {
+      if (!occ) {
+        occ = new THREE.Mesh(
+          sphereGeo,
+          new THREE.MeshBasicMaterial({
+            color: 0x050608,
+            transparent: false,
+            opacity: 1,
+            depthWrite: true,
+            depthTest: true,
+            blending: THREE.NoBlending,
+            side: THREE.FrontSide,
+            fog: false
+          })
+        );
+        occ.name = 'holoOccluder';
+        occ.renderOrder = 0;
+        occ.frustumCulled = false;
+        host.add(occ);
+      }
+      occ.visible = true;
+      occ.position.copy(view.core.position);
+      occ.scale.copy(view.core.scale);
+      occ.scale.multiplyScalar(0.998);
+      occ.material.transparent = false;
+      occ.material.opacity = 1;
+      occ.material.depthWrite = true;
+      occ.material.depthTest = true;
+      occ.material.blending = THREE.NoBlending;
+      occ.material.colorWrite = true;
+    } else if (occ) {
+      occ.visible = false;
+    }
+  }
+
+  function makeHoloCage() {
+    const r = PLANET_R * 1.018;
+    const pos = [];
+    const meridians = 24;
+    const segs = 112;
+    for (let m = 0; m < meridians; m++) {
+      const lon = (m / meridians) * Math.PI * 2;
+      for (let i = 0; i < segs; i++) {
+        const t0 = (i / segs) * Math.PI;
+        const t1 = ((i + 1) / segs) * Math.PI;
+        pos.push(
+          Math.sin(t0) * Math.cos(lon) * r, Math.cos(t0) * r, Math.sin(t0) * Math.sin(lon) * r,
+          Math.sin(t1) * Math.cos(lon) * r, Math.cos(t1) * r, Math.sin(t1) * Math.sin(lon) * r
+        );
+      }
+    }
+    const parallels = 14;
+    for (let p = 0; p < parallels; p++) {
+      const lat = -0.88 + (p / (parallels - 1)) * 1.76;
+      const y = Math.sin(lat) * r;
+      const rr = Math.cos(lat) * r;
+      for (let i = 0; i < segs; i++) {
+        const a0 = (i / segs) * Math.PI * 2;
+        const a1 = ((i + 1) / segs) * Math.PI * 2;
+        pos.push(
+          Math.cos(a0) * rr, y, Math.sin(a0) * rr,
+          Math.cos(a1) * rr, y, Math.sin(a1) * rr
+        );
+      }
+    }
+    const geo = new THREE.BufferGeometry();
+    geo.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3));
+    const cage = new THREE.LineSegments(geo, new THREE.LineBasicMaterial({
+      color: 0x1A58E8,
+      transparent: false,
+      opacity: 1,
+      depthTest: true,
+      depthWrite: false
+    }));
+    cage.name = 'holoCage';
+    cage.renderOrder = 2;
+    cage.frustumCulled = false;
+    window.__HOLO_QA__ = {
+      cageColor: '#1A58E8',
+      meridians: meridians,
+      parallels: parallels,
+      segs: segs,
+      floorPillars: 0
+    };
+    return cage;
+  }
+
+  function attachWire(view) {
+    if (!view || !view.core) return;
+    const host = view.group || view.core;
+    const stale = (host.getObjectByName && host.getObjectByName('holoWire'))
+      || view.core.getObjectByName('holoWire')
+      || view.wire;
+    if (stale && stale.parent) stale.parent.remove(stale);
+    const staleInner = view.core.getObjectByName('holoInner');
+    if (staleInner && staleInner.parent) staleInner.parent.remove(staleInner);
+    const staleCage = host.getObjectByName && host.getObjectByName('holoCage');
+    if (staleCage && staleCage.parent) staleCage.parent.remove(staleCage);
+    view.wire = null;
+    view.cage = null;
+    view.core.geometry = sphereGeo;
+    view.core.scale.setScalar(holoOn ? HOLO_PLANET_SCALE : 1);
+    if (view.core.material) {
+      if (holoOn) {
+        forceOpaquePlanet(view.core.material, view.core);
+      } else {
+        view.core.material.polygonOffset = false;
+        view.core.material.depthWrite = true;
+        view.core.material.depthTest = true;
+        view.core.material.transparent = true;
+        view.core.material.blending = THREE.NormalBlending;
+        view.core.material.side = THREE.FrontSide;
+        view.core.material.needsUpdate = true;
+        view.core.renderOrder = 0;
+      }
+    }
+    if (holoOn) {
+      view.cage = makeHoloCage();
+      view.cage.scale.setScalar(HOLO_PLANET_SCALE);
+      host.add(view.cage);
+    }
+    ensureOccluder(view);
+  }
+
+  const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
+  let holoPulseWait = 20 + Math.random() * 10;
+  let holoPulseAge = -1;
+  const HOLO_PULSE_DUR = 6.2;
+
+  function applyHoloPulse(k) {
+    if (planetUniforms.uPulse) planetUniforms.uPulse.value = k;
+    for (let i = 0; i < planetViews.length; i++) {
+      const u = planetViews[i].core && planetViews[i].core.material && planetViews[i].core.material.uniforms;
+      if (u && u.uPulse) u.uPulse.value = k;
+    }
+  }
+
+  function tickHoloPulse(dt) {
+    if (!holoOn || reduceMotion.matches) {
+      applyHoloPulse(0);
+      return;
+    }
+    if (holoPulseAge < 0) {
+      holoPulseWait -= dt;
+      if (holoPulseWait <= 0) holoPulseAge = 0;
+    } else {
+      holoPulseAge += dt;
+      applyHoloPulse(Math.min(1, holoPulseAge / HOLO_PULSE_DUR));
+      if (holoPulseAge >= HOLO_PULSE_DUR) {
+        holoPulseAge = -1;
+        holoPulseWait = 20 + Math.random() * 10;
+        applyHoloPulse(0);
+      }
+    }
+  }
+
+  function setHoloFlag(on) {
+    const v = on ? 1 : 0;
+    if (planetUniforms.uHolo) planetUniforms.uHolo.value = v;
+    for (let i = 0; i < auroraShells.length; i++) {
+      if (auroraShells[i].u.uHolo) auroraShells[i].u.uHolo.value = v;
+    }
+    for (let i = 0; i < planetViews.length; i++) {
+      const view = planetViews[i];
+      if (view.core.material.uniforms.uHolo) view.core.material.uniforms.uHolo.value = v;
+      for (let s = 0; s < view.shells.length; s++) {
+        if (view.shells[s].u.uHolo) view.shells[s].u.uHolo.value = v;
+      }
+    }
+  }
+
+  function applyHoloSkin(on) {
+    holoOn = !!on;
+    holoRoom.forEach(function (m) { m.visible = holoOn; });
+    holoCloud.visible = holoOn;
+    setHoloFlag(holoOn);
+    for (let i = 0; i < planetViews.length; i++) {
+      const view = planetViews[i];
+      attachWire(view);
+      if (view.shells) {
+        for (let s = 0; s < view.shells.length; s++) {
+          if (view.shells[s].mesh) view.shells[s].mesh.visible = !holoOn;
+        }
+      }
+      if (view.atmo) view.atmo.visible = !holoOn;
+      if (view.ringGroup) view.ringGroup.visible = !holoOn;
+    }
+    applyRenderScale();
+    holoSpace.visible = holoOn;
+    if (starUniforms.uHolo) starUniforms.uHolo.value = holoOn ? 1 : 0;
+    for (let i = 0; i < nebulae.length; i++) {
+      const n = nebulae[i];
+      if (holoOn) {
+        n.u.uC1.value.set('#1A58E8');
+        n.u.uC2.value.set('#C41422');
+        n.u.uOpacity.value = n.baseO * 0.35;
+      } else {
+        n.u.uC1.value.copy(n.origC1);
+        n.u.uC2.value.copy(n.origC2);
+        n.u.uOpacity.value = n.baseO;
+      }
+    }
+    if (holoOn) {
+      keyLight.color.set('#1A58E8');
+      keyLight.intensity = 1.45;
+      ambientLight.color.set('#081018');
+      ambientLight.intensity = 0.55;
+      holoKey.intensity = 1.55;
+      holoFill.intensity = 0.5;
+      holoRim.intensity = 0.7;
+      renderer.setClearColor(0x07090E, 1);
+      renderer.sortObjects = true;
+      holoGrid.position.set(0, HOLO_FLOOR_Y, 0);
+      galaxyU.uC1.value.set('#1A4A88');
+      galaxyU.uC2.value.set('#7A1020');
+      holoRoom.forEach(function (m) {
+        m.material.depthTest = true;
+        m.material.depthWrite = false;
+        m.material.transparent = true;
+        m.renderOrder = 2;
+      });
+      [holoLine, holoLineDim, holoLineRed].forEach(function (m) {
+        m.depthTest = true;
+        m.depthWrite = false;
+        m.transparent = true;
+      });
+      stars.material.depthTest = true;
+      galaxy.material.depthTest = true;
+      for (let i = 0; i < planetViews.length; i++) {
+        const v = planetViews[i];
+        const auraS0 = HOLO_PLANET_SCALE;
+        if (v.shells) {
+          for (let s = 0; s < v.shells.length; s++) {
+            const m = v.shells[s].mesh;
+            if (!m) continue;
+            m.scale.setScalar(auraS0);
+            if (m.material) { m.material.depthTest = true; m.material.depthWrite = false; }
+          }
+        }
+        if (v.atmo) {
+          v.atmo.scale.setScalar(auraS0);
+          if (v.atmo.material) { v.atmo.material.depthTest = true; v.atmo.material.depthWrite = false; }
+        }
+        if (v.ringGroup) {
+          v.ringGroup.scale.setScalar(auraS0);
+          v.ringGroup.traverse(function (o) {
+            if (!o.material) return;
+            o.material.depthTest = true;
+            o.material.depthWrite = false;
+          });
+        }
+      }
+      for (let ni = 0; ni < nebulae.length; ni++) nebulae[ni].mesh.material.depthTest = true;
+      holoSpace.traverse(function (o) {
+        if (!o.material) return;
+        const mats = Array.isArray(o.material) ? o.material : [o.material];
+        for (let mi = 0; mi < mats.length; mi++) {
+          mats[mi].depthTest = true;
+          if (o.isLine || o.isLineSegments || o.isPoints) mats[mi].depthWrite = false;
+        }
+      });
+    } else {
+      holoPulseAge = -1;
+      holoPulseWait = 20 + Math.random() * 10;
+      applyHoloPulse(0);
+      keyLight.color.set('#d9ccff');
+      keyLight.intensity = 0.95;
+      ambientLight.color.set('#241a3a');
+      ambientLight.intensity = 1.1;
+      holoKey.intensity = 0;
+      holoFill.intensity = 0;
+      holoRim.intensity = 0;
+      renderer.setClearColor(0x000000, 0);
+      renderer.sortObjects = false;
+      galaxyU.uC1.value.copy(COL_PURPLE).multiplyScalar(0.8);
+      galaxyU.uC2.value.copy(COL_BABY).multiplyScalar(0.7);
+      for (let i = 0; i < planetViews.length; i++) {
+        const v = planetViews[i];
+        if (v.shells) {
+          for (let s = 0; s < v.shells.length; s++) {
+            if (v.shells[s].mesh) v.shells[s].mesh.scale.setScalar(1);
+          }
+        }
+        if (v.atmo) v.atmo.scale.setScalar(1);
+        if (v.ringGroup) v.ringGroup.scale.setScalar(1);
+      }
+    }
+    fitCamera();
+    setPaletteTargets(paletteFor(lastSlug));
+    window.__HOLO_ON__ = holoOn;
+    window.__HOLO_DBG__ = function () {
+      const occ = (heroGroup.getObjectByName && heroGroup.getObjectByName('holoOccluder'))
+        || planet.getObjectByName('holoOccluder');
+      return {
+        transparent: planet.material.transparent,
+        depthWrite: planet.material.depthWrite,
+        blending: planet.material.blending,
+        opacity: planet.material.opacity,
+        renderOrder: planet.renderOrder,
+        occ: !!(occ && occ.visible),
+        occParent: occ && occ.parent && occ.parent.type,
+        occTW: occ && occ.material.transparent,
+        occDW: occ && occ.material.depthWrite,
+        sortObjects: renderer.sortObjects,
+        gridDT: holoGrid.material.depthTest,
+        starDT: stars.material.depthTest
+      };
+    };
+  }
+  window.__ORBIT_SKIN_APPLY__ = applyHoloSkin;
+
   function freshMaterial(srcMat, paletteHex) {
     const cols = paletteHex.map(h => new THREE.Color(h));
     const m = srcMat.clone();
@@ -677,10 +1441,13 @@
     return m;
   }
 
-  function buildPlanetClone(paletteHex) {
+  function buildPlanetClone(paletteHex, slug) {
     const group = new THREE.Group();
     const core = planet.clone();
     core.material = freshMaterial(planet.material, paletteHex);
+    if (core.material.uniforms.uSeed) {
+      core.material.uniforms.uSeed.value = slug ? (hashStr(slug) % 997) / 997 : 0.37;
+    }
     group.add(core);
     const shells = auroraShells.map(s => {
       const mesh = s.mesh.clone();
@@ -703,7 +1470,9 @@
     group.add(rg);
     group.visible = false;
     scene.add(group);
-    return { group: group, core: core, shells: shells, atmo: atmo, ringU: ringU, ringP: ringP, ringGroup: rg, hero: false };
+    const view = { group: group, core: core, shells: shells, atmo: atmo, ringU: ringU, ringP: ringP, ringGroup: rg, hero: false };
+    if (holoOn) attachWire(view);
+    return view;
   }
 
   function disposeClone(v) {
@@ -758,7 +1527,13 @@
     };
     if (view.core) {
       apply(view.core.material);
-      if (view.core.material) view.core.material.depthWrite = fade > 0.85;
+      if (view.core.material) {
+        if (holoOn) {
+          forceOpaquePlanet(view.core.material, view.core);
+        } else {
+          view.core.material.depthWrite = fade > 0.85;
+        }
+      }
     }
     if (view.atmo) apply(view.atmo.material);
     if (view.shells) {
@@ -784,7 +1559,7 @@
       slug = t && t.slug;
     } catch (e) {}
     const palette = slug ? paletteFor(slug) : PALETTES[0];
-    const inView = buildPlanetClone(palette);
+    const inView = buildPlanetClone(palette, slug);
     const outView = currentView;
     const outFrom = THREE.MathUtils.clamp(swipePreviewK, 0, 0.4) * -dir * PLATE_SLOT;
     const outTo = -dir * PLATE_SLOT;
@@ -842,7 +1617,8 @@
   const starUniforms = {
     uTime:  { value: 0 },
     uAudio: { value: 0 },
-    uScale: { value: window.innerHeight * 0.5 }
+    uScale: { value: window.innerHeight * 0.5 },
+    uHolo:  { value: 0 }
   };
   const stars = new THREE.Points(starGeo, new THREE.ShaderMaterial({
     uniforms: starUniforms,
@@ -856,10 +1632,11 @@
       uniform float uTime;
       uniform float uAudio;
       uniform float uScale;
+      uniform float uHolo;
       varying vec3 vColor;
       varying float vTw;
       void main(){
-        vColor = aColor;
+        vColor = mix(aColor, vec3(0.10, 0.34, 0.91), uHolo);
         vTw = 0.5 + 0.5 * sin(uTime * (0.6 + fract(aPhase) * 1.7) + aPhase);
         vec4 mv = modelViewMatrix * vec4(position, 1.0);
         gl_PointSize = aSize * (0.8 + uAudio * 0.35) * uScale * 0.085 / max(0.1, -mv.z);
@@ -986,7 +1763,10 @@
     );
     m.position.set(d.x, d.y, d.z);
     m.rotation.z = Math.random() * Math.PI;
-    nebulae.push({ mesh: m, u, rs: (Math.random() - 0.5) * 0.0035, tint: i < 2 });
+    nebulae.push({
+      mesh: m, u, rs: (Math.random() - 0.5) * 0.0035, tint: i < 2,
+      origC1: d.c1.clone(), origC2: d.c2.clone(), baseO: d.o
+    });
     scene.add(m);
   });
 
@@ -1546,7 +2326,11 @@
      Taps the player's existing Web Audio graph (gainNode) with an analyser.
      player.js loads after this file; bindings exist by the time the loop runs. */
   let analyser = null, freqData = null, timeData = null;
-  let levelSm = 0, bassSm = 0;
+  let levelSm = 0, bassSm = 0, midSm = 0, highSm = 0;
+  let kickPrev = 0, snarePrev = 0, hatPrev = 0;
+  let kickEnv = 0, snareEnv = 0, hatEnv = 0;
+  let bpmSm = 108, lastOnset = 0, beatPhase = 0, beatPulse = 0;
+  const onsetIoi = [];
 
   function tryHookAudio() {
     if (analyser) return;
@@ -1569,15 +2353,64 @@
     try {
       analyser.getByteFrequencyData(freqData);
 
-      let bass = 0, all = 0;
-      const bassBins = Math.min(10, freqData.length);
+      let bass = 0, mid = 0, high = 0, all = 0;
+      const n = freqData.length;
+      const bassBins = Math.min(10, n);
+      const midEnd = Math.min(40, n);
       for (let i = 1; i < bassBins; i++) bass += freqData[i];
-      // Coarse mean: sample every 2nd bin (same visual energy, half the reads)
-      for (let i = 0; i < freqData.length; i += 2) all += freqData[i];
+      for (let i = bassBins; i < midEnd; i++) mid += freqData[i];
+      for (let i = midEnd; i < n; i += 2) high += freqData[i];
+      for (let i = 0; i < n; i += 2) all += freqData[i];
       bass = bass / Math.max(1, bassBins - 1) / 255;
-      all = all / Math.max(1, (freqData.length / 2)) / 255;
+      mid = mid / Math.max(1, midEnd - bassBins) / 255;
+      high = high / Math.max(1, Math.ceil((n - midEnd) / 2)) / 255;
+      all = all / Math.max(1, (n / 2)) / 255;
       bassSm += (bass - bassSm) * 0.18;
+      midSm += (mid - midSm) * 0.16;
+      highSm += (high - highSm) * 0.14;
       levelSm += (all - levelSm) * 0.12;
+      let kick = 0, snare = 0, hat = 0;
+      const kEnd = Math.min(6, n);
+      const s0 = Math.min(8, n), s1 = Math.min(28, n);
+      for (let i = 1; i < kEnd; i++) kick += freqData[i];
+      for (let i = s0; i < s1; i++) snare += freqData[i];
+      for (let i = Math.min(48, n); i < n; i += 2) hat += freqData[i];
+      kick = kick / Math.max(1, kEnd - 1) / 255;
+      snare = snare / Math.max(1, s1 - s0) / 255;
+      hat = hat / Math.max(1, Math.ceil((n - Math.min(48, n)) / 2)) / 255;
+      const kickFlux = Math.max(0, kick - kickPrev);
+      const snareFlux = Math.max(0, snare - snarePrev);
+      const hatFlux = Math.max(0, hat - hatPrev);
+      kickPrev = kick; snarePrev = snare; hatPrev = hat;
+      kickEnv = Math.max(kick * 0.28 + kickFlux * 3.4, kickEnv * 0.78);
+      snareEnv = Math.max(snare * 0.22 + snareFlux * 2.8, snareEnv * 0.70);
+      hatEnv = Math.max(hat * 0.18 + hatFlux * 2.2, hatEnv * 0.62);
+      if (kickEnv > 1) kickEnv = 1;
+      if (snareEnv > 1) snareEnv = 1;
+      if (hatEnv > 1) hatEnv = 1;
+      const nowA = performance.now() * 0.001;
+      if (kickFlux > 0.07 && kick > 0.11 && (nowA - lastOnset) > 0.23) {
+        if (lastOnset > 0.1) {
+          const ioi = nowA - lastOnset;
+          if (ioi > 0.25 && ioi < 1.2) {
+            onsetIoi.push(ioi);
+            if (onsetIoi.length > 8) onsetIoi.shift();
+            const sorted = onsetIoi.slice().sort(function (a, b) { return a - b; });
+            const med = sorted[(sorted.length / 2) | 0];
+            bpmSm += ((60 / med) - bpmSm) * 0.2;
+            if (bpmSm < 62) bpmSm = 62;
+            if (bpmSm > 188) bpmSm = 188;
+          }
+        }
+        lastOnset = nowA;
+        beatPulse = 1;
+      }
+      const stim = bassSm * 0.5 + midSm * 0.28 + levelSm * 0.22;
+      window.__ORBIT_AUDIO__ = {
+        bass: bassSm, mid: midSm, high: highSm, level: levelSm, stim: stim,
+        kick: kickEnv, snare: snareEnv, hat: hatEnv,
+        bpm: bpmSm, beat: beatPulse, beatPhase: beatPhase
+      };
 
       // GPU texture uploads at ~30Hz — aurora still reads smooth due to shader lerp
       _audioTexFrame++;
@@ -1610,7 +2443,6 @@
   }
 
   /* ════════════════ PER-SONG PALETTE WATCHER ════════════════ */
-  let lastSlug = null;
   let trackPollAcc = 0;
   function watchTrack(dt) {
     trackPollAcc += dt;
@@ -1623,6 +2455,9 @@
           const first = (lastSlug === null);
           lastSlug = slug;
           setPaletteTargets(paletteFor(slug));
+          onsetIoi.length = 0;
+          lastOnset = 0;
+          bpmSm = 108;
           if (!first) spawnShockwave(); // tactile pulse when the song changes
         }
       }
@@ -1630,20 +2465,78 @@
   }
 
   /* ════════════════ CAMERA + DRIFT ════════════════ */
-  const mouse = { x: 0, y: 0, has: false };
+  const mouse = { x: 0, y: 0, has: false, cx: 0, cy: 0 };
   window.addEventListener('pointermove', (e) => {
+    mouse.cx = e.clientX;
+    mouse.cy = e.clientY;
     mouse.x = (e.clientX / window.innerWidth) * 2 - 1;
     mouse.y = (e.clientY / window.innerHeight) * 2 - 1;
     mouse.has = true;
-  }, { passive: true });
+  }, { passive: true, capture: true });
+
+  function syncHoloRoomMouse(dt) {
+    const rect = canvas.getBoundingClientRect();
+    const cssW = Math.max(1, rect.width);
+    const cssH = Math.max(1, rect.height);
+    const nx = ((mouse.cx - rect.left) / cssW) * 2 - 1;
+    const ny = -((mouse.cy - rect.top) / cssH) * 2 + 1;
+    mouse.x = nx;
+    mouse.y = -ny;
+    _holoNdc.set(nx, ny);
+    camera.updateMatrixWorld(true);
+    camera.updateProjectionMatrix();
+    _holoRay.setFromCamera(_holoNdc, camera);
+    let want = 0;
+    if (mouse.has) {
+      const sph = _holoRay.ray.intersectSphere(_holoSphere, _holoHit);
+      if (sph && sph.y < HOLO_CAM_Y + 1.5) {
+        const lx = sph.x;
+        const lz = sph.z;
+        const ly = sph.y - HOLO_FLOOR_Y;
+        const ang = Math.acos(THREE.MathUtils.clamp(1 - ly / Math.max(0.001, HOLO_BOWL_R), -1, 1));
+        const rad = Math.hypot(lx, lz);
+        const dist = HOLO_BOWL_R * ang;
+        const inv = rad > 1e-5 ? dist / rad : 0;
+        _holoMouseT.set(lx * inv, HOLO_FLOOR_Y, lz * inv);
+        want = 1;
+      } else {
+        const hit = _holoRay.ray.intersectPlane(_holoFloor, _holoHit);
+        if (hit) {
+          _holoMouseT.copy(hit);
+          want = 1;
+        } else {
+          const o = _holoRay.ray.origin;
+          const d = _holoRay.ray.direction;
+          if (Math.abs(d.y) > 1e-4) {
+            const tt = (HOLO_FLOOR_Y - o.y) / d.y;
+            if (tt > 0) {
+              _holoMouseT.set(o.x + d.x * tt, HOLO_FLOOR_Y, o.z + d.z * tt);
+              want = 1;
+            }
+          }
+        }
+      }
+    }
+    holoMouseAmt += (want - holoMouseAmt) * (1 - Math.exp(-dt * 14));
+    const dist = _holoMouseSm.distanceTo(_holoMouseT);
+    const rate = 12 + Math.min(8, dist * 0.12);
+    _holoMouseSm.lerp(_holoMouseT, 1 - Math.exp(-dt * rate));
+    holoGridUniforms.uMouse.value.set(_holoMouseSm.x, HOLO_FLOOR_Y, _holoMouseSm.z);
+    holoGridUniforms.uHasMouse.value = mouse.has ? Math.max(holoMouseAmt, 0.85) : holoMouseAmt;
+    const dCam = Math.max(0.6, camera.position.distanceTo(_holoMouseSm));
+    const visH = 2 * Math.tan(THREE.MathUtils.degToRad(camera.fov * 0.5)) * dCam;
+    holoGridUniforms.uRipR.value = Math.max(12, visH * 0.2);
+  }
 
   let baseZ = 8;
   function fitCamera() {
     const h = window.innerHeight;
-    const targetPx = Math.min(360, h * 0.46);
-    const z = (PLANET_R * h) / (Math.tan(THREE.MathUtils.degToRad(camera.fov / 2)) * targetPx);
-    baseZ = Math.max(6.2, Math.min(13, z));
-    camera.position.z = baseZ;
+    const pr = holoOn ? PLANET_R * HOLO_PLANET_SCALE : PLANET_R;
+    const targetPx = holoOn ? Math.min(300, h * 0.38) : Math.min(360, h * 0.46);
+    const z = (pr * h) / (Math.tan(THREE.MathUtils.degToRad(camera.fov / 2)) * targetPx);
+    baseZ = holoOn ? Math.max(9.2, Math.min(18, z)) : Math.max(6.2, Math.min(13, z));
+    if (holoOn) camera.position.set(0, HOLO_CAM_Y, baseZ * HOLO_CAM_Z_MUL);
+    else camera.position.z = baseZ;
   }
 
   function resize() {
@@ -1655,6 +2548,7 @@
     camera.updateProjectionMatrix();
     starUniforms.uScale.value = h * 0.5;
     ringUniforms.uScale.value = h * 0.5;
+    holoCloudUniforms.uScale.value = h * 0.5;
   }
   window.addEventListener('resize', resize);
   fitCamera();
@@ -1683,6 +2577,8 @@
     if (imageWinElCached && fsEl === imageWinElCached) return;
     sampleAudio();
     watchTrack(dt);
+    beatPulse *= Math.exp(-dt * 8.5);
+    beatPhase += dt * (bpmSm / 60) * Math.PI * 2;
 
     // smooth palette flow (planet melts from one song's world to the next)
     palA.lerp(tgtA, 0.022);
@@ -1696,6 +2592,12 @@
       v.core.material.uniforms.uTime.value = t;
       v.core.material.uniforms.uAudio.value = levelSm;
       v.core.material.uniforms.uBass.value = bassSm;
+      if (v.core.material.uniforms.uHoloFlow) {
+        v.core.material.uniforms.uHoloFlow.value = (holoOn && !reduceMotion.matches) ? 1 : 0;
+      }
+      if (v.core.material.uniforms.uSpin) {
+        v.core.material.uniforms.uSpin.value = v.core.rotation.y;
+      }
       for (let ai = 0; ai < v.shells.length; ai++) {
         v.shells[ai].u.uTime.value = t;
         v.shells[ai].u.uAudio.value = levelSm;
@@ -1715,7 +2617,7 @@
       n.u.uTime.value = t;
       n.u.uAudio.value = levelSm;
       n.mesh.rotation.z += n.rs * dt;
-      if (n.tint) {
+      if (n.tint && !holoOn) {
         // the two nearest nebulae slowly absorb the song's palette
         n.u.uC1.value.lerp(tgtA, 0.004);
         n.u.uC2.value.lerp(tgtB, 0.004);
@@ -1723,8 +2625,40 @@
     }
 
     // motion — the settled planet only (in-flight views are arc-animated below)
-    currentView.core.rotation.y += dt * (0.045 + bassSm * 0.08);
-    currentView.core.rotation.x = Math.sin(t * 0.02) * 0.04; // slow axis precession
+    /* Holo fill spins slowly; blue meridian cage is a sibling and turns slower. */
+    currentView.core.rotation.y += dt * (holoOn ? (0.09 + bassSm * 0.11) : (0.045 + bassSm * 0.08));
+    currentView.core.rotation.x = Math.sin(t * 0.02) * (holoOn ? 0.012 : 0.04);
+    if (holoOn) {
+      tickHoloPulse(dt);
+      if (currentView.cage && !reduceMotion.matches) {
+        currentView.cage.rotation.y += dt * (0.032 + bassSm * 0.045);
+        currentView.cage.scale.setScalar(HOLO_PLANET_SCALE);
+      }
+      currentView.core.scale.setScalar(HOLO_PLANET_SCALE);
+      const auraS = HOLO_PLANET_SCALE * (1 + (reduceMotion.matches ? 0 : bassSm) * 0.08 + levelSm * 0.04);
+      if (currentView.shells) {
+        for (let s = 0; s < currentView.shells.length; s++) {
+          if (currentView.shells[s].mesh) currentView.shells[s].mesh.scale.setScalar(auraS);
+        }
+      }
+      if (currentView.atmo) currentView.atmo.scale.setScalar(auraS * 1.02);
+      if (currentView.ringGroup) currentView.ringGroup.scale.setScalar(auraS);
+      holoTimeU.value = t;
+      holoBassU.value = reduceMotion.matches ? 0 : bassSm;
+      if (currentView.core.material.uniforms.uSpin) {
+        currentView.core.material.uniforms.uSpin.value = currentView.core.rotation.y;
+      }
+      document.documentElement.style.setProperty('--holo-spin', currentView.core.rotation.y.toFixed(4));
+      holoCloudUniforms.uTime.value = t;
+      holoCloudUniforms.uAudio.value = reduceMotion.matches ? 0 : levelSm;
+      holoCloudUniforms.uBass.value = reduceMotion.matches ? 0 : bassSm;
+      holoCloudUniforms.uBeat.value = reduceMotion.matches ? 0 : beatPulse;
+      holoCloudUniforms.uBpm.value = bpmSm;
+      holoCloudUniforms.uBeatPhase.value = beatPhase;
+      if (currentView.group) holoCloud.position.copy(currentView.group.position);
+      holoCloud.rotation.y += dt * 0.09;
+      tickHoloSpace(t, dt, bassSm);
+    }
     // fog layers counter-drift for parallax depth
     currentView.shells[0].mesh.rotation.y -= dt * 0.016;
     currentView.shells[0].mesh.rotation.z = Math.sin(t * 0.013) * 0.06;
@@ -1737,12 +2671,23 @@
     // ── adrift: layered slow lissajous + very lazy mouse parallax ──
     const driftX = Math.sin(t * 0.031) * 0.55 + Math.sin(t * 0.011 + 2.0) * 0.35;
     const driftY = Math.cos(t * 0.023) * 0.34 + Math.sin(t * 0.017 + 1.0) * 0.22;
-    const mx = mouse.has ? mouse.x * 0.5 : 0;
-    const my = mouse.has ? -mouse.y * 0.3 : 0;
-    camera.position.x += ((driftX + mx) - camera.position.x) * 0.012;
-    camera.position.y += ((driftY + my) - camera.position.y) * 0.012;
-    camera.position.z += ((baseZ + Math.sin(t * 0.013) * 0.45) - camera.position.z) * 0.008;
-    camera.lookAt(0, 0, 0);
+    const mx = mouse.has ? mouse.x * (holoOn ? 0.12 : 0.5) : 0;
+    const my = mouse.has ? -mouse.y * (holoOn ? 0.08 : 0.3) : 0;
+    const isoX = 0;
+    const isoY = holoOn ? HOLO_CAM_Y : 0;
+    const isoZ = holoOn ? baseZ * HOLO_CAM_Z_MUL : baseZ;
+    const dX = holoOn ? driftX * 0.12 : driftX;
+    const dY = holoOn ? driftY * 0.12 : driftY;
+    const camK = holoOn ? 0.06 : 0.012;
+    camera.position.x += ((isoX + dX + mx) - camera.position.x) * camK;
+    camera.position.y += ((isoY + dY + my) - camera.position.y) * camK;
+    camera.position.z += ((isoZ + Math.sin(t * 0.013) * 0.45) - camera.position.z) * (holoOn ? 0.05 : 0.008);
+    camera.lookAt(
+      0,
+      holoOn ? HOLO_LOOK_Y : 0,
+      0
+    );
+    if (holoOn) syncHoloRoomMouse(dt);
 
     // ── drag / cancel: preview the recede-arc ──
     if (!arcAnim && (swipeDragging || swipeOrbitHome)) {
@@ -1858,7 +2803,65 @@
       shockwave = null;
     }
 
+    if (holoOn) {
+      renderHoloScene();
+    } else {
+      renderer.autoClear = true;
+      renderer.render(scene, camera);
+    }
+  }
+
+  function setHoloFxVisible(on) {
+    holoRoom.forEach(function (m) { m.visible = on; });
+    holoCloud.visible = on && holoOn;
+    holoSpace.visible = on;
+    stars.visible = on;
+    galaxy.visible = on;
+    for (let ni = 0; ni < nebulae.length; ni++) nebulae[ni].mesh.visible = on;
+    for (let i = 0; i < planetViews.length; i++) {
+    const v = planetViews[i];
+    if (v.shells) {
+      for (let s = 0; s < v.shells.length; s++) {
+        if (v.shells[s].mesh) v.shells[s].mesh.visible = on && !holoOn;
+      }
+    }
+    if (v.atmo) v.atmo.visible = on && !holoOn;
+    if (v.ringGroup) v.ringGroup.visible = on && !holoOn;
+    }
+  }
+
+  function setHoloGlobeVisible(on) {
+    for (let i = 0; i < planetViews.length; i++) {
+      const v = planetViews[i];
+      if (v.core) v.core.visible = on;
+      if (v.cage) v.cage.visible = on && holoOn;
+      const host = v.group || v.core;
+      const occ = host && host.getObjectByName && host.getObjectByName('holoOccluder');
+      if (occ) occ.visible = on && holoOn;
+    }
+  }
+
+  function renderHoloScene() {
+    /* Globe first (opaque depth). Then room/props depth-test against it:
+       fly-throughs in front of the disc show; behind hide; floor never leaks. */
+    setHoloGlobeVisible(true);
+    setHoloFxVisible(false);
+    renderer.autoClear = true;
+    renderer.autoClearColor = true;
+    renderer.autoClearDepth = true;
     renderer.render(scene, camera);
+
+    setHoloGlobeVisible(false);
+    setHoloFxVisible(true);
+    renderer.autoClear = false;
+    renderer.autoClearColor = false;
+    renderer.autoClearDepth = false;
+    renderer.render(scene, camera);
+
+    setHoloGlobeVisible(true);
+    renderer.autoClear = true;
+    renderer.autoClearColor = true;
+    renderer.autoClearDepth = true;
   }
 
   // Pause rendering when the tab is hidden (battery + perf)
@@ -1870,6 +2873,10 @@
       frame();
     }
   });
+
+  if (document.documentElement.classList.contains('theme-holo')) {
+    applyHoloSkin(true);
+  }
 
   frame();
 })();

@@ -79,9 +79,14 @@ function fitPlayerWindow() {
 }
 window.fitPlayerWindow = fitPlayerWindow;
 
-/* ── DESKTOP LAYOUT (auto-position windows) — tuned for good visual alignment around the central planet.
-   Player is intentionally compact + low so the big glowing planet + overlaid "NOW PLAYING" focal
-   title/artist remain the hero visual and are not covered by the media player. */
+/* LAYOUT_V=2: media player parks near the top (not the old cy+300 low slot).
+   One-shot migrate: if localStorage orbitLayoutV is stale, ignore player-win
+   userPositioned once so an old drag cannot keep the player at the bottom. */
+const LAYOUT_V = 2;
+window.__ORBIT_LAYOUT_V = LAYOUT_V;
+
+/* ── DESKTOP LAYOUT (auto-position windows) — planet stays the hero in the middle.
+   Player sits near the top, X-centered, on both live and holo. Dock stays bottom. */
 function applyDesktopLayout() {
   if (isMob()) return;
 
@@ -121,14 +126,20 @@ function applyDesktopLayout() {
     g.style.bottom = ''; g.style.right = '';
   }
 
-  if (pl.dataset.userPositioned !== 'true') {
+  let storedLayoutV = 0;
+  try { storedLayoutV = parseInt(localStorage.getItem('orbitLayoutV') || '0', 10) || 0; } catch (e) { storedLayoutV = 0; }
+  const layoutStale = storedLayoutV !== LAYOUT_V;
+  if (layoutStale) {
+    try { localStorage.setItem('orbitLayoutV', String(LAYOUT_V)); } catch (e) {}
+  }
+
+  if (pl.dataset.userPositioned !== 'true' || layoutStale) {
     pl.style.width = plW + 'px';
     pl.style.height = 'auto';
     pl.style.left = Math.max(PAD, cx - plW / 2) + 'px';
     pl.style.bottom = ''; pl.style.right = '';
     if (typeof fitPlayerWindow === 'function') fitPlayerWindow();
-    const plH = pl.offsetHeight || 260;
-    pl.style.top = Math.max(PAD + 20, Math.min(usableH - plH - PAD - 10, cy + 300)) + 'px';
+    pl.style.top = PAD + 'px';
   }
 
   // Lyrics viewer: center top middle. Default 15% narrower. Leaves room at bottom for media player.

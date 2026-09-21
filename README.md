@@ -74,10 +74,14 @@ cd orbit-player
 
 # Option 1: Just open index.html in your browser
 # Option 2: Use a local server if you prefer
-npx serve .
+npx serve -l 3456
+# then open http://localhost:3456/?skin=holo  (Hermes lab default)
+# or      http://localhost:3456/?skin=live   (current production look)
 # or
 python -m http.server 8000
 ```
+
+`launch/holo-ready` keeps the live player (including `softBreakTitle` so now-playing titles never wrap mid-word) and adds the hologram skin as an optional theme. Default is holo until **Change mode** → Live. Preference is stored in `localStorage.orbitSkin` and `?skin=holo|live`.
 
 ## Under the hood
 
