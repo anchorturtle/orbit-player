@@ -1,3 +1,7 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">
-  <path d="M12 3v18M12 3l-3 3M12 3l3 3M12 21l-3-3M12 21l3-3" stroke="#1A58E8" stroke-width="1.5" stroke-linecap="square" stroke-linejoin="miter"/>
+<svg xmlns="http://www.w3.org/2000/svg" width="25" height="25" viewBox="0 0 20 20">
+  <!-- hotspot 10 10 -->
+  <path fill="none" stroke="#050508" stroke-width="1.7" stroke-linecap="square" stroke-linejoin="miter"
+    d="M10 2.4v15.2M10 2.4L7.2 5.2M10 2.4l2.8 2.8M10 17.6L7.2 14.8M10 17.6l2.8-2.8"/>
+  <path fill="none" stroke="#1A58E8" stroke-width="1.15" stroke-linecap="square" stroke-linejoin="miter"
+    d="M10 2.4v15.2M10 2.4L7.2 5.2M10 2.4l2.8 2.8M10 17.6L7.2 14.8M10 17.6l2.8-2.8"/>
 </svg>

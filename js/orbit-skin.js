@@ -40,8 +40,18 @@
   function apply(on, persist) {
     on = !!on;
     html.classList.toggle('theme-holo', on);
+    html.classList.add('orbit-skin-xfade');
+    if (window.__orbitSkinXfadeT) clearTimeout(window.__orbitSkinXfadeT);
+    window.__orbitSkinXfadeT = setTimeout(function () {
+      html.classList.remove('orbit-skin-xfade');
+    }, 520);
     if (persist !== false) {
       try { localStorage.setItem(KEY, on ? 'holo' : 'live'); } catch (e) {}
+      try {
+        var u = new URL(location.href);
+        u.searchParams.set('skin', on ? 'holo' : 'live');
+        if (history.replaceState) history.replaceState({}, '', u);
+      } catch (e2) {}
     }
     syncButtons(on);
     syncMotion();
@@ -55,13 +65,13 @@
     apply(!isHolo());
   }
 
-  document.querySelectorAll('.orbit-mode-btn').forEach(function (btn) {
-    btn.addEventListener('click', function (e) {
-      e.preventDefault();
-      e.stopPropagation();
-      toggle();
-    });
-  });
+  document.addEventListener('click', function (e) {
+    var btn = e.target && e.target.closest && e.target.closest('.orbit-mode-btn');
+    if (!btn) return;
+    e.preventDefault();
+    e.stopPropagation();
+    toggle();
+  }, true);
 
   document.addEventListener('pointerover', function (e) {
     if (!isHolo()) return;
@@ -82,7 +92,14 @@
     else if (mq.addListener) mq.addListener(syncMotion);
   } catch (e) {}
 
-  apply(isHolo(), false);
+  try {
+    var bootQ = new URLSearchParams(location.search).get('skin');
+    if (bootQ === 'holo') apply(true, true);
+    else if (bootQ === 'live') apply(false, true);
+    else apply(isHolo(), false);
+  } catch (e) {
+    apply(isHolo(), false);
+  }
 
   window.__ORBIT_SKIN_TOGGLE__ = toggle;
   window.__ORBIT_SKIN_SET__ = apply;

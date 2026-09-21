@@ -28,7 +28,7 @@
   --track-a: #7B2FFF;
   --track-b: #2D5BFF;
   --track-c: #00C896;
-  --mob-dock-h: 70px;
+  --mob-dock-h: 88px;
   --mob-player-h: 160px;
 }
 
@@ -597,6 +597,7 @@ html.orbit-resizing .win {
   justify-content: center;
   flex-shrink: 0;
   overflow: hidden;
+  justify-self: start;
 }
 
 .player-art-side .material-symbols-outlined {
@@ -605,12 +606,13 @@ html.orbit-resizing .win {
   filter: drop-shadow(0 0 6px rgba(123,47,255,.6));
 }
 
-/* Top row: art (music symbol), title, info button -- all at same y-position, properly spaced */
+/* Top row: equal side columns so the title stays on the play-button axis
+   even when the lyrics button appears on the right. */
 .player-top {
   display: grid;
-  grid-template-columns: auto 1fr auto;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.4fr) minmax(0, 1fr);
   align-items: start;
-  gap: 12px;
+  gap: 8px;
   width: 100%;
 }
 .player-song-header {
@@ -634,10 +636,10 @@ html.orbit-resizing .win {
 }
 
 .player-info-side {
-  /* grid child, auto sized */
   display: flex;
   gap: 6px;
   align-items: center;
+  justify-self: end;
 }
 
 #btn-lyrics {
@@ -1191,7 +1193,6 @@ html.orbit-resizing .win {
 .track-item.active { background: linear-gradient(90deg, rgba(123,47,255,.14), rgba(45,91,255,.08)) !important; border-color: rgba(123,47,255,.3) !important; }
 .track-item.active .track-title { color: #e9e1de !important; }
 .track-item.active .track-artist { color: var(--jestr-green) !important; }
-.track-note-icon { color: var(--jestr-purple); }
 .track-item.is-dragging { opacity: .3; background: rgba(123,47,255,.06) !important; }
 
 /* ── Drop line (constrained to tracklist) ── */
@@ -2553,21 +2554,45 @@ html.orbit-resizing .win {
 /* ============ MOBILE LAYOUT ============ */
 @media (max-width: 767px) {
   #dock-win { display: none; }
+  html { --mob-dock-h: 88px; }
   #mobile-dock {
     display: flex;
-    justify-content: center;
+    justify-content: space-between;
+    align-items: center;
+    overflow: visible !important;
+    gap: 8px;
     padding: 10px max(12px, env(safe-area-inset-right)) calc(10px + env(safe-area-inset-bottom)) max(12px, env(safe-area-inset-left)) !important;
+  }
+  #mobile-dock .mob-core {
+    flex: 1 1 auto;
+    min-width: 0;
+    gap: 6px;
   }
   #planet-bg { display: none; }
 
   /* Homogenized larger mobile nav buttons (consistent with enlarged player controls) */
-  .mob-btn {
-    padding: 10px 12px !important;
+  html #mobile-dock .mob-core button.mob-btn {
+    padding: 8px 8px !important;
     font-size: 10px !important;
+    min-width: 44px !important;
+    min-height: 44px !important;
+    flex: 1 1 0;
   }
   .mob-btn .material-symbols-outlined { font-size: 26px !important; }
 
-  #player-win {
+  html #mobile-dock button.orbit-mode-btn.orbit-mode-btn-mob {
+    flex: 0 0 auto !important;
+    align-self: center;
+    min-width: 44px !important;
+    min-height: 44px !important;
+    max-width: none !important;
+    overflow: visible !important;
+    padding: 8px 10px !important;
+    margin: 0;
+    z-index: 2;
+  }
+
+  html #player-win {
     position: fixed !important; left: 0 !important; right: 0 !important;
     bottom: var(--mob-dock-h) !important; top: auto !important;
     width: 100% !important; max-width: 100% !important; min-width: 0 !important;
@@ -2575,9 +2600,11 @@ html.orbit-resizing .win {
     border-left: none !important; border-right: none !important; border-bottom: none !important;
     height: auto !important;
     min-height: 0 !important;
-    max-height: none !important;
+    max-height: min(42dvh, calc(100dvh - var(--mob-dock-h) - env(safe-area-inset-top, 0px) - 8px)) !important;
     overflow: hidden !important;
     z-index: 600 !important;
+    padding-left: env(safe-area-inset-left, 0px);
+    padding-right: env(safe-area-inset-right, 0px);
   }
   #player-win .win-bar {
     padding: 4px 10px 3px !important;
@@ -2589,9 +2616,9 @@ html.orbit-resizing .win {
     overflow: hidden !important; /* remove any internal scrolling on mobile player so all buttons are directly pressable */
   }
   .player-top {
-    gap: 8px !important;
+    gap: 6px !important;
     padding: 3px 6px !important;
-    grid-template-columns: 35px 1fr 35px !important;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1.4fr) minmax(0, 1fr) !important;
   }
   .player-art-side {
     width: 35px !important; height: 35px !important; flex: 0 0 35px !important;
@@ -2612,9 +2639,16 @@ html.orbit-resizing .win {
   .player-info-side .material-symbols-outlined {
     font-size: 15px !important;
   }
-  .player-transport { padding: 4px 8px !important; gap: 6px !important; }
-  .player-transport .ctrl-btn { width: 35px !important; height: 35px !important; }
-  .player-transport .play-btn { width: 45px !important; height: 45px !important; }
+  .player-transport { padding: 4px 8px !important; gap: 6px !important; overflow: visible !important; }
+  html #player-win .player-transport button.ctrl-btn {
+    min-width: 44px !important; min-height: 44px !important;
+    width: 44px !important; height: 44px !important;
+  }
+  html #player-win .player-transport .play-btn,
+  html #player-win .player-transport button.play-btn {
+    min-width: 52px !important; min-height: 52px !important;
+    width: 52px !important; height: 52px !important;
+  }
   /* scale play triangle + pause icon to match larger play button (no clip, good visual weight) */
   .player-transport .play-icon:not(.material-symbols-outlined) {
     border-width: 13px 0 13px 22px !important;
@@ -2994,7 +3028,7 @@ html.orbit-resizing .win {
   #dock-win { width: min(460px, 92vw) !important; }
 }
 
-/* ── Visual mode switch (discreet dock control) ── */
+/* Visual mode switch — pill track + knob, not a text tile */
 .orbit-mode-btn {
   display: flex;
   flex-direction: column;
@@ -3023,11 +3057,13 @@ html.orbit-resizing .win {
 }
 .orbit-mode-track {
   position: relative;
+  display: block;
   width: 22px;
   height: 9px;
   border-radius: 999px;
   border: 1px solid currentColor;
   opacity: .7;
+  box-sizing: border-box;
 }
 .orbit-mode-knob {
   position: absolute;
@@ -3057,6 +3093,8 @@ html.orbit-resizing .win {
 .orbit-mode-btn-mob .orbit-mode-label { font-size: 8px; letter-spacing: .12em; }
 
 @media (max-width: 767px) {
-  #mobile-dock { gap: 6px; }
-  .orbit-mode-btn-mob { max-width: 56px; }
+  #mobile-dock { gap: 8px; overflow: visible; }
+  html #mobile-dock button.orbit-mode-btn.orbit-mode-btn-mob {
+    max-width: none;
+  }
 }

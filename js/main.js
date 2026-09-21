@@ -37,9 +37,7 @@
       s.y += s.speed; if (s.y > H) { s.y = 0; s.x = Math.random() * W; }
       ctx.beginPath();
       ctx.arc(s.x, s.y, s.r, 0, Math.PI * 2);
-      ctx.fillStyle = document.documentElement.classList.contains('theme-holo')
-        ? `rgba(61,230,255,${Math.max(0, Math.min(1, s.a))})`
-        : `rgba(220,210,255,${Math.max(0, Math.min(1, s.a))})`;
+      ctx.fillStyle = `rgba(220,210,255,${Math.max(0, Math.min(1, s.a))})`;
       ctx.fill();
     }
     requestAnimationFrame(draw);
@@ -81,9 +79,14 @@ function fitPlayerWindow() {
 }
 window.fitPlayerWindow = fitPlayerWindow;
 
-/* ── DESKTOP LAYOUT (auto-position windows) — tuned for good visual alignment around the central planet.
-   Player is intentionally compact + low so the big glowing planet + overlaid "NOW PLAYING" focal
-   title/artist remain the hero visual and are not covered by the media player. */
+/* LAYOUT_V=2: media player parks near the top (not the old cy+300 low slot).
+   One-shot migrate: if localStorage orbitLayoutV is stale, ignore player-win
+   userPositioned once so an old drag cannot keep the player at the bottom. */
+const LAYOUT_V = 2;
+window.__ORBIT_LAYOUT_V = LAYOUT_V;
+
+/* ── DESKTOP LAYOUT (auto-position windows) — planet stays the hero in the middle.
+   Player sits near the top, X-centered, on both live and holo. Dock stays bottom. */
 function applyDesktopLayout() {
   if (isMob()) return;
 
@@ -123,14 +126,20 @@ function applyDesktopLayout() {
     g.style.bottom = ''; g.style.right = '';
   }
 
-  if (pl.dataset.userPositioned !== 'true') {
+  let storedLayoutV = 0;
+  try { storedLayoutV = parseInt(localStorage.getItem('orbitLayoutV') || '0', 10) || 0; } catch (e) { storedLayoutV = 0; }
+  const layoutStale = storedLayoutV !== LAYOUT_V;
+  if (layoutStale) {
+    try { localStorage.setItem('orbitLayoutV', String(LAYOUT_V)); } catch (e) {}
+  }
+
+  if (pl.dataset.userPositioned !== 'true' || layoutStale) {
     pl.style.width = plW + 'px';
     pl.style.height = 'auto';
     pl.style.left = Math.max(PAD, cx - plW / 2) + 'px';
     pl.style.bottom = ''; pl.style.right = '';
     if (typeof fitPlayerWindow === 'function') fitPlayerWindow();
-    const plH = pl.offsetHeight || 260;
-    pl.style.top = Math.max(PAD + 20, Math.min(usableH - plH - PAD - 10, cy + 300)) + 'px';
+    pl.style.top = PAD + 'px';
   }
 
   // Lyrics viewer: center top middle. Default 15% narrower. Leaves room at bottom for media player.
@@ -156,11 +165,9 @@ function makeWindowDraggable(winId, barId) {
 
   function pin() {
     if (isMob()) return;
-    const r = typeof winLayoutRect === 'function' ? winLayoutRect(win) : {
-      left: win.offsetLeft, top: win.offsetTop, width: win.offsetWidth, height: win.offsetHeight
-    };
+    const r = win.getBoundingClientRect();
     win.style.left = r.left + 'px'; win.style.top = r.top + 'px';
-    win.style.width = r.width + 'px'; win.style.height = r.height + 'px';
+    win.style.width = r.width + 'px'; win.style.height = (r.height || win.offsetHeight) + 'px';
     win.style.bottom = ''; win.style.right = '';
     win.dataset.userPositioned = 'true';  // prevent applyDesktopLayout from overriding user positions on zoom/resize
     if (typeof saveWindowPosition === 'function') {
@@ -171,9 +178,7 @@ function makeWindowDraggable(winId, barId) {
   function startOp(e, m) {
     if (isMob()) return;
     pin();
-    const r = typeof winLayoutRect === 'function' ? winLayoutRect(win) : {
-      left: win.offsetLeft, top: win.offsetTop, width: win.offsetWidth, height: win.offsetHeight
-    };
+    const r = win.getBoundingClientRect();
     mode = m; sx = e.clientX; sy = e.clientY; sl = r.left; st = r.top; sw = r.width; sh = r.height;
     e.preventDefault(); if (e.stopPropagation) e.stopPropagation();
     document.documentElement.classList.add('orbit-resizing');
@@ -313,26 +318,27 @@ function makeWindowDraggable(winId, barId) {
 function toggleWin(winId, btnId) {
   const win = document.getElementById(winId), btn = document.getElementById(btnId);
   if (!win || !btn) return;
-  if (win.style.display === 'flex') {
+  const vis = win.style.display === 'flex';
+  const front = typeof isWinFront === 'function' ? isWinFront(win) : vis;
+  if (vis && front) {
     if (!isMob() && typeof saveSessionWindowPosition === 'function') {
       saveSessionWindowPosition(winId);
     }
     win.style.display = 'none'; btn.classList.remove('win-open');
   } else {
+    const wasHidden = !vis;
     win.style.display = 'flex'; btn.classList.add('win-open');
-    if (!isMob() && typeof restoreSessionWindowPosition === 'function') {
+    if (wasHidden && !isMob() && typeof restoreSessionWindowPosition === 'function') {
       // Restore the position from when this window was last closed in this session.
       // This makes nav-bar close/reopen remember the exact location.
       // On full page refresh we do NOT restore (standard layout is applied in init).
       restoreSessionWindowPosition(winId);
     }
     bringToFront(winId);
-    if (winId === 'gallery-win') {
+    if (winId === 'gallery-win' && wasHidden) {
       renderGallery();
-      // Gallery now uses the same native scroller as tracklist — no custom update needed
     }
 
-    // Same aggressive bring-to-front retries for reliability (desktop dock clicks)
     const doBring = () => bringToFront(winId);
     requestAnimationFrame(doBring);
     setTimeout(doBring, 80);
@@ -379,7 +385,7 @@ window.orbitDock = {
       btn.addEventListener('click', () => {
         const w = document.getElementById(winId);
         if (!w) return;
-        if (w.style.display === 'flex') {
+        if (w.style.display === 'flex' && typeof isWinFront === 'function' && isWinFront(w)) {
           if (winId === 'album-win' && typeof closeAlbumWindow === 'function') closeAlbumWindow();
           else if (winId === 'lyrics-win' && typeof closeLyricsViewer === 'function') closeLyricsViewer();
           else if (winId === 'video-win' && typeof closeVideoWin === 'function') closeVideoWin();
@@ -447,9 +453,7 @@ window.orbitDock = {
 function mobToggle(winId, btnId) {
   const win = document.getElementById(winId);
   const vis = win.style.display === 'flex';
-
-  const currentZ = parseInt(win.style.zIndex) || 0;
-  const isOnTop = currentZ >= _zBase + 10;
+  const isOnTop = typeof isWinFront === 'function' ? isWinFront(win) : ((parseInt(win.style.zIndex) || 0) >= _zBase + 10);
 
   if (vis && isOnTop) {
     /* second tap on the front window → hide */
@@ -652,7 +656,7 @@ makeWindowDraggable('lyrics-win', 'lyrics-bar');
     ['tracklist-win', 'gallery-win', 'player-win'].forEach(id => {
       const w = document.getElementById(id);
       if (w && w.style.display === 'flex' && w.dataset.userPositioned === 'true') {
-        const rect = typeof winLayoutRect === 'function' ? winLayoutRect(w) : { width: w.offsetWidth, height: w.offsetHeight };
+        const rect = w.getBoundingClientRect();
         const vw = window.innerWidth;
         const vh = window.innerHeight;
         let newW = rect.width;

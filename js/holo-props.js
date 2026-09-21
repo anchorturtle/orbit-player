@@ -304,7 +304,7 @@
     var kind = Math.random();
     var far = 16 + Math.random() * 14;
     var nearScale = 0.7 + Math.random() * 1.15;
-    var miss = planetR * (1.35 + Math.random() * 4.2);
+    var miss = planetR * (2.15 + Math.random() * 3.4);
     var from, to, speed, coast0, coast1;
     var inbound = randDir(THREE);
     var perp = randDir(THREE).cross(inbound);
@@ -360,7 +360,8 @@
       speed: path.speed,
       coast0: path.coast0,
       coast1: path.coast1,
-      bank: (Math.random() - 0.5) * 0.45
+      bank: (Math.random() - 0.5) * 0.45,
+      baseScale: path.scale
     };
     obj.position.copy(path.from);
     obj.scale.setScalar(path.scale);
@@ -396,25 +397,47 @@
     return craft;
   }
 
-  function tick(t, dt) {
+  function tick(t, dt, bass) {
+    bass = Math.max(0, Math.min(1, Number(bass) || 0));
     nextSpawn -= dt;
     if (nextSpawn <= 0) {
       spawnOne();
       nextSpawn = 5 + Math.random() * 10;
     }
-    var i, m, u, coast;
+    var i, m, u, coast, musicSpeed, sc;
     for (i = craft.length - 1; i >= 0; i--) {
       m = craft[i];
       u = m.userData;
       coast = u.coast0 + (u.coast1 - u.coast0) * u.k;
-      u.k += (dt * u.speed * coast) / Math.max(0.001, u.dist);
+      musicSpeed = 1 + bass * 0.22;
+      u.k += (dt * u.speed * musicSpeed * coast) / Math.max(0.001, u.dist);
       if (u.k >= 1) {
         if (m.parent) m.parent.remove(m);
         craft.splice(i, 1);
         continue;
       }
       m.position.lerpVectors(u.from, u.to, u.k);
+      var minR = planetR * 1.35;
+      var r = m.position.length();
+      if (r < minR && r > 0.0001) {
+        var nx = m.position.x / r;
+        var ny = m.position.y / r;
+        var nz = m.position.z / r;
+      var push = (minR - r) * (1 - Math.exp(-dt * 8));
+      m.position.x += nx * push;
+      m.position.y += ny * push;
+      m.position.z += nz * push;
+        var tx = u.to.x - u.from.x;
+        var ty = u.to.y - u.from.y;
+        var tz = u.to.z - u.from.z;
+        var nd = nx * tx + ny * ty + nz * tz;
+        m.position.x += (tx - nx * nd) * dt * 1.8;
+        m.position.y += (ty - ny * nd) * dt * 1.8;
+        m.position.z += (tz - nz * nd) * dt * 1.8;
+      }
       if (m.position.y < -1.65) m.position.y = -1.65;
+      sc = u.baseScale || 1;
+      m.scale.setScalar(sc);
       _fwd.subVectors(u.to, u.from);
       if (_fwd.lengthSq() < 1e-8) continue;
       _fwd.normalize();
