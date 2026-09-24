@@ -5,6 +5,16 @@
 
 const TRACKS = [
   {
+    title: 'Quarters',
+    artist: 'jestR',
+    slug: 'quarters',
+    file: 'audio/singles/quarters-9-23b.mp3',
+    year: 2026,
+    description: '',
+    category: 'instrumental',
+    artwork: 'images/quarters-cover.jpg'
+  },
+  {
     title: 'Offers',
     artist: 'jestR',
     slug: 'offers',

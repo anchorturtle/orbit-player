@@ -57,6 +57,12 @@ const GALLERY = [
 
 const VIDEOS = [
   {
+    slug: 'quarters',
+    src: 'videos/quarters.mp4',
+    title: 'Quarters',
+    poster: 'videos/quarters-poster.jpg',
+  },
+  {
     slug: 'thousand-dragon',
     src: 'videos/thousand-dragon.mp4',
     title: 'Thousand Dragon',
