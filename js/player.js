@@ -482,9 +482,6 @@ let audioContext = null;
 let gainNode = null;
 let sourceNode = null;
 
-let bgAudioKeepAlive = null;
-let silentBackgroundSource = null;
-
 let currentIndex = 0, isPlaying = false, isShuffle = false, repeatMode = 0;
 let seekOnReady = null, isSeeking = false, durationPollTimer = null;
 let isMuted = false, premuteVolume = 100;
@@ -492,14 +489,28 @@ let currentWaveform = null;
 let waveformCanvas = null;
 let waveformCache = {}; // per-slug real waveform peaks cache
 
+/*
+  Playback architecture:
+  - iOS: NEVER createMediaElementSource. One native #audio-player. That is
+    what survives lock-screen; a second element + Web Audio handoff chipmunks
+    (two clocks, currentTime sync, AudioContext suspend/resume).
+  - Desktop/Android: Web Audio GainNode for volume only. Do not seek, swap
+    elements, or resume-on-every-tick — those also bend pitch.
+*/
+function shouldUseWebAudioOutput() {
+  return !isIOS();
+}
+
+function resetPlaybackClock(el) {
+  if (!el) return;
+  try { el.playbackRate = 1; } catch (e) {}
+  try { el.defaultPlaybackRate = 1; } catch (e) {}
+  try { el.preservesPitch = true; } catch (e) {}
+}
+
 function initAudioContext() {
-  if (audioContext) {
-    // Resume context if it was suspended (required on iOS after user gesture)
-    if (audioContext.state === 'suspended') {
-      audioContext.resume().catch(() => {});
-    }
-    return;
-  }
+  if (!shouldUseWebAudioOutput()) return;
+  if (audioContext) return;
 
   try {
     audioContext = new (window.AudioContext || window.webkitAudioContext)();
@@ -509,9 +520,7 @@ function initAudioContext() {
     sourceNode.connect(gainNode);
     gainNode.connect(audioContext.destination);
 
-    // Set initial gain from current volume setting
-    gainNode.gain.value = (premuteVolume || 100) / 100;
-
+    gainNode.gain.value = (isMuted ? 0 : (premuteVolume || 100)) / 100;
   } catch (e) {
     console.warn('Web Audio API not supported or failed to initialize. Falling back to native volume.', e);
     audioContext = null;
@@ -519,297 +528,50 @@ function initAudioContext() {
   }
 }
 
-/* ── Keep Web Audio context alive for background / screen-off playback on iOS ── */
-function ensureAudioContextRunning() {
-  if (audioContext && audioContext.state === 'suspended') {
+function resumeWebAudioIfNeeded() {
+  if (!shouldUseWebAudioOutput() || !audioContext) return;
+  if (audioContext.state === 'suspended') {
     audioContext.resume().catch(() => {});
   }
 }
 
-// Resume context aggressively for background playback (screen off, app switch)
+// Alias used by older call sites — never resume on iOS (no output graph there).
+function ensureAudioContextRunning() {
+  resumeWebAudioIfNeeded();
+}
+
+// Visibility must not seek, swap players, or play a second source.
 document.addEventListener('visibilitychange', () => {
-  if (isPlaying) {
-    if (document.visibilityState === 'visible') {
-      // User unlocked screen / returned to the page
-      if (isIOS() && iosBackgroundAudio) {
-        // We were using native background playback — sync track + time back
-        resumeFromIOSNativeBackgroundPlayback();
-      } else {
-        ensureAudioContextRunning();
-        stopBackgroundAudioKeepAlive();
-        // Defensive: UI index and <audio> src can drift after long background
-        if (isIOS() && TRACKS[currentIndex] && !mediaIsFor(TRACKS[currentIndex])) {
-          ensureMediaReady(TRACKS[currentIndex], { waveform: false });
-        }
-        if (audio && audio.paused) audio.play().catch(() => {});
-      }
-    } else {
-      // Screen locked or app went to background
-      if (isIOS()) {
-        // Switch to native audio playback so it survives screen lock (like QuickTime does)
-        enterIOSNativeBackgroundPlayback();
-      } else {
-        startBackgroundAudioKeepAlive();
-      }
-    }
-  } else {
-    stopBackgroundAudioKeepAlive();
-    if (isIOS()) {
-      exitIOSNativeBackgroundPlayback();
-      exitIOSBackgroundAudioMode();
-    }
-  }
-});
-window.addEventListener('focus', ensureAudioContextRunning);
-document.addEventListener('pageshow', ensureAudioContextRunning);
-document.addEventListener('pagehide', () => {
-  if (isPlaying && isIOS()) {
-    enterIOSNativeBackgroundPlayback();
-  }
-});
-document.addEventListener('freeze', () => {
   if (!isPlaying) return;
-  if (isIOS()) enterIOSNativeBackgroundPlayback();
-  else startBackgroundAudioKeepAlive();
+  if (document.visibilityState === 'visible') {
+    resumeWebAudioIfNeeded();
+    return;
+  }
+  // Hidden / lock: leave the one <audio> running. iOS native path continues
+  // on its own; Android Chrome keeps MediaElementSource if Media Session is set.
+  resumeWebAudioIfNeeded();
+});
+window.addEventListener('focus', () => {
+  if (isPlaying) resumeWebAudioIfNeeded();
+});
+document.addEventListener('pageshow', () => {
+  if (isPlaying) resumeWebAudioIfNeeded();
 });
 
-// Also stop everything if the user pauses
 function pauseAndStopBackground() {
-  // Mark not-playing first so a teardown `ended` (clearing bg src) cannot advance tracks
   isPlaying = false;
-  iosHandoffGuard = true;
-
-  // Stop all background handoff / keep-alive logic first
-  stopBackgroundAudioKeepAlive();
-  clearIOSHandoffPauseTimer();
-
-  // Pause native handoff audio but keep the element (and its iOS play-unlock)
-  if (isIOS() && iosBackgroundAudio) {
-    try { iosBackgroundAudio.pause(); } catch (e) {}
-    precreatedIOSBackgroundAudio = iosBackgroundAudio;
-    iosBackgroundAudio = null;
-  }
-  if (isIOS() && precreatedIOSBackgroundAudio) {
-    try { precreatedIOSBackgroundAudio.pause(); } catch (e) {}
-  }
-
-  if (isIOS()) {
-    exitIOSBackgroundAudioMode();
-  }
-
-  // Final authoritative pause
+  resetPlaybackClock(audio);
   if (audio) {
-    audio.pause();
+    try { audio.pause(); } catch (e) {}
   }
-
   updatePlayUI();
-  setTimeout(() => { iosHandoffGuard = false; }, 120);
 }
 
-function startBackgroundAudioKeepAlive() {
-  if (bgAudioKeepAlive) return;
-  // Native iOS handoff already owns playback — don't revive the Web Audio element
-  if (isIOS() && iosBackgroundAudio) return;
-
-  ensureAudioContextRunning();
-
-  // Create the long silent looping source (this is what actually keeps the context alive)
-  try {
-    if (audioContext && !silentBackgroundSource) {
-      const bufferLength = Math.floor(audioContext.sampleRate * 5);
-      const buffer = audioContext.createBuffer(1, bufferLength, audioContext.sampleRate);
-      silentBackgroundSource = audioContext.createBufferSource();
-      silentBackgroundSource.buffer = buffer;
-      silentBackgroundSource.loop = true;
-
-      const dest = gainNode || audioContext.destination;
-      silentBackgroundSource.connect(dest);
-      silentBackgroundSource.start();
-    }
-  } catch (e) {}
-
-  // Resume AudioContext + keep the media element playing while hidden.
-  // Must run on Android/desktop too: createMediaElementSource() routes output
-  // through Web Audio, which browsers suspend when the page is hidden.
-  function keepAliveLoop() {
-    if (!isPlaying) {
-      stopBackgroundAudioKeepAlive();
-      return;
-    }
-    if (isIOS() && iosBackgroundAudio) {
-      stopBackgroundAudioKeepAlive();
-      return;
-    }
-
-    ensureAudioContextRunning();
-
-    if (audio.paused) {
-      audio.play().catch(() => {});
-    }
-
-    bgAudioKeepAlive = setTimeout(keepAliveLoop, 300);
-  }
-
-  bgAudioKeepAlive = setTimeout(keepAliveLoop, 0);
-}
-
-function stopBackgroundAudioKeepAlive() {
-  stopSilentBackgroundSource();
-
-  if (bgAudioKeepAlive) {
-    clearTimeout(bgAudioKeepAlive);
-    bgAudioKeepAlive = null;
-  }
-}
-
-function stopSilentBackgroundSource() {
-  if (silentBackgroundSource) {
-    try {
-      silentBackgroundSource.stop();
-      silentBackgroundSource.disconnect();
-    } catch (e) {}
-    silentBackgroundSource = null;
-  }
-}
-
-/* 
-  iOS Background Audio Bypass Strategy:
-  When the screen locks on iOS, Safari is very aggressive about suspending AudioContexts.
-  Even with silent sources, the GainNode path often stops outputting sound while the <audio> element keeps advancing time.
-
-  Solution: On iOS when going to background while playing, temporarily bypass the GainNode entirely.
-  Connect the MediaElementSource directly to the AudioContext destination.
-  This lets the native audio playback path handle background audio (which iOS respects better for lock screen / background).
-
-  When the page returns to foreground, we reconnect through the GainNode so volume control works again.
-*/
-let isUsingDirectAudioPath = false;
-let iosBackgroundAudio = null; // native <audio> currently owning lock-screen / background playback
-let precreatedIOSBackgroundAudio = null; // same persistent element, primed / unlocked, not currently owning
-/* Blocks ended→next and Media Session pause while handing off (main pause must not look like user pause). */
-let iosHandoffGuard = false;
-let iosHandoffPauseTimer = null;
-
-function clearIOSHandoffPauseTimer() {
-  if (iosHandoffPauseTimer) {
-    clearTimeout(iosHandoffPauseTimer);
-    iosHandoffPauseTimer = null;
-  }
-}
-
-/** Persistent in-DOM native audio used for iOS lock-screen (never createMediaElementSource). */
-function getOrCreateIOSBgAudio() {
-  let el = document.getElementById('audio-player-ios-bg');
-  if (!el) {
-    el = document.createElement('audio');
-    el.id = 'audio-player-ios-bg';
-    el.preload = 'auto';
-    el.hidden = true;
-    document.body.appendChild(el);
-  }
-  return el;
-}
-
-/**
- * Point the native bg element at `track` and, during a user gesture, play+pause
- * it muted so later visibilitychange play() is allowed. Reuses one element —
- * a fresh `new Audio()` is locked by iOS autoplay rules.
- */
-function primeIOSBackgroundAudio(track, { unlock = true } = {}) {
-  if (!isIOS() || !track) return;
-  const el = getOrCreateIOSBgAudio();
-  precreatedIOSBackgroundAudio = el;
-  try {
-    if (!bgElMatchesTrack(el, track)) {
-      el.src = encodeURI(track.file);
-    }
-    el.preload = 'auto';
-    applyRepeatLoopFlag();
-    wireIOSBackgroundTrackEvents(el);
-    if (unlock && el.paused && !iosBackgroundAudio) {
-      const restoreMuted = el.muted;
-      el.muted = true;
-      const p = el.play();
-      if (p && typeof p.then === 'function') {
-        p.then(() => {
-          if (iosBackgroundAudio === el) {
-            el.muted = false;
-            return;
-          }
-          try { el.pause(); } catch (e) {}
-          el.muted = restoreMuted;
-        }).catch(() => {
-          el.muted = restoreMuted;
-        });
-      } else {
-        el.muted = restoreMuted;
-      }
-    } else {
-      try { el.load(); } catch (e) {}
-    }
-  } catch (e) {}
-}
-
-function enterIOSBackgroundAudioMode() {
-  if (!isIOS() || !audioContext || !sourceNode || isUsingDirectAudioPath) return;
-
-  try {
-    // Disconnect from GainNode if currently connected
-    sourceNode.disconnect(gainNode);
-  } catch (e) {}
-
-  try {
-    // Connect directly to destination (bypass GainNode for background)
-    sourceNode.connect(audioContext.destination);
-    isUsingDirectAudioPath = true;
-
-    // Make sure context stays awake
-    ensureAudioContextRunning();
-  } catch (e) {}
-}
-
-function exitIOSBackgroundAudioMode() {
-  if (!isIOS() || !audioContext || !sourceNode || !isUsingDirectAudioPath) return;
-
-  try {
-    // Disconnect direct path
-    sourceNode.disconnect(audioContext.destination);
-  } catch (e) {}
-
-  try {
-    // Reconnect through GainNode for normal volume control
-    sourceNode.connect(gainNode);
-    isUsingDirectAudioPath = false;
-
-    ensureAudioContextRunning();
-  } catch (e) {}
-}
-
-/* 
-  Proper iOS Background Playback using Native Audio (the reliable way)
-
-  Observation: When the user clicks "download", the file opens in QuickTime 
-  and continues playing with the screen locked. This proves native media 
-  playback works fine in background on iOS.
-
-  Strategy:
-  - When going to background on iOS while playing:
-    - Pause our main audio + Web Audio setup.
-    - Create a hidden <audio> element pointing at the same file.
-    - Seek it to current position and play it natively (no AudioContext).
-    - This native element survives screen lock like QuickTime does.
-  - When returning to foreground:
-    - Pause the background element.
-    - Seek our main audio to the background element's currentTime.
-    - Resume our main player + Web Audio (GainNode) so volume works again.
-*/
 /* Keep <audio>.loop in sync with repeat-one so a track restarts natively
    without waiting on JS — required for lock-screen / screen-off replay. */
 function applyRepeatLoopFlag() {
   const one = (repeatMode === 2);
   try { if (audio) audio.loop = one; } catch (e) {}
-  try { if (iosBackgroundAudio) iosBackgroundAudio.loop = one; } catch (e) {}
-  try { if (precreatedIOSBackgroundAudio) precreatedIOSBackgroundAudio.loop = one; } catch (e) {}
 }
 
 /* Shared end-of-track routing (main player + iOS screen-off handoff player). */
@@ -839,19 +601,12 @@ function stepTrack(dir, { wrap = true, autoplay = isPlaying } = {}) {
 }
 
 function handleTrackEnded() {
-  // Ignore teardown (pause / clear src), mid-handoff races, and unlock sync
-  if (!isPlaying || iosHandoffGuard) return;
+  if (!isPlaying) return;
 
   // repeat-one: prefer native .loop; this is a fallback if ended still fires
   if (repeatMode === 2) {
     try {
-      if (iosBackgroundAudio) {
-        iosBackgroundAudio.currentTime = 0;
-        iosBackgroundAudio.play().catch(() => {});
-        return;
-      }
-    } catch (e) {}
-    try {
+      resetPlaybackClock(audio);
       audio.currentTime = 0;
       audio.play().catch(() => {});
     } catch (e) {}
@@ -868,197 +623,6 @@ function handleTrackEnded() {
   } else {
     pauseAndStopBackground();
   }
-}
-
-function wireIOSBackgroundTrackEvents(el) {
-  if (!el || el._orbitEndedWired) return;
-  el._orbitEndedWired = true;
-  el.addEventListener('ended', handleTrackEnded);
-}
-
-function bgElMatchesTrack(el, t) {
-  if (!el || !t) return false;
-  const src = el.currentSrc || el.src || '';
-  if (!src) return false;
-  return src.includes(t.file) || src.includes(encodeURI(t.file));
-}
-
-function teardownIOSBgEl(el) {
-  if (!el) return;
-  try {
-    el.pause();
-    if (el._orbitEndedWired) {
-      el.removeEventListener('ended', handleTrackEnded);
-      el._orbitEndedWired = false;
-    }
-    el.removeAttribute('src');
-    el.src = '';
-    el.load();
-  } catch (e) {}
-}
-
-function seekIOSBgEl(el, time) {
-  try {
-    const t = Math.max(0, time || 0);
-    if (isGoodDuration(el.duration)) {
-      el.currentTime = Math.min(t, Math.max(0, el.duration - 0.05));
-    } else {
-      el.currentTime = t;
-    }
-  } catch (e) {}
-}
-
-function pauseMainAfterIOSHandoff(el) {
-  // Only mute the Web Audio element once native playback is actually running.
-  // Pausing earlier (the old 150ms timer) silences the page when play() is rejected.
-  if (!audio || !isPlaying || iosBackgroundAudio !== el || el.paused) return;
-  iosHandoffGuard = true;
-  try { audio.pause(); } catch (e) {}
-  setTimeout(() => { iosHandoffGuard = false; }, 200);
-}
-
-function failIOSHandoffKeepMain(el) {
-  if (iosBackgroundAudio === el) iosBackgroundAudio = null;
-  precreatedIOSBackgroundAudio = el || precreatedIOSBackgroundAudio;
-  ensureAudioContextRunning();
-  startBackgroundAudioKeepAlive();
-}
-
-function enterIOSNativeBackgroundPlayback() {
-  if (!isIOS() || !isPlaying || iosBackgroundAudio) return;
-
-  stopBackgroundAudioKeepAlive();
-  clearIOSHandoffPauseTimer();
-
-  try {
-    const t = TRACKS[currentIndex];
-    const mainTime = audio ? (audio.currentTime || 0) : 0;
-    const el = precreatedIOSBackgroundAudio || getOrCreateIOSBgAudio();
-    precreatedIOSBackgroundAudio = null;
-    iosBackgroundAudio = el;
-
-    if (t && !bgElMatchesTrack(el, t)) {
-      el.src = encodeURI(t.file);
-    } else if (!el.src && audio && audio.src) {
-      el.src = audio.src;
-    }
-    el.muted = false;
-    applyRepeatLoopFlag();
-    wireIOSBackgroundTrackEvents(el);
-
-    const startBg = () => {
-      if (!isPlaying || iosBackgroundAudio !== el) return;
-      seekIOSBgEl(el, mainTime);
-      const playP = el.play();
-      if (playP && typeof playP.then === 'function') {
-        playP.then(() => {
-          pauseMainAfterIOSHandoff(el);
-        }).catch(() => {
-          failIOSHandoffKeepMain(el);
-        });
-      } else if (!el.paused) {
-        pauseMainAfterIOSHandoff(el);
-      } else {
-        failIOSHandoffKeepMain(el);
-      }
-    };
-
-    if (el.readyState >= 1) {
-      startBg();
-    } else {
-      const onReady = () => {
-        el.removeEventListener('loadedmetadata', onReady);
-        startBg();
-      };
-      el.addEventListener('loadedmetadata', onReady);
-      try { el.load(); } catch (e) {}
-      iosHandoffPauseTimer = setTimeout(() => {
-        iosHandoffPauseTimer = null;
-        el.removeEventListener('loadedmetadata', onReady);
-        if (isPlaying && iosBackgroundAudio === el && el.paused) startBg();
-      }, 400);
-    }
-  } catch (e) {
-    failIOSHandoffKeepMain(null);
-  }
-}
-
-/* Sync main <audio> to whatever actually played while locked (track + time). */
-function syncMainAudioToTrackAt(track, bgTime) {
-  if (!audio || !track) return Promise.resolve();
-  attachMedia(track);
-  applyRepeatLoopFlag();
-
-  const applyTime = () => {
-    try {
-      const t = Math.max(0, bgTime || 0);
-      if (isGoodDuration(audio.duration)) {
-        audio.currentTime = Math.min(t, Math.max(0, audio.duration - 0.05));
-      } else {
-        audio.currentTime = t;
-      }
-    } catch (e) {}
-  };
-
-  if (mediaIsFor(track) && audio.readyState >= 1) {
-    applyTime();
-    return Promise.resolve();
-  }
-
-  return new Promise((resolve) => {
-    let done = false;
-    const finish = () => {
-      if (done) return;
-      done = true;
-      audio.removeEventListener('loadedmetadata', finish);
-      audio.removeEventListener('canplay', finish);
-      applyTime();
-      resolve();
-    };
-    audio.addEventListener('loadedmetadata', finish);
-    audio.addEventListener('canplay', finish);
-    // If src was already correct and metadata cached
-    if (audio.readyState >= 1) finish();
-    else setTimeout(finish, 900);
-  });
-}
-
-function exitIOSNativeBackgroundPlayback() {
-  if (!iosBackgroundAudio) return Promise.resolve();
-
-  iosHandoffGuard = true;
-  clearIOSHandoffPauseTimer();
-  const track = TRACKS[currentIndex];
-  let bgTime = 0;
-  try {
-    bgTime = iosBackgroundAudio.currentTime || 0;
-  } catch (e) {}
-
-  const bg = iosBackgroundAudio;
-  iosBackgroundAudio = null;
-  try { bg.pause(); } catch (e) {}
-  // Keep the same element primed so the next lock does not need a new gesture
-  precreatedIOSBackgroundAudio = bg;
-
-  return syncMainAudioToTrackAt(track, bgTime).finally(() => {
-    // Keep guard briefly so a late `ended` from pause cannot advance tracks
-    setTimeout(() => { iosHandoffGuard = false; }, 120);
-  });
-}
-
-function resumeFromIOSNativeBackgroundPlayback() {
-  const stillPlaying = isPlaying;
-  exitIOSNativeBackgroundPlayback().then(() => {
-    if (!stillPlaying || !isPlaying) return;
-    if (TRACKS[currentIndex]) ensureMediaReady(TRACKS[currentIndex]);
-    ensureAudioContextRunning();
-    if (audio) {
-      audio.play().then(() => {
-        isPlaying = true;
-        updatePlayUI();
-      }).catch(() => {});
-    }
-  });
 }
 
 function tryUpdateDuration() {
@@ -1082,6 +646,7 @@ function startDurationPoll() {
 function applySavedSeek() {
   if (seekOnReady !== null && audio.readyState >= 1 && isGoodDuration(audio.duration)) {
     audio.currentTime = seekOnReady * audio.duration;
+    resetPlaybackClock(audio);
     seekOnReady = null;
     tryUpdateDuration();
   }
@@ -1091,9 +656,7 @@ audio.addEventListener('loadedmetadata', () => { tryUpdateDuration(); applySaved
 audio.addEventListener('canplay', () => { tryUpdateDuration(); applySavedSeek(); });
 audio.addEventListener('durationchange', () => { tryUpdateDuration(); applySavedSeek(); });
 
-// Critical for keeping music alive in background / when screen turns off on mobile
-audio.addEventListener('playing', ensureAudioContextRunning);
-audio.addEventListener('play', ensureAudioContextRunning);
+audio.addEventListener('play', () => resetPlaybackClock(audio));
 
 let _waveDrawRaf = 0;
 let _waveDrawPct = 0;
@@ -1147,6 +710,7 @@ function seekToPct(pct) {
   if (TRACKS[currentIndex]) ensureMediaReady(TRACKS[currentIndex]);
   if (audio.readyState >= 1 && isGoodDuration(audio.duration)) {
     audio.currentTime = pct * audio.duration;
+    resetPlaybackClock(audio);
     seekOnReady = null;
   } else {
     seekOnReady = pct;
@@ -1157,6 +721,7 @@ function skip(sec) {
   if (TRACKS[currentIndex]) ensureMediaReady(TRACKS[currentIndex]);
   if (audio.readyState >= 1 && isGoodDuration(audio.duration)) {
     audio.currentTime = Math.max(0, Math.min(audio.duration, (audio.currentTime || 0) + sec));
+    resetPlaybackClock(audio);
   }
 }
 
@@ -1171,16 +736,19 @@ async function generateWaveform(track) {
     return waveformCache[track.slug];
   }
   try {
-    // Use a dedicated AudioContext just for decoding (more reliable, doesn't depend on main player context/gesture)
-    const decodeCtx = new (window.AudioContext || window.webkitAudioContext)();
+    // Offline decode only — a live AudioContext here steals the iOS sample-rate
+    // clock and chipmunks the playing <audio>.
+    const Offline = window.OfflineAudioContext || window.webkitOfflineAudioContext;
+    const decodeCtx = Offline
+      ? new Offline(1, 128, 44100)
+      : new (window.AudioContext || window.webkitAudioContext)();
     // encode to handle spaces/special chars in filenames like "the sum of hippy thoughts..."
     const fileUrl = encodeURI(track.file);
     const resp = await fetch(fileUrl, { cache: 'force-cache' });
     if (!resp.ok) throw new Error('fetch failed');
     const arrBuf = await resp.arrayBuffer();
-    const audioBuf = await decodeCtx.decodeAudioData(arrBuf);
-    // close the temp context to free resources
-    if (decodeCtx.state !== 'closed') decodeCtx.close().catch(() => {});
+    const audioBuf = await decodeCtx.decodeAudioData(arrBuf.slice(0));
+    if (decodeCtx.close && decodeCtx.state !== 'closed') decodeCtx.close().catch(() => {});
     const data = audioBuf.getChannelData(0); // first channel for peaks
     const numPeaks = 160; // more detail for actual waveform
     const blockSize = Math.floor(data.length / numPeaks);
@@ -1404,18 +972,6 @@ audio.addEventListener('timeupdate', () => {
     setProgress((cur / dur) * 100);
     document.getElementById('time-current').textContent = fmt(cur);
   }
-
-  // Critical for iOS background/screen-off playback.
-  if (isPlaying) {
-    ensureAudioContextRunning();
-
-    // If we're in background and the keep-alive isn't running yet, start it.
-    // Never start keep-alive while the native handoff element owns playback —
-    // that would revive the main element on a stale track.
-    if (document.visibilityState !== 'visible' && isIOS() && !bgAudioKeepAlive && !iosBackgroundAudio) {
-      startBackgroundAudioKeepAlive();
-    }
-  }
 });
 
 audio.addEventListener('ended', handleTrackEnded);
@@ -1556,41 +1112,25 @@ function loadTrack(idx, autoplay) {
 
       // Set action handlers (only need to do this once, but safe to re-set)
       navigator.mediaSession.setActionHandler('play', () => {
-        if (isIOS() && iosBackgroundAudio) {
-          iosBackgroundAudio.play().catch(() => {});
-        } else if (audio.paused) {
+        if (audio.paused) {
           initAudioContext();
-          if (isIOS() && TRACKS[currentIndex]) primeIOSBackgroundAudio(TRACKS[currentIndex], { unlock: true });
+          resumeWebAudioIfNeeded();
+          resetPlaybackClock(audio);
           audio.play().then(() => { isPlaying = true; updatePlayUI(); }).catch(() => {});
         }
         isPlaying = true;
         updatePlayUI();
       });
       navigator.mediaSession.setActionHandler('pause', () => {
-        // Handoff pauses the Web Audio <audio> on purpose. That must not
-        // look like a lock-screen Pause tap (which would stop native bg audio).
-        if (iosHandoffGuard) return;
-        if (isIOS() && iosBackgroundAudio) {
-          iosBackgroundAudio.pause();
-        } else {
-          audio.pause();
-        }
-        isPlaying = false;
-        updatePlayUI();
+        pauseAndStopBackground();
       });
       navigator.mediaSession.setActionHandler('nexttrack', () => {
         stepTrack(1, { wrap: true, autoplay: true });
       });
       navigator.mediaSession.setActionHandler('previoustrack', () => {
-        const cur = (isIOS() && iosBackgroundAudio)
-          ? (iosBackgroundAudio.currentTime || 0)
-          : (audio.currentTime || 0);
+        const cur = audio.currentTime || 0;
         if (cur > 3) {
-          if (isIOS() && iosBackgroundAudio) {
-            try { iosBackgroundAudio.currentTime = 0; } catch (e) {}
-          } else {
-            audio.currentTime = 0;
-          }
+          audio.currentTime = 0;
         } else {
           stepTrack(-1, { wrap: true, autoplay: true });
         }
@@ -1600,30 +1140,11 @@ function loadTrack(idx, autoplay) {
 
   applyRepeatLoopFlag();
 
-  if (isIOS() && iosBackgroundAudio) {
-    // We're currently in iOS native background handoff mode.
-    // Update the background player to the new track instead of the main one.
-    // (repeat-all / next advance while screen is locked land here)
-    try {
-      // Keep main <audio> src in lockstep (paused) so unlock cannot restore the old song
-      attachMedia(t);
-      try { audio.pause(); } catch (e) {}
-      iosBackgroundAudio.pause();
-      iosBackgroundAudio.src = encodeURI(t.file);
-      try { iosBackgroundAudio.currentTime = 0; } catch (e) {}
-      applyRepeatLoopFlag();
-      wireIOSBackgroundTrackEvents(iosBackgroundAudio);
-      iosBackgroundAudio.play().catch(() => {});
-      isPlaying = true;
-      updatePlayUI();
-    } catch (e) {}
-  } else if (autoplay) {
+  if (autoplay) {
     ensureMediaReady(t);
     initAudioContext();
-    ensureAudioContextRunning();
-    // Unlock the persistent native element during this user gesture so lock-screen
-    // handoff play() is allowed later (a fresh new Audio() is not).
-    primeIOSBackgroundAudio(t, { unlock: true });
+    resumeWebAudioIfNeeded();
+    resetPlaybackClock(audio);
     audio.play().then(() => { isPlaying = true; updatePlayUI(); }).catch(() => { isPlaying = false; updatePlayUI(); });
   } else {
     isPlaying = false; updatePlayUI();
@@ -1633,7 +1154,7 @@ function loadTrack(idx, autoplay) {
 /* ── PLAYER CONTROLS ── */
 document.getElementById('btn-play').addEventListener('click', () => {
   initAudioContext();
-  ensureAudioContextRunning();
+  resumeWebAudioIfNeeded();
 
   if (currentIndex < 0 || !TRACKS[currentIndex]) {
     if (TRACKS.length) loadTrack(0, true);
@@ -1644,8 +1165,7 @@ document.getElementById('btn-play').addEventListener('click', () => {
   if (isPlaying) {
     pauseAndStopBackground();
   } else {
-    ensureAudioContextRunning();
-    if (TRACKS[currentIndex]) primeIOSBackgroundAudio(TRACKS[currentIndex], { unlock: true });
+    resetPlaybackClock(audio);
     audio.play().then(() => { isPlaying = true; }).catch(() => { isPlaying = false; });
     isPlaying = true;
   }
@@ -1682,11 +1202,11 @@ const volIcon = document.getElementById('vol-icon');
 function setVolume(v) {
   v = Math.max(0, Math.min(100, v));
 
-  // Prefer Web Audio GainNode (works for real mute on iOS)
+  // Web Audio GainNode on desktop/Android only. iOS uses native volume
+  // (Safari often ignores it — lock-screen audio is more important than the slider).
   if (gainNode) {
     gainNode.gain.value = v / 100;
   } else {
-    // Fallback to native volume (doesn't work on iOS)
     audio.volume = v / 100;
   }
 
@@ -1753,8 +1273,8 @@ document.getElementById('vol-icon-wrap').addEventListener('click', () => {
 setVolume(100);
 updateVolumeIcon();
 
-// Full volume slider is now enabled on mobile thanks to Web Audio GainNode.
-// It provides the best possible volume control the browser allows (including proper muting on iOS).
+// Desktop/Android volume uses Web Audio GainNode. iOS stays on native <audio>
+// so lock-screen playback is not captured by MediaElementSource.
 
 /* ── KEYBOARD + SCROLL QoL (YouTube / X-style polish) ── */
 (function initPlayerKeyboardQoL() {
@@ -1783,8 +1303,8 @@ updateVolumeIcon();
     }
     if (isPlaying) pauseAndStopBackground();
     else {
-      ensureAudioContextRunning();
-      if (TRACKS[currentIndex]) primeIOSBackgroundAudio(TRACKS[currentIndex], { unlock: true });
+      resumeWebAudioIfNeeded();
+      resetPlaybackClock(audio);
       audio.play().then(() => { isPlaying = true; }).catch(() => { isPlaying = false; });
       isPlaying = true;
     }
@@ -2839,9 +2359,7 @@ function populateSongDetail(idx) {
 
       playBtn.onclick = () => {
         if (currentIndex === idx && isPlaying) {
-          document.getElementById('audio-player').pause();
-          isPlaying = false;
-          updatePlayUI();
+          pauseAndStopBackground();
         } else {
           loadTrack(idx, true);
         }
