@@ -9,7 +9,6 @@ const TRACKS = [
     artist: 'jestR',
     slug: 'quarters',
     file: 'audio/singles/quarters-9-23b.mp3',
-    year: 2026,
     description: '',
     category: 'instrumental',
     artwork: 'images/quarters-cover.jpg'
@@ -19,7 +18,6 @@ const TRACKS = [
     artist: 'jestR',
     slug: 'offers',
     file: 'audio/singles/Offers.mp3',
-    year: 2026,
     description: '',
     category: 'instrumental'
   },
@@ -28,7 +26,6 @@ const TRACKS = [
     artist: 'jestR',
     slug: 'thousand-dragon',
     file: 'audio/singles/Thousand-Dragon-jestR.mp3',
-    year: 2026,
     description: '',
     category: 'instrumental'
   },
@@ -37,7 +34,6 @@ const TRACKS = [
     artist: 'jestR',
     slug: 'ko',
     file: 'audio/singles/KO.mp3',
-    year: 2026,
     description: '',
     category: 'instrumental'
   },
@@ -46,7 +42,6 @@ const TRACKS = [
     artist: 'jestR',
     slug: 'hyperdream-odyssey',
     file: 'audio/singles/hyperdream-odyssey.mp3',
-    year: 2026,
     description: '',
     category: 'instrumental'
   },
@@ -55,8 +50,7 @@ const TRACKS = [
     artist: 'jestR',
     slug: 'soul-seer',
     file: 'audio/singles/Mp3-SoulSeer.mp3',
-    year: 2021,
-    description: 'Mystical and introspective journey through inner vision.',
+    description: '',
     artwork: null,
     category: 'instrumental'
   },
@@ -66,7 +60,7 @@ const TRACKS = [
     slug: 'geronimo',
     file: 'audio/singles/11 - Geronimo- jestR - 2020.mp3',
     year: 2020,
-    description: 'Explosive opener with raw energy and sharp lyricism.',
+    description: '',
     artwork: 'images/Jesterdaze.png',
     category: 'instrumental'
   },
@@ -75,7 +69,6 @@ const TRACKS = [
     artist: 'jestR',
     slug: 'spin-cycle',
     file: 'audio/singles/Spin-Cycle_.mp3',
-    year: 2025,
     description: '',
     artwork: null,
     category: 'instrumental'
@@ -86,7 +79,7 @@ const TRACKS = [
     slug: 'mile-high',
     file: 'audio/singles/3 - Mile High- jestR - 2020.mp3',
     year: 2020,
-    description: 'Atmospheric and introspective with soaring melodies.',
+    description: '',
     artwork: null,
     category: 'instrumental'
   },
@@ -95,8 +88,7 @@ const TRACKS = [
     artist: 'jestR',
     slug: 'follow-the-flow',
     file: 'audio/singles/Mp3-FollowTheFlow.mp3',
-    year: 2021,
-    description: 'Smooth, hypnotic groove exploring surrender and momentum.',
+    description: '',
     artwork: null,
     category: 'instrumental'
   },
@@ -105,8 +97,7 @@ const TRACKS = [
     artist: 'jestR',
     slug: 'peace',
     file: 'audio/singles/Peace.mp3',
-    year: 2022,
-    description: 'Minimal and meditative. A moment of stillness.',
+    description: '',
     artwork: null,
     category: 'instrumental'
   },
@@ -115,8 +106,7 @@ const TRACKS = [
     artist: 'jestR',
     slug: 'strider',
     file: 'audio/singles/Strider.mp3',
-    year: 2022,
-    description: 'Dark, driving beat with determined, cinematic feel.',
+    description: '',
     artwork: null,
     category: 'instrumental'
   },
@@ -125,8 +115,7 @@ const TRACKS = [
     artist: 'jestR',
     slug: 'insane-membrane',
     file: 'audio/singles/Insane_membrane.mp3',
-    year: 2023,
-    description: 'Chaotic, textured, and emotionally charged.',
+    description: '',
     artwork: null,
     category: 'instrumental'
   },
@@ -135,8 +124,7 @@ const TRACKS = [
     artist: 'jestR',
     slug: 'wavy',
     file: 'audio/singles/wavy.mp3',
-    year: 2023,
-    description: 'Liquid, dreamy production with fluid delivery.',
+    description: '',
     artwork: null,
     category: 'instrumental'
   },
@@ -145,8 +133,7 @@ const TRACKS = [
     artist: 'jestR',
     slug: 'boa-constrictor',
     file: 'audio/singles/boaconstrictor.mp3',
-    year: 2024,
-    description: 'Tense, coiled energy that slowly tightens.',
+    description: '',
     artwork: null,
     category: 'instrumental'
   },
@@ -155,8 +142,7 @@ const TRACKS = [
     artist: 'jestR',
     slug: 'news',
     file: 'audio/singles/Newsss.mp3',
-    year: 2024,
-    description: 'Sharp commentary wrapped in heavy, distorted beats.',
+    description: '',
     artwork: null,
     category: 'instrumental'
   },
@@ -165,8 +151,7 @@ const TRACKS = [
     artist: 'jestR',
     slug: 'wheels',
     file: 'audio/singles/mp3Wheels-36.mp3',
-    year: 2020,
-    description: 'Cyclic, hypnotic rhythm. Motion without destination.',
+    description: '',
     artwork: null,
     category: 'instrumental'
   },
@@ -175,8 +160,7 @@ const TRACKS = [
     artist: 'jestR',
     slug: 'pop',
     file: 'audio/singles/pop.mp3',
-    year: 2024,
-    description: 'Playful yet biting take on pop culture.',
+    description: '',
     artwork: null,
     category: 'instrumental'
   },
@@ -185,8 +169,7 @@ const TRACKS = [
     artist: 'jestR',
     slug: 'the-sum-of-hippy-thoughts',
     file: 'audio/singles/the sum of hippy thoughts.mp3',
-    year: 2025,
-    description: 'Expansive, philosophical closer with lush textures.',
+    description: '',
     artwork: null,
     category: 'instrumental'
   },
@@ -195,8 +178,7 @@ const TRACKS = [
     artist: 'jestR',
     slug: 'what-dreams-may-come',
     file: 'audio/singles/what_dreams_may_comewavy.wav',
-    year: 2020,
-    description: 'Ethereal and cinematic. A dreamlike farewell.',
+    description: '',
     artwork: null,
     category: 'instrumental'
   },
@@ -205,7 +187,6 @@ const TRACKS = [
     artist: 'jestR',
     slug: 'jazzpot',
     file: 'audio/singles/jazzpot3.mp3',
-    year: 2026,
     description: 'Jazz pot session.',
     artwork: null,
     category: 'rap',
@@ -260,8 +241,7 @@ const TRACKS = [
     artist: 'jestR',
     slug: 'fat-stacks',
     file: 'audio/singles/Fat Stacks.mp3',
-    year: 2024,
-    description: 'Rap track - fat stacks energy.',
+    description: '',
     category: 'rap',
     explicit: true,
     lyrics: []
@@ -271,8 +251,7 @@ const TRACKS = [
     artist: 'jestR',
     slug: 'chokeslam',
     file: 'audio/singles/Chokeslam.mp3',
-    year: 2024,
-    description: 'Rap track - chokeslam impact.',
+    description: '',
     category: 'rap',
     explicit: true,
     lyrics: []
@@ -282,7 +261,6 @@ const TRACKS = [
     artist: 'jestR',
     slug: 'grateful-sharpie',
     file: 'audio/singles/Grateful_Sharpie.mp3',
-    year: 2026,
     description: '',
     category: 'rap',
     explicit: true
@@ -344,8 +322,7 @@ const TRACKS = [
     artist: 'jestR',
     slug: 'still-going-higher',
     file: 'audio/singles/Still_Going_Higher.mp3',
-    year: 2026,
-    description: 'Motivational rap track with driving energy.',
+    description: '',
     category: 'rap',
     explicit: true,
     lyrics: []
