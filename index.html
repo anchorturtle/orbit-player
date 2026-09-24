@@ -38,8 +38,13 @@
   <div class="scanlines"></div>
   <div class="grain-overlay"></div>
 
-  <!-- AUDIO ELEMENT -->
+  <!-- AUDIO ELEMENTS
+       #audio-player is the in-page / Web Audio player.
+       #audio-player-ios-bg is a persistent native <audio> (no Web Audio) used for
+       iOS lock-screen / background handoff. It stays in the DOM so iOS treats it
+       as Now Playing; it is gesture-unlocked on Play (see player.js). -->
   <audio id="audio-player" preload="metadata" playsinline></audio>
+  <audio id="audio-player-ios-bg" preload="auto" hidden></audio>
 
   <!-- PLANET FOCAL TEXT (the planet itself is rendered live in 3D behind this) -->
   <div id="planet-bg" style="position:fixed;left:0;right:0;top:0;bottom:0;display:flex;align-items:center;justify-content:center;z-index:1;pointer-events:none">
@@ -550,7 +555,7 @@
   <script src="https://unpkg.com/three@0.147.0/build/three.min.js"></script>
   <script src="js/utils.js?v=20260821a"></script>
   <script src="js/space3d.js?v=20260820j"></script>
-  <script src="js/player.js?v=20260923quarters"></script>
+  <script src="js/player.js?v=20260924lockaudio"></script>
   <script src="js/planet-swipe.js?v=20260820l"></script>
   <script src="js/gallery.js?v=20260924videofs"></script>
   <script src="js/main.js?v=20260821a"></script>

@@ -567,6 +567,11 @@ document.addEventListener('pagehide', () => {
     enterIOSNativeBackgroundPlayback();
   }
 });
+document.addEventListener('freeze', () => {
+  if (!isPlaying) return;
+  if (isIOS()) enterIOSNativeBackgroundPlayback();
+  else startBackgroundAudioKeepAlive();
+});
 
 // Also stop everything if the user pauses
 function pauseAndStopBackground() {
@@ -576,15 +581,16 @@ function pauseAndStopBackground() {
 
   // Stop all background handoff / keep-alive logic first
   stopBackgroundAudioKeepAlive();
+  clearIOSHandoffPauseTimer();
 
+  // Pause native handoff audio but keep the element (and its iOS play-unlock)
   if (isIOS() && iosBackgroundAudio) {
-    teardownIOSBgEl(iosBackgroundAudio);
+    try { iosBackgroundAudio.pause(); } catch (e) {}
+    precreatedIOSBackgroundAudio = iosBackgroundAudio;
     iosBackgroundAudio = null;
   }
-
   if (isIOS() && precreatedIOSBackgroundAudio) {
-    teardownIOSBgEl(precreatedIOSBackgroundAudio);
-    precreatedIOSBackgroundAudio = null;
+    try { precreatedIOSBackgroundAudio.pause(); } catch (e) {}
   }
 
   if (isIOS()) {
@@ -601,7 +607,9 @@ function pauseAndStopBackground() {
 }
 
 function startBackgroundAudioKeepAlive() {
-  if (!isIOS() || bgAudioKeepAlive) return;
+  if (bgAudioKeepAlive) return;
+  // Native iOS handoff already owns playback — don't revive the Web Audio element
+  if (isIOS() && iosBackgroundAudio) return;
 
   ensureAudioContextRunning();
 
@@ -620,10 +628,15 @@ function startBackgroundAudioKeepAlive() {
     }
   } catch (e) {}
 
-  // Simple fast loop — just resume the context and keep the audio element alive.
-  // This pattern was working before the more complex versions.
+  // Resume AudioContext + keep the media element playing while hidden.
+  // Must run on Android/desktop too: createMediaElementSource() routes output
+  // through Web Audio, which browsers suspend when the page is hidden.
   function keepAliveLoop() {
     if (!isPlaying) {
+      stopBackgroundAudioKeepAlive();
+      return;
+    }
+    if (isIOS() && iosBackgroundAudio) {
       stopBackgroundAudioKeepAlive();
       return;
     }
@@ -671,10 +684,71 @@ function stopSilentBackgroundSource() {
   When the page returns to foreground, we reconnect through the GainNode so volume control works again.
 */
 let isUsingDirectAudioPath = false;
-let iosBackgroundAudio = null; // temporary native audio element used for iOS background playback
-let precreatedIOSBackgroundAudio = null; // pre-warmed native element for faster handoff on iOS
-/* Blocks ended→next while tearing down the bg player (clearing src can fire `ended`). */
+let iosBackgroundAudio = null; // native <audio> currently owning lock-screen / background playback
+let precreatedIOSBackgroundAudio = null; // same persistent element, primed / unlocked, not currently owning
+/* Blocks ended→next and Media Session pause while handing off (main pause must not look like user pause). */
 let iosHandoffGuard = false;
+let iosHandoffPauseTimer = null;
+
+function clearIOSHandoffPauseTimer() {
+  if (iosHandoffPauseTimer) {
+    clearTimeout(iosHandoffPauseTimer);
+    iosHandoffPauseTimer = null;
+  }
+}
+
+/** Persistent in-DOM native audio used for iOS lock-screen (never createMediaElementSource). */
+function getOrCreateIOSBgAudio() {
+  let el = document.getElementById('audio-player-ios-bg');
+  if (!el) {
+    el = document.createElement('audio');
+    el.id = 'audio-player-ios-bg';
+    el.preload = 'auto';
+    el.hidden = true;
+    document.body.appendChild(el);
+  }
+  return el;
+}
+
+/**
+ * Point the native bg element at `track` and, during a user gesture, play+pause
+ * it muted so later visibilitychange play() is allowed. Reuses one element —
+ * a fresh `new Audio()` is locked by iOS autoplay rules.
+ */
+function primeIOSBackgroundAudio(track, { unlock = true } = {}) {
+  if (!isIOS() || !track) return;
+  const el = getOrCreateIOSBgAudio();
+  precreatedIOSBackgroundAudio = el;
+  try {
+    if (!bgElMatchesTrack(el, track)) {
+      el.src = encodeURI(track.file);
+    }
+    el.preload = 'auto';
+    applyRepeatLoopFlag();
+    wireIOSBackgroundTrackEvents(el);
+    if (unlock && el.paused && !iosBackgroundAudio) {
+      const restoreMuted = el.muted;
+      el.muted = true;
+      const p = el.play();
+      if (p && typeof p.then === 'function') {
+        p.then(() => {
+          if (iosBackgroundAudio === el) {
+            el.muted = false;
+            return;
+          }
+          try { el.pause(); } catch (e) {}
+          el.muted = restoreMuted;
+        }).catch(() => {
+          el.muted = restoreMuted;
+        });
+      } else {
+        el.muted = restoreMuted;
+      }
+    } else {
+      try { el.load(); } catch (e) {}
+    }
+  } catch (e) {}
+}
 
 function enterIOSBackgroundAudioMode() {
   if (!isIOS() || !audioContext || !sourceNode || isUsingDirectAudioPath) return;
@@ -823,50 +897,89 @@ function teardownIOSBgEl(el) {
   } catch (e) {}
 }
 
+function seekIOSBgEl(el, time) {
+  try {
+    const t = Math.max(0, time || 0);
+    if (isGoodDuration(el.duration)) {
+      el.currentTime = Math.min(t, Math.max(0, el.duration - 0.05));
+    } else {
+      el.currentTime = t;
+    }
+  } catch (e) {}
+}
+
+function pauseMainAfterIOSHandoff(el) {
+  // Only mute the Web Audio element once native playback is actually running.
+  // Pausing earlier (the old 150ms timer) silences the page when play() is rejected.
+  if (!audio || !isPlaying || iosBackgroundAudio !== el || el.paused) return;
+  iosHandoffGuard = true;
+  try { audio.pause(); } catch (e) {}
+  setTimeout(() => { iosHandoffGuard = false; }, 200);
+}
+
+function failIOSHandoffKeepMain(el) {
+  if (iosBackgroundAudio === el) iosBackgroundAudio = null;
+  precreatedIOSBackgroundAudio = el || precreatedIOSBackgroundAudio;
+  ensureAudioContextRunning();
+  startBackgroundAudioKeepAlive();
+}
+
 function enterIOSNativeBackgroundPlayback() {
   if (!isIOS() || !isPlaying || iosBackgroundAudio) return;
 
-  stopBackgroundAudioKeepAlive(); // make sure old keep-alive is dead
+  stopBackgroundAudioKeepAlive();
+  clearIOSHandoffPauseTimer();
 
   try {
     const t = TRACKS[currentIndex];
     const mainTime = audio ? (audio.currentTime || 0) : 0;
+    const el = precreatedIOSBackgroundAudio || getOrCreateIOSBgAudio();
+    precreatedIOSBackgroundAudio = null;
+    iosBackgroundAudio = el;
 
-    // Prefer a pre-created element if we have one (much faster handoff)
-    if (precreatedIOSBackgroundAudio) {
-      iosBackgroundAudio = precreatedIOSBackgroundAudio;
-      precreatedIOSBackgroundAudio = null;
-      // Pre-warm can be stale if the track advanced before lock
-      if (t && !bgElMatchesTrack(iosBackgroundAudio, t)) {
-        iosBackgroundAudio.src = encodeURI(t.file);
-      }
-      try { iosBackgroundAudio.currentTime = mainTime; } catch (e) {}
-    } else {
-      // Fallback: create on the fly
-      iosBackgroundAudio = new Audio();
-      iosBackgroundAudio.src = t ? encodeURI(t.file) : (audio ? audio.src : '');
-      try { iosBackgroundAudio.currentTime = mainTime; } catch (e) {}
-      iosBackgroundAudio.preload = 'auto';
-      iosBackgroundAudio.playsInline = true;
+    if (t && !bgElMatchesTrack(el, t)) {
+      el.src = encodeURI(t.file);
+    } else if (!el.src && audio && audio.src) {
+      el.src = audio.src;
     }
-
-    // Repeat modes must work with screen off: loop + ended on the BG player
+    el.muted = false;
     applyRepeatLoopFlag();
-    wireIOSBackgroundTrackEvents(iosBackgroundAudio);
+    wireIOSBackgroundTrackEvents(el);
 
-    // Start the native background player
-    iosBackgroundAudio.play().catch(() => {});
-
-    // Use a short fixed overlap instead of waiting for 'playing' event.
-    // This makes the audible gap consistently small (~120-180ms) instead of variable.
-    setTimeout(() => {
-      if (audio && isPlaying && iosBackgroundAudio) {
-        audio.pause();
+    const startBg = () => {
+      if (!isPlaying || iosBackgroundAudio !== el) return;
+      seekIOSBgEl(el, mainTime);
+      const playP = el.play();
+      if (playP && typeof playP.then === 'function') {
+        playP.then(() => {
+          pauseMainAfterIOSHandoff(el);
+        }).catch(() => {
+          failIOSHandoffKeepMain(el);
+        });
+      } else if (!el.paused) {
+        pauseMainAfterIOSHandoff(el);
+      } else {
+        failIOSHandoffKeepMain(el);
       }
-    }, 150);
+    };
 
+    if (el.readyState >= 1) {
+      startBg();
+    } else {
+      const onReady = () => {
+        el.removeEventListener('loadedmetadata', onReady);
+        startBg();
+      };
+      el.addEventListener('loadedmetadata', onReady);
+      try { el.load(); } catch (e) {}
+      iosHandoffPauseTimer = setTimeout(() => {
+        iosHandoffPauseTimer = null;
+        el.removeEventListener('loadedmetadata', onReady);
+        if (isPlaying && iosBackgroundAudio === el && el.paused) startBg();
+      }, 400);
+    }
   } catch (e) {
-    iosBackgroundAudio = null;
+    failIOSHandoffKeepMain(null);
   }
 }
 
@@ -914,6 +1027,7 @@ function exitIOSNativeBackgroundPlayback() {
   if (!iosBackgroundAudio) return Promise.resolve();
 
   iosHandoffGuard = true;
+  clearIOSHandoffPauseTimer();
   const track = TRACKS[currentIndex];
   let bgTime = 0;
   try {
@@ -922,15 +1036,12 @@ function exitIOSNativeBackgroundPlayback() {
 
   const bg = iosBackgroundAudio;
   iosBackgroundAudio = null;
-  teardownIOSBgEl(bg);
-
-  if (precreatedIOSBackgroundAudio) {
-    teardownIOSBgEl(precreatedIOSBackgroundAudio);
-    precreatedIOSBackgroundAudio = null;
-  }
+  try { bg.pause(); } catch (e) {}
+  // Keep the same element primed so the next lock does not need a new gesture
+  precreatedIOSBackgroundAudio = bg;
 
   return syncMainAudioToTrackAt(track, bgTime).finally(() => {
-    // Keep guard briefly so a late `ended` from teardown cannot advance tracks
+    // Keep guard briefly so a late `ended` from pause cannot advance tracks
     setTimeout(() => { iosHandoffGuard = false; }, 120);
   });
 }
@@ -1363,6 +1474,15 @@ function syncDetailPlayIcon() {
   }
 }
 
+function mediaSessionArtworkUrl(t) {
+  const rel = (t && t.artwork) || 'images/at-sea-trans-256.png';
+  try {
+    return new URL(rel, window.location.href).href;
+  } catch (e) {
+    return rel;
+  }
+}
+
 function softBreakTitle(title) {
   // Zero-width space BEFORE dots/underscores so long tokens wrap at word
   // boundaries with the separator leading the next line:
@@ -1428,9 +1548,9 @@ function loadTrack(idx, autoplay) {
       navigator.mediaSession.metadata = new MediaMetadata({
         title: t.title,
         artist: t.artist || 'jestR',
-        album: 'AnchorTurtle',
+        album: t.album || 'AnchorTurtle',
         artwork: [
-          { src: (t.artwork || 'images/at-sea-trans-256.png'), sizes: '256x256', type: 'image/png' }
+          { src: mediaSessionArtworkUrl(t), sizes: '256x256', type: 'image/png' }
         ]
       });
 
@@ -1440,12 +1560,16 @@ function loadTrack(idx, autoplay) {
           iosBackgroundAudio.play().catch(() => {});
         } else if (audio.paused) {
           initAudioContext();
+          if (isIOS() && TRACKS[currentIndex]) primeIOSBackgroundAudio(TRACKS[currentIndex], { unlock: true });
           audio.play().then(() => { isPlaying = true; updatePlayUI(); }).catch(() => {});
         }
         isPlaying = true;
         updatePlayUI();
       });
       navigator.mediaSession.setActionHandler('pause', () => {
+        // Handoff pauses the Web Audio <audio> on purpose. That must not
+        // look like a lock-screen Pause tap (which would stop native bg audio).
+        if (iosHandoffGuard) return;
         if (isIOS() && iosBackgroundAudio) {
           iosBackgroundAudio.pause();
         } else {
@@ -1497,24 +1621,10 @@ function loadTrack(idx, autoplay) {
     ensureMediaReady(t);
     initAudioContext();
     ensureAudioContextRunning();
+    // Unlock the persistent native element during this user gesture so lock-screen
+    // handoff play() is allowed later (a fresh new Audio() is not).
+    primeIOSBackgroundAudio(t, { unlock: true });
     audio.play().then(() => { isPlaying = true; updatePlayUI(); }).catch(() => { isPlaying = false; updatePlayUI(); });
-
-    // On iOS, pre-warm a background audio element so the handoff when the user locks the screen is much faster (less gap)
-    if (isIOS()) {
-      try {
-        if (precreatedIOSBackgroundAudio) {
-          precreatedIOSBackgroundAudio.src = '';
-          precreatedIOSBackgroundAudio._orbitEndedWired = false;
-        }
-        precreatedIOSBackgroundAudio = new Audio();
-        precreatedIOSBackgroundAudio.src = encodeURI(t.file);
-        precreatedIOSBackgroundAudio.preload = 'auto';
-        precreatedIOSBackgroundAudio.playsInline = true;
-        applyRepeatLoopFlag();
-        wireIOSBackgroundTrackEvents(precreatedIOSBackgroundAudio);
-        precreatedIOSBackgroundAudio.load(); // start loading early
-      } catch (e) {}
-    }
   } else {
     isPlaying = false; updatePlayUI();
   }
@@ -1535,6 +1645,7 @@ document.getElementById('btn-play').addEventListener('click', () => {
     pauseAndStopBackground();
   } else {
     ensureAudioContextRunning();
+    if (TRACKS[currentIndex]) primeIOSBackgroundAudio(TRACKS[currentIndex], { unlock: true });
     audio.play().then(() => { isPlaying = true; }).catch(() => { isPlaying = false; });
     isPlaying = true;
   }
@@ -1673,6 +1784,7 @@ updateVolumeIcon();
     if (isPlaying) pauseAndStopBackground();
     else {
       ensureAudioContextRunning();
+      if (TRACKS[currentIndex]) primeIOSBackgroundAudio(TRACKS[currentIndex], { unlock: true });
       audio.play().then(() => { isPlaying = true; }).catch(() => { isPlaying = false; });
       isPlaying = true;
     }
