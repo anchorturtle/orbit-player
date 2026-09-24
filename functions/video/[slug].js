@@ -1,25 +1,46 @@
 export async function onRequest(context) {
   const { slug } = context.params;
 
+  // width/height must match the actual -og.jpg files. iMessage / Applebot
+  // will ignore or crop badly if og:image:width/height are wrong.
   const videos = {
     'thousand-dragon': {
       title: 'Thousand Dragon',
       poster: '/videos/thousand-dragon-og.jpg',
       description: 'jestR · AnchorTurtle',
+      width: 1200,
+      height: 630,
     },
     'ko': {
       title: 'K.O.',
       poster: '/videos/ko-og.jpg',
       description: 'jestR · AnchorTurtle',
+      width: 1200,
+      height: 630,
     },
     'jazzpotwax': {
       title: 'Jazzpot Wax',
       poster: '/videos/jazzpotwax-og.jpg',
       description: 'jestR · AnchorTurtle',
+      width: 1200,
+      height: 630,
+    },
+    'quarters': {
+      title: 'Quarters',
+      poster: '/videos/quarters-og.jpg',
+      description: 'jestR · AnchorTurtle',
+      width: 1080,
+      height: 1920,
     },
   };
 
-  const video = videos[slug] || { title: 'Video', poster: '/images/at-sea-trans-256.png', description: 'Watch on AnchorTurtle' };
+  const video = videos[slug] || {
+    title: 'Video',
+    poster: '/images/at-sea-trans-256.png',
+    description: 'Watch on AnchorTurtle',
+    width: 256,
+    height: 256,
+  };
 
   const url = new URL(context.request.url);
   const siteUrl = `${url.protocol}//${url.host}`;
@@ -41,8 +62,8 @@ export async function onRequest(context) {
   <meta property="og:title" content="${title}">
   <meta property="og:description" content="${video.description}">
   <meta property="og:image" content="${imageUrl}">
-  <meta property="og:image:width" content="1200">
-  <meta property="og:image:height" content="630">
+  <meta property="og:image:width" content="${video.width}">
+  <meta property="og:image:height" content="${video.height}">
   <meta property="og:url" content="${siteUrl}/video/${slug}">
   <meta property="og:type" content="video.other">
   <meta property="og:site_name" content="AnchorTurtle">
