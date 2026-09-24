@@ -612,6 +612,7 @@ function fmtTime(sec) {
 let _videoIdx = 0;
 let _videoPreFsRect = null;
 let _videoUiRaf = 0;
+let _videoNudgePaint = false;
 
 function scheduleSyncVideoUi() {
   if (_videoUiRaf) return;
@@ -698,11 +699,17 @@ function nudgeVideoPaint(player) {
       // Read the time at restore point (not at schedule) so a user seek made
       // in between isn't silently reverted.
       const t = player.currentTime;
+      _videoNudgePaint = true;
       player.pause();
       void player.offsetHeight;
       player.currentTime = t;
-      player.play().catch(() => {});
-    } catch (_) {}
+      const p = player.play();
+      const clearNudge = () => { _videoNudgePaint = false; };
+      if (p && typeof p.finally === 'function') p.catch(() => {}).finally(clearNudge);
+      else clearNudge();
+    } catch (_) {
+      _videoNudgePaint = false;
+    }
     syncVideoUi();
   });
 }
@@ -736,14 +743,24 @@ function syncVideoFullscreenUi() {
 }
 
 const VIDEO_FS_CHROME_IDLE_MS = 3000;
-/** Bottom 15% of viewport (y >= 85% height) */
-const VIDEO_FS_BOTTOM_ZONE = 0.85;
 let _videoFsHideTimer = null;
-let _videoFsGraceTimer = null;
 let _videoFsChromeBound = false;
 let _videoFsWasActive = false;
-let _videoFsPostGrace = false;
 let _videoFsChromeOpen = false;
+let _videoFsPending = false;
+let _videoFsRequesting = false;
+let _videoAutoHideOn = false;
+let _videoUserExitedFs = false;
+
+function isVideoWinOpen() {
+  const win = document.getElementById('video-win');
+  return !!(win && win.style.display === 'flex');
+}
+
+function isVideoPlayingNow() {
+  const player = document.getElementById('video-win-player');
+  return !!(player && !player.paused && !player.ended);
+}
 
 function isVideoFullscreenActive() {
   const win = document.getElementById('video-win');
@@ -751,9 +768,12 @@ function isVideoFullscreenActive() {
   return !!(win && active === win);
 }
 
-function videoFsPointerInBottomZone(clientY) {
-  const h = window.innerHeight || document.documentElement.clientHeight || 1;
-  return clientY >= h * VIDEO_FS_BOTTOM_ZONE;
+/** Hide after idle while fullscreen, or while playing if auto-FS was blocked. */
+function isVideoChromeIdleArmed() {
+  if (!isVideoWinOpen() || !_videoAutoHideOn) return false;
+  if (isVideoFullscreenActive()) return true;
+  if (_videoUserExitedFs) return false;
+  return isVideoPlayingNow();
 }
 
 function setVideoFsChromeHidden(hidden) {
@@ -762,14 +782,15 @@ function setVideoFsChromeHidden(hidden) {
   win.classList.toggle('video-fs-chrome-hidden', !!hidden);
 }
 
+function resetVideoChromeClasses() {
+  const win = document.getElementById('video-win');
+  if (win) win.classList.remove('video-fs-pointer-in-zone', 'video-fs-chrome-hidden');
+}
+
 function clearVideoFsChromeTimers() {
   if (_videoFsHideTimer) {
     clearTimeout(_videoFsHideTimer);
     _videoFsHideTimer = null;
-  }
-  if (_videoFsGraceTimer) {
-    clearTimeout(_videoFsGraceTimer);
-    _videoFsGraceTimer = null;
   }
 }
 
@@ -790,80 +811,92 @@ function openVideoFsChrome() {
   _videoFsChromeOpen = true;
 }
 
-/** Hide chrome after mouse stops moving for 3s (while chrome is open). */
+/** Hide custom chrome after 3s idle while theater auto-hide is armed. */
 function bumpVideoFsMouseIdle() {
   if (_videoFsHideTimer) {
     clearTimeout(_videoFsHideTimer);
     _videoFsHideTimer = null;
   }
-  if (!isVideoFullscreenActive() || !_videoFsChromeOpen) return;
+  if (!isVideoChromeIdleArmed() || !_videoFsChromeOpen) return;
   _videoFsHideTimer = setTimeout(() => {
     _videoFsHideTimer = null;
-    if (!isVideoFullscreenActive()) return;
+    if (!isVideoChromeIdleArmed()) return;
     closeVideoFsChrome();
   }, VIDEO_FS_CHROME_IDLE_MS);
 }
 
-function onVideoFullscreenPointerMove(e) {
-  if (!isVideoFullscreenActive()) return;
+function videoChromeEventOnWin(e) {
+  if (isVideoFullscreenActive()) return true;
   const win = document.getElementById('video-win');
-  if (!win) return;
+  return !!(win && e && e.target && win.contains(e.target));
+}
 
-  const inZone = videoFsPointerInBottomZone(e.clientY);
-  if (win.classList.contains('video-fs-pointer-in-zone') !== inZone) {
-    win.classList.toggle('video-fs-pointer-in-zone', inZone);
-  }
+function revealVideoChromeFromActivity() {
+  if (!isVideoChromeIdleArmed()) return;
+  openVideoFsChrome();
+  bumpVideoFsMouseIdle();
+}
 
-  if (!_videoFsPostGrace) return;
+function maybeFulfillPendingVideoFullscreen(e) {
+  if (!_videoFsPending || _videoUserExitedFs || isVideoFullscreenActive()) return;
+  if (!isVideoWinOpen()) return;
+  if (e && (e.key === 'Escape' || e.key === 'Esc')) return;
+  requestVideoFullscreen();
+}
 
-  if (inZone) {
-    openVideoFsChrome();
-    bumpVideoFsMouseIdle();
-    return;
-  }
-
-  if (_videoFsChromeOpen) {
-    bumpVideoFsMouseIdle();
-  }
+function onVideoFullscreenPointerMove(e) {
+  if (!isVideoWinOpen() || !videoChromeEventOnWin(e)) return;
+  if (!isVideoChromeIdleArmed()) return;
+  revealVideoChromeFromActivity();
 }
 
 function onVideoFullscreenPointerActivity(e) {
-  if (!isVideoFullscreenActive() || !_videoFsPostGrace) return;
-  const inZone = videoFsPointerInBottomZone(e.clientY);
-  if (inZone) {
-    openVideoFsChrome();
-    bumpVideoFsMouseIdle();
-  } else if (_videoFsChromeOpen) {
-    bumpVideoFsMouseIdle();
-  }
+  if (!isVideoWinOpen() || !videoChromeEventOnWin(e)) return;
+  maybeFulfillPendingVideoFullscreen(e);
+  if (!isVideoChromeIdleArmed()) return;
+  revealVideoChromeFromActivity();
+}
+
+function onVideoChromeKeyActivity(e) {
+  if (!isVideoWinOpen()) return;
+  const imgWin = document.getElementById('image-win');
+  if (imgWin && imgWin.style.display === 'flex' && !isVideoFullscreenActive()) return;
+  const tag = (e.target && e.target.tagName) || '';
+  if (tag === 'INPUT' || tag === 'TEXTAREA' || e.target?.isContentEditable) return;
+  maybeFulfillPendingVideoFullscreen(e);
+  if (!isVideoChromeIdleArmed()) return;
+  revealVideoChromeFromActivity();
+}
+
+function startVideoChromeIdleSession() {
+  const win = document.getElementById('video-win');
+  if (!win) return;
+  bindVideoFsChromeListeners();
+  _videoAutoHideOn = true;
+  openVideoFsChrome();
+  bumpVideoFsMouseIdle();
+}
+
+function stopVideoChromeIdleSession() {
+  clearVideoFsChromeTimers();
+  _videoFsChromeOpen = false;
+  _videoAutoHideOn = false;
+  resetVideoChromeClasses();
 }
 
 function onVideoFullscreenEnter() {
   const win = document.getElementById('video-win');
   if (!win) return;
-  bindVideoFsChromeListeners();
-  _videoFsPostGrace = false;
-  _videoFsChromeOpen = true;
+  _videoFsPending = false;
+  _videoUserExitedFs = false;
   win.classList.remove('video-fs-pointer-in-zone');
-  setVideoFsChromeHidden(false);
-  clearVideoFsChromeTimers();
-
-  _videoFsGraceTimer = setTimeout(() => {
-    _videoFsGraceTimer = null;
-    _videoFsPostGrace = true;
-    if (!isVideoFullscreenActive()) return;
-    closeVideoFsChrome();
-  }, VIDEO_FS_CHROME_IDLE_MS);
+  startVideoChromeIdleSession();
 }
 
 function onVideoFullscreenLeave() {
-  clearVideoFsChromeTimers();
-  _videoFsPostGrace = false;
-  _videoFsChromeOpen = false;
-  const win = document.getElementById('video-win');
-  if (win) {
-    win.classList.remove('video-fs-pointer-in-zone', 'video-fs-chrome-hidden');
-  }
+  _videoFsPending = false;
+  _videoUserExitedFs = true;
+  stopVideoChromeIdleSession();
   restoreVideoWinAfterFullscreen();
 }
 
@@ -872,37 +905,91 @@ function bindVideoFsChromeListeners() {
   _videoFsChromeBound = true;
   document.addEventListener('pointermove', onVideoFullscreenPointerMove, { passive: true });
   document.addEventListener('pointerdown', onVideoFullscreenPointerActivity, { passive: true });
+  document.addEventListener('keydown', onVideoChromeKeyActivity);
+}
+
+/** Enter #video-win fullscreen (same target as the FS button). */
+function requestVideoFullscreen() {
+  const win = document.getElementById('video-win');
+  const player = document.getElementById('video-win-player');
+  if (!win) return Promise.resolve(false);
+  const doc = document;
+  const active = doc.fullscreenElement || doc.webkitFullscreenElement;
+  if (active === win) {
+    _videoFsPending = false;
+    _videoFsRequesting = false;
+    return Promise.resolve(true);
+  }
+  if (_videoFsRequesting) return Promise.resolve(false);
+
+  const markBlocked = () => {
+    _videoFsRequesting = false;
+    _videoFsPending = true;
+    return false;
+  };
+
+  if (active) {
+    const exit = doc.exitFullscreen || doc.webkitExitFullscreen;
+    if (exit) {
+      _videoFsRequesting = true;
+      return Promise.resolve(exit.call(doc))
+        .then(() => {
+          _videoFsRequesting = false;
+          return requestVideoFullscreen();
+        })
+        .catch(markBlocked);
+    }
+  }
+
+  captureVideoWinGeometry(win);
+  const req = win.requestFullscreen || win.webkitRequestFullscreen;
+  if (req) {
+    _videoFsRequesting = true;
+    return req.call(win)
+      .then(() => {
+        _videoFsRequesting = false;
+        _videoFsPending = false;
+        syncVideoFullscreenUi();
+        return true;
+      })
+      .catch(() => {
+        _videoFsRequesting = false;
+        if (player && player.webkitEnterFullscreen) {
+          try {
+            player.webkitEnterFullscreen();
+            _videoFsPending = false;
+            return true;
+          } catch (_) {}
+        }
+        return markBlocked();
+      });
+  }
+  if (player && player.webkitEnterFullscreen) {
+    try {
+      player.webkitEnterFullscreen();
+      _videoFsPending = false;
+      return Promise.resolve(true);
+    } catch (_) {}
+  }
+  return Promise.resolve(markBlocked());
 }
 
 function toggleVideoFullscreen() {
   const win = document.getElementById('video-win');
-  const player = document.getElementById('video-win-player');
   if (!win) return;
   const doc = document;
   const active = doc.fullscreenElement || doc.webkitFullscreenElement;
   if (active === win) {
+    _videoUserExitedFs = true;
+    _videoFsPending = false;
+    _videoAutoHideOn = false;
     const exit = doc.exitFullscreen || doc.webkitExitFullscreen;
     if (exit) exit.call(doc);
     return;
   }
-  if (active) {
-    const exit = doc.exitFullscreen || doc.webkitExitFullscreen;
-    if (exit) {
-      exit.call(doc).then(() => toggleVideoFullscreen()).catch(() => {});
-    }
-    return;
-  }
-  captureVideoWinGeometry(win);
-  const req = win.requestFullscreen || win.webkitRequestFullscreen;
-  if (req) {
-    req.call(win)
-      .then(() => syncVideoFullscreenUi())
-      .catch(() => {
-        if (player && player.webkitEnterFullscreen) player.webkitEnterFullscreen();
-      });
-  } else if (player && player.webkitEnterFullscreen) {
-    player.webkitEnterFullscreen();
-  }
+  _videoUserExitedFs = false;
+  _videoAutoHideOn = true;
+  requestVideoFullscreen();
 }
 
 function seekVideoBy(deltaSec) {
@@ -997,7 +1084,13 @@ function openVideoWin(idx) {
   if (window.orbitDock) orbitDock.show('video-win');
   requestAnimationFrame(() => bringToFront('video-win'));
   setVideoCaptionSource(entry);
+  _videoUserExitedFs = false;
+  _videoAutoHideOn = true;
+  _videoFsPending = false;
+  // Thumb click is a user gesture — request FS in this same turn.
+  requestVideoFullscreen();
   tryAutoplayVideo(player);
+  startVideoChromeIdleSession();
   syncVideoUi();
 
   if (!isMob() && typeof clampWindowToViewport === 'function') {
@@ -1006,6 +1099,9 @@ function openVideoWin(idx) {
 }
 
 function closeVideoWin() {
+  _videoFsPending = false;
+  _videoUserExitedFs = false;
+  stopVideoChromeIdleSession();
   const win = document.getElementById('video-win');
   const player = document.getElementById('video-win-player');
   const doc = document;
@@ -1356,12 +1452,32 @@ function setVideoVolume(pct) {
     });
   }
 
-  player.addEventListener('play', syncVideoUi);
-  player.addEventListener('pause', syncVideoUi);
+  player.addEventListener('play', () => {
+    syncVideoUi();
+    if (_videoNudgePaint) return;
+    if (_videoUserExitedFs) return;
+    _videoAutoHideOn = true;
+    if (!isVideoFullscreenActive()) requestVideoFullscreen();
+    startVideoChromeIdleSession();
+  });
+  player.addEventListener('pause', () => {
+    syncVideoUi();
+    if (_videoNudgePaint) return;
+    if (!isVideoFullscreenActive()) {
+      openVideoFsChrome();
+      if (_videoFsHideTimer) { clearTimeout(_videoFsHideTimer); _videoFsHideTimer = null; }
+    }
+  });
   player.addEventListener('timeupdate', scheduleSyncVideoUi);
   player.addEventListener('loadedmetadata', syncVideoUi);
   player.addEventListener('volumechange', syncVideoUi);
-  player.addEventListener('ended', syncVideoUi);
+  player.addEventListener('ended', () => {
+    syncVideoUi();
+    if (!isVideoFullscreenActive()) {
+      openVideoFsChrome();
+      if (_videoFsHideTimer) { clearTimeout(_videoFsHideTimer); _videoFsHideTimer = null; }
+    }
+  });
 
   const videoWin = document.getElementById('video-win');
   if (videoWin && typeof ResizeObserver !== 'undefined') {
@@ -1375,7 +1491,7 @@ function setVideoVolume(pct) {
 
   player.addEventListener('click', (e) => {
     if (e.target !== player) return;
-    if (isVideoFullscreenActive() && _videoFsPostGrace && !_videoFsChromeOpen) {
+    if (isVideoChromeIdleArmed() && !_videoFsChromeOpen) {
       openVideoFsChrome();
       bumpVideoFsMouseIdle();
     }
@@ -1564,18 +1680,15 @@ function setVideoVolume(pct) {
     } else if (e.key === ' ') {
       e.preventDefault();
       toggleVideoPlayback();
-      if (isVideoFullscreenActive()) {
-        openVideoFsChrome();
-        bumpVideoFsMouseIdle();
-      }
+      if (isVideoChromeIdleArmed()) revealVideoChromeFromActivity();
     } else if (e.key === 'ArrowLeft') {
       e.preventDefault();
       seekVideoBy(-5);
-      if (isVideoFullscreenActive()) { openVideoFsChrome(); bumpVideoFsMouseIdle(); }
+      if (isVideoChromeIdleArmed()) revealVideoChromeFromActivity();
     } else if (e.key === 'ArrowRight') {
       e.preventDefault();
       seekVideoBy(5);
-      if (isVideoFullscreenActive()) { openVideoFsChrome(); bumpVideoFsMouseIdle(); }
+      if (isVideoChromeIdleArmed()) revealVideoChromeFromActivity();
     } else if (e.key === 'f' || e.key === 'F') {
       e.preventDefault();
       toggleVideoFullscreen();
@@ -1585,7 +1698,7 @@ function setVideoVolume(pct) {
     } else if (e.key === 'c' || e.key === 'C') {
       e.preventDefault();
       toggleVideoCaptionsOn();
-      if (isVideoFullscreenActive()) { openVideoFsChrome(); bumpVideoFsMouseIdle(); }
+      if (isVideoChromeIdleArmed()) revealVideoChromeFromActivity();
     }
   });
 

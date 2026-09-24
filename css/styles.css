@@ -1737,6 +1737,15 @@ html.orbit-resizing .win {
   cursor: none;
 }
 
+/* Windowed playing (auto-FS blocked): hide custom controls, keep title bar */
+#video-win.video-fs-chrome-hidden .orbit-video-controls-row,
+#video-win.video-fs-chrome-hidden .orbit-video-ai-foot,
+#video-win.video-fs-chrome-hidden .orbit-video-caption-settings {
+  display: none !important;
+  opacity: 0 !important;
+  pointer-events: none !important;
+}
+
 /* ============ VIDEO VIEWER (matches Orbit Player chrome) ============ */
 #video-win .win-body {
   overflow: hidden;
