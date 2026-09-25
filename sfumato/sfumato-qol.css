@@ -1,0 +1,178 @@
+/* Sfumato live QoL. Skin-neutral. Does not remap Orbit glass tokens. */
+
+/* Mix Pick was the 5th tool in a clipped strip — keep it in DOM for the proxy. */
+.mix-toolbar [aria-label="Pick"] {
+  position: absolute !important;
+  width: 1px !important;
+  height: 1px !important;
+  padding: 0 !important;
+  margin: -1px !important;
+  overflow: hidden !important;
+  clip: rect(0, 0, 0, 0) !important;
+  clip-path: inset(50%) !important;
+  border: 0 !important;
+  white-space: nowrap !important;
+  pointer-events: none !important;
+}
+
+.mix-board,
+.mix-toolbar,
+.mix-toolbar > div,
+.studio-dock {
+  overflow: visible !important;
+}
+
+.mix-toolbar {
+  flex-wrap: nowrap !important;
+}
+
+.mix-toolbar .mix-tool[aria-label="Drop"],
+.mix-toolbar .mix-tool[aria-label="Blend"],
+.mix-toolbar .mix-tool[aria-label="Knife"],
+.mix-toolbar .mix-tool[aria-label="Swirl"] {
+  flex: 1 1 0 !important;
+  min-width: 2rem !important;
+  overflow: visible !important;
+  opacity: 1 !important;
+  visibility: visible !important;
+}
+
+#sfumato-topbar {
+  position: fixed;
+  top: max(6px, env(safe-area-inset-top));
+  left: 10px;
+  z-index: 90;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  pointer-events: none;
+}
+#sfumato-topbar > * { pointer-events: auto; }
+
+#sfumato-pick,
+.studio-dock #sfumato-pick {
+  flex: 0 0 auto;
+  gap: 6px;
+  min-height: 36px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+#sfumato-pick-hint {
+  font: 700 10px/1 inherit;
+  letter-spacing: 0.12em;
+  opacity: 0.7;
+  border: 1px solid currentColor;
+  border-radius: 4px;
+  padding: 2px 4px;
+}
+
+@media (width <= 767px) {
+  #sfumato-pick span:not(#sfumato-pick-hint) {
+    display: none;
+  }
+}
+
+/* Pick / R: eyedropper over linen, mix glass, and UI (beats inline crosshair). */
+html.is-sfumato-pick,
+html.is-sfumato-pick *,
+html.is-sfumato-pick [data-paint-canvas],
+html.is-sfumato-pick [data-mix-board],
+html.is-sfumato-pick .mix-stage,
+html.is-sfumato-pick .mix-stage canvas,
+html.is-sfumato-pick .canvas-viewport,
+html.is-sfumato-pick .canvas-world,
+html.is-sfumato-pick .canvas-world canvas {
+  cursor: url("/sfumato/eyedropper-cursor.svg") 4 28, url("/sfumato/eyedropper-cursor.svg") 4 28, crosshair !important;
+}
+html.is-sfumato-pick #sfumato-pick,
+html.is-sfumato-pick #sfumato-pick * {
+  cursor: pointer !important;
+}
+
+/* Enlarge-mode tools: more depth than the flat HUD chips. */
+.studio-shell.is-focus .focus-hud {
+  box-shadow:
+    0 22px 56px rgba(0, 0, 0, 0.72),
+    0 0 0 1px rgba(126, 200, 227, 0.38),
+    inset 0 1px 0 rgba(255, 255, 255, 0.14),
+    inset 0 -2px 8px rgba(0, 0, 0, 0.35) !important;
+}
+.studio-shell.is-focus .focus-btn,
+.studio-shell.is-focus .focus-exit,
+.studio-shell.is-focus .focus-peek {
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.2),
+    inset 0 -2px 5px rgba(0, 0, 0, 0.42),
+    0 3px 8px rgba(0, 0, 0, 0.4) !important;
+}
+.studio-shell.is-focus .focus-btn.is-on,
+.studio-shell.is-focus .focus-swatch.is-on {
+  box-shadow:
+    inset 0 2px 6px rgba(0, 0, 0, 0.35),
+    0 0 16px rgba(126, 200, 227, 0.45),
+    0 2px 0 rgba(255, 255, 255, 0.12) !important;
+}
+
+/* Windows keep the brush editor (tool / hair / feel sliders) unclipped. */
+.tools-rail .orbit-win,
+.tools-rail .win-body,
+.tools-rail .tools-strip {
+  overflow: visible !important;
+}
+.tools-rail .tools-menus,
+.tools-rail .tools-feel,
+.tools-rail .symbol-slider,
+.tools-rail .tools-menu-btn {
+  visibility: visible !important;
+  opacity: 1 !important;
+  max-height: none !important;
+  clip-path: none !important;
+}
+.studio-shell.is-focus .focus-hud .focus-size-row,
+.studio-shell.is-focus .focus-hud .focus-size-slider,
+.studio-shell.is-focus .focus-hud .light-orb {
+  display: grid !important;
+  visibility: visible !important;
+}
+
+/* Non-enlarge windows must not steal the linen. */
+.studio-shell:not(.is-focus) .sheet-scrim {
+  pointer-events: none !important;
+  background: transparent !important;
+  opacity: 0 !important;
+}
+
+@media (width >= 768px) {
+  .studio-shell:not(.is-focus) .studio-body {
+    grid-template-areas: "mix canvas palettes" "mix tools palettes" !important;
+    grid-template-columns: 10.5rem minmax(0, 1fr) 12rem !important;
+    grid-template-rows: minmax(0, 1fr) auto !important;
+  }
+  .studio-shell:not(.is-focus) .mix-rail,
+  .studio-shell:not(.is-focus) .tools-rail,
+  .studio-shell:not(.is-focus) .palette-rail {
+    position: relative !important;
+    inset: auto !important;
+    top: auto !important;
+    left: auto !important;
+    right: auto !important;
+    bottom: auto !important;
+    height: auto !important;
+    max-height: none !important;
+    z-index: auto !important;
+    animation: none !important;
+  }
+}
+
+@media (width <= 767px) {
+  .studio-shell:not(.is-focus) .mix-rail,
+  .studio-shell:not(.is-focus) .tools-rail,
+  .studio-shell:not(.is-focus) .palette-rail {
+    pointer-events: none;
+  }
+  .studio-shell:not(.is-focus) .mix-rail .orbit-win,
+  .studio-shell:not(.is-focus) .tools-rail .orbit-win,
+  .studio-shell:not(.is-focus) .palette-rail .orbit-win {
+    pointer-events: auto;
+  }
+}
