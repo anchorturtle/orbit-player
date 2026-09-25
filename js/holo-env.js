@@ -405,11 +405,11 @@
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', function () {
       ensureDom();
-      applyWorld(currentSlug());
+      if (isHolo()) applyWorld(currentSlug());
     });
   } else {
     ensureDom();
-    applyWorld(currentSlug());
+    if (isHolo()) applyWorld(currentSlug());
   }
   raf = requestAnimationFrame(draw);
 })();
