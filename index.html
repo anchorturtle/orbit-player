@@ -37,8 +37,8 @@
   <link rel="dns-prefetch" href="https://unpkg.com">
 
   <!-- Modular CSS first (critical path). ?v= busts stale device caches on deploy. -->
-  <link rel="stylesheet" href="css/styles.css?v=20260925product4">
-  <link rel="stylesheet" href="css/orbit-holo.css?v=20260925product4">
+  <link rel="stylesheet" href="css/styles.css?v=20260925product5">
+  <link rel="stylesheet" href="css/orbit-holo.css?v=20260925product5">
   <link rel="stylesheet" href="css/orbit-custom.css?v=20260925product">
 
   <!-- Google Fonts -->
@@ -636,17 +636,19 @@
       <span>Sfumato</span>
       <div class="mob-dot"></div>
     </a>
+    </div>
+    <div class="mob-end">
     <button class="mob-btn taskbar-btn-add-music" id="btn-mob-custom" onclick="mobToggle('custom-win','btn-mob-custom')" title="Add custom music" aria-label="Add custom music">
       <span class="material-symbols-outlined">library_add</span>
       <span class="add-music-label add-music-label-full">Add custom music</span>
       <span class="add-music-label add-music-label-short">Custom</span>
       <div class="mob-dot"></div>
     </button>
-    </div>
     <button type="button" class="orbit-mode-btn orbit-mode-btn-mob" id="btn-orbit-mode-mob" title="Change mode" aria-label="Switch visual mode" aria-pressed="false">
       <span class="orbit-mode-track" aria-hidden="true"><span class="orbit-mode-knob"></span></span>
       <span class="orbit-mode-label">Mode</span>
     </button>
+    </div>
     <div id="mob-overflow" class="mob-overflow" hidden></div>
   </div>
 
