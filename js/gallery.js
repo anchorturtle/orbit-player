@@ -821,8 +821,17 @@ function enterVideoEnlarge() {
     captureVideoWinGeometry(win);
   }
   applyOrbitDockClearance();
+  try {
+    win.style.clipPath = '';
+    win.style.webkitClipPath = '';
+    win.style.removeProperty('clip-path');
+    win.style.removeProperty('-webkit-clip-path');
+    win.style.removeProperty('transform');
+    win.style.removeProperty('filter');
+  } catch (e) { /* ignore */ }
   win.classList.add('video-enlarged');
   document.documentElement.classList.add('orbit-video-enlarge-lock');
+  if (typeof syncWindowGlassTiers === 'function') syncWindowGlassTiers();
 }
 
 function exitVideoEnlarge() {

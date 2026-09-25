@@ -1064,18 +1064,19 @@ html.theme-holo.holo-playing #holo-strings path {
     width: min(72px, 22vw) !important;
   }
   html.theme-holo #mobile-dock {
-    overflow: visible;
-    gap: 6px;
+    overflow: hidden !important;
+    clip-path: none !important;
+    gap: 4px;
     z-index: 700 !important;
     align-items: center;
-    justify-content: space-between;
+    justify-content: flex-start;
     width: 100%;
-    max-width: 100%;
+    max-width: 100vw;
     box-sizing: border-box;
-    padding-left: 8px !important;
-    padding-right: 8px !important;
-    padding-top: 10px !important;
-    padding-bottom: calc(12px + env(safe-area-inset-bottom)) !important;
+    padding-left: max(6px, env(safe-area-inset-left)) !important;
+    padding-right: max(6px, env(safe-area-inset-right)) !important;
+    padding-top: 8px !important;
+    padding-bottom: calc(8px + env(safe-area-inset-bottom)) !important;
   }
   html.theme-holo .win-resize {
     display: none !important;
@@ -1087,19 +1088,19 @@ html.theme-holo.holo-playing #holo-strings path {
   }
   html.theme-holo #mobile-dock .mob-btn {
     animation: none !important;
-    overflow: visible;
+    overflow: hidden;
     min-width: 0 !important;
     max-width: none;
     flex: 1 1 0;
-    padding: 8px 4px !important;
+    padding: 6px 2px !important;
   }
   html.theme-holo #mobile-dock .orbit-mode-btn-mob {
     animation: none !important;
-    overflow: visible;
+    overflow: hidden !important;
     flex: 0 0 auto !important;
-    min-width: 0 !important;
-    max-width: 52px !important;
-    padding: 6px 4px !important;
+    min-width: 40px !important;
+    max-width: none !important;
+    padding: 6px 6px !important;
   }
   html.theme-holo #video-win,
   html.theme-holo #image-win {
@@ -1569,12 +1570,64 @@ html.theme-holo #holo-click-ring.is-on {
   100% { opacity: 0; transform: scale(1.55); }
 }
 
-/* Enlarge theater (PR #9): keep Orbit nav, drop holo window chrome. */
-html.theme-holo #video-win.video-enlarged {
+/* Enlarge theater: match live. Keep Orbit nav, drop floating holo chrome.
+   Specificity must beat html.theme-holo .win:not(#dock-win) overflow/void. */
+html.theme-holo #video-win.video-enlarged,
+html.theme-holo #video-win.video-enlarged.win,
+html.theme-holo #video-win.video-enlarged.win:not(#dock-win) {
+  position: fixed !important;
+  top: 0 !important;
+  left: 0 !important;
+  right: 0 !important;
+  bottom: var(--orbit-dock-clearance, 84px) !important;
+  width: auto !important;
+  height: auto !important;
+  max-width: none !important;
+  max-height: none !important;
+  margin: 0 !important;
+  padding: 0 !important;
   border: none !important;
-  box-shadow: none !important;
+  border-radius: 0 !important;
+  outline: none !important;
   background: #000 !important;
+  box-shadow: none !important;
   filter: none !important;
   backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  overflow: hidden !important;
+  contain: none !important;
+  transform: none !important;
+  clip-path: none !important;
+  -webkit-clip-path: none !important;
+  animation: none !important;
+  z-index: 8500 !important;
+}
+html.theme-holo #video-win.video-enlarged::before,
+html.theme-holo #video-win.video-enlarged::after,
+html.theme-holo #video-win.video-enlarged.win:not(#dock-win)::after {
+  display: none !important;
+  content: none !important;
+  box-shadow: none !important;
+}
+html.theme-holo #video-win.video-enlarged .win-resize {
+  display: none !important;
+}
+html.theme-holo #video-win.video-enlarged .win-body,
+html.theme-holo #video-win.video-enlarged .orbit-video-faceplate,
+html.theme-holo #video-win.video-enlarged .orbit-video-fullscreen-host,
+html.theme-holo #video-win.video-enlarged .orbit-video-stage {
+  overflow: hidden !important;
+  background: #000 !important;
+  border: none !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+  clip-path: none !important;
+  -webkit-clip-path: none !important;
+  transform: none !important;
+  filter: none !important;
+}
+html.theme-holo #video-win.video-enlarged #video-win-bar,
+html.theme-holo #video-win.video-enlarged .orbit-video-ai-foot {
+  display: none !important;
 }
 

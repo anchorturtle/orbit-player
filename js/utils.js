@@ -193,6 +193,7 @@ function syncOrbitDockClearance() {
 /* ── SMART WINDOW POSITIONING HELPERS (fixes info window + better defaults) ── */
 function clampWindowToViewport(win, margin = 8) {
   if (!win || win.id === 'dock-win') return;
+  if (win.classList.contains('video-enlarged')) return;
   const rect = winLayoutRect(win);
   const vw = window.innerWidth;
   const vh = window.innerHeight;
