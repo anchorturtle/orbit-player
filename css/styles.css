@@ -2724,7 +2724,6 @@ html.orbit-video-enlarge-lock #mobile-dock {
     width: 100vw !important; height: 100dvh !important;
     border-radius: 0 !important; z-index: 9000 !important;
   }
-  /* Phone default is full viewport (pre-fs2). Compact card is desktop-only. */
   #video-win {
     position: fixed !important; left: 0 !important; top: 0 !important;
     width: 100vw !important; height: 100dvh !important;

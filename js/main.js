@@ -623,7 +623,7 @@ makeWindowDraggable('lyrics-win', 'lyrics-bar');
     }
 
     const vwWin = document.getElementById('video-win');
-    if (vwWin && vwWin.style.display === 'flex' && !isVideoFullscreenActive?.() && !isMob()) {
+    if (vwWin && vwWin.style.display === 'flex' && !isVideoFullscreenActive?.()) {
       if (vwWin.dataset.userPositioned !== 'true' && typeof layoutVideoWinDefault === 'function') {
         layoutVideoWinDefault(vwWin);
       }

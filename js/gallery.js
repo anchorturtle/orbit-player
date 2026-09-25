@@ -864,8 +864,6 @@ function exitVideoEnlarge() {
     win.style.removeProperty('--orbit-dock-clearance');
     clearVideoWinInlineBox(win);
     win.style.removeProperty('position');
-    // Phone falls back to CSS 100vw×100dvh. Desktop restores the small card.
-    if (!isMob() && typeof restoreVideoWinAfterFullscreen === 'function') restoreVideoWinAfterFullscreen();
   }
   document.documentElement.style.removeProperty('--orbit-dock-clearance');
   document.documentElement.classList.remove('orbit-video-enlarge-lock');
@@ -1159,12 +1157,11 @@ function openVideoWin(idx) {
   requestAnimationFrame(() => bringToFront('video-win'));
   setVideoCaptionSource(entry);
   _videoUserExitedFs = false;
-  _videoAutoHideOn = true;
+  _videoAutoHideOn = false;
   _videoFsPending = false;
-  /* Gallery Play: enter enlarge immediately (phone never sits on a compact card). */
-  requestVideoFullscreen();
   tryAutoplayVideo(player);
   syncVideoUi();
+  syncVideoFullscreenUi();
 
   if (!isMob() && typeof clampWindowToViewport === 'function') {
     requestAnimationFrame(() => clampWindowToViewport(win, 8));
