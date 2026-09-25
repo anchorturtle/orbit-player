@@ -624,11 +624,15 @@ makeWindowDraggable('lyrics-win', 'lyrics-bar');
 
     const vwWin = document.getElementById('video-win');
     if (vwWin && vwWin.style.display === 'flex' && !isVideoFullscreenActive?.()) {
-      if (vwWin.dataset.userPositioned !== 'true' && typeof layoutVideoWinDefault === 'function') {
-        layoutVideoWinDefault(vwWin);
-      }
-      if (typeof clampWindowToViewport === 'function') {
-        requestAnimationFrame(() => clampWindowToViewport(vwWin, 8));
+      if (typeof isMob === 'function' && isMob()) {
+        if (typeof layoutVideoWinMobileRoom === 'function') layoutVideoWinMobileRoom(vwWin);
+      } else {
+        if (vwWin.dataset.userPositioned !== 'true' && typeof layoutVideoWinDefault === 'function') {
+          layoutVideoWinDefault(vwWin);
+        }
+        if (typeof clampWindowToViewport === 'function') {
+          requestAnimationFrame(() => clampWindowToViewport(vwWin, 8));
+        }
       }
     }
 

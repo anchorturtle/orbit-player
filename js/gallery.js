@@ -675,7 +675,7 @@ function restoreVideoWinAfterFullscreen() {
   const win = document.getElementById('video-win');
   if (!win || win.style.display !== 'flex') return;
   if (typeof isMob === 'function' && isMob()) {
-    layoutVideoWinMobileCard(win);
+    layoutVideoWinMobileRoom(win);
     return;
   }
   let rect = _videoPreFsRect;
@@ -824,23 +824,19 @@ function applyOrbitDockClearance() {
   document.documentElement.style.setProperty('--orbit-dock-clearance', px + 'px');
 }
 
-/** Compact phone card — not full viewport. Enlarge fills the work area above the dock. */
-function layoutVideoWinMobileCard(win) {
+/** Room-scale phone player — full viewport. Compact card is desktop-only. */
+function layoutVideoWinMobileRoom(win) {
   if (!win) return;
-  const vw = window.innerWidth || 390;
-  const vh = window.innerHeight || 844;
-  const w = Math.max(280, Math.min(Math.round(vw * 0.92), vw - 24));
-  const h = Math.max(220, Math.min(Math.round(w * 0.72 + 88), Math.round(vh * 0.62), 560));
-  win.style.position = "fixed";
-  win.style.width = w + "px";
-  win.style.height = h + "px";
-  win.style.left = Math.round((vw - w) / 2) + "px";
-  win.style.top = Math.round(Math.max(56, (vh - h) * 0.14)) + "px";
-  win.style.right = "";
-  win.style.bottom = "";
-  win.style.maxWidth = "";
-  win.style.maxHeight = "";
-  win.style.borderRadius = "";
+  win.style.position = 'fixed';
+  win.style.width = '100vw';
+  win.style.height = '100dvh';
+  win.style.left = '0';
+  win.style.top = '0';
+  win.style.right = '';
+  win.style.bottom = '';
+  win.style.maxWidth = '';
+  win.style.maxHeight = '';
+  win.style.borderRadius = '';
 }
 function clearVideoWinInlineBox(win) {
   if (!win) return;
@@ -886,8 +882,8 @@ function exitVideoEnlarge() {
     win.style.removeProperty('--orbit-dock-clearance');
     clearVideoWinInlineBox(win);
     win.style.removeProperty('position');
-    // Phone must return to the compact card, not leftover full-viewport sizing.
-    if (typeof isMob === 'function' && isMob()) layoutVideoWinMobileCard(win);
+    // Phone returns to room-scale default; desktop returns to the compact card.
+    if (typeof isMob === 'function' && isMob()) layoutVideoWinMobileRoom(win);
     else if (typeof restoreVideoWinAfterFullscreen === 'function') restoreVideoWinAfterFullscreen();
   }
   document.documentElement.style.removeProperty('--orbit-dock-clearance');
@@ -1161,7 +1157,7 @@ function openVideoWin(idx) {
   }
 
   if (isMob()) {
-    layoutVideoWinMobileCard(win);
+    layoutVideoWinMobileRoom(win);
   } else {
     if (typeof restoreSessionWindowPosition === 'function') {
       restoreSessionWindowPosition('video-win');
