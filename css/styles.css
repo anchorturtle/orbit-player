@@ -47,6 +47,25 @@ html, body { margin: 0; padding: 0; overflow: hidden; width: 100%; height: 100%;
   /* bottom-nav dock: never float mid-screen after a live refresh */
   max-width: min(420px, calc(100vw - 24px));
 }
+/* Live/main: never keep holo void-halo / wavy clip / extra corner grips. */
+html:not(.theme-holo) .win {
+  clip-path: none !important;
+  -webkit-clip-path: none !important;
+}
+html:not(.theme-holo) #player-win {
+  overflow: hidden !important;
+  contain: layout style;
+  clip-path: none !important;
+  -webkit-clip-path: none !important;
+}
+html:not(.theme-holo) #player-win .win-resize.n,
+html:not(.theme-holo) #player-win .win-resize.s,
+html:not(.theme-holo) #player-win .win-resize.ne,
+html:not(.theme-holo) #player-win .win-resize.nw,
+html:not(.theme-holo) #player-win .win-resize.se,
+html:not(.theme-holo) #player-win .win-resize.sw {
+  display: none !important;
+}
 @media (max-height: 720px) {
   .win-title { font-size: 0.78rem; }
   .focal-title { font-size: clamp(1.1rem, 3.8vw, 2rem); }

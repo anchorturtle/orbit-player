@@ -148,6 +148,10 @@ function relayoutAfterSkin() {
     delete pl.dataset.userPositioned;
     pl.style.transform = '';
     pl.style.overflow = '';
+    pl.style.contain = '';
+    pl.style.boxShadow = '';
+    pl.style.clipPath = '';
+    pl.style.webkitClipPath = '';
     pl.classList.remove('holo-dragging', 'player-holo-top', 'player-docked');
   }
   if (typeof isMob === 'function' && isMob()) return;
