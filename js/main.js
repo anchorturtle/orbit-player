@@ -166,6 +166,7 @@ function makeWindowDraggable(winId, barId) {
 
   function startOp(e, m) {
     if (isMob()) return;
+    if (winId === 'video-win' && typeof isVideoEnlarged === 'function' && isVideoEnlarged()) return;
     pin();
     const r = win.getBoundingClientRect();
     mode = m; sx = e.clientX; sy = e.clientY; sl = r.left; st = r.top; sw = r.width; sh = r.height;
@@ -223,6 +224,12 @@ function makeWindowDraggable(winId, barId) {
     if (moveRaf) {
       cancelAnimationFrame(moveRaf);
       moveRaf = 0;
+    }
+    if (winId === 'video-win' && typeof isVideoEnlarged === 'function' && isVideoEnlarged()) {
+      lastMoveE = null;
+      mode = null;
+      document.documentElement.classList.remove('orbit-resizing');
+      return;
     }
     if (lastMoveE && mode) applyMove(lastMoveE);
     lastMoveE = null;

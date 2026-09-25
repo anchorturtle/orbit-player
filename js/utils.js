@@ -140,6 +140,9 @@ function setMobActive(id, on) {
 /* ── SMART WINDOW POSITIONING HELPERS (fixes info window + better defaults) ── */
 function clampWindowToViewport(win, margin = 8) {
   if (!win) return;
+  /* Theater uses CSS !important box; writing getBoundingClientRect back
+     to inline width/height poisons the small-card restore. */
+  if (win.id === 'video-win' && win.classList.contains('video-enlarged')) return;
   const rect = win.getBoundingClientRect();
   const vw = window.innerWidth;
   const vh = window.innerHeight;
