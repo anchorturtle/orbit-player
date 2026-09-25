@@ -2539,13 +2539,20 @@ function prefetchAdjacentOrbitTracks(idx) {
     if (!t || !t.file) return;
     const href = encodeURI(t.file);
     const key = t.slug || href;
-    if (document.querySelector(`link[data-orbit-prefetch="${key}"]`)) return;
-    const link = document.createElement('link');
-    link.rel = 'preload';
-    link.as = 'audio';
-    link.href = href;
-    link.setAttribute('data-orbit-prefetch', key);
-    document.head.appendChild(link);
+    if (document.querySelector(`[data-orbit-prefetch="${key}"]`)) return;
+    let hold = document.getElementById('orbit-prefetch-hold');
+    if (!hold) {
+      hold = document.createElement('div');
+      hold.id = 'orbit-prefetch-hold';
+      hold.hidden = true;
+      document.body.appendChild(hold);
+    }
+    const probe = document.createElement('audio');
+    probe.preload = 'auto';
+    probe.setAttribute('data-orbit-prefetch', key);
+    probe.setAttribute('aria-hidden', 'true');
+    probe.src = href;
+    hold.appendChild(probe);
   });
 }
 

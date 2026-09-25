@@ -81,24 +81,6 @@
   function prefetchAround() {
     const list = catalog();
     if (!list.length) return;
-    const around = [
-      list[idx],
-      list[(idx + 1) % list.length],
-      list[(idx - 1 + list.length) % list.length]
-    ];
-    around.forEach((t) => {
-      if (!t || !t.file) return;
-      const href = audioUrl(t.file);
-      const key = t.slug || href;
-      if (document.querySelector(`link[data-orbit-prefetch="${key}"]`)) return;
-      const link = document.createElement('link');
-      link.rel = 'preload';
-      link.as = 'audio';
-      link.href = href;
-      link.crossOrigin = 'anonymous';
-      link.setAttribute('data-orbit-prefetch', key);
-      document.head.appendChild(link);
-    });
     const next = list[(idx + 1) % list.length];
     if (next && warmer) {
       const href = audioUrl(next.file);
@@ -110,6 +92,7 @@
   }
 
   function setPlayingUI(on) {
+    if (host) refreshChrome(host);
     if (!playBtn) return;
     playBtn.classList.toggle('is-on', !!on);
     playBtn.setAttribute('aria-label', on ? 'Pause' : 'Play');
@@ -117,6 +100,7 @@
   }
 
   function setTitle() {
+    if (host) refreshChrome(host);
     const t = current();
     if (!titleEl || !t) return;
     titleEl.textContent = t.title;
@@ -242,13 +226,23 @@
     }
   }
 
-  function bindControls(root) {
-    const buttons = [...root.querySelectorAll('.orbit-deck-btn')];
-    const prev = buttons.find((b) => b.getAttribute('aria-label') === 'Previous track') || buttons[0];
-    const play = buttons.find((b) => b.classList.contains('orbit-deck-play')) || buttons[1];
-    const next = buttons.find((b) => b.getAttribute('aria-label') === 'Next track') || buttons[2];
-    playBtn = play;
+  function refreshChrome(root) {
+    playBtn = root.querySelector('.orbit-deck-play');
     titleEl = root.querySelector('.orbit-deck-title');
+    if (titleEl) {
+      titleEl.setAttribute('role', 'button');
+      titleEl.tabIndex = 0;
+      titleEl.setAttribute('aria-haspopup', 'listbox');
+    }
+  }
+
+  function bindControls(root) {
+    if (root.dataset.orbitBound === '1') {
+      refreshChrome(root);
+      return;
+    }
+    root.dataset.orbitBound = '1';
+    refreshChrome(root);
 
     const swallow = (fn) => (e) => {
       e.preventDefault();
@@ -257,29 +251,24 @@
       fn();
     };
 
-    if (prev) {
-      prev.addEventListener('click', swallow(() => step(-1)), true);
-      prev.addEventListener('pointerdown', (e) => e.stopPropagation(), true);
-    }
-    if (next) {
-      next.addEventListener('click', swallow(() => step(1)), true);
-      next.addEventListener('pointerdown', (e) => e.stopPropagation(), true);
-    }
-    if (play) {
-      play.addEventListener('click', swallow(togglePlay), true);
-      play.addEventListener('pointerdown', (e) => e.stopPropagation(), true);
-    }
-    if (titleEl) {
-      titleEl.setAttribute('role', 'button');
-      titleEl.tabIndex = 0;
-      titleEl.addEventListener('click', swallow(togglePicker), true);
-      titleEl.addEventListener('keydown', (e) => {
-        if (e.key === 'Enter' || e.key === ' ') {
-          e.preventDefault();
-          togglePicker();
-        }
-      });
-    }
+    root.addEventListener('click', (e) => {
+      refreshChrome(root);
+      const play = e.target.closest('.orbit-deck-play');
+      const prev = e.target.closest('.orbit-deck-btn[aria-label="Previous track"]');
+      const next = e.target.closest('.orbit-deck-btn[aria-label="Next track"]');
+      const title = e.target.closest('.orbit-deck-title');
+      if (play) return swallow(togglePlay)(e);
+      if (prev) return swallow(() => step(-1))(e);
+      if (next) return swallow(() => step(1))(e);
+      if (title) return swallow(togglePicker)(e);
+    }, true);
+
+    root.addEventListener('keydown', (e) => {
+      if (e.target.closest('.orbit-deck-title') && (e.key === 'Enter' || e.key === ' ')) {
+        e.preventDefault();
+        togglePicker();
+      }
+    });
   }
 
   function ensurePicker(root) {
@@ -287,7 +276,7 @@
     if (!picker) {
       picker = document.createElement('div');
       picker.id = 'orbit-deck-picker';
-      picker.className = 'orbit-deck-picker orbit-win';
+      picker.className = 'orbit-deck-picker';
       picker.hidden = true;
       picker.dataset.cat = 'all';
       document.body.appendChild(picker);

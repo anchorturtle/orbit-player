@@ -1,16 +1,24 @@
-/* Sfumato orbit-deck picker — uses existing Orbit glass tokens, no chrome restyle. */
+/* Sfumato orbit-deck picker — glass tokens only; do not use .orbit-win (it forces height:100%). */
 .orbit-deck-title {
   cursor: pointer;
 }
 .orbit-deck-picker {
   position: fixed;
-  z-index: 80;
+  z-index: 240;
+  width: min(280px, calc(100vw - 16px));
   max-height: min(52vh, 360px);
   padding: 8px;
   display: flex;
   flex-direction: column;
   gap: 8px;
   overflow: hidden;
+  color: #e9e1de;
+  background: linear-gradient(165deg, #7b2fff1a, transparent 38%), #070414e6;
+  border: 1px solid #9664ff4d;
+  border-radius: 16px;
+  box-shadow: 0 24px 64px #000000a8, 0 4px 18px #00000073;
+  -webkit-backdrop-filter: blur(32px) saturate(1.85);
+  backdrop-filter: blur(32px) saturate(1.85);
 }
 .orbit-deck-picker[hidden] {
   display: none !important;
