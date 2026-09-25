@@ -141,45 +141,45 @@
   }
   /* Distinct two-tone / pop-art holo worlds — env script is source of truth. */
   const HOLO_WORLDS = {
-    'quarters': ['#050608', '#1A58E8', '#C41422'],
-    'offers': ['#000000', '#F4F0FF', '#7B2FFF'],
-    'thousand-dragon': ['#1A0A00', '#FFD100', '#FF1A1A'],
-    'ko': ['#001410', '#00FFC2', '#FF2D6A'],
-    'hyperdream-odyssey': ['#0A0030', '#FF4DFF', '#3D7BFF'],
-    'soul-seer': ['#001408', '#B8FF00', '#2D6BFF'],
-    'geronimo': ['#140000', '#FF3300', '#FFE8D0'],
-    'spin-cycle': ['#000814', '#7EF0FF', '#FF2A5A'],
-    'mile-high': ['#000000', '#2D6BFF', '#FFFFFF'],
-    'follow-the-flow': ['#001820', '#00FFD0', '#1A58E8'],
-    'peace': ['#0A0614', '#FFFFFF', '#C9B8FF'],
-    'strider': ['#120800', '#FF7A00', '#1A58E8'],
-    'insane-membrane': ['#120018', '#FF0099', '#00E5FF'],
-    'wavy': ['#001028', '#00E5FF', '#FF3366'],
-    'boa-constrictor': ['#051400', '#66FF00', '#FF0044'],
+    'quarters': ['#000000', '#FFFFFF', '#E10600'],
+    'offers': ['#000000', '#FFFFFF', '#6B2BFF'],
+    'thousand-dragon': ['#000000', '#FFD100', '#E10600'],
+    'ko': ['#000000', '#00E5A0', '#FF2D6A'],
+    'hyperdream-odyssey': ['#000000', '#FF2BD6', '#2D5BFF'],
+    'soul-seer': ['#000000', '#C8FF00', '#1A58E8'],
+    'geronimo': ['#000000', '#FF2A00', '#FFFFFF'],
+    'spin-cycle': ['#000000', '#00E5FF', '#FF2A5A'],
+    'mile-high': ['#000000', '#1A58E8', '#FFFFFF'],
+    'follow-the-flow': ['#000000', '#00FFC8', '#1A58E8'],
+    'peace': ['#000000', '#FFFFFF', '#7B2FFF'],
+    'strider': ['#000000', '#FF7A00', '#1A58E8'],
+    'insane-membrane': ['#000000', '#FF0099', '#00E5FF'],
+    'wavy': ['#000000', '#00E5FF', '#FF003C'],
+    'boa-constrictor': ['#000000', '#66FF00', '#FF003C'],
     'news': ['#000000', '#FFFFFF', '#1A58E8'],
-    'wheels': ['#140A00', '#FFB000', '#FF2200'],
-    'pop': ['#1A0030', '#FF00AA', '#FFF000'],
-    'the-sum-of-hippy-thoughts': ['#0A1800', '#D4FF00', '#9B30FF'],
-    'what-dreams-may-come': ['#0A0020', '#B48CFF', '#00FFC8'],
-    'jazzpot': ['#180810', '#FF6A00', '#2D6BFF'],
-    'fat-stacks': ['#001400', '#00FF66', '#FFD100'],
-    'chokeslam': ['#100000', '#FFFFFF', '#C41422'],
-    'grateful-sharpie': ['#000814', '#00A3FF', '#FF4D00'],
-    'my-anthem': ['#140010', '#FF0055', '#00F0FF'],
-    'sublime-beginnings': ['#001010', '#FFEE00', '#FF00AA'],
+    'wheels': ['#000000', '#FFB000', '#E10600'],
+    'pop': ['#000000', '#FF00AA', '#FFF000'],
+    'the-sum-of-hippy-thoughts': ['#000000', '#D4FF00', '#7B2FFF'],
+    'what-dreams-may-come': ['#000000', '#7B2FFF', '#00FFC8'],
+    'jazzpot': ['#000000', '#FF6A00', '#1A58E8'],
+    'fat-stacks': ['#000000', '#00FF66', '#FFD100'],
+    'chokeslam': ['#000000', '#FFFFFF', '#E10600'],
+    'grateful-sharpie': ['#000000', '#00A3FF', '#FF4D00'],
+    'my-anthem': ['#000000', '#FF0055', '#00F0FF'],
+    'sublime-beginnings': ['#000000', '#FFEE00', '#FF00AA'],
     'nonnin': ['#000000', '#7B2FFF', '#FFFFFF'],
-    'whoiam2u': ['#0C0018', '#FF66FF', '#00FF88'],
-    'still-going-higher': ['#000818', '#4D7CFF', '#FFE14D'],
-    'tomb-of-the-creator': ['#0A0A00', '#C8A000', '#8B0000'],
-    'what-is-it-now': ['#180000', '#FF2200', '#00FFDD'],
-    'four-twenty': ['#0A1400', '#66FF00', '#FF00AA'],
+    'whoiam2u': ['#000000', '#FF2BD6', '#00FF88'],
+    'still-going-higher': ['#000000', '#1A58E8', '#FFE14D'],
+    'tomb-of-the-creator': ['#000000', '#C8A000', '#E10600'],
+    'what-is-it-now': ['#000000', '#FF2200', '#00FFDD'],
+    'four-twenty': ['#000000', '#66FF00', '#FF00AA'],
     'get': ['#000000', '#FFEE00', '#FF0066'],
     'death-of-jestr': ['#000000', '#FFFFFF', '#7B2FFF'],
-    'blockbuster': ['#100000', '#FF0044', '#FFE14D'],
-    'got-nun': ['#000000', '#E8E8E8', '#C41422'],
-    'space-radio': ['#000818', '#39FF14', '#FF00FF'],
-    'exploding-galaxies': ['#080010', '#FF00FF', '#00FFFF'],
-    'acid-rain': ['#001408', '#CCFF00', '#FF00CC']
+    'blockbuster': ['#000000', '#FF0044', '#FFE14D'],
+    'got-nun': ['#000000', '#FFFFFF', '#E10600'],
+    'space-radio': ['#000000', '#39FF14', '#FF00FF'],
+    'exploding-galaxies': ['#000000', '#FF00FF', '#00FFFF'],
+    'acid-rain': ['#000000', '#CCFF00', '#FF00CC']
   };
   const PALETTES_HOLO = [
     ['#050608', '#1A58E8', '#C41422'],
@@ -881,7 +881,7 @@
       dip -= fall * (1.0 - smoothstep(0.0, rr * 0.3, rd)) * 0.22;
       float weave = sin(xz.x * 0.14 + uTime * 0.22) * sin(xz.y * 0.12 - uTime * 0.18);
       dip += weave * 0.018;
-      dip *= (1.0 + uBass * 0.12);
+      dip *= (1.0 + uBass * 0.04);
       vWave = ring * fall * env;
       vFall = fall;
       local += nrm * dip;
@@ -898,6 +898,8 @@
     uniform float uFloorY;
     uniform float uBowlR;
     uniform float uRipR;
+    uniform vec3 uColB;
+    uniform vec3 uColC;
     varying vec3 vWorld;
     varying vec2 vXZ;
     varying float vWave;
@@ -919,13 +921,19 @@
       float major = 1.0 - smoothstep(0.0, max(fwm, 0.0015) * 1.05, min(gm.x, gm.y));
       float crest = pow(1.0 - abs(vWave), 3.5) * vFall;
       float L = max(max(line * 0.78, major * 1.0), crest * 0.42);
-      vec3 ink = vec3(0.14, 0.42, 0.98);
-      vec3 col = ink * (0.22 + L * 1.15);
-      col += ink * (crest * 0.18 + vFall * 0.08);
-      col *= 1.0 + uBass * 0.14;
       float riseAng = length(vXZ) / max(0.001, uBowlR);
       float fade = 1.0 - smoothstep(0.70, 1.00, riseAng);
-      float alpha = (0.05 + L * 0.62 + crest * 0.16) * fade * (0.7 + uBass * 0.16);
+      vec3 nearC = uColC;
+      vec3 midC = uColB;
+      vec3 plate = mix(nearC, midC, smoothstep(0.12, 0.58, riseAng));
+      plate = mix(plate, vec3(0.0), smoothstep(0.58, 0.96, riseAng));
+      float n = fract(sin(dot(uv * 37.0, vec2(12.9898, 78.233))) * 43758.5453);
+      float hatch = step(0.52, fract((uv.x + uv.y) * 5.5 + uTime * 0.08));
+      plate *= 0.62 + n * 0.28 + hatch * 0.1;
+      vec3 col = plate * (0.55 + L * 0.85);
+      col += midC * (crest * 0.12);
+      col *= 1.0 + uBass * 0.06;
+      float alpha = (0.16 + L * 0.58 + n * 0.08) * fade;
       gl_FragColor = vec4(col, alpha);
     }
   `;
@@ -952,7 +960,9 @@
     uHasMouse: { value: 0 },
     uFloorY: { value: HOLO_FLOOR_Y },
     uBowlR: { value: HOLO_BOWL_R },
-    uRipR: { value: 8 }
+    uRipR: { value: 8 },
+    uColB: { value: new THREE.Color('#FFFFFF') },
+    uColC: { value: new THREE.Color('#E10600') }
   };
   const holoGridGeo = new THREE.PlaneGeometry(128, 128, 48, 48);
   holoGridGeo.rotateX(-Math.PI / 2);
@@ -2694,10 +2704,10 @@
     palB.lerp(tgtB, palK);
     palC.lerp(tgtC, palK);
     if (holoOn) {
-      const pulse = reduceMotion.matches ? 0 : Math.min(1, bassSm * 0.7 + kickEnv * 0.45);
-      holoClear.copy(palA).lerp(palB, 0.08 + pulse * 0.28);
-      holoClear.multiplyScalar(0.28 + pulse * 0.55);
+      holoClear.copy(tgtA);
       renderer.setClearColor(holoClear, 1);
+      if (holoGridUniforms.uColB) holoGridUniforms.uColB.value.copy(palB);
+      if (holoGridUniforms.uColC) holoGridUniforms.uColC.value.copy(palC);
     }
 
     // uniforms — every visible planet view (hero + in-flight clones)
@@ -2741,16 +2751,18 @@
 
     // motion — the settled planet only (in-flight views are arc-animated below)
     /* Holo fill spins slowly; blue meridian cage is a sibling and turns slower. */
-    currentView.core.rotation.y += dt * (holoOn ? (0.09 + bassSm * 0.11) : (0.045 + bassSm * 0.08));
+    const melody = Number(window.__HOLO_MELODY__);
+    const holoDrift = (isFinite(melody) ? melody : midSm);
+    currentView.core.rotation.y += dt * (holoOn ? (0.055 + holoDrift * 0.035) : (0.045 + bassSm * 0.08));
     currentView.core.rotation.x = Math.sin(t * 0.02) * (holoOn ? 0.012 : 0.04);
     if (holoOn) {
       tickHoloPulse(dt);
       if (currentView.cage && !reduceMotion.matches) {
-        currentView.cage.rotation.y += dt * (0.032 + bassSm * 0.045);
+        currentView.cage.rotation.y += dt * (0.02 + holoDrift * 0.02);
         currentView.cage.scale.setScalar(HOLO_PLANET_SCALE);
       }
       currentView.core.scale.setScalar(HOLO_PLANET_SCALE);
-      const auraS = HOLO_PLANET_SCALE * (1 + (reduceMotion.matches ? 0 : bassSm) * 0.08 + levelSm * 0.04);
+      const auraS = HOLO_PLANET_SCALE * (1 + (reduceMotion.matches ? 0 : holoDrift) * 0.025);
       if (currentView.shells) {
         for (let s = 0; s < currentView.shells.length; s++) {
           if (currentView.shells[s].mesh) currentView.shells[s].mesh.scale.setScalar(auraS);
@@ -2759,7 +2771,7 @@
       if (currentView.atmo) currentView.atmo.scale.setScalar(auraS * 1.02);
       if (currentView.ringGroup) currentView.ringGroup.scale.setScalar(auraS);
       holoTimeU.value = t;
-      holoBassU.value = reduceMotion.matches ? 0 : bassSm;
+      holoBassU.value = reduceMotion.matches ? 0 : (Number(window.__HOLO_MELODY__) || midSm);
       if (currentView.core.material.uniforms.uSpin) {
         currentView.core.material.uniforms.uSpin.value = currentView.core.rotation.y;
       }
@@ -2772,7 +2784,7 @@
       holoCloudUniforms.uBeatPhase.value = beatPhase;
       if (currentView.group) holoCloud.position.copy(currentView.group.position);
       holoCloud.rotation.y += dt * 0.09;
-      tickHoloSpace(t, dt, bassSm);
+      tickHoloSpace(t, dt, Number(window.__HOLO_MELODY__) || midSm);
     }
     // fog layers counter-drift for parallax depth
     currentView.shells[0].mesh.rotation.y -= dt * 0.016;

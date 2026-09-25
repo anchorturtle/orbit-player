@@ -34,42 +34,19 @@ html.theme-holo #holo-env-canvas {
 html.theme-holo #holo-env-wash { z-index: 191; }
 html.theme-holo #holo-env-canvas {
   z-index: 192;
-  mix-blend-mode: plus-lighter;
+  mix-blend-mode: normal;
 }
 html.theme-holo #planet-bg {
   z-index: 193 !important;
 }
 html.theme-holo #holo-env-wash {
-  opacity: 0.42;
-  filter: saturate(var(--holo-env-sat, 1.25));
-  background:
-    radial-gradient(ellipse 100% 80% at 50% 46%,
-      color-mix(in srgb, var(--holo-tone-b, #1A58E8) calc(22% + var(--holo-kick, 0) * 70%), transparent) 0%,
-      transparent 68%),
-    radial-gradient(ellipse 90% 60% at 50% 90%,
-      color-mix(in srgb, var(--holo-tone-c, #C41422) calc(18% + var(--holo-bass, 0) * 62%), transparent) 0%,
-      transparent 74%),
-    radial-gradient(ellipse 48% 36% at 14% 24%,
-      color-mix(in srgb, var(--holo-tone-b, #1A58E8) calc(14% + var(--holo-hat, 0) * 42%), transparent),
-      transparent 70%),
-    radial-gradient(ellipse 44% 34% at 86% 20%,
-      color-mix(in srgb, var(--holo-tone-c, #C41422) calc(12% + var(--holo-snare, 0) * 44%), transparent),
-      transparent 70%);
-  transition: opacity 0.12s linear;
-}
-html.theme-holo.holo-playing #holo-env-wash,
-html.theme-holo.holo-env-live #holo-env-wash {
-  opacity: 0.9;
+  opacity: 0;
+  background: transparent;
 }
 html.theme-holo.holo-playing .grain-overlay,
 html.theme-holo.holo-env-live .grain-overlay {
-  opacity: 0.16;
+  opacity: 0.22;
   mix-blend-mode: overlay;
-}
-html.theme-holo[data-holo-pair="bw-purple"] #holo-env-wash,
-html.theme-holo[data-holo-pair="bw-blue"] #holo-env-wash,
-html.theme-holo[data-holo-pair="bw-red"] #holo-env-wash {
-  filter: saturate(var(--holo-env-sat, 1.05)) contrast(1.18);
 }
 html:not(.theme-holo) #holo-env-wash,
 html:not(.theme-holo) #holo-env-canvas {

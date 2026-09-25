@@ -261,13 +261,14 @@
   }
 
   function audioStim() {
-    var a = window.__ORBIT_AUDIO__ || { bass: 0, level: 0, stim: 0 };
     if (still()) return 0;
-    if (typeof a.stim === 'number' && !isNaN(a.stim)) {
-      return Math.max(0, Math.min(1, a.stim));
+    var melody = Number(window.__HOLO_MELODY__);
+    if (isFinite(melody)) return Math.max(0, Math.min(1, melody));
+    var a = window.__ORBIT_AUDIO__ || { mid: 0, high: 0, stim: 0 };
+    if (typeof a.mid === 'number' || typeof a.high === 'number') {
+      return Math.max(0, Math.min(1, (Number(a.mid) || 0) * 0.58 + (Number(a.high) || 0) * 0.42));
     }
-    return Math.max(0, Math.min(1,
-      (Number(a.bass) || 0) * 0.62 + (Number(a.level) || 0) * 0.38));
+    return 0;
   }
 
   function edgePoint(x, y, w, h, u) {
@@ -349,7 +350,7 @@
     ph.vel = ph.vel * 0.7 + (target - ph.amp) * 0.18;
     ph.amp += ph.vel;
     if (ph.amp < 0) ph.amp = 0;
-    var mt = still() ? 0 : music * 9.5;
+    var mt = still() ? 0 : music * 2.1;
     ph.mvel = ph.mvel * 0.52 + (mt - ph.music) * 0.38;
     ph.music += ph.mvel;
     if (ph.music < 0) ph.music = 0;
@@ -620,17 +621,13 @@
     }
     killStrings();
     html.classList.toggle('holo-playing', !still() && playing());
-    var audio = window.__ORBIT_AUDIO__ || { bass: 0, level: 0, stim: 0 };
     var stim = audioStim();
-    html.style.setProperty('--holo-bass', String(audio.bass || 0));
+    html.style.setProperty('--holo-bass', '0');
     html.style.setProperty('--holo-stim', stim.toFixed(4));
-    var kick = still() ? 0 : (Number(audio.kick) || 0);
-    var snare = still() ? 0 : (Number(audio.snare) || 0);
-    var hat = still() ? 0 : (Number(audio.hat) || 0);
-    html.style.setProperty('--holo-kick', kick.toFixed(4));
-    html.style.setProperty('--holo-snare', snare.toFixed(4));
-    html.style.setProperty('--holo-hat', hat.toFixed(4));
-    html.style.setProperty('--holo-bounce-y', still() ? '0px' : ((-(kick * 5.2 + snare * 2.4)).toFixed(2) + 'px'));
+    html.style.setProperty('--holo-kick', '0');
+    html.style.setProperty('--holo-snare', '0');
+    html.style.setProperty('--holo-hat', stim.toFixed(4));
+    html.style.setProperty('--holo-bounce-y', '0px');
     html.style.setProperty('--holo-bounce-s', '1');
     html.style.setProperty('--holo-ui-scale', '1');
     html.style.setProperty('--holo-ui-scale-soft', '1');
