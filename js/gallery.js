@@ -62,6 +62,8 @@ const VIDEOS = [
     title: 'Quarters',
     artist: 'jestR',
     poster: 'videos/quarters-poster.jpg',
+    // mp4 lives on media-store (gitignored here). Localhost must still play it.
+    cdnSrc: 'https://media.githubusercontent.com/media/anchorturtle/orbit-player/media-store/videos/quarters.mp4',
   },
   {
     slug: 'thousand-dragon',
@@ -95,15 +97,18 @@ const VIDEOS = [
 const ORBIT_VIDEO_MEDIA_BRANCH = 'media-store';
 const ORBIT_VIDEO_REPO = 'anchorturtle/orbit-player';
 
+function mediaStoreMp4Url(rel) {
+  return `https://media.githubusercontent.com/media/${ORBIT_VIDEO_REPO}/${ORBIT_VIDEO_MEDIA_BRANCH}/${rel}`;
+}
+
 function videoSrcForEntry(v) {
   const rel = String(v.src || '').replace(/^\//, '');
   if (/^https?:\/\//i.test(rel)) return rel;
-  const host = typeof location !== 'undefined' ? location.hostname : '';
-  const isLocal = host === 'localhost' || host === '127.0.0.1';
-  if (isLocal) return rel;
   if (v.cdnSrc) return v.cdnSrc;
   if (/\.mp4$/i.test(rel)) {
-    return `https://media.githubusercontent.com/media/${ORBIT_VIDEO_REPO}/${ORBIT_VIDEO_MEDIA_BRANCH}/${rel}`;
+    /* mp4s are gitignored on main / holo-ready; stream from media-store so
+       local `npx serve` (holo + live) can play Quarters and the other clips. */
+    return mediaStoreMp4Url(rel);
   }
   return rel;
 }
