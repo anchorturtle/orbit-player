@@ -23,7 +23,7 @@
   <link rel="dns-prefetch" href="https://unpkg.com">
 
   <!-- Modular CSS first (critical path). ?v= busts stale device caches on deploy. -->
-  <link rel="stylesheet" href="css/styles.css?v=20260925theater">
+  <link rel="stylesheet" href="css/styles.css?v=20260925enlarge">
 
   <!-- Google Fonts -->
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
@@ -272,9 +272,6 @@
     </div>
     <div class="win-body player-faceplate orbit-video-faceplate">
       <div class="orbit-video-fullscreen-host" id="video-fullscreen-host">
-      <button type="button" id="video-theater-exit" class="orbit-video-theater-exit" title="Close video" aria-label="Close video">
-        <span class="material-symbols-outlined">close</span>
-      </button>
       <div class="orbit-video-stage">
         <video id="video-win-player" playsinline webkit-playsinline preload="auto" poster="videos/jazzpotwax-poster.jpg"></video>
         <div id="video-captions" class="orbit-video-captions" aria-live="polite" hidden>
@@ -283,6 +280,10 @@
       </div>
 
       <div class="orbit-video-controls-row">
+        <div class="orbit-video-enlarge-meta">
+          <div class="orbit-video-enlarge-title" id="video-enlarge-title">Video</div>
+          <div class="orbit-video-enlarge-artist" id="video-enlarge-artist">jestR</div>
+        </div>
         <button type="button" id="video-btn-play" class="play-btn orbit-video-play-calm" title="Play / Pause">
           <span id="video-play-icon" class="play-icon"></span>
         </button>
@@ -315,7 +316,7 @@
         <button type="button" id="video-btn-share" class="ctrl-btn" title="Copy shareable link">
           <span class="material-symbols-outlined">share</span>
         </button>
-        <button type="button" id="video-btn-fullscreen" class="ctrl-btn" title="Fullscreen">
+        <button type="button" id="video-btn-fullscreen" class="ctrl-btn" title="Enlarge">
           <span class="material-symbols-outlined" id="video-fullscreen-icon">fullscreen</span>
         </button>
       </div>
@@ -555,7 +556,7 @@
   <script src="js/space3d.js?v=20260820j"></script>
   <script src="js/player.js?v=20260923quarters"></script>
   <script src="js/planet-swipe.js?v=20260820l"></script>
-  <script src="js/gallery.js?v=20260925theater"></script>
+  <script src="js/gallery.js?v=20260925enlarge"></script>
   <script src="js/main.js?v=20260821a"></script>
 </body>
 </html>

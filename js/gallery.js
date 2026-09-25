@@ -60,24 +60,28 @@ const VIDEOS = [
     slug: 'quarters',
     src: 'videos/quarters.mp4',
     title: 'Quarters',
+    artist: 'jestR',
     poster: 'videos/quarters-poster.jpg',
   },
   {
     slug: 'thousand-dragon',
     src: 'videos/thousand-dragon.mp4',
     title: 'Thousand Dragon',
+    artist: 'jestR',
     poster: 'videos/thousand-dragon-poster.jpg',
   },
   {
     slug: 'ko',
     src: 'videos/ko.mp4',
     title: 'K.O.',
+    artist: 'jestR',
     poster: 'videos/ko-poster.jpg',
   },
   {
     slug: 'jazzpotwax',
     src: 'videos/jazzpotwax.mp4',
     title: 'Jazzpot Wax',
+    artist: 'jestR',
     poster: 'videos/jazzpotwax-poster.jpg',
     /** Reuse timed lyrics from TRACKS (player.js) for on-video captions */
     lyricsTrackSlug: 'jazzpot',
@@ -110,6 +114,19 @@ function findVideoBySlug(slug) {
 
 function videoShareUrl(slug) {
   return `${location.origin}/video/${slug}`;
+}
+
+function videoArtistForEntry(entry) {
+  return (entry && entry.artist) || 'jestR';
+}
+
+function syncVideoEnlargeMeta(entry) {
+  const title = (entry && entry.title) || 'Video';
+  const artist = videoArtistForEntry(entry);
+  const titleEl = document.getElementById('video-enlarge-title');
+  const artistEl = document.getElementById('video-enlarge-artist');
+  if (titleEl) titleEl.textContent = title;
+  if (artistEl) artistEl.textContent = artist;
 }
 
 function videoDownloadFilename(entry) {
@@ -727,16 +744,14 @@ function toggleVideoPlayback() {
 }
 
 function syncVideoFullscreenUi() {
-  const win = document.getElementById('video-win');
   const icon = document.getElementById('video-fullscreen-icon');
   const btn = document.getElementById('video-btn-fullscreen');
-  const on = isVideoFullscreenActive();
+  const on = isVideoEnlarged();
   if (icon) icon.textContent = on ? 'fullscreen_exit' : 'fullscreen';
   if (btn) {
     btn.classList.toggle('active', on);
-    btn.title = on ? 'Exit fullscreen' : 'Fullscreen';
+    btn.title = on ? 'Exit enlarge' : 'Enlarge';
   }
-  if (on) applyVideoObjectFit();
   if (on && !_videoFsWasActive) onVideoFullscreenEnter();
   else if (!on && _videoFsWasActive) onVideoFullscreenLeave();
   _videoFsWasActive = on;
@@ -768,63 +783,55 @@ function isNativeVideoFullscreen() {
   return !!(win && active === win);
 }
 
-function isVideoCssTheater() {
+function isVideoEnlarged() {
   const win = document.getElementById('video-win');
-  return !!(win && win.classList.contains('video-theater'));
+  return !!(win && win.classList.contains('video-enlarged'));
 }
 
 function isVideoFullscreenActive() {
-  return isNativeVideoFullscreen() || isVideoCssTheater();
+  return isVideoEnlarged();
 }
 
-/** Cover when the viewport matches the video orientation (9:16 on a phone);
- *  contain on black when they differ (9:16 on a wide desktop). */
-function applyVideoObjectFit() {
-  const win = document.getElementById('video-win');
-  const player = document.getElementById('video-win-player');
-  if (!win || !player) return;
-  if (!isVideoFullscreenActive()) {
-    win.classList.remove('video-fit-cover', 'video-fit-contain');
-    return;
-  }
-  const vw = player.videoWidth || 0;
-  const vh = player.videoHeight || 0;
-  const videoAR = (vw > 0 && vh > 0) ? (vw / vh) : (9 / 16);
-  const viewW = window.innerWidth || 1;
-  const viewH = window.innerHeight || 1;
-  const viewAR = viewW / viewH;
-  const videoPortrait = videoAR < 0.95;
-  const viewPortrait = viewAR < 0.95;
-  const sameOrientation = videoPortrait === viewPortrait;
-  const relDiff = Math.abs(videoAR - viewAR) / Math.max(videoAR, viewAR);
-  const useCover = sameOrientation && (videoPortrait || relDiff < 0.22);
-  win.classList.toggle('video-fit-cover', useCover);
-  win.classList.toggle('video-fit-contain', !useCover);
-}
-
-function enterVideoCssTheater() {
+function applyOrbitDockClearance() {
   const win = document.getElementById('video-win');
   if (!win) return;
-  if (!win.classList.contains('video-theater')) {
+  let px = 84;
+  if (typeof isMob === 'function' && isMob()) {
+    const dock = document.getElementById('mobile-dock');
+    px = dock && dock.offsetHeight ? dock.offsetHeight : 70;
+  } else {
+    const dock = document.getElementById('dock-win');
+    if (dock && dock.offsetHeight) {
+      const r = dock.getBoundingClientRect();
+      px = Math.max(72, Math.round(window.innerHeight - r.top + 8));
+    }
+  }
+  win.style.setProperty('--orbit-dock-clearance', px + 'px');
+}
+
+function enterVideoEnlarge() {
+  const win = document.getElementById('video-win');
+  if (!win) return;
+  if (!win.classList.contains('video-enlarged')) {
     captureVideoWinGeometry(win);
   }
-  win.classList.add('video-theater');
-  document.documentElement.classList.add('orbit-video-theater-lock');
-  applyVideoObjectFit();
+  applyOrbitDockClearance();
+  win.classList.add('video-enlarged');
+  document.documentElement.classList.add('orbit-video-enlarge-lock');
 }
 
-function exitVideoCssTheater() {
+function exitVideoEnlarge() {
   const win = document.getElementById('video-win');
-  if (win) win.classList.remove('video-theater', 'video-fit-cover', 'video-fit-contain');
-  document.documentElement.classList.remove('orbit-video-theater-lock');
+  if (win) {
+    win.classList.remove('video-enlarged');
+    win.style.removeProperty('--orbit-dock-clearance');
+  }
+  document.documentElement.classList.remove('orbit-video-enlarge-lock');
 }
 
-/** Hide after idle while fullscreen, or while playing if auto-FS was blocked. */
+/** Idle-hide the enlarge bar only — never the windowed card controls. */
 function isVideoChromeIdleArmed() {
-  if (!isVideoWinOpen() || !_videoAutoHideOn) return false;
-  if (isVideoFullscreenActive()) return true;
-  if (_videoUserExitedFs) return false;
-  return isVideoPlayingNow();
+  return isVideoWinOpen() && _videoAutoHideOn && isVideoEnlarged();
 }
 
 function setVideoFsChromeHidden(hidden) {
@@ -888,11 +895,8 @@ function revealVideoChromeFromActivity() {
   bumpVideoFsMouseIdle();
 }
 
-function maybeFulfillPendingVideoFullscreen(e) {
-  if (!_videoFsPending || _videoUserExitedFs || isNativeVideoFullscreen()) return;
-  if (!isVideoWinOpen()) return;
-  if (e && (e.key === 'Escape' || e.key === 'Esc')) return;
-  requestVideoFullscreen();
+function maybeFulfillPendingVideoFullscreen() {
+  /* Enlarge is CSS-only so the Orbit dock stays visible. No native FS retry. */
 }
 
 function onVideoFullscreenPointerMove(e) {
@@ -948,12 +952,12 @@ function onVideoFullscreenLeave() {
   _videoFsPending = false;
   _videoUserExitedFs = true;
   stopVideoChromeIdleSession();
-  exitVideoCssTheater();
+  exitVideoEnlarge();
   restoreVideoWinAfterFullscreen();
 }
 
-function onVideoTheaterViewportChange() {
-  if (isVideoFullscreenActive()) applyVideoObjectFit();
+function onVideoEnlargeViewportChange() {
+  if (isVideoEnlarged()) applyOrbitDockClearance();
 }
 
 function bindVideoFsChromeListeners() {
@@ -962,62 +966,30 @@ function bindVideoFsChromeListeners() {
   document.addEventListener('pointermove', onVideoFullscreenPointerMove, { passive: true });
   document.addEventListener('pointerdown', onVideoFullscreenPointerActivity, { passive: true });
   document.addEventListener('keydown', onVideoChromeKeyActivity);
-  window.addEventListener('resize', onVideoTheaterViewportChange);
-  window.addEventListener('orientationchange', onVideoTheaterViewportChange);
+  window.addEventListener('resize', onVideoEnlargeViewportChange);
+  window.addEventListener('orientationchange', onVideoEnlargeViewportChange);
 }
 
-/** Edge-to-edge theater (CSS) plus native #video-win fullscreen when the browser allows it.
- *  iOS Safari cannot fullscreen a non-video node, so CSS 100dvh theater is the path there.
- *  Do not call video.webkitEnterFullscreen — that swaps in the native iOS chrome. */
+/** Enlarge under the Orbit dock — never native Fullscreen (that hides the nav). */
 function requestVideoFullscreen() {
   const win = document.getElementById('video-win');
   if (!win) return Promise.resolve(false);
-
-  enterVideoCssTheater();
-
   const doc = document;
   const active = doc.fullscreenElement || doc.webkitFullscreenElement;
-  if (active === win) {
+  const enter = () => {
+    enterVideoEnlarge();
     _videoFsPending = false;
     _videoFsRequesting = false;
     syncVideoFullscreenUi();
-    return Promise.resolve(true);
-  }
-  if (_videoFsRequesting) return Promise.resolve(true);
-
-  const finishTheater = (keepPending) => {
-    _videoFsRequesting = false;
-    _videoFsPending = !!keepPending;
-    syncVideoFullscreenUi();
-    return !keepPending;
+    return true;
   };
-
-  if (typeof isIOS === 'function' && isIOS()) {
-    return Promise.resolve(finishTheater(false));
-  }
-
-  if (active && active !== win) {
+  if (active) {
     const exit = doc.exitFullscreen || doc.webkitExitFullscreen;
     if (exit) {
-      _videoFsRequesting = true;
-      return Promise.resolve(exit.call(doc))
-        .then(() => {
-          _videoFsRequesting = false;
-          return requestVideoFullscreen();
-        })
-        .catch(() => finishTheater(true));
+      return Promise.resolve(exit.call(doc)).then(enter).catch(enter);
     }
   }
-
-  captureVideoWinGeometry(win);
-  const req = win.requestFullscreen || win.webkitRequestFullscreen;
-  if (req) {
-    _videoFsRequesting = true;
-    return req.call(win)
-      .then(() => finishTheater(false))
-      .catch(() => finishTheater(true));
-  }
-  return Promise.resolve(finishTheater(false));
+  return Promise.resolve(enter());
 }
 
 function toggleVideoFullscreen() {
@@ -1025,14 +997,17 @@ function toggleVideoFullscreen() {
   if (!win) return;
   const doc = document;
   const active = doc.fullscreenElement || doc.webkitFullscreenElement;
-  if (isVideoFullscreenActive()) {
+  if (isVideoEnlarged() || active === win) {
     _videoUserExitedFs = true;
     _videoFsPending = false;
     _videoAutoHideOn = false;
-    if (active === win) {
+    if (active) {
       const exit = doc.exitFullscreen || doc.webkitExitFullscreen;
       if (exit) {
-        exit.call(doc);
+        Promise.resolve(exit.call(doc)).catch(() => {}).finally(() => {
+          onVideoFullscreenLeave();
+          syncVideoFullscreenUi();
+        });
         return;
       }
     }
@@ -1097,6 +1072,7 @@ function openVideoWin(idx) {
   if (!win || !player) return;
 
   titleEl.textContent = entry.title || 'Video';
+  syncVideoEnlargeMeta(entry);
   document.title = (entry.title || 'Video') + ' | AnchorTurtle';
 
   const mediaSrc = videoSrcForEntry(entry);
@@ -1138,13 +1114,9 @@ function openVideoWin(idx) {
   requestAnimationFrame(() => bringToFront('video-win'));
   setVideoCaptionSource(entry);
   _videoUserExitedFs = false;
-  _videoAutoHideOn = true;
+  _videoAutoHideOn = false;
   _videoFsPending = false;
-  // CSS theater first (iOS / blocked Fullscreen API), then native FS if allowed.
-  enterVideoCssTheater();
-  requestVideoFullscreen();
   tryAutoplayVideo(player);
-  startVideoChromeIdleSession();
   syncVideoUi();
   syncVideoFullscreenUi();
 
@@ -1162,7 +1134,7 @@ function closeVideoWin() {
   const doc = document;
   const active = doc.fullscreenElement || doc.webkitFullscreenElement;
   const finishClose = () => {
-    exitVideoCssTheater();
+    exitVideoEnlarge();
     if (!isMob() && win && typeof saveSessionWindowPosition === 'function') {
       saveSessionWindowPosition('video-win');
     }
@@ -1482,12 +1454,6 @@ function setVideoVolume(pct) {
   if (!player || !body) return;
 
   if (closeBtn) closeBtn.addEventListener('click', closeVideoWin);
-  const theaterExit = document.getElementById('video-theater-exit');
-  if (theaterExit) theaterExit.addEventListener('click', (e) => {
-    e.preventDefault();
-    e.stopPropagation();
-    closeVideoWin();
-  });
 
   const aiBadge = document.getElementById('video-ai-badge');
   const aiDisclaimer = document.getElementById('video-ai-disclaimer');
@@ -1516,11 +1482,6 @@ function setVideoVolume(pct) {
 
   player.addEventListener('play', () => {
     syncVideoUi();
-    if (_videoNudgePaint) return;
-    if (_videoUserExitedFs) return;
-    _videoAutoHideOn = true;
-    if (!isVideoFullscreenActive()) requestVideoFullscreen();
-    startVideoChromeIdleSession();
   });
   player.addEventListener('pause', () => {
     syncVideoUi();
@@ -1531,10 +1492,7 @@ function setVideoVolume(pct) {
     }
   });
   player.addEventListener('timeupdate', scheduleSyncVideoUi);
-  player.addEventListener('loadedmetadata', () => {
-    syncVideoUi();
-    applyVideoObjectFit();
-  });
+  player.addEventListener('loadedmetadata', syncVideoUi);
   player.addEventListener('volumechange', syncVideoUi);
   player.addEventListener('ended', () => {
     syncVideoUi();
