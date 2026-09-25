@@ -72,17 +72,24 @@
   }
 }
 
-/* Pick / R: eyedropper over linen, mix glass, and UI (beats inline crosshair). */
+/* Pick / R: graphic + crosshair over linen, mix glass, and UI (beats pipette / circle / arrow). */
 html.is-sfumato-pick,
 html.is-sfumato-pick *,
 html.is-sfumato-pick [data-paint-canvas],
 html.is-sfumato-pick [data-mix-board],
+html.is-sfumato-pick .mix-board,
+html.is-sfumato-pick .mix-board canvas,
 html.is-sfumato-pick .mix-stage,
 html.is-sfumato-pick .mix-stage canvas,
 html.is-sfumato-pick .canvas-viewport,
 html.is-sfumato-pick .canvas-world,
 html.is-sfumato-pick .canvas-world canvas {
-  cursor: url("/sfumato/eyedropper-cursor.svg") 4 28, url("/sfumato/eyedropper-cursor.svg") 4 28, crosshair !important;
+  cursor: url("/sfumato/eyedropper-cursor.svg?v=20260925qol2") 16 16, url("/sfumato/eyedropper-cursor.svg?v=20260925qol2") 16 16, crosshair !important;
+}
+html.is-sfumato-pick .brush-cursor {
+  display: none !important;
+  visibility: hidden !important;
+  opacity: 0 !important;
 }
 html.is-sfumato-pick #sfumato-pick,
 html.is-sfumato-pick #sfumato-pick * {
