@@ -30,6 +30,7 @@
   --track-c: #00C896;
   --mob-dock-h: 88px;
   --mob-player-h: 160px;
+  --orbit-dock-clearance: 84px;
 }
 
 * { box-sizing: border-box; }
@@ -1751,18 +1752,8 @@ html.orbit-resizing .win {
 #image-win:-webkit-full-screen.image-fs-chrome-hidden {
   cursor: none;
 }
-#video-win:fullscreen.video-fs-chrome-hidden,
-#video-win:-webkit-full-screen.video-fs-chrome-hidden {
+#video-win.video-enlarged.video-fs-chrome-hidden {
   cursor: none;
-}
-
-/* Windowed playing (auto-FS blocked): hide custom controls, keep title bar */
-#video-win.video-fs-chrome-hidden .orbit-video-controls-row,
-#video-win.video-fs-chrome-hidden .orbit-video-ai-foot,
-#video-win.video-fs-chrome-hidden .orbit-video-caption-settings {
-  display: none !important;
-  opacity: 0 !important;
-  pointer-events: none !important;
 }
 
 /* ============ VIDEO VIEWER (matches Orbit Player chrome) ============ */
@@ -1917,13 +1908,11 @@ html.orbit-resizing .win {
   cursor: default;
 }
 
-#video-win:fullscreen .orbit-video-captions[data-pos="bottom"],
-#video-win:-webkit-full-screen .orbit-video-captions[data-pos="bottom"] {
+#video-win.video-enlarged .orbit-video-captions[data-pos="bottom"] {
   bottom: 18%;
 }
-#video-win:fullscreen.video-fs-chrome-hidden .orbit-video-captions[data-pos="bottom"],
-#video-win:-webkit-full-screen.video-fs-chrome-hidden .orbit-video-captions[data-pos="bottom"] {
-  bottom: 10%;
+#video-win.video-enlarged.video-fs-chrome-hidden .orbit-video-captions[data-pos="bottom"] {
+  bottom: 8%;
 }
 
 /* Single control deck: play | scrub | volume | share */
@@ -2167,206 +2156,189 @@ html.orbit-resizing .win {
   gap: 6px;
 }
 
-/* Fullscreen: entire #video-win (reliable chrome hide + video-only mode) */
-#video-win:fullscreen,
-#video-win:-webkit-full-screen {
+.orbit-video-enlarge-meta {
+  display: none;
+}
+
+html.orbit-video-enlarge-lock,
+html.orbit-video-enlarge-lock body {
+  overflow: hidden !important;
+  overscroll-behavior: none;
+}
+
+/* Enlarge: no floating window. Video fills under the Orbit dock.
+   One bar = title + artist + transport. Native :fullscreen is not used. */
+#video-win.video-enlarged {
   display: flex !important;
   flex-direction: column !important;
-  width: 100vw !important;
-  height: 100vh !important;
-  max-width: 100vw !important;
-  max-height: 100vh !important;
-  left: 0 !important;
+  position: fixed !important;
   top: 0 !important;
+  left: 0 !important;
+  right: 0 !important;
+  bottom: var(--orbit-dock-clearance, 84px) !important;
+  width: auto !important;
+  height: auto !important;
+  max-width: none !important;
+  max-height: none !important;
   margin: 0 !important;
   border-radius: 0 !important;
   border: none !important;
   outline: none !important;
-  background: #030208 !important;
+  background: #000 !important;
   box-shadow: none !important;
   padding: 0 !important;
   backdrop-filter: none !important;
   -webkit-backdrop-filter: none !important;
   overflow: hidden !important;
+  contain: none !important;
+  animation: none !important;
+  z-index: 8500 !important;
 }
 
-#video-win:fullscreen::before,
-#video-win:-webkit-full-screen::before,
-#video-win:fullscreen::after,
-#video-win:-webkit-full-screen::after {
+#video-win.video-enlarged::before,
+#video-win.video-enlarged::after {
   display: none !important;
   content: none !important;
 }
 
-#video-win:fullscreen .win-resize,
-#video-win:-webkit-full-screen .win-resize {
+#video-win.video-enlarged .win-resize {
   display: none !important;
 }
 
-#video-win:fullscreen .win-body,
-#video-win:-webkit-full-screen .win-body {
+#video-win.video-enlarged .win-body,
+#video-win.video-enlarged .orbit-video-faceplate {
   flex: 1 1 auto !important;
   min-height: 0 !important;
   padding: 0 !important;
   gap: 0 !important;
-  background: #030208 !important;
-  border: none !important;
-  box-shadow: none !important;
-}
-
-#video-win:fullscreen .orbit-video-faceplate,
-#video-win:-webkit-full-screen .orbit-video-faceplate {
-  padding: 0 !important;
-  gap: 0 !important;
-  background: #030208 !important;
+  margin: 0 !important;
+  background: #000 !important;
   border: none !important;
   border-radius: 0 !important;
   box-shadow: none !important;
+  overflow: hidden !important;
 }
 
-#video-win:fullscreen .orbit-video-faceplate::before,
-#video-win:-webkit-full-screen .orbit-video-faceplate::before {
+#video-win.video-enlarged .orbit-video-faceplate::before {
   display: none !important;
   content: none !important;
 }
 
-#video-win:fullscreen .orbit-video-fullscreen-host,
-#video-win:-webkit-full-screen .orbit-video-fullscreen-host {
-  flex: 1 1 auto;
-  min-height: 0;
-  gap: 10px;
-  padding: 0 0 14px;
-  box-sizing: border-box;
-  background: #030208;
-}
-
-#video-win:fullscreen.video-fs-chrome-hidden .orbit-video-fullscreen-host,
-#video-win:-webkit-full-screen.video-fs-chrome-hidden .orbit-video-fullscreen-host {
-  padding: 0 !important;
+#video-win.video-enlarged .orbit-video-fullscreen-host {
+  position: relative;
+  flex: 1 1 auto !important;
+  min-height: 0 !important;
+  width: 100% !important;
+  height: 100% !important;
   gap: 0 !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  background: #000 !important;
 }
 
-#video-win:fullscreen #video-win-bar,
-#video-win:-webkit-full-screen #video-win-bar {
-  flex: 0 0 auto;
-  border: none !important;
-  border-bottom: none !important;
-  background: rgba(3, 2, 8, .72) !important;
-  box-shadow: none !important;
-}
-
-#video-win:fullscreen #video-win-bar::after,
-#video-win:-webkit-full-screen #video-win-bar::after {
+#video-win.video-enlarged #video-win-bar,
+#video-win.video-enlarged .orbit-video-ai-foot {
   display: none !important;
 }
 
-#video-win:fullscreen .orbit-video-controls-row,
-#video-win:-webkit-full-screen .orbit-video-controls-row {
-  margin: 0 16px;
-  width: calc(100% - 32px);
-}
-
-#video-win:fullscreen .orbit-video-stage,
-#video-win:-webkit-full-screen .orbit-video-stage {
-  flex: 1 1 auto;
-  min-height: 0;
+#video-win.video-enlarged .orbit-video-stage {
+  position: absolute !important;
+  inset: 0 !important;
+  width: 100% !important;
+  height: 100% !important;
+  min-height: 0 !important;
+  flex: none !important;
   border: none !important;
   border-radius: 0 !important;
   box-shadow: none !important;
   background: #000 !important;
+  overflow: hidden !important;
 }
 
-#video-win:fullscreen #video-win-player,
-#video-win:-webkit-full-screen #video-win-player {
+#video-win.video-enlarged #video-win-player {
+  width: 100% !important;
+  height: 100% !important;
+  max-width: none !important;
+  max-height: none !important;
   border-radius: 0 !important;
+  object-fit: contain;
+  background: #000;
 }
 
-#video-win:fullscreen.video-fs-chrome-hidden #video-win-bar,
-#video-win:-webkit-full-screen.video-fs-chrome-hidden #video-win-bar,
-#video-win:fullscreen.video-fs-chrome-hidden .orbit-video-controls-row,
-#video-win:-webkit-full-screen.video-fs-chrome-hidden .orbit-video-controls-row,
-#video-win:fullscreen.video-fs-chrome-hidden .orbit-video-ai-foot,
-#video-win:-webkit-full-screen.video-fs-chrome-hidden .orbit-video-ai-foot,
-#video-win:fullscreen.video-fs-chrome-hidden .orbit-video-caption-settings,
-#video-win:-webkit-full-screen.video-fs-chrome-hidden .orbit-video-caption-settings {
+#video-win.video-enlarged .orbit-video-enlarge-meta {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  min-width: 0;
+  flex: 0 1 168px;
+  padding-right: 8px;
+}
+
+#video-win.video-enlarged .orbit-video-enlarge-title {
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  color: #f4f0ff;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  line-height: 1.2;
+}
+
+#video-win.video-enlarged .orbit-video-enlarge-artist {
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  color: var(--jestr-green);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  line-height: 1.3;
+  margin-top: 2px;
+}
+
+#video-win.video-enlarged .orbit-video-controls-row {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 12;
+  margin: 0 !important;
+  width: 100% !important;
+  max-width: none !important;
+  border: none !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+  background: linear-gradient(180deg, rgba(0, 0, 0, 0) 0%, rgba(0, 0, 0, .55) 42%, rgba(0, 0, 0, .78) 100%) !important;
+  padding: 16px max(16px, env(safe-area-inset-right, 0px)) 12px max(16px, env(safe-area-inset-left, 0px)) !important;
+}
+
+#video-win.video-enlarged .orbit-video-caption-settings {
+  bottom: calc(72px + env(safe-area-inset-bottom, 0px));
+  right: max(12px, env(safe-area-inset-right, 0px));
+}
+
+#video-win.video-enlarged.video-fs-chrome-hidden .orbit-video-controls-row,
+#video-win.video-enlarged.video-fs-chrome-hidden .orbit-video-caption-settings {
   display: none !important;
   opacity: 0 !important;
   pointer-events: none !important;
 }
 
-#video-win:fullscreen.video-fs-chrome-hidden .orbit-video-stage,
-#video-win:-webkit-full-screen.video-fs-chrome-hidden .orbit-video-stage {
-  border-radius: 0 !important;
-  border: none !important;
-  min-height: 0 !important;
-  flex: 1 1 auto !important;
-}
-
-/* Legacy host pseudo (if host ever fullscreened) */
-.orbit-video-fullscreen-host:fullscreen,
-.orbit-video-fullscreen-host:-webkit-full-screen {
-  width: 100vw;
-  height: 100vh;
-  max-width: 100vw;
-  max-height: 100vh;
-  background: #030208;
-  padding: 12px 16px 16px;
-  box-sizing: border-box;
-  gap: 10px;
-  transition: padding 0.3s ease, gap 0.3s ease;
-}
-
-#video-fullscreen-host:fullscreen.video-fs-chrome-hidden,
-#video-fullscreen-host:-webkit-full-screen.video-fs-chrome-hidden,
-.orbit-video-fullscreen-host:fullscreen.video-fs-chrome-hidden,
-.orbit-video-fullscreen-host:-webkit-full-screen.video-fs-chrome-hidden {
-  padding: 0;
-  gap: 0;
-}
-
-#video-fullscreen-host:fullscreen.video-fs-chrome-hidden .orbit-video-stage,
-#video-fullscreen-host:-webkit-full-screen.video-fs-chrome-hidden .orbit-video-stage,
-.orbit-video-fullscreen-host:fullscreen.video-fs-chrome-hidden .orbit-video-stage,
-.orbit-video-fullscreen-host:-webkit-full-screen.video-fs-chrome-hidden .orbit-video-stage {
-  border-radius: 0;
-}
-
-.orbit-video-fullscreen-host:fullscreen .orbit-video-stage,
-.orbit-video-fullscreen-host:-webkit-full-screen .orbit-video-stage {
-  flex: 1 1 auto;
-  min-height: 0;
-  border-radius: 4px;
-}
-
-#video-fullscreen-host:fullscreen .orbit-video-controls-row,
-#video-fullscreen-host:-webkit-full-screen .orbit-video-controls-row,
-.orbit-video-fullscreen-host:fullscreen .orbit-video-controls-row,
-.orbit-video-fullscreen-host:-webkit-full-screen .orbit-video-controls-row {
-  flex: 0 0 auto;
-  position: relative;
-  z-index: 2;
-  transition: opacity 0.3s ease, transform 0.3s ease, visibility 0.3s ease, max-height 0.3s ease, padding 0.3s ease, margin 0.3s ease;
-}
-
-#video-fullscreen-host:fullscreen.video-fs-chrome-hidden .orbit-video-controls-row,
-#video-fullscreen-host:-webkit-full-screen.video-fs-chrome-hidden .orbit-video-controls-row,
-.orbit-video-fullscreen-host:fullscreen.video-fs-chrome-hidden .orbit-video-controls-row,
-.orbit-video-fullscreen-host:-webkit-full-screen.video-fs-chrome-hidden .orbit-video-controls-row {
-  opacity: 0 !important;
-  visibility: hidden !important;
-  pointer-events: none !important;
-  transform: translateY(18px) !important;
-  max-height: 0 !important;
-  overflow: hidden !important;
-  margin-top: 0 !important;
-  padding-top: 0 !important;
-  padding-bottom: 0 !important;
-  border-width: 0 !important;
-}
-
-.orbit-video-fullscreen-host:fullscreen .orbit-video-stage,
-.orbit-video-fullscreen-host:-webkit-full-screen .orbit-video-stage {
-  z-index: 1;
+@media (max-width: 767px) {
+  #video-win.video-enlarged {
+    bottom: var(--orbit-dock-clearance, var(--mob-dock-h)) !important;
+    z-index: 8500 !important;
+  }
+  #video-win.video-enlarged .orbit-video-controls-row {
+    flex-wrap: wrap;
+    row-gap: 6px;
+  }
+  #video-win.video-enlarged .orbit-video-enlarge-meta {
+    flex: 1 1 100%;
+    padding-right: 0;
+  }
+  #video-win.video-enlarged .orbit-video-enlarge-title { font-size: 13px; }
 }
 
 #video-btn-fullscreen.active {
@@ -2750,6 +2722,15 @@ html.orbit-resizing .win {
     position: fixed !important; left: 0 !important; top: 0 !important;
     width: 100vw !important; height: 100dvh !important;
     border-radius: 0 !important; z-index: 9000 !important;
+  }
+  #video-win.video-enlarged {
+    top: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    width: auto !important;
+    height: auto !important;
+    bottom: var(--orbit-dock-clearance, var(--mob-dock-h)) !important;
+    z-index: 8500 !important;
   }
 
   /* SONG DETAIL / INFO WINDOW: good overlay on mobile (not full strip like lists) */

@@ -1100,6 +1100,9 @@ html.theme-holo.holo-playing #holo-strings path {
     width: 100% !important;
     max-height: none !important;
   }
+  html.theme-holo #video-win.video-enlarged {
+    bottom: var(--orbit-dock-clearance, var(--mob-dock-h, 68px)) !important;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -1555,5 +1558,14 @@ html.theme-holo #holo-click-ring.is-on {
 @keyframes holo-click-ring {
   0% { opacity: 1; transform: scale(0.4); }
   100% { opacity: 0; transform: scale(1.55); }
+}
+
+/* Enlarge theater (PR #9): keep Orbit nav, drop holo window chrome. */
+html.theme-holo #video-win.video-enlarged {
+  border: none !important;
+  box-shadow: none !important;
+  background: #000 !important;
+  filter: none !important;
+  backdrop-filter: none !important;
 }
 
