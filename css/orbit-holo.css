@@ -265,7 +265,7 @@ html.theme-holo #dock-win {
   max-width: min(720px, 96vw);
   margin-left: auto;
   margin-right: auto;
-  bottom: 32px !important;
+  bottom: 28px !important;
   transform: none !important;
   border-radius: 22px !important;
   overflow: visible !important;
@@ -838,6 +838,15 @@ html.theme-holo #holo-tubes .holo-tube-ember {
   stroke: none;
   opacity: 0.95;
 }
+/* Dock tube stays; plasma under #dock-win is a thin idle ribbon, not a flare. */
+html.theme-holo #holo-tubes .holo-tube-dock.holo-tube-plasma,
+html.theme-holo #holo-tubes .holo-tube-dock.holo-tube-trail {
+  opacity: 0.22;
+}
+html.theme-holo #holo-tubes .holo-tube-dock.holo-tube-hot,
+html.theme-holo #holo-tubes .holo-tube-dock.holo-tube-ember {
+  opacity: 0.28;
+}
 html.theme-holo #holo-tubes .holo-tube-platehide,
 html.theme-holo #holo-tubes .holo-tube-cornerhide-core,
 html.theme-holo #holo-tubes .holo-tube-cornerhide,
@@ -1055,18 +1064,21 @@ html.theme-holo.holo-playing #holo-strings path {
     width: min(72px, 22vw) !important;
   }
   html.theme-holo #mobile-dock {
-    overflow: visible;
-    gap: 6px;
+    overflow: visible !important;
+    clip-path: none !important;
+    display: grid !important;
+    grid-template-columns: minmax(0, 1fr) max-content;
+    column-gap: 4px;
     z-index: 700 !important;
     align-items: center;
-    justify-content: space-between;
+    justify-content: stretch;
     width: 100%;
-    max-width: 100%;
+    max-width: 100vw;
     box-sizing: border-box;
-    padding-left: 8px !important;
-    padding-right: 8px !important;
-    padding-top: 10px !important;
-    padding-bottom: calc(12px + env(safe-area-inset-bottom)) !important;
+    padding-left: max(8px, env(safe-area-inset-left, 0px)) !important;
+    padding-right: max(8px, env(safe-area-inset-right, 0px)) !important;
+    padding-top: 8px !important;
+    padding-bottom: calc(8px + env(safe-area-inset-bottom, 0px)) !important;
   }
   html.theme-holo .win-resize {
     display: none !important;
@@ -1074,23 +1086,47 @@ html.theme-holo.holo-playing #holo-strings path {
   html.theme-holo #mobile-dock .mob-core {
     flex: 1 1 auto;
     min-width: 0;
+    gap: 3px;
+  }
+  html.theme-holo #mobile-dock .mob-end {
+    flex: 0 0 auto;
+    min-width: max-content;
     gap: 4px;
   }
   html.theme-holo #mobile-dock .mob-btn {
     animation: none !important;
-    overflow: visible;
+    overflow: visible !important;
     min-width: 0 !important;
     max-width: none;
     flex: 1 1 0;
-    padding: 8px 4px !important;
+    padding: 4px 1px !important;
+    letter-spacing: 0.03em !important;
+    transform: none !important;
   }
-  html.theme-holo #mobile-dock .orbit-mode-btn-mob {
-    animation: none !important;
-    overflow: visible;
+  html.theme-holo #mobile-dock .mob-end .mob-btn,
+  html.theme-holo #mobile-dock #btn-mob-custom {
     flex: 0 0 auto !important;
-    min-width: 0 !important;
-    max-width: 52px !important;
-    padding: 6px 4px !important;
+    min-width: max-content !important;
+    max-width: none !important;
+    padding: 4px 5px !important;
+  }
+  html.theme-holo #mobile-dock .orbit-mode-btn.orbit-mode-btn-mob {
+    animation: none !important;
+    overflow: visible !important;
+    flex: 0 0 auto !important;
+    min-width: max-content !important;
+    width: max-content !important;
+    max-width: none !important;
+    padding: 4px 6px !important;
+    transform: none !important;
+  }
+  html.theme-holo #mobile-dock .orbit-mode-track {
+    width: 20px !important;
+    height: 9px !important;
+  }
+  html.theme-holo #mobile-dock .orbit-mode-label {
+    letter-spacing: 0.04em !important;
+    font-size: 8px !important;
   }
   html.theme-holo #video-win,
   html.theme-holo #image-win {
@@ -1560,12 +1596,96 @@ html.theme-holo #holo-click-ring.is-on {
   100% { opacity: 0; transform: scale(1.55); }
 }
 
-/* Enlarge theater (PR #9): keep Orbit nav, drop holo window chrome. */
-html.theme-holo #video-win.video-enlarged {
+/* Enlarge theater: match live. Keep Orbit nav, drop floating holo chrome.
+   html.orbit-video-enlarge-lock beats leftover a11 clip/void on #video-win. */
+html.theme-holo.orbit-video-enlarge-lock #holo-tubes {
+  visibility: hidden !important;
+}
+html.theme-holo.orbit-video-enlarge-lock #video-win,
+html.theme-holo #video-win.video-enlarged,
+html.theme-holo #video-win.video-enlarged.win,
+html.theme-holo #video-win.video-enlarged.win:not(#dock-win) {
+  position: fixed !important;
+  top: 0 !important;
+  left: 0 !important;
+  right: 0 !important;
+  bottom: var(--orbit-dock-clearance, 84px) !important;
+  width: auto !important;
+  height: auto !important;
+  max-width: none !important;
+  max-height: none !important;
+  margin: 0 !important;
+  padding: 0 !important;
   border: none !important;
-  box-shadow: none !important;
+  border-radius: 0 !important;
+  outline: none !important;
   background: #000 !important;
+  box-shadow: none !important;
   filter: none !important;
   backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  overflow: hidden !important;
+  contain: none !important;
+  transform: none !important;
+  clip-path: none !important;
+  -webkit-clip-path: none !important;
+  animation: none !important;
+  z-index: 8500 !important;
+}
+html.theme-holo.orbit-video-enlarge-lock #video-win::before,
+html.theme-holo.orbit-video-enlarge-lock #video-win::after,
+html.theme-holo #video-win.video-enlarged::before,
+html.theme-holo #video-win.video-enlarged::after,
+html.theme-holo #video-win.video-enlarged.win:not(#dock-win)::after {
+  display: none !important;
+  content: none !important;
+  box-shadow: none !important;
+}
+html.theme-holo #video-win.video-enlarged .win-resize {
+  display: none !important;
+}
+html.theme-holo.orbit-video-enlarge-lock #video-win .win-body,
+html.theme-holo.orbit-video-enlarge-lock #video-win .orbit-video-faceplate,
+html.theme-holo #video-win.video-enlarged .win-body,
+html.theme-holo #video-win.video-enlarged .orbit-video-faceplate,
+html.theme-holo #video-win.video-enlarged .orbit-video-fullscreen-host,
+html.theme-holo #video-win.video-enlarged .orbit-video-stage {
+  overflow: hidden !important;
+  background: #000 !important;
+  border: none !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+  clip-path: none !important;
+  -webkit-clip-path: none !important;
+  transform: none !important;
+  filter: none !important;
+}
+html.theme-holo #video-win.video-enlarged #video-win-bar,
+html.theme-holo #video-win.video-enlarged .orbit-video-ai-foot {
+  display: none !important;
+}
+html.theme-holo #video-win.video-enlarged .orbit-video-enlarge-meta {
+  display: flex !important;
+}
+html.theme-holo #video-win.video-enlarged .orbit-video-enlarge-title {
+  color: #f4f0ff !important;
+  opacity: 1 !important;
+}
+html.theme-holo #video-win.video-enlarged .orbit-video-enlarge-artist {
+  color: #7EB0FF !important;
+  opacity: 1 !important;
+}
+html.theme-holo #video-win.video-enlarged .orbit-video-play-calm.play-btn,
+html.theme-holo #video-win.video-enlarged #video-btn-play {
+  width: 39px !important;
+  height: 39px !important;
+  min-width: 39px !important;
+  min-height: 39px !important;
+  flex: 0 0 39px !important;
+  margin: 0 !important;
+  transform: none !important;
+}
+html.theme-holo #video-win.video-enlarged .orbit-video-controls-row {
+  display: flex !important;
 }
 

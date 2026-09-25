@@ -37,9 +37,9 @@
   <link rel="dns-prefetch" href="https://unpkg.com">
 
   <!-- Modular CSS first (critical path). ?v= busts stale device caches on deploy. -->
-  <link rel="stylesheet" href="css/styles.css?v=20260925holo2">
-  <link rel="stylesheet" href="css/orbit-holo.css?v=20260925holo2">
-  <link rel="stylesheet" href="css/orbit-custom.css?v=20260831pl">
+  <link rel="stylesheet" href="css/styles.css?v=20260925product6">
+  <link rel="stylesheet" href="css/orbit-holo.css?v=20260925product6">
+  <link rel="stylesheet" href="css/orbit-custom.css?v=20260925product">
 
   <!-- Google Fonts -->
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Rajdhani:wght@500;600;700&family=Share+Tech+Mono&display=swap" rel="stylesheet"/>
@@ -592,9 +592,10 @@
         <span>Sfumato</span>
         <div class="taskbar-dot"></div>
       </a>
-      <button class="taskbar-btn" id="btn-custom" onclick="toggleWin('custom-win','btn-custom')">
+      <button class="taskbar-btn taskbar-btn-add-music" id="btn-custom" onclick="toggleWin('custom-win','btn-custom')" title="Add custom music" aria-label="Add custom music">
         <span class="material-symbols-outlined">library_add</span>
-        <span>Custom</span>
+        <span class="add-music-label add-music-label-full">Add custom music</span>
+        <span class="add-music-label add-music-label-short">Custom</span>
         <div class="taskbar-dot"></div>
       </button>
       </div>
@@ -635,16 +636,19 @@
       <span>Sfumato</span>
       <div class="mob-dot"></div>
     </a>
-    <button class="mob-btn" id="btn-mob-custom" onclick="mobToggle('custom-win','btn-mob-custom')">
+    </div>
+    <div class="mob-end">
+    <button class="mob-btn taskbar-btn-add-music" id="btn-mob-custom" onclick="mobToggle('custom-win','btn-mob-custom')" title="Add custom music" aria-label="Add custom music">
       <span class="material-symbols-outlined">library_add</span>
-      <span>Custom</span>
+      <span class="add-music-label add-music-label-full">Add custom music</span>
+      <span class="add-music-label add-music-label-short">Custom</span>
       <div class="mob-dot"></div>
     </button>
-    </div>
     <button type="button" class="orbit-mode-btn orbit-mode-btn-mob" id="btn-orbit-mode-mob" title="Change mode" aria-label="Switch visual mode" aria-pressed="false">
       <span class="orbit-mode-track" aria-hidden="true"><span class="orbit-mode-knob"></span></span>
       <span class="orbit-mode-label">Mode</span>
     </button>
+    </div>
     <div id="mob-overflow" class="mob-overflow" hidden></div>
   </div>
 
@@ -652,15 +656,15 @@
   <!-- Three.js (classic UMD build for zero-build file:// compatibility). If it fails to load
        (offline), space3d.js bails out silently and the 2D star canvas fallback takes over. -->
   <script src="https://unpkg.com/three@0.147.0/build/three.min.js"></script>
-  <script src="js/utils.js?v=20260921holo"></script>
+  <script src="js/utils.js?v=20260925product2"></script>
   <script src="js/holo-props.js?v=20260831mag2"></script>
   <script src="js/space3d.js?v=20260925holo"></script>
   <script src="js/orbit-skin.js?v=20260831xfade"></script>
-  <script src="js/holo-fx.js?v=20260831noflare"></script>
+  <script src="js/holo-fx.js?v=20260925product6"></script>
   <script src="js/player.js?v=20260925quarters-holo"></script>
-  <script src="js/custom-library.js?v=20260831pl"></script>
+  <script src="js/custom-library.js?v=20260925product"></script>
   <script src="js/planet-swipe.js?v=20260925holo2"></script>
-  <script src="js/gallery.js?v=20260925quarters-vid"></script>
-  <script src="js/main.js?v=20260921holo"></script>
+  <script src="js/gallery.js?v=20260925product6"></script>
+  <script src="js/main.js?v=20260925product"></script>
 </body>
 </html>

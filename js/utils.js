@@ -152,9 +152,48 @@ function winLayoutRect(win) {
   };
 }
 
+/* Dock occupies the bottom of the desktop. Windows should sit above it. */
+function dockClearanceBottom(vh) {
+  const viewH = vh || window.innerHeight;
+  if (typeof isMob === 'function' && isMob()) return 8;
+  const dock = document.getElementById('dock-win');
+  if (!dock) return 16;
+  try {
+    const st = window.getComputedStyle(dock);
+    if (st.display === 'none' || st.visibility === 'hidden') return 16;
+  } catch (e) { /* ignore */ }
+  const r = dock.getBoundingClientRect();
+  if (r.height > 8 && r.top > 40) {
+    return Math.max(16, Math.round(viewH - r.top + 10));
+  }
+  const h = Math.max(dock.offsetHeight || 0, 64);
+  let bottom = 16;
+  try {
+    const raw = (dock.style.bottom && dock.style.bottom.indexOf('px') !== -1)
+      ? parseFloat(dock.style.bottom)
+      : parseFloat(window.getComputedStyle(dock).bottom);
+    if (Number.isFinite(raw)) bottom = raw;
+  } catch (e2) { /* ignore */ }
+  return Math.max(16, Math.round(h + bottom + 10));
+}
+
+function dockFloorY(vh) {
+  const viewH = vh || window.innerHeight;
+  return Math.max(200, viewH - dockClearanceBottom(viewH));
+}
+
+function syncOrbitDockClearance() {
+  const px = dockClearanceBottom();
+  try {
+    document.documentElement.style.setProperty('--orbit-dock-clearance', px + 'px');
+  } catch (e) { /* ignore */ }
+  return px;
+}
+
 /* ── SMART WINDOW POSITIONING HELPERS (fixes info window + better defaults) ── */
 function clampWindowToViewport(win, margin = 8) {
-  if (!win) return;
+  if (!win || win.id === 'dock-win') return;
+  if (win.classList.contains('video-enlarged')) return;
   const rect = winLayoutRect(win);
   const vw = window.innerWidth;
   const vh = window.innerHeight;
@@ -162,15 +201,16 @@ function clampWindowToViewport(win, margin = 8) {
   let top = rect.top;
   let w = rect.width || 320;
   let h = rect.height || 380;
+  const bottomPad = Math.max(margin, dockClearanceBottom(vh));
   // also shrink if the window itself is now larger than the viewport (after browser resize)
   const maxW = vw - margin * 2;
-  const maxH = vh - margin * 2;
+  const maxH = Math.max(160, vh - margin - bottomPad);
   if (w > maxW) w = maxW;
   if (h > maxH) h = maxH;
   if (left < margin) left = margin;
   if (top < margin) top = margin;
   if (left + w > vw - margin) left = Math.max(margin, vw - w - margin);
-  if (top + h > vh - margin) top = Math.max(margin, vh - h - margin);
+  if (top + h > vh - bottomPad) top = Math.max(margin, vh - h - bottomPad);
   win.style.left = Math.round(left) + 'px';
   win.style.top = Math.round(top) + 'px';
   win.style.width = Math.round(w) + 'px';

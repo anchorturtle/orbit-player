@@ -453,6 +453,13 @@
         clipWin(el, '');
         return;
       }
+      /* Enlarge theater is a page-level fill under the dock — never a holo tube. */
+      if (html.classList.contains('orbit-video-enlarge-lock') ||
+          (el.id === 'video-win' && el.classList.contains('video-enlarged'))) {
+        clipWin(el, '');
+        if (el.id === 'video-win') return;
+        if (html.classList.contains('orbit-video-enlarge-lock') && el.id !== 'dock-win') return;
+      }
       var r = layoutBox(el);
       if (r.width < 12 || r.height < 12) {
         clipWin(el, '');
@@ -483,17 +490,22 @@
       var headU = still()
         ? ph.seed * peri
         : (((t * ph.speed * 0.55 * ph.dir + ph.seed * peri) % peri) + peri) % peri;
-      var tail = Math.max(64, peri * (slim ? 0.2 : 0.14));
+      var tail = Math.max(isDock ? 36 : 64, peri * (isDock ? 0.09 : (slim ? 0.2 : 0.14)));
       var flickW = still() ? 1 : (0.9 + 0.1 * Math.sin(t * 18 + ph.seed * 8));
-      var head = wavePoint(x, y, rw, rh, t, winIdx, ph.amp, ph.music, 0, slim, headU);
+      var dockMusic = isDock ? Math.min(ph.music, 1.2) : ph.music;
+      var head = wavePoint(x, y, rw, rh, t, winIdx, isDock ? Math.min(ph.amp, 0.8) : ph.amp, dockMusic, 0, slim, headU);
       var gid = 'holo-cg-' + winIdx;
-      var plasmaW = slim ? 5.2 : 8.5;
-      htmlStr += '<defs>' + cometGradient(gid, head.x, head.y, tail * 0.88) + '</defs>';
-      htmlStr += '<path class="holo-tube-glass" d="' + d + '"/>';
-      htmlStr += '<path class="holo-tube-plasma" d="' + cometRibbon(x, y, rw, rh, t, winIdx, ph.amp, ph.music, slim, headU, plasmaW * flickW, tail, ph.dir) + '" filter="url(#holo-plasma-soft)" style="fill:url(#' + gid + ')"/>';
-      htmlStr += '<path class="holo-tube-trail" d="' + cometRibbon(x, y, rw, rh, t, winIdx, ph.amp, ph.music, slim, headU, (slim ? 2.6 : 3.8) * flickW, tail * 0.72, ph.dir) + '" filter="url(#holo-plasma-glow)" style="fill:url(#' + gid + ')"/>';
-      htmlStr += '<path class="holo-tube-hot" d="' + cometRibbon(x, y, rw, rh, t, winIdx, ph.amp, ph.music, slim, headU, (slim ? 1.15 : 1.55) * flickW, tail * 0.38, ph.dir) + '" filter="url(#holo-plasma-core)" style="fill:url(#' + gid + ')"/>';
-      htmlStr += '<circle class="holo-tube-ember" cx="' + head.x.toFixed(2) + '" cy="' + head.y.toFixed(2) + '" r="' + ((slim ? 1.7 : 2.45) * flickW).toFixed(2) + '"/>';
+      var plasmaW = isDock ? 2.1 : (slim ? 5.2 : 8.5);
+      var trailW = isDock ? 1.15 : (slim ? 2.6 : 3.8);
+      var hotW = isDock ? 0.65 : (slim ? 1.15 : 1.55);
+      var emberR = isDock ? 0.85 : (slim ? 1.7 : 2.45);
+      var dockCls = isDock ? ' holo-tube-dock' : '';
+      htmlStr += '<defs>' + cometGradient(gid, head.x, head.y, tail * (isDock ? 0.55 : 0.88)) + '</defs>';
+      htmlStr += '<path class="holo-tube-glass' + dockCls + '" d="' + d + '"/>';
+      htmlStr += '<path class="holo-tube-plasma' + dockCls + '" d="' + cometRibbon(x, y, rw, rh, t, winIdx, isDock ? Math.min(ph.amp, 0.8) : ph.amp, dockMusic, slim, headU, plasmaW * flickW, tail, ph.dir) + '" filter="url(#holo-plasma-soft)" style="fill:url(#' + gid + ')"/>';
+      htmlStr += '<path class="holo-tube-trail' + dockCls + '" d="' + cometRibbon(x, y, rw, rh, t, winIdx, isDock ? Math.min(ph.amp, 0.8) : ph.amp, dockMusic, slim, headU, trailW * flickW, tail * 0.72, ph.dir) + '" filter="url(#holo-plasma-glow)" style="fill:url(#' + gid + ')"/>';
+      htmlStr += '<path class="holo-tube-hot' + dockCls + '" d="' + cometRibbon(x, y, rw, rh, t, winIdx, isDock ? Math.min(ph.amp, 0.8) : ph.amp, dockMusic, slim, headU, hotW * flickW, tail * 0.38, ph.dir) + '" filter="url(#holo-plasma-core)" style="fill:url(#' + gid + ')"/>';
+      htmlStr += '<circle class="holo-tube-ember' + dockCls + '" cx="' + head.x.toFixed(2) + '" cy="' + head.y.toFixed(2) + '" r="' + (emberR * flickW).toFixed(2) + '"/>';
       winIdx++;
     });
     tubes.querySelector('#holo-tube-draw').innerHTML = htmlStr;
@@ -827,11 +839,19 @@
       if (tubes) {
         var g = tubes.querySelector('#holo-tube-draw');
         if (g) g.innerHTML = '';
+        tubes.style.display = 'none';
       }
-      if (hud) hud.innerHTML = '';
+      if (hud) {
+        hud.innerHTML = '';
+        hud.style.display = 'none';
+      }
+      var flare = document.getElementById('holo-flare');
+      if (flare && flare.parentNode) flare.parentNode.removeChild(flare);
       killIdleGlow();
-    } else if (playing()) {
-      schedule();
+    } else {
+      if (tubes) tubes.style.display = '';
+      if (hud) hud.style.display = '';
+      if (playing()) schedule();
     }
   });
 

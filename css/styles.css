@@ -364,6 +364,31 @@ html.orbit-resizing .win {
   contain: layout style;
   overflow: hidden !important;
 }
+/* Live/main: never keep holo void-halo / wavy clip / extra corner grips. */
+html:not(.theme-holo) .win {
+  clip-path: none !important;
+  -webkit-clip-path: none !important;
+}
+html:not(.theme-holo) #player-win {
+  overflow: hidden !important;
+  contain: layout style;
+  clip-path: none !important;
+  -webkit-clip-path: none !important;
+}
+html:not(.theme-holo) #player-win .win-resize.n,
+html:not(.theme-holo) #player-win .win-resize.s,
+html:not(.theme-holo) #player-win .win-resize.ne,
+html:not(.theme-holo) #player-win .win-resize.nw,
+html:not(.theme-holo) #player-win .win-resize.se,
+html:not(.theme-holo) #player-win .win-resize.sw {
+  display: none !important;
+}
+html:not(.theme-holo) #holo-tubes,
+html:not(.theme-holo) #holo-hud,
+html:not(.theme-holo) #holo-click-ring,
+html:not(.theme-holo) #holo-flare {
+  display: none !important;
+}
 #player-win .win-body,
 #player-win .player-faceplate {
   overflow: hidden !important;
@@ -2379,8 +2404,8 @@ html.orbit-video-enlarge-lock body {
 
 /* ============ DESKTOP DOCK ============ */
 #dock-win {
-  position: fixed; bottom: 12px; left: 50%; transform: translateX(-50%);
-  width: max-content; max-width: min(960px, calc(100vw - 12px)); z-index: 400; border-radius: 999px;
+  position: fixed; bottom: 16px; left: 50%; transform: translateX(-50%);
+  width: max-content; max-width: min(960px, calc(100vw - 24px)); z-index: 400; border-radius: 999px;
   /* Dock is always on-screen — keep glass look with a fixed cheap blur (not 40–52px full-window stack). */
   backdrop-filter: blur(22px) saturate(1.7) brightness(1.04);
   -webkit-backdrop-filter: blur(22px) saturate(1.7) brightness(1.04);
@@ -2502,13 +2527,43 @@ html.orbit-video-enlarge-lock body {
 .taskbar-btn.win-open .material-symbols-outlined {
   color: var(--jestr-green); text-shadow: 0 0 8px rgba(0,200,150,.4);
 }
+/* Dock/mobile opener for the existing custom-library window. */
+.taskbar-btn-add-music,
+.mob-btn.taskbar-btn-add-music {
+  min-width: 86px;
+  text-transform: none;
+  letter-spacing: 0.02em;
+}
+.taskbar-btn-add-music .add-music-label {
+  text-align: center;
+  line-height: 1.15;
+}
+.taskbar-btn-add-music .add-music-label-full {
+  display: inline;
+  white-space: normal;
+  max-width: 7.2em;
+}
+.taskbar-btn-add-music .add-music-label-short { display: none; }
+#mobile-dock .taskbar-btn-add-music {
+  min-width: max-content;
+  max-width: none;
+  font-size: 8px;
+  letter-spacing: 0.03em;
+}
+#mobile-dock .taskbar-btn-add-music .add-music-label-full { display: none; }
+#mobile-dock .taskbar-btn-add-music .add-music-label-short {
+  display: block;
+  white-space: nowrap;
+  overflow: visible;
+  text-overflow: clip;
+}
 
 /* ============ MOBILE NAV DOCK ============ */
 #mobile-dock {
   display: none; position: fixed; bottom: 0; left: 0; right: 0; z-index: 500;
   background: rgba(5,3,16,.86); backdrop-filter: blur(22px) saturate(1.65); -webkit-backdrop-filter: blur(22px) saturate(1.65);
   border-top: 1px solid rgba(123,47,255,.22);
-  padding: 8px max(12px, env(safe-area-inset-right)) calc(8px + env(safe-area-inset-bottom)) max(12px, env(safe-area-inset-left));
+  padding: 8px max(12px, env(safe-area-inset-right, 0px)) calc(8px + env(safe-area-inset-bottom, 0px)) max(12px, env(safe-area-inset-left, 0px));
   align-items: center; justify-content: center;
   gap: 8px;
   box-sizing: border-box;
@@ -2520,6 +2575,14 @@ html.orbit-video-enlarge-lock body {
   gap: 6px;
   flex: 1 1 auto;
   min-width: 0;
+}
+.mob-end {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  flex: 0 0 auto;
+  gap: 4px;
+  min-width: max-content;
 }
 #mobile-dock::before {
   content: "";
@@ -2562,25 +2625,59 @@ html.orbit-video-enlarge-lock body {
   #dock-win { display: none; }
   html { --mob-dock-h: 88px; }
   #mobile-dock {
-    display: flex;
-    flex-direction: row;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) max-content;
+    grid-template-rows: auto;
     align-items: center;
-    justify-content: flex-start;
-    gap: 6px;
-    overflow: visible !important;
-    padding: 6px max(8px, env(safe-area-inset-right)) calc(6px + env(safe-area-inset-bottom)) max(8px, env(safe-area-inset-left)) !important;
+    justify-content: stretch;
+    column-gap: 4px;
+    row-gap: 0;
+    width: 100%;
+    max-width: 100vw;
+    overflow: visible;
+    clip-path: none !important;
+    padding: 6px max(8px, env(safe-area-inset-right, 0px)) calc(6px + env(safe-area-inset-bottom, 0px)) max(8px, env(safe-area-inset-left, 0px)) !important;
   }
   #mobile-dock .dock-logo-wrap {
-    display: flex;
-    margin: 0 2px 0 4px;
+    display: none;
   }
   #mobile-dock .dock-logo-main { font-size: 15px; }
   #mobile-dock .dock-logo-sub { font-size: 7px; letter-spacing: .2em; }
-  .mob-core { width: auto; flex: 1; min-width: 0; gap: 5px; }
+  .mob-core {
+    width: auto;
+    min-width: 0;
+    max-width: 100%;
+    gap: 3px;
+    grid-column: 1;
+  }
+  .mob-end {
+    grid-column: 2;
+    flex: 0 0 auto;
+    gap: 4px;
+    min-width: max-content;
+  }
   .mob-btn {
-    padding: 4px 2px !important;
+    padding: 4px 1px !important;
     min-height: 42px;
-    font-size: 8px !important;
+    min-width: 0 !important;
+    font-size: 7px !important;
+    letter-spacing: 0.03em !important;
+    overflow: visible !important;
+  }
+  #mobile-dock .mob-end .mob-btn,
+  #mobile-dock #btn-mob-custom {
+    flex: 0 0 auto !important;
+    min-width: max-content !important;
+    max-width: none !important;
+    padding: 4px 5px !important;
+    overflow: visible !important;
+  }
+  .mob-btn > span:not(.material-symbols-outlined) {
+    white-space: nowrap;
+    overflow: visible;
+    text-overflow: clip;
+    max-width: none;
+    letter-spacing: 0.03em;
   }
   .mob-btn .material-symbols-outlined { font-size: 18px !important; }
   #planet-bg { display: none; }
@@ -2588,13 +2685,20 @@ html.orbit-video-enlarge-lock body {
   html #mobile-dock button.orbit-mode-btn.orbit-mode-btn-mob {
     flex: 0 0 auto !important;
     align-self: center;
-    min-width: 44px !important;
-    min-height: 44px !important;
+    min-width: max-content !important;
+    width: max-content !important;
+    min-height: 40px !important;
     max-width: none !important;
     overflow: visible !important;
-    padding: 8px 10px !important;
+    padding: 4px 6px !important;
     margin: 0;
     z-index: 2;
+    transform: none !important;
+  }
+  html #mobile-dock .orbit-mode-label {
+    letter-spacing: 0.04em !important;
+    overflow: visible !important;
+    white-space: nowrap;
   }
 
   html #player-win {
@@ -3155,8 +3259,12 @@ a.mob-btn:visited {
 .orbit-mode-btn-mob .orbit-mode-label { font-size: 8px; letter-spacing: .12em; }
 
 @media (max-width: 767px) {
-  #mobile-dock { gap: 8px; overflow: visible; }
+  #mobile-dock { overflow: visible; }
   html #mobile-dock button.orbit-mode-btn.orbit-mode-btn-mob {
     max-width: none;
+    min-width: max-content !important;
+    padding: 4px 6px !important;
+    flex: 0 0 auto !important;
+    overflow: visible !important;
   }
 }
