@@ -21,7 +21,8 @@
     return html.classList.contains('theme-holo');
   }
   function still() {
-    return html.classList.contains('holo-still') || reduce;
+    /* Reduced-motion only calms strobe — never hides the environment. */
+    return false;
   }
   function playing() {
     var a = document.getElementById('audio-player');
@@ -154,7 +155,11 @@
     var sat = still() ? 0.7 : (1.05 + b.stim * 0.55);
     wash.style.setProperty('--holo-env-bloom', bloom.toFixed(3));
     wash.style.setProperty('--holo-env-sat', sat.toFixed(3));
-    wash.style.opacity = playing() ? String(Math.min(1, 0.42 + b.stim * 0.58)) : '0.18';
+    wash.style.opacity = playing() ? String(Math.min(1, 0.62 + b.stim * 0.38)) : '0.28';
+    var tb = tones();
+    wash.style.background =
+      'radial-gradient(ellipse 92% 72% at 50% 46%,' + rgba(tb.b, live ? (0.22 + b.kick * 0.45) : 0.08) + ' 0%,transparent 64%),' +
+      'radial-gradient(ellipse 80% 55% at 50% 88%,' + rgba(tb.c, live ? (0.18 + b.bass * 0.4) : 0.06) + ' 0%,transparent 72%)';
   }
 
   function spawnRing(kind, b) {
@@ -192,8 +197,8 @@
     var col = tones();
     var cx = W * 0.5;
     var cy = H * 0.46;
-    var live = !still() && playing();
-    var amp = live ? (28 + b.bass * 110 + b.stim * 50) : 8;
+    var live = playing();
+    var amp = live ? (48 + b.bass * 160 + b.stim * 70) : 14;
     var kickEdge = b.kick - lastKick;
     var snareEdge = b.snare - lastSnare;
     if (live && (kickEdge > 0.08 || (b.kick > 0.42 && kickEdge > 0.02))) spawnRing('kick', b);
@@ -218,8 +223,8 @@
       freq = 0.006 + b.mid * 0.012 + li * 0.0018;
       speed = t * (1.2 + li * 0.35 + b.high * 1.6);
       ctx.beginPath();
-      ctx.lineWidth = (li === 2 ? 2.6 : 1.4) + b.stim * 1.8;
-      ctx.strokeStyle = rgba(li % 2 ? col.c : col.b, live ? (0.22 + b.stim * 0.45) : 0.08);
+      ctx.lineWidth = (li === 2 ? 3.6 : 2.1) + b.stim * 2.4;
+      ctx.strokeStyle = rgba(li % 2 ? col.c : col.b, live ? (0.42 + b.stim * 0.5) : 0.14);
       for (x = 0; x <= W; x += 6) {
         y = y0
           + Math.sin(x * freq + speed) * amp * (0.55 + li * 0.12)

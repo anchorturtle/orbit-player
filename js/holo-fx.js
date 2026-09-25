@@ -827,11 +827,17 @@
       if (tubes) {
         var g = tubes.querySelector('#holo-tube-draw');
         if (g) g.innerHTML = '';
+        tubes.style.display = 'none';
       }
-      if (hud) hud.innerHTML = '';
+      if (hud) {
+        hud.innerHTML = '';
+        hud.style.display = 'none';
+      }
       killIdleGlow();
-    } else if (playing()) {
-      schedule();
+    } else {
+      if (tubes) tubes.style.display = '';
+      if (hud) hud.style.display = '';
+      if (playing()) schedule();
     }
   });
 

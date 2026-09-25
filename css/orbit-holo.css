@@ -27,32 +27,43 @@ html.theme-holo #holo-env-canvas {
   position: fixed;
   inset: 0;
   pointer-events: none;
-  z-index: 1;
+  display: block !important;
+}
+/* Above grain/scanlines (185–190) so multiply grain cannot eat the waves.
+   Below windows (300+) and below the planet title overlay. */
+html.theme-holo #holo-env-wash { z-index: 191; }
+html.theme-holo #holo-env-canvas {
+  z-index: 192;
+  mix-blend-mode: screen;
+}
+html.theme-holo #planet-bg {
+  z-index: 193 !important;
 }
 html.theme-holo #holo-env-wash {
-  opacity: 0.22;
-  filter: saturate(var(--holo-env-sat, 1.1));
+  opacity: 0.55;
+  filter: saturate(var(--holo-env-sat, 1.25));
   background:
     radial-gradient(ellipse 92% 72% at 50% 46%,
-      color-mix(in srgb, var(--holo-tone-b, #1A58E8) calc(10% + var(--holo-kick, 0) * 52%), transparent) 0%,
+      color-mix(in srgb, var(--holo-tone-b, #1A58E8) calc(16% + var(--holo-kick, 0) * 62%), transparent) 0%,
       transparent 64%),
     radial-gradient(ellipse 80% 55% at 50% 88%,
-      color-mix(in srgb, var(--holo-tone-c, #C41422) calc(8% + var(--holo-bass, 0) * 46%), transparent) 0%,
+      color-mix(in srgb, var(--holo-tone-c, #C41422) calc(14% + var(--holo-bass, 0) * 56%), transparent) 0%,
       transparent 72%),
     radial-gradient(ellipse 40% 30% at 18% 28%,
-      color-mix(in srgb, var(--holo-tone-b, #1A58E8) calc(6% + var(--holo-hat, 0) * 28%), transparent),
+      color-mix(in srgb, var(--holo-tone-b, #1A58E8) calc(10% + var(--holo-hat, 0) * 36%), transparent),
       transparent 70%),
     radial-gradient(ellipse 36% 28% at 84% 24%,
-      color-mix(in srgb, var(--holo-tone-c, #C41422) calc(5% + var(--holo-snare, 0) * 30%), transparent),
+      color-mix(in srgb, var(--holo-tone-c, #C41422) calc(9% + var(--holo-snare, 0) * 38%), transparent),
       transparent 70%);
-  transition: opacity 0.18s linear;
-}
-html.theme-holo #holo-env-canvas {
-  z-index: 2;
-  mix-blend-mode: screen;
+  transition: opacity 0.12s linear;
 }
 html:not(.theme-holo) #holo-env-wash,
 html:not(.theme-holo) #holo-env-canvas {
+  display: none !important;
+}
+html:not(.theme-holo) #holo-tubes,
+html:not(.theme-holo) #holo-hud,
+html:not(.theme-holo) #holo-click-ring {
   display: none !important;
 }
 

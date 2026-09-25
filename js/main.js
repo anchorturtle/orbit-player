@@ -127,18 +127,35 @@ function relayoutAfterSkin() {
   document.querySelectorAll('.win').forEach((w) => {
     w.style.clipPath = '';
     w.style.webkitClipPath = '';
+    w.style.removeProperty('clip-path');
+    w.style.removeProperty('-webkit-clip-path');
     w.classList.remove('holo-dragging');
+  });
+  ['holo-tubes', 'holo-hud', 'holo-click-ring'].forEach((id) => {
+    const el = document.getElementById(id);
+    if (!el) return;
+    if (!isHoloSkin()) {
+      el.style.display = 'none';
+      if (el.innerHTML && id !== 'holo-tubes') el.innerHTML = '';
+      const draw = el.querySelector && el.querySelector('#holo-tube-draw');
+      if (draw) draw.innerHTML = '';
+    } else {
+      el.style.display = '';
+    }
   });
   const pl = document.getElementById('player-win');
   if (pl) {
     delete pl.dataset.userPositioned;
     pl.style.transform = '';
+    pl.style.overflow = '';
+    pl.classList.remove('holo-dragging', 'player-holo-top', 'player-docked');
   }
   if (typeof isMob === 'function' && isMob()) return;
   applyDesktopLayout();
   requestAnimationFrame(() => {
     applyDesktopLayout();
     if (typeof fitPlayerWindow === 'function') fitPlayerWindow();
+    applyDesktopLayout();
     clampAllWindows(8);
   });
 }
