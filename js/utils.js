@@ -137,16 +137,31 @@ function setMobActive(id, on) {
   if (b) on ? b.classList.add('active') : b.classList.remove('active');
 }
 
+/* Layout box — never use getBoundingClientRect for size. 3D/CSS transforms
+   inflate the visual rect; writing that back as width/height grows windows
+   exponentially on each click/drag. */
+function winLayoutRect(win) {
+  if (!win) return { left: 0, top: 0, width: 0, height: 0 };
+  const left = parseFloat(win.style.left);
+  const top = parseFloat(win.style.top);
+  return {
+    left: Number.isFinite(left) ? left : (win.offsetLeft || 0),
+    top: Number.isFinite(top) ? top : (win.offsetTop || 0),
+    width: win.offsetWidth || 320,
+    height: win.offsetHeight || 380
+  };
+}
+
 /* ── SMART WINDOW POSITIONING HELPERS (fixes info window + better defaults) ── */
 function clampWindowToViewport(win, margin = 8) {
   if (!win) return;
-  const rect = win.getBoundingClientRect();
+  const rect = winLayoutRect(win);
   const vw = window.innerWidth;
   const vh = window.innerHeight;
   let left = rect.left;
   let top = rect.top;
-  let w = rect.width || win.offsetWidth || 320;
-  let h = rect.height || win.offsetHeight || 380;
+  let w = rect.width || 320;
+  let h = rect.height || 380;
   // also shrink if the window itself is now larger than the viewport (after browser resize)
   const maxW = vw - margin * 2;
   const maxH = vh - margin * 2;

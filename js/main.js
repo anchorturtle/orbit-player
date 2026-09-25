@@ -79,9 +79,98 @@ function fitPlayerWindow() {
 }
 window.fitPlayerWindow = fitPlayerWindow;
 
-/* ── DESKTOP LAYOUT (auto-position windows) — tuned for good visual alignment around the central planet.
-   Player is intentionally compact + low so the big glowing planet + overlaid "NOW PLAYING" focal
-   title/artist remain the hero visual and are not covered by the media player. */
+/* LAYOUT_V=3: live/main skin docks the media player above the bottom nav.
+   Holo keeps the player near the top. Stale orbitLayoutV (v2 top-park on live)
+   is ignored once so refresh cannot leave a mid-screen ghost player. */
+const LAYOUT_V = 3;
+window.__ORBIT_LAYOUT_V = LAYOUT_V;
+
+function isHoloSkin() {
+  return document.documentElement.classList.contains('theme-holo');
+}
+
+function parkPlayerWindow(pl, plW, cx, vw, vh, dockH, PAD, force) {
+  if (!pl) return;
+  if (!force && pl.dataset.userPositioned === 'true') return;
+  pl.style.width = plW + 'px';
+  pl.style.height = 'auto';
+  pl.style.left = Math.max(PAD, cx - plW / 2) + 'px';
+  pl.style.bottom = '';
+  pl.style.right = '';
+  pl.style.transform = '';
+  if (typeof fitPlayerWindow === 'function') fitPlayerWindow();
+  const h = pl.offsetHeight || 280;
+  if (isHoloSkin()) {
+    pl.style.top = PAD + 'px';
+    pl.classList.add('player-holo-top');
+    pl.classList.remove('player-docked');
+  } else {
+    pl.style.top = Math.max(PAD, vh - dockH - h - 12) + 'px';
+    pl.classList.add('player-docked');
+    pl.classList.remove('player-holo-top');
+  }
+}
+
+function clampAllWindows(margin) {
+  if (typeof clampWindowToViewport !== 'function') return;
+  const m = margin == null ? 8 : margin;
+  document.querySelectorAll('.win').forEach((w) => {
+    if (w.id === 'dock-win') return;
+    if (w.style.display === 'none') return;
+    if (!isWinVisible(w) && w.style.display !== 'flex') return;
+    clampWindowToViewport(w, m);
+  });
+}
+window.clampAllWindows = clampAllWindows;
+
+function relayoutAfterSkin() {
+  document.querySelectorAll('.win').forEach((w) => {
+    w.style.clipPath = '';
+    w.style.webkitClipPath = '';
+    w.style.removeProperty('clip-path');
+    w.style.removeProperty('-webkit-clip-path');
+    w.classList.remove('holo-dragging');
+    w.querySelectorAll('svg.holo-win-tube').forEach((svg) => {
+      if (!isHoloSkin() && svg.parentNode) svg.parentNode.removeChild(svg);
+    });
+  });
+  ['holo-tubes', 'holo-hud', 'holo-click-ring'].forEach((id) => {
+    const el = document.getElementById(id);
+    if (!el) return;
+    if (!isHoloSkin()) {
+      el.style.display = 'none';
+      if (el.innerHTML && id !== 'holo-tubes') el.innerHTML = '';
+      const draw = el.querySelector && el.querySelector('#holo-tube-draw');
+      if (draw) draw.innerHTML = '';
+    } else {
+      el.style.display = '';
+    }
+  });
+  const pl = document.getElementById('player-win');
+  if (pl) {
+    delete pl.dataset.userPositioned;
+    pl.style.transform = '';
+    pl.style.overflow = '';
+    pl.style.contain = '';
+    pl.style.boxShadow = '';
+    pl.style.clipPath = '';
+    pl.style.webkitClipPath = '';
+    pl.classList.remove('holo-dragging', 'player-holo-top', 'player-docked');
+  }
+  if (typeof isMob === 'function' && isMob()) return;
+  applyDesktopLayout();
+  requestAnimationFrame(() => {
+    applyDesktopLayout();
+    if (typeof fitPlayerWindow === 'function') fitPlayerWindow();
+    applyDesktopLayout();
+    clampAllWindows(8);
+  });
+}
+window.relayoutAfterSkin = relayoutAfterSkin;
+
+/* ── DESKTOP LAYOUT — planet stays the hero in the middle.
+   Live/main: player docks just above the bottom nav.
+   Holo: player sits near the top so the floor/grid reads. */
 function applyDesktopLayout() {
   if (isMob()) return;
 
@@ -121,15 +210,14 @@ function applyDesktopLayout() {
     g.style.bottom = ''; g.style.right = '';
   }
 
-  if (pl.dataset.userPositioned !== 'true') {
-    pl.style.width = plW + 'px';
-    pl.style.height = 'auto';
-    pl.style.left = Math.max(PAD, cx - plW / 2) + 'px';
-    pl.style.bottom = ''; pl.style.right = '';
-    if (typeof fitPlayerWindow === 'function') fitPlayerWindow();
-    const plH = pl.offsetHeight || 260;
-    pl.style.top = Math.max(PAD + 20, Math.min(usableH - plH - PAD - 10, cy + 300)) + 'px';
+  let storedLayoutV = 0;
+  try { storedLayoutV = parseInt(localStorage.getItem('orbitLayoutV') || '0', 10) || 0; } catch (e) { storedLayoutV = 0; }
+  const layoutStale = storedLayoutV !== LAYOUT_V;
+  if (layoutStale) {
+    try { localStorage.setItem('orbitLayoutV', String(LAYOUT_V)); } catch (e) {}
   }
+
+  parkPlayerWindow(pl, plW, cx, vw, vh, dockH, PAD, pl.dataset.userPositioned !== 'true' || layoutStale);
 
   // Lyrics viewer: center top middle. Default 15% narrower. Leaves room at bottom for media player.
   const ly = document.getElementById('lyrics-win');
@@ -625,47 +713,9 @@ makeWindowDraggable('lyrics-win', 'lyrics-bar');
       }
     }
 
-    // Clamp only non-user-positioned core windows on browser/viewport resize (incl. zoom).
-    // This prevents the gallery (or tracklist/player) from getting moved around when you
-    // have manually positioned it (userPositioned=true). Auto-positioned ones still follow
-    // the layout. User windows stay exactly where you left them (may overhang on heavy zoom-in;
-    // re-drag if desired).
-    ['tracklist-win', 'gallery-win', 'player-win'].forEach(id => {
-      const w = document.getElementById(id);
-      if (w && w.style.display === 'flex' && w.dataset.userPositioned !== 'true') {
-        if (typeof clampWindowToViewport === 'function') {
-          requestAnimationFrame(() => clampWindowToViewport(w, 8));
-        }
-      }
-    });
-
-    // For *user-positioned* windows (e.g. gallery you dragged): never change their
-    // left/top on zoom/resize (so it doesn't "get moved around"). But cap size if the
-    // viewport shrunk a lot, so it doesn't become bigger than the screen.
-    ['tracklist-win', 'gallery-win', 'player-win'].forEach(id => {
-      const w = document.getElementById(id);
-      if (w && w.style.display === 'flex' && w.dataset.userPositioned === 'true') {
-        const rect = w.getBoundingClientRect();
-        const vw = window.innerWidth;
-        const vh = window.innerHeight;
-        let newW = rect.width;
-        let newH = rect.height;
-        const minW = (id === 'player-win' ? 380 : 240);
-        const minH = (id === 'player-win' ? (w.offsetHeight || 200) : 200);
-        const maxW = Math.max(minW, vw - 16);
-        const maxH = Math.max(minH, vh - 16);
-        let changed = false;
-        if (newW > maxW) { newW = maxW; changed = true; }
-        if (newH > maxH) { newH = maxH; changed = true; }
-        if (changed) {
-          w.style.width = Math.round(newW) + 'px';
-          w.style.height = Math.round(newH) + 'px';
-          if (typeof saveWindowPosition === 'function') {
-            saveWindowPosition(id);
-          }
-        }
-      }
-    });
+    // Keep every visible floating window inside the viewport on resize —
+    // including ones the user dragged (otherwise they orphan off-screen).
+    requestAnimationFrame(() => clampAllWindows(8));
 
     // Refresh player waveform after browser resize (layout or clamp may have changed width)
     const pl = document.getElementById('player-win');
@@ -682,5 +732,9 @@ makeWindowDraggable('lyrics-win', 'lyrics-bar');
     if (isMob() && typeof updateMobPlayerHeight === 'function') {
       updateMobPlayerHeight();
     }
+  });
+
+  window.addEventListener('orbit-skin-change', () => {
+    relayoutAfterSkin();
   });
 })();
