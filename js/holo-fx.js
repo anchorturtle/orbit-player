@@ -161,6 +161,23 @@
     return tubes;
   }
 
+  function stripWinTubes() {
+    document.querySelectorAll('svg.holo-win-tube').forEach(function (svg) {
+      if (svg.parentNode) svg.parentNode.removeChild(svg);
+    });
+  }
+
+  function ensureWinTube(el) {
+    var svg = el.querySelector(':scope > svg.holo-win-tube');
+    if (!svg) {
+      svg = document.createElementNS(ns, 'svg');
+      svg.setAttribute('class', 'holo-win-tube');
+      svg.setAttribute('aria-hidden', 'true');
+      el.insertBefore(svg, el.firstChild);
+    }
+    return svg;
+  }
+
   function ensureHud() {
     hud = document.getElementById('holo-hud');
     if (hud) return hud;
@@ -434,23 +451,26 @@
         if (g0) g0.innerHTML = '';
         tubes.style.transform = '';
       }
+      stripWinTubes();
       clearAllWinClips();
       return;
     }
     ensureTubes();
-    var w = window.innerWidth;
-    var h = window.innerHeight;
-    tubes.setAttribute('viewBox', '-48 -48 ' + (w + 96) + ' ' + (h + 96));
-    tubes.setAttribute('width', String(w + 96));
-    tubes.setAttribute('height', String(h + 96));
+    var gGlobal = tubes.querySelector('#holo-tube-draw');
+    if (gGlobal) gGlobal.innerHTML = '';
     var t = performance.now() * 0.001;
     var stim = audioStim();
-    var htmlStr = '';
     var winIdx = 0;
+    var PAD = 48;
     document.querySelectorAll('.win').forEach(function (el) {
       var st = window.getComputedStyle(el);
       if (st.display === 'none' || st.visibility === 'hidden') {
         clipWin(el, '');
+        var dead = el.querySelector(':scope > svg.holo-win-tube');
+        if (dead) {
+          dead.innerHTML = '';
+          dead.style.display = 'none';
+        }
         return;
       }
       var r = layoutBox(el);
@@ -459,25 +479,21 @@
         return;
       }
       var isDock = el.id === 'dock-win';
-      /* Dock squiggle sits outside the bar so stroke/comet cannot shave the buttons.
-         Non-dock tube sits on the box edge (not inset) so the void fill can run
-         under and past the wire. */
+      /* Local coords so each window owns its chrome in its own stacking context.
+         A back window's wire cannot paint through a front window / video / dock. */
       var inset = isDock ? -10 : 0;
-      var x = r.left + inset;
-      var y = r.top + inset;
+      var x = inset;
+      var y = inset;
       var rw = Math.max(2, r.width - inset * 2);
       var rh = Math.max(2, r.height - inset * 2);
       var ph = phaseFor(el, winIdx);
       rubberAmp(ph, mouseNearBox(r), stim);
       var slim = isDock || r.height < 88;
       var d = wavyRect(x, y, rw, rh, t, winIdx, ph.amp, ph.music, 0, slim);
-      /* Dock/nav stays unclipped. Other windows: extraIn -8 pushes the clip
-         past the wire, minOut 8 is a FLOOR so the wave cannot shave title/
-         buttons/lists. Square corners of the void spread still get cut. */
       if (slim) {
         clipWin(el, '');
       } else {
-        clipWin(el, offsetPath(wavyRect(x, y, rw, rh, t, winIdx, ph.amp, ph.music, -8, false, 8), -r.left, -r.top));
+        clipWin(el, wavyRect(x, y, rw, rh, t, winIdx, ph.amp, ph.music, -8, false, 8));
       }
       var peri = 2 * (rw + rh);
       var headU = still()
@@ -486,18 +502,20 @@
       var tail = Math.max(64, peri * (slim ? 0.2 : 0.14));
       var flickW = still() ? 1 : (0.9 + 0.1 * Math.sin(t * 18 + ph.seed * 8));
       var head = wavePoint(x, y, rw, rh, t, winIdx, ph.amp, ph.music, 0, slim, headU);
-      var gid = 'holo-cg-' + winIdx;
+      var gid = 'holo-cg-' + (el.id || winIdx);
       var plasmaW = slim ? 5.2 : 8.5;
-      htmlStr += '<defs>' + cometGradient(gid, head.x, head.y, tail * 0.88) + '</defs>';
-      htmlStr += '<path class="holo-tube-glass" d="' + d + '"/>';
-      htmlStr += '<path class="holo-tube-plasma" d="' + cometRibbon(x, y, rw, rh, t, winIdx, ph.amp, ph.music, slim, headU, plasmaW * flickW, tail, ph.dir) + '" filter="url(#holo-plasma-soft)" style="fill:url(#' + gid + ')"/>';
-      htmlStr += '<path class="holo-tube-trail" d="' + cometRibbon(x, y, rw, rh, t, winIdx, ph.amp, ph.music, slim, headU, (slim ? 2.6 : 3.8) * flickW, tail * 0.72, ph.dir) + '" filter="url(#holo-plasma-glow)" style="fill:url(#' + gid + ')"/>';
-      htmlStr += '<path class="holo-tube-hot" d="' + cometRibbon(x, y, rw, rh, t, winIdx, ph.amp, ph.music, slim, headU, (slim ? 1.15 : 1.55) * flickW, tail * 0.38, ph.dir) + '" filter="url(#holo-plasma-core)" style="fill:url(#' + gid + ')"/>';
-      htmlStr += '<circle class="holo-tube-ember" cx="' + head.x.toFixed(2) + '" cy="' + head.y.toFixed(2) + '" r="' + ((slim ? 1.7 : 2.45) * flickW).toFixed(2) + '"/>';
+      var svg = ensureWinTube(el);
+      svg.style.display = '';
+      svg.setAttribute('viewBox', (-PAD) + ' ' + (-PAD) + ' ' + (r.width + PAD * 2) + ' ' + (r.height + PAD * 2));
+      svg.innerHTML =
+        '<defs>' + cometGradient(gid, head.x, head.y, tail * 0.88) + '</defs>' +
+        '<path class="holo-tube-glass" d="' + d + '"/>' +
+        '<path class="holo-tube-plasma" d="' + cometRibbon(x, y, rw, rh, t, winIdx, ph.amp, ph.music, slim, headU, plasmaW * flickW, tail, ph.dir) + '" filter="url(#holo-plasma-soft)" style="fill:url(#' + gid + ')"/>' +
+        '<path class="holo-tube-trail" d="' + cometRibbon(x, y, rw, rh, t, winIdx, ph.amp, ph.music, slim, headU, (slim ? 2.6 : 3.8) * flickW, tail * 0.72, ph.dir) + '" filter="url(#holo-plasma-glow)" style="fill:url(#' + gid + ')"/>' +
+        '<path class="holo-tube-hot" d="' + cometRibbon(x, y, rw, rh, t, winIdx, ph.amp, ph.music, slim, headU, (slim ? 1.15 : 1.55) * flickW, tail * 0.38, ph.dir) + '" filter="url(#holo-plasma-core)" style="fill:url(#' + gid + ')"/>' +
+        '<circle class="holo-tube-ember" cx="' + head.x.toFixed(2) + '" cy="' + head.y.toFixed(2) + '" r="' + ((slim ? 1.7 : 2.45) * flickW).toFixed(2) + '"/>';
       winIdx++;
     });
-    tubes.querySelector('#holo-tube-draw').innerHTML = htmlStr;
-    tubes.style.transform = '';
   }
 
   function drawHud() {
@@ -824,6 +842,7 @@
       clearFx();
       killStrings();
       clearAllWinClips();
+      stripWinTubes();
       if (tubes) {
         var g = tubes.querySelector('#holo-tube-draw');
         if (g) g.innerHTML = '';

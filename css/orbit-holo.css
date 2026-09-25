@@ -77,7 +77,8 @@ html:not(.theme-holo) #holo-env-canvas {
 }
 html:not(.theme-holo) #holo-tubes,
 html:not(.theme-holo) #holo-hud,
-html:not(.theme-holo) #holo-click-ring {
+html:not(.theme-holo) #holo-click-ring,
+html:not(.theme-holo) .holo-win-tube {
   display: none !important;
 }
 
@@ -251,6 +252,7 @@ html.theme-holo textarea {
 /* Glass plate: see the grid through it. Wire edge only. */
 html.theme-holo .win {
   overflow: hidden;
+  isolation: isolate;
   contain: layout style !important;
   transform: none !important;
   filter: none;
@@ -262,13 +264,21 @@ html.theme-holo .win {
   color: #1A58E8 !important;
   box-shadow: none !important;
 }
-/* Spread the void past the wire so clip-path can hug the tube from outside
-   without a planet/grid halo at the inner edge. Dock stays tight/unclipped. */
+/* Tight void so the wire has a black edge without a 40px ghost card
+   punching through the window in front. isolation keeps it in-stack. */
 html.theme-holo .win:not(#dock-win) {
   overflow: visible !important;
-  /* 12px is the void past the wire; 40px is paint the clip-path can cut
-     to the outward wave so big music bulges do not halo the planet. */
-  box-shadow: 0 0 0 12px #050608, 0 0 0 40px #050608 !important;
+  box-shadow: 0 0 0 8px #050608 !important;
+}
+html.theme-holo .holo-win-tube {
+  position: absolute;
+  left: -48px;
+  top: -48px;
+  width: calc(100% + 96px);
+  height: calc(100% + 96px);
+  overflow: visible;
+  pointer-events: none;
+  z-index: 26;
 }
 html.theme-holo .win.holo-dragging {
   transform: none !important;
@@ -332,9 +342,15 @@ html.theme-holo #dock-win {
   border-radius: 22px !important;
   overflow: visible !important;
   contain: none !important;
+  isolation: isolate;
   z-index: 1300 !important;
   clip-path: none !important;
   box-sizing: border-box;
+}
+html.theme-holo #video-win,
+html.theme-holo #image-win,
+html.theme-holo #lyrics-win {
+  isolation: isolate;
 }
 html.theme-holo #dock-win .win-body {
   overflow: visible !important;
@@ -868,20 +884,23 @@ html.theme-holo #holo-hud .holo-hud-rip {
 #holo-tubes {
   display: none;
   position: fixed;
-  inset: 0;
-  z-index: 1200;
+  width: 0;
+  height: 0;
+  overflow: hidden;
+  z-index: 0;
   pointer-events: none;
 }
 html.theme-holo #holo-tubes {
   display: block;
-  overflow: visible;
-  will-change: transform;
-  top: -48px;
-  left: -48px;
-  width: calc(100% + 96px);
-  height: calc(100% + 96px);
+  /* Defs host only — chrome lives on .holo-win-tube inside each .win */
+  width: 0;
+  height: 0;
+  top: 0;
+  left: 0;
+  overflow: hidden;
 }
-html.theme-holo #holo-tubes .holo-tube-glass {
+html.theme-holo #holo-tubes .holo-tube-glass,
+html.theme-holo .holo-win-tube .holo-tube-glass {
   fill: none;
   stroke: #1A58E8;
   stroke-width: 1.7;
@@ -891,11 +910,15 @@ html.theme-holo #holo-tubes .holo-tube-glass {
 }
 html.theme-holo #holo-tubes .holo-tube-plasma,
 html.theme-holo #holo-tubes .holo-tube-trail,
-html.theme-holo #holo-tubes .holo-tube-hot {
+html.theme-holo #holo-tubes .holo-tube-hot,
+html.theme-holo .holo-win-tube .holo-tube-plasma,
+html.theme-holo .holo-win-tube .holo-tube-trail,
+html.theme-holo .holo-win-tube .holo-tube-hot {
   fill: #1A58E8;
   stroke: none;
 }
-html.theme-holo #holo-tubes .holo-tube-ember {
+html.theme-holo #holo-tubes .holo-tube-ember,
+html.theme-holo .holo-win-tube .holo-tube-ember {
   fill: #F4F8FF;
   stroke: none;
   opacity: 0.95;

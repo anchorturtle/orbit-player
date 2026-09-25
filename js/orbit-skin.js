@@ -7,6 +7,15 @@
 
   var KEY = 'orbitSkin';
   var html = document.documentElement;
+  /* Locked names: glass | holo | patch. live is a glass alias. patch is v3 elsewhere. */
+
+  function canonSkin(raw) {
+    var s = String(raw || '').toLowerCase();
+    if (s === 'live' || s === 'main') return 'glass';
+    if (s === 'holo' || s === 'hologram') return 'holo';
+    if (s === 'patch' || s === 'patchwork') return 'patch';
+    return '';
+  }
 
   function isHolo() {
     return html.classList.contains('theme-holo');
@@ -40,16 +49,18 @@
   function apply(on, persist) {
     on = !!on;
     html.classList.toggle('theme-holo', on);
+    html.classList.toggle('theme-glass', !on);
+    html.setAttribute('data-orbit-skin', on ? 'holo' : 'glass');
     html.classList.add('orbit-skin-xfade');
     if (window.__orbitSkinXfadeT) clearTimeout(window.__orbitSkinXfadeT);
     window.__orbitSkinXfadeT = setTimeout(function () {
       html.classList.remove('orbit-skin-xfade');
     }, 520);
     if (persist !== false) {
-      try { localStorage.setItem(KEY, on ? 'holo' : 'live'); } catch (e) {}
+      try { localStorage.setItem(KEY, on ? 'holo' : 'glass'); } catch (e) {}
       try {
         var u = new URL(location.href);
-        u.searchParams.set('skin', on ? 'holo' : 'live');
+        u.searchParams.set('skin', on ? 'holo' : 'glass');
         if (history.replaceState) history.replaceState({}, '', u);
       } catch (e2) {}
     }
@@ -58,7 +69,7 @@
     if (typeof window.__ORBIT_SKIN_APPLY__ === 'function') {
       try { window.__ORBIT_SKIN_APPLY__(on); } catch (e) {}
     }
-    window.dispatchEvent(new CustomEvent('orbit-skin-change', { detail: { holo: on } }));
+    window.dispatchEvent(new CustomEvent('orbit-skin-change', { detail: { holo: on, skin: on ? 'holo' : 'glass' } }));
   }
 
   function toggle() {
@@ -93,9 +104,9 @@
   } catch (e) {}
 
   try {
-    var bootQ = new URLSearchParams(location.search).get('skin');
+    var bootQ = canonSkin(new URLSearchParams(location.search).get('skin'));
     if (bootQ === 'holo') apply(true, true);
-    else if (bootQ === 'live') apply(false, true);
+    else if (bootQ === 'glass' || bootQ === 'patch') apply(false, true);
     else apply(isHolo(), false);
   } catch (e) {
     apply(isHolo(), false);

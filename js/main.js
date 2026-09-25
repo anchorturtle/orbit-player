@@ -130,6 +130,9 @@ function relayoutAfterSkin() {
     w.style.removeProperty('clip-path');
     w.style.removeProperty('-webkit-clip-path');
     w.classList.remove('holo-dragging');
+    w.querySelectorAll('svg.holo-win-tube').forEach((svg) => {
+      if (!isHoloSkin() && svg.parentNode) svg.parentNode.removeChild(svg);
+    });
   });
   ['holo-tubes', 'holo-hud', 'holo-click-ring'].forEach((id) => {
     const el = document.getElementById(id);
