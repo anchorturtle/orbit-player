@@ -373,7 +373,7 @@
 
           if (uHolo > 0.5) {
             /* Graphic ink globe — Ōkami paper/vermillion + Jack hard bands. */
-            vec3 body = vec3(0.008, 0.010, 0.016);
+            vec3 body = vec3(0.016, 0.018, 0.024);
             vec3 paper = vec3(0.949, 0.929, 0.894);
             vec3 blood = mix(vec3(0.878, 0.078, 0.157), uColC, 0.28);
             vec3 blue = mix(vec3(0.102, 0.345, 0.910), uColB, 0.22);
@@ -391,11 +391,11 @@
             float band = floor(height * 4.999) / 4.0;
 
             vec3 topo = body;
-            topo = mix(topo, body * 2.2, step(0.25, band) * (1.0 - step(0.5, band)));
-            topo = mix(topo, blood * 0.42, step(0.5, band) * (1.0 - step(0.75, band)));
+            topo = mix(topo, blood * 0.22, step(0.25, band) * (1.0 - step(0.5, band)));
+            topo = mix(topo, blood * 0.62, step(0.5, band) * (1.0 - step(0.75, band)));
             topo = mix(topo, blood, step(0.75, band));
-            topo = mix(topo, paper, ridge * step(0.75, band) * 0.72);
-            topo = mix(topo, blue, ridge * (1.0 - step(0.75, band)) * 0.22);
+            topo = mix(topo, paper, ridge * step(0.75, band) * 0.82);
+            topo = mix(topo, blue, ridge * (1.0 - step(0.75, band)) * 0.28);
 
             /* Idle = full topo. uPulse 0..1 is a slow south→north refresh wave. */
             float lat01 = clamp(n.y * 0.5 + 0.5, 0.0, 1.0);
@@ -1034,8 +1034,8 @@
         float rip = 0.5 + 0.5 * sin(length(p.xz) * 0.18 - t * 0.65);
         vBri = 0.42 + 0.58 * music * wavy * rip;
         vec4 mv = modelViewMatrix * vec4(p, 1.0);
-        float size = aSize * (1.7 + uBass * 1.35 + uAudio * 0.85) * mix(1.55, 2.2, far);
-        gl_PointSize = size * uScale * 0.072 / max(0.12, -mv.z);
+        float size = aSize * (2.1 + uBass * 1.55 + uAudio * 0.95) * mix(1.7, 2.5, far);
+        gl_PointSize = size * uScale * 0.095 / max(0.12, -mv.z);
         gl_Position = projectionMatrix * mv;
       }
     `,
@@ -1095,18 +1095,16 @@
           vec3 blue = vec3(0.102, 0.345, 0.910);
           vec3 red = vec3(0.878, 0.078, 0.157);
           float zenith = smoothstep(0.74, 0.93, h);
-          float mid = smoothstep(0.40, 0.56, h) * (1.0 - smoothstep(0.64, 0.84, h));
-          float floorBand = 1.0 - smoothstep(0.06, 0.30, h);
+          float mid = smoothstep(0.38, 0.58, h) * (1.0 - smoothstep(0.66, 0.86, h));
+          float floorBand = 1.0 - smoothstep(0.04, 0.34, h);
           vec3 col = ink;
-          col = mix(col, blue, mid * 0.92);
-          col = mix(col, red, floorBand * 0.96);
-          col = mix(col, paper * 0.18, zenith * 0.55);
-          float seam = 1.0 - smoothstep(0.0, 0.014, abs(h - 0.34));
-          col = mix(col, paper, seam * 0.62);
-          float seam2 = 1.0 - smoothstep(0.0, 0.010, abs(h - 0.20));
-          col = mix(col, red, seam2 * 0.85);
+          col = mix(col, blue, mid * 0.88);
+          col = mix(col, red, floorBand * 0.90);
+          col = mix(col, paper * 0.12, zenith * 0.40);
+          float seam2 = 1.0 - smoothstep(0.0, 0.016, abs(h - 0.22));
+          col = mix(col, red, seam2 * 0.55);
           float drift = 0.5 + 0.5 * sin(n.x * 2.2 + uTime * 0.07);
-          col = mix(col, blue * 0.55, drift * zenith * 0.18);
+          col = mix(col, blue * 0.45, drift * zenith * 0.14);
           col *= 1.0 + uBass * 0.10 + uAudio * 0.04;
           gl_FragColor = vec4(col, 1.0);
         }
@@ -1123,30 +1121,52 @@
   holoDepth.name = 'holoDepth';
   holoDepth.visible = false;
   const holoSlabs = [];
-  function makeHoloSlab(w, h, hex, x, y, z, rotZ) {
+  function makeHoloBand(w, h, hex, x, y, z, rotX, rotZ, opacity) {
     const m = new THREE.Mesh(
       new THREE.PlaneGeometry(w, h),
-      new THREE.MeshBasicMaterial({
-        color: hex,
+      new THREE.ShaderMaterial({
+        uniforms: {
+          uCol: { value: new THREE.Color(hex) },
+          uOp: { value: opacity }
+        },
         transparent: true,
-        opacity: 0.38,
         depthWrite: false,
         depthTest: true,
         fog: false,
-        side: THREE.DoubleSide
+        side: THREE.DoubleSide,
+        vertexShader: `
+          varying vec2 vUv;
+          void main(){
+            vUv = uv;
+            gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+          }
+        `,
+        fragmentShader: `
+          uniform vec3 uCol;
+          uniform float uOp;
+          varying vec2 vUv;
+          void main(){
+            float gx = 1.0 - abs(vUv.x * 2.0 - 1.0);
+            float gy = 1.0 - abs(vUv.y * 2.0 - 1.0);
+            float band = smoothstep(0.08, 0.55, gy) * smoothstep(0.02, 0.28, gx);
+            float a = band * uOp;
+            if (a < 0.01) discard;
+            gl_FragColor = vec4(uCol, a);
+          }
+        `
       })
     );
     m.position.set(x, y, z);
+    m.rotation.x = rotX || 0;
     m.rotation.z = rotZ || 0;
     m.userData.base = { x: x, y: y, z: z };
     holoDepth.add(m);
     holoSlabs.push(m);
     return m;
   }
-  makeHoloSlab(90, 36, 0xC41422, -38, -18, -72, -0.12);
-  makeHoloSlab(70, 28, 0x1A58E8, 42, 16, -88, 0.18);
-  makeHoloSlab(48, 18, 0xF2EDE4, 8, 28, -104, -0.06);
-  holoSlabs[2].material.opacity = 0.12;
+  /* Distant horizon bands only — no giant solid cards in the room. */
+  makeHoloBand(160, 18, 0xC41422, 0, -22, -96, -0.18, 0, 0.42);
+  makeHoloBand(140, 14, 0x1A58E8, 0, 26, -110, 0.12, 0, 0.28);
   scene.add(holoDepth);
 
   /* 80s cyberspace layer — Tron floor already exists; this fills the room
