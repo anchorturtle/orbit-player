@@ -27,9 +27,9 @@ html.theme-holo {
 html.theme-holo,
 html.theme-holo body {
   background:
-    radial-gradient(ellipse 130% 58% at 50% 118%, #C41422 0%, #6a0a12 18%, transparent 46%),
+    radial-gradient(ellipse 90% 34% at 50% 68%, #C41422 0%, transparent 50%),
     radial-gradient(ellipse 100% 52% at 50% -12%, #1A58E8 0%, #081028 26%, transparent 54%),
-    linear-gradient(180deg, #020308 0%, #05060a 42%, #0a0608 78%, #14080a 100%);
+    linear-gradient(180deg, #020308 0%, #05060a 48%, #020308 100%);
   color: #1A58E8;
   font-family: 'Share Tech Mono', 'Rajdhani', sans-serif;
 }
@@ -80,12 +80,12 @@ html.theme-holo #space-bg {
   background:
     radial-gradient(ellipse 72% 42% at 16% 24%, rgba(45, 107, 255, 0.34) 0%, transparent 58%),
     radial-gradient(ellipse 58% 36% at 86% 18%, rgba(242, 237, 228, 0.10) 0%, transparent 54%),
-    radial-gradient(ellipse 90% 46% at 50% 104%, rgba(196, 20, 34, 0.46) 0%, #6a0a12 22%, transparent 56%),
+    radial-gradient(ellipse 78% 30% at 50% 64%, rgba(196, 20, 34, 0.30) 0%, transparent 56%),
     linear-gradient(180deg,
       rgba(2, 3, 8, 0.15) 0%,
       rgba(26, 88, 232, 0.10) 34%,
-      rgba(8, 4, 6, 0.08) 62%,
-      rgba(196, 20, 34, 0.16) 100%);
+      transparent 78%,
+      transparent 100%);
 }
 
 html.theme-holo #planet-bg {

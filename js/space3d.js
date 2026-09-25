@@ -192,6 +192,9 @@
         root.setProperty('--track-a', p[0]);
         root.setProperty('--track-b', p[1]);
         root.setProperty('--track-c', p[2]);
+        root.removeProperty('--jestr-green');
+        root.removeProperty('--jestr-blue');
+        root.removeProperty('--jestr-red');
       }
     } catch (e) {}
   }
@@ -846,6 +849,7 @@
     uniform float uFloorY;
     uniform float uBowlR;
     uniform float uRipR;
+    uniform float uDockPx;
     varying vec3 vWorld;
     varying vec2 vXZ;
     varying float vWave;
@@ -869,13 +873,17 @@
       float L = max(max(line * 0.78, major * 1.0), crest * 0.42);
       vec3 ink = vec3(0.10, 0.34, 0.91);
       vec3 blood = vec3(0.88, 0.08, 0.16);
+      float n = fract(sin(dot(uv * 37.0, vec2(12.9898, 78.233))) * 43758.5453);
+      float hatch = step(0.5, fract((uv.x + uv.y) * 6.0 + uTime * 0.08));
       vec3 col = mix(ink, blood, clamp(major * 0.28 + uBass * 0.22, 0.0, 1.0));
       col *= (0.28 + L * 1.25);
       col += ink * (crest * 0.22 + vFall * 0.10);
+      col *= 0.78 + n * 0.16 + hatch * 0.12;
       col *= 1.0 + uBass * 0.18;
       float riseAng = length(vXZ) / max(0.001, uBowlR);
       float fade = 1.0 - smoothstep(0.70, 1.00, riseAng);
-      float alpha = (0.05 + L * 0.62 + crest * 0.16) * fade * (0.7 + uBass * 0.16);
+      float dockFade = smoothstep(0.0, max(1.0, uDockPx), gl_FragCoord.y);
+      float alpha = (0.05 + L * 0.62 + crest * 0.16 + hatch * 0.04) * fade * dockFade * (0.7 + uBass * 0.16);
       gl_FragColor = vec4(col, alpha);
     }
   `;
@@ -902,7 +910,8 @@
     uHasMouse: { value: 0 },
     uFloorY: { value: HOLO_FLOOR_Y },
     uBowlR: { value: HOLO_BOWL_R },
-    uRipR: { value: 8 }
+    uRipR: { value: 8 },
+    uDockPx: { value: 110 }
   };
   const holoGridGeo = new THREE.PlaneGeometry(128, 128, 48, 48);
   holoGridGeo.rotateX(-Math.PI / 2);
@@ -2878,6 +2887,15 @@
       if (currentView.ringGroup) currentView.ringGroup.scale.setScalar(auraS);
       holoTimeU.value = t;
       holoBassU.value = stillHolo ? 0 : bassSm;
+      if (holoGridUniforms.uDockPx) {
+        const dock = document.getElementById('dock-win');
+        let band = 110;
+        if (dock) {
+          const r = dock.getBoundingClientRect();
+          band = Math.max(24, window.innerHeight - r.top + 14);
+        }
+        holoGridUniforms.uDockPx.value = band * (renderer.getPixelRatio ? renderer.getPixelRatio() : 1);
+      }
       if (currentView.core.material.uniforms.uSpin) {
         currentView.core.material.uniforms.uSpin.value = currentView.core.rotation.y;
       }
