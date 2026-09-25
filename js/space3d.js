@@ -139,27 +139,55 @@
     for (let i = 0; i < s.length; i++) h = (h * 31 + s.charCodeAt(i)) >>> 0;
     return h;
   }
+  /* Distinct two-tone holo worlds — not one global cyan/red. */
+  const HOLO_WORLDS = {
+    'quarters': ['#050608', '#1A58E8', '#C41422'],
+    'offers': ['#0A0614', '#EDE8FF', '#7B2FFF'],
+    'thousand-dragon': ['#0C0804', '#F2C14E', '#C41422'],
+    'ko': ['#04080A', '#00E5A8', '#FF2D6A'],
+    'hyperdream-odyssey': ['#06040E', '#FF6EC7', '#2D5BFF'],
+    'soul-seer': ['#070A08', '#9AFF6B', '#2D6BFF'],
+    'geronimo': ['#0A0404', '#FF4D1A', '#FFE8D0'],
+    'spin-cycle': ['#05060A', '#7EC8E3', '#C41422'],
+    'mile-high': ['#04060C', '#2D6BFF', '#FFFFFF'],
+    'follow-the-flow': ['#061014', '#19E3C2', '#1A58E8'],
+    'peace': ['#08060C', '#C9B8FF', '#FFFFFF'],
+    'strider': ['#0A0806', '#FF9A3C', '#1A58E8'],
+    'insane-membrane': ['#08040A', '#FF2D9A', '#2D6BFF'],
+    'wavy': ['#040A12', '#3DDCFF', '#C41422'],
+    'boa-constrictor': ['#0A0604', '#6BFF4D', '#C41422'],
+    'news': ['#06080C', '#FFFFFF', '#1A58E8'],
+    'wheels': ['#080604', '#FFB020', '#C41422'],
+    'pop': ['#0C0410', '#FF4DDF', '#FFE14D'],
+    'the-sum-of-hippy-thoughts': ['#061208', '#B8FF4D', '#7B2FFF'],
+    'what-dreams-may-come': ['#06040E', '#B48CFF', '#1A58E8'],
+    'jazzpot': ['#0A0608', '#FF7A3C', '#2D6BFF']
+  };
   const PALETTES_HOLO = [
     ['#050608', '#1A58E8', '#C41422'],
-    ['#07080A', '#C41422', '#1A58E8'],
-    ['#030407', '#2D6BFF', '#9A1018'],
-    ['#0A0C10', '#A01018', '#1A58E8'],
-    ['#050608', '#0E3AA8', '#C41422'],
-    ['#080406', '#E82830', '#2D6BFF'],
-    ['#040508', '#2D6BFF', '#C41422'],
-    ['#06070A', '#8A0C14', '#1A4AD0'],
-    ['#050608', '#1A58E8', '#D41424'],
-    ['#0A0808', '#C41422', '#2450D8'],
-    ['#04060A', '#1A58E8', '#B01018'],
-    ['#08090C', '#E01828', '#2D6BFF'],
-    ['#050608', '#1238A8', '#C41422'],
-    ['#07080B', '#9A0C14', '#1A58E8']
+    ['#0A0614', '#EDE8FF', '#7B2FFF'],
+    ['#04080A', '#00E5A8', '#FF2D6A'],
+    ['#0C0804', '#F2C14E', '#C41422'],
+    ['#06040E', '#FF6EC7', '#2D5BFF'],
+    ['#04060C', '#FFFFFF', '#1A58E8'],
+    ['#0A0404', '#FF4D1A', '#FFE8D0'],
+    ['#070A08', '#9AFF6B', '#2D6BFF'],
+    ['#08040A', '#FF2D9A', '#2D6BFF'],
+    ['#040A12', '#3DDCFF', '#C41422'],
+    ['#0C0410', '#FF4DDF', '#FFE14D'],
+    ['#061208', '#B8FF4D', '#7B2FFF'],
+    ['#080604', '#FFB020', '#C41422'],
+    ['#06080C', '#FFFFFF', '#7B2FFF']
   ];
   let lastSlug = null;
   function paletteFor(slug) {
-    const set = holoOn ? PALETTES_HOLO : PALETTES;
-    if (!slug) return set[0];
-    return set[hashStr(slug) % set.length];
+    if (holoOn) {
+      if (slug && HOLO_WORLDS[slug]) return HOLO_WORLDS[slug];
+      if (!slug) return PALETTES_HOLO[0];
+      return PALETTES_HOLO[hashStr(slug) % PALETTES_HOLO.length];
+    }
+    if (!slug) return PALETTES[0];
+    return PALETTES[hashStr(slug) % PALETTES.length];
   }
 
   /* Live palette state (lerped smoothly toward targets on track change) */
@@ -177,21 +205,36 @@
 
   function setPaletteTargets(p) {
     tgtA.set(p[0]); tgtB.set(p[1]); tgtC.set(p[2]);
-    // Bleed the song color into the UI (focal glow, progress fill)
+    // Bleed the song color into the UI + holo environment
     try {
       const root = document.documentElement.style;
+      root.setProperty('--track-a', p[0]);
+      root.setProperty('--track-b', p[1]);
+      root.setProperty('--track-c', p[2]);
       if (holoOn) {
-        root.setProperty('--track-a', '#0A1020');
-        root.setProperty('--track-b', '#1A58E8');
-        root.setProperty('--track-c', '#C41422');
-        root.setProperty('--jestr-green', '#1A58E8');
-        root.setProperty('--jestr-blue', '#1A58E8');
-        root.setProperty('--jestr-red', '#C41422');
+        root.setProperty('--holo-tone-a', p[0]);
+        root.setProperty('--holo-tone-b', p[1]);
+        root.setProperty('--holo-tone-c', p[2]);
+        root.setProperty('--jestr-green', p[1]);
+        root.setProperty('--jestr-blue', p[1]);
+        root.setProperty('--jestr-red', p[2]);
+        root.setProperty('--baby-blue', p[1]);
+        root.setProperty('--win-border', p[1]);
         applyHoloSeed(lastSlug ? (hashStr(lastSlug) % 997) / 997 : 0.37);
-      } else {
-        root.setProperty('--track-a', p[0]);
-        root.setProperty('--track-b', p[1]);
-        root.setProperty('--track-c', p[2]);
+        try {
+          if (typeof galaxyU !== 'undefined' && galaxyU.uC1) {
+            galaxyU.uC1.value.set(p[1]);
+            galaxyU.uC2.value.set(p[2]);
+          }
+          for (let ni = 0; ni < nebulae.length; ni++) {
+            nebulae[ni].u.uC1.value.set(p[1]);
+            nebulae[ni].u.uC2.value.set(p[2]);
+          }
+          for (let vi = 0; vi < planetViews.length; vi++) {
+            const cage = planetViews[vi].cage;
+            if (cage && cage.material && cage.material.color) cage.material.color.set(p[1]);
+          }
+        } catch (e2) {}
       }
     } catch (e) {}
   }
@@ -2443,10 +2486,14 @@
         beatPulse = 1;
       }
       const stim = bassSm * 0.5 + midSm * 0.28 + levelSm * 0.22;
+      const specPeek = new Array(48);
+      const specStep = Math.max(1, Math.floor(n / 48));
+      for (let si = 0; si < 48; si++) specPeek[si] = freqData[Math.min(n - 1, si * specStep)];
       window.__ORBIT_AUDIO__ = {
         bass: bassSm, mid: midSm, high: highSm, level: levelSm, stim: stim,
         kick: kickEnv, snare: snareEnv, hat: hatEnv,
-        bpm: bpmSm, beat: beatPulse, beatPhase: beatPhase
+        bpm: bpmSm, beat: beatPulse, beatPhase: beatPhase,
+        spec: specPeek, slug: lastSlug
       };
 
       // GPU texture uploads at ~30Hz — aurora still reads smooth due to shader lerp

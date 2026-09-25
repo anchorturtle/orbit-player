@@ -17,6 +17,43 @@ html.theme-holo {
   --win-border: #1A58E8;
   --win-radius: 20px;
   --win-shadow: 0 0 16px rgba(26, 88, 232, .22);
+  --holo-tone-a: #050608;
+  --holo-tone-b: #1A58E8;
+  --holo-tone-c: #C41422;
+}
+
+html.theme-holo #holo-env-wash,
+html.theme-holo #holo-env-canvas {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 1;
+}
+html.theme-holo #holo-env-wash {
+  opacity: 0.22;
+  filter: saturate(var(--holo-env-sat, 1.1));
+  background:
+    radial-gradient(ellipse 92% 72% at 50% 46%,
+      color-mix(in srgb, var(--holo-tone-b, #1A58E8) calc(10% + var(--holo-kick, 0) * 52%), transparent) 0%,
+      transparent 64%),
+    radial-gradient(ellipse 80% 55% at 50% 88%,
+      color-mix(in srgb, var(--holo-tone-c, #C41422) calc(8% + var(--holo-bass, 0) * 46%), transparent) 0%,
+      transparent 72%),
+    radial-gradient(ellipse 40% 30% at 18% 28%,
+      color-mix(in srgb, var(--holo-tone-b, #1A58E8) calc(6% + var(--holo-hat, 0) * 28%), transparent),
+      transparent 70%),
+    radial-gradient(ellipse 36% 28% at 84% 24%,
+      color-mix(in srgb, var(--holo-tone-c, #C41422) calc(5% + var(--holo-snare, 0) * 30%), transparent),
+      transparent 70%);
+  transition: opacity 0.18s linear;
+}
+html.theme-holo #holo-env-canvas {
+  z-index: 2;
+  mix-blend-mode: screen;
+}
+html:not(.theme-holo) #holo-env-wash,
+html:not(.theme-holo) #holo-env-canvas {
+  display: none !important;
 }
 
 html.theme-holo,
