@@ -1597,7 +1597,11 @@ html.theme-holo #holo-click-ring.is-on {
 }
 
 /* Enlarge theater: match live. Keep Orbit nav, drop floating holo chrome.
-   Specificity must beat html.theme-holo .win:not(#dock-win) overflow/void. */
+   html.orbit-video-enlarge-lock beats leftover a11 clip/void on #video-win. */
+html.theme-holo.orbit-video-enlarge-lock #holo-tubes {
+  visibility: hidden !important;
+}
+html.theme-holo.orbit-video-enlarge-lock #video-win,
 html.theme-holo #video-win.video-enlarged,
 html.theme-holo #video-win.video-enlarged.win,
 html.theme-holo #video-win.video-enlarged.win:not(#dock-win) {
@@ -1628,6 +1632,8 @@ html.theme-holo #video-win.video-enlarged.win:not(#dock-win) {
   animation: none !important;
   z-index: 8500 !important;
 }
+html.theme-holo.orbit-video-enlarge-lock #video-win::before,
+html.theme-holo.orbit-video-enlarge-lock #video-win::after,
 html.theme-holo #video-win.video-enlarged::before,
 html.theme-holo #video-win.video-enlarged::after,
 html.theme-holo #video-win.video-enlarged.win:not(#dock-win)::after {
@@ -1638,6 +1644,8 @@ html.theme-holo #video-win.video-enlarged.win:not(#dock-win)::after {
 html.theme-holo #video-win.video-enlarged .win-resize {
   display: none !important;
 }
+html.theme-holo.orbit-video-enlarge-lock #video-win .win-body,
+html.theme-holo.orbit-video-enlarge-lock #video-win .orbit-video-faceplate,
 html.theme-holo #video-win.video-enlarged .win-body,
 html.theme-holo #video-win.video-enlarged .orbit-video-faceplate,
 html.theme-holo #video-win.video-enlarged .orbit-video-fullscreen-host,
@@ -1655,5 +1663,29 @@ html.theme-holo #video-win.video-enlarged .orbit-video-stage {
 html.theme-holo #video-win.video-enlarged #video-win-bar,
 html.theme-holo #video-win.video-enlarged .orbit-video-ai-foot {
   display: none !important;
+}
+html.theme-holo #video-win.video-enlarged .orbit-video-enlarge-meta {
+  display: flex !important;
+}
+html.theme-holo #video-win.video-enlarged .orbit-video-enlarge-title {
+  color: #f4f0ff !important;
+  opacity: 1 !important;
+}
+html.theme-holo #video-win.video-enlarged .orbit-video-enlarge-artist {
+  color: #7EB0FF !important;
+  opacity: 1 !important;
+}
+html.theme-holo #video-win.video-enlarged .orbit-video-play-calm.play-btn,
+html.theme-holo #video-win.video-enlarged #video-btn-play {
+  width: 39px !important;
+  height: 39px !important;
+  min-width: 39px !important;
+  min-height: 39px !important;
+  flex: 0 0 39px !important;
+  margin: 0 !important;
+  transform: none !important;
+}
+html.theme-holo #video-win.video-enlarged .orbit-video-controls-row {
+  display: flex !important;
 }
 

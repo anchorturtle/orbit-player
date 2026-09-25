@@ -454,9 +454,11 @@
         return;
       }
       /* Enlarge theater is a page-level fill under the dock — never a holo tube. */
-      if (el.id === 'video-win' && el.classList.contains('video-enlarged')) {
+      if (html.classList.contains('orbit-video-enlarge-lock') ||
+          (el.id === 'video-win' && el.classList.contains('video-enlarged'))) {
         clipWin(el, '');
-        return;
+        if (el.id === 'video-win') return;
+        if (html.classList.contains('orbit-video-enlarge-lock') && el.id !== 'dock-win') return;
       }
       var r = layoutBox(el);
       if (r.width < 12 || r.height < 12) {
