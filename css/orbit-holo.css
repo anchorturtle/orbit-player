@@ -1,10 +1,11 @@
 /* Holo skin: wire + light in air. Not painted plastic plates.
-   Off-black void. Cyan structure. Red only as grit. */
+   Ōkami ink / paper / vermillion + Samurai Jack graphic fields.
+   Solid punches. Depth from stacked planes — not washed blends. */
 
 html.theme-holo {
-  --grain-opacity: .42;
+  --grain-opacity: .22;
   --scanline-opacity: 0;
-  --vignette-strength: .62;
+  --vignette-strength: .72;
   --jestr-blue: #1A58E8;
   --jestr-green: #1A58E8;
   --jestr-purple: #0A1020;
@@ -17,11 +18,18 @@ html.theme-holo {
   --win-border: #1A58E8;
   --win-radius: 20px;
   --win-shadow: 0 0 16px rgba(26, 88, 232, .22);
+  --holo-ink: #020308;
+  --holo-paper: #F2EDE4;
+  --holo-parx: 0px;
+  --holo-pary: 0px;
 }
 
 html.theme-holo,
 html.theme-holo body {
-  background: #050608;
+  background:
+    radial-gradient(ellipse 130% 58% at 50% 118%, #C41422 0%, #6a0a12 18%, transparent 46%),
+    radial-gradient(ellipse 100% 52% at 50% -12%, #1A58E8 0%, #081028 26%, transparent 54%),
+    linear-gradient(180deg, #020308 0%, #05060a 42%, #0a0608 78%, #14080a 100%);
   color: #1A58E8;
   font-family: 'Share Tech Mono', 'Rajdhani', sans-serif;
 }
@@ -41,17 +49,17 @@ html.theme-holo .scanlines {
   pointer-events: none;
   z-index: 185;
   mix-blend-mode: overlay;
-  opacity: calc(0.22 * var(--holo-flick, 1));
+  opacity: calc(0.10 * var(--holo-flick, 1));
   background: repeating-linear-gradient(
     to bottom,
-    rgba(26, 88, 232, 0.09) 0 1px,
+    rgba(26, 88, 232, 0.07) 0 1px,
     transparent 1px 3px
   );
 }
 
 html.theme-holo .grain-overlay {
   display: block !important;
-  opacity: 0.55;
+  opacity: 0.22;
   mix-blend-mode: multiply;
   z-index: 190;
   animation: none;
@@ -63,11 +71,21 @@ html.theme-holo .grain-overlay {
 }
 
 html.theme-holo .vignette {
-  background: radial-gradient(ellipse at center, transparent 52%, rgba(4, 6, 10, .7) 100%);
+  background:
+    radial-gradient(ellipse 68% 56% at 50% 40%, transparent 36%, rgba(2, 3, 8, .78) 100%);
 }
 
 html.theme-holo #space-bg {
-  background: transparent;
+  transform: translate3d(var(--holo-parx, 0px), var(--holo-pary, 0px), 0);
+  background:
+    radial-gradient(ellipse 72% 42% at 16% 24%, rgba(45, 107, 255, 0.34) 0%, transparent 58%),
+    radial-gradient(ellipse 58% 36% at 86% 18%, rgba(242, 237, 228, 0.10) 0%, transparent 54%),
+    radial-gradient(ellipse 90% 46% at 50% 104%, rgba(196, 20, 34, 0.46) 0%, #6a0a12 22%, transparent 56%),
+    linear-gradient(180deg,
+      rgba(2, 3, 8, 0.15) 0%,
+      rgba(26, 88, 232, 0.10) 34%,
+      rgba(8, 4, 6, 0.08) 62%,
+      rgba(196, 20, 34, 0.16) 100%);
 }
 
 html.theme-holo #planet-bg {
