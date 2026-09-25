@@ -3,457 +3,9 @@
    Music player, tracklist, audio controls, drag-reorder, volume, etc.
    ============================================ */
 
-const TRACKS = [
-  {
-    title: 'Quarters',
-    artist: 'jestR',
-    slug: 'quarters',
-    file: 'audio/singles/quarters-9-23b.mp3',
-    description: '',
-    category: 'instrumental',
-    artwork: 'images/quarters-cover.jpg'
-  },
-  {
-    title: 'Offers',
-    artist: 'jestR',
-    slug: 'offers',
-    file: 'audio/singles/Offers.mp3',
-    description: '',
-    category: 'instrumental'
-  },
-  {
-    title: 'Thousand Dragon',
-    artist: 'jestR',
-    slug: 'thousand-dragon',
-    file: 'audio/singles/Thousand-Dragon-jestR.mp3',
-    description: '',
-    category: 'instrumental'
-  },
-  {
-    title: 'K.O.',
-    artist: 'jestR',
-    slug: 'ko',
-    file: 'audio/singles/KO.mp3',
-    description: '',
-    category: 'instrumental'
-  },
-  {
-    title: 'hyperdream.odyssey.exe',
-    artist: 'jestR',
-    slug: 'hyperdream-odyssey',
-    file: 'audio/singles/hyperdream-odyssey.mp3',
-    description: '',
-    category: 'instrumental'
-  },
-  {
-    title: 'Soul Seer',
-    artist: 'jestR',
-    slug: 'soul-seer',
-    file: 'audio/singles/Mp3-SoulSeer.mp3',
-    description: '',
-    artwork: null,
-    category: 'instrumental'
-  },
-  {
-    title: 'Geronimo',
-    artist: 'jestR',
-    slug: 'geronimo',
-    file: 'audio/singles/11 - Geronimo- jestR - 2020.mp3',
-    year: 2020,
-    description: '',
-    artwork: 'images/Jesterdaze.png',
-    category: 'instrumental'
-  },
-  {
-    title: 'Spin Cycle',
-    artist: 'jestR',
-    slug: 'spin-cycle',
-    file: 'audio/singles/Spin-Cycle_.mp3',
-    description: '',
-    artwork: null,
-    category: 'instrumental'
-  },
-  {
-    title: 'Mile High',
-    artist: 'jestR',
-    slug: 'mile-high',
-    file: 'audio/singles/3 - Mile High- jestR - 2020.mp3',
-    year: 2020,
-    description: '',
-    artwork: null,
-    category: 'instrumental'
-  },
-  {
-    title: 'Follow The Flow',
-    artist: 'jestR',
-    slug: 'follow-the-flow',
-    file: 'audio/singles/Mp3-FollowTheFlow.mp3',
-    description: '',
-    artwork: null,
-    category: 'instrumental'
-  },
-  {
-    title: 'Peace',
-    artist: 'jestR',
-    slug: 'peace',
-    file: 'audio/singles/Peace.mp3',
-    description: '',
-    artwork: null,
-    category: 'instrumental'
-  },
-  {
-    title: 'Strider',
-    artist: 'jestR',
-    slug: 'strider',
-    file: 'audio/singles/Strider.mp3',
-    description: '',
-    artwork: null,
-    category: 'instrumental'
-  },
-  {
-    title: 'Insane Membrane',
-    artist: 'jestR',
-    slug: 'insane-membrane',
-    file: 'audio/singles/Insane_membrane.mp3',
-    description: '',
-    artwork: null,
-    category: 'instrumental'
-  },
-  {
-    title: 'Wavy',
-    artist: 'jestR',
-    slug: 'wavy',
-    file: 'audio/singles/wavy.mp3',
-    description: '',
-    artwork: null,
-    category: 'instrumental'
-  },
-  {
-    title: 'Boa Constrictor',
-    artist: 'jestR',
-    slug: 'boa-constrictor',
-    file: 'audio/singles/boaconstrictor.mp3',
-    description: '',
-    artwork: null,
-    category: 'instrumental'
-  },
-  {
-    title: 'News',
-    artist: 'jestR',
-    slug: 'news',
-    file: 'audio/singles/Newsss.mp3',
-    description: '',
-    artwork: null,
-    category: 'instrumental'
-  },
-  {
-    title: 'Wheels',
-    artist: 'jestR',
-    slug: 'wheels',
-    file: 'audio/singles/mp3Wheels-36.mp3',
-    description: '',
-    artwork: null,
-    category: 'instrumental'
-  },
-  {
-    title: 'Pop',
-    artist: 'jestR',
-    slug: 'pop',
-    file: 'audio/singles/pop.mp3',
-    description: '',
-    artwork: null,
-    category: 'instrumental'
-  },
-  {
-    title: 'The Sum Of Hippy Thoughts',
-    artist: 'jestR',
-    slug: 'the-sum-of-hippy-thoughts',
-    file: 'audio/singles/the sum of hippy thoughts.mp3',
-    description: '',
-    artwork: null,
-    category: 'instrumental'
-  },
-  {
-    title: 'What Dreams May Come',
-    artist: 'jestR',
-    slug: 'what-dreams-may-come',
-    file: 'audio/singles/what_dreams_may_comewavy.wav',
-    description: '',
-    artwork: null,
-    category: 'instrumental'
-  },
-  {
-    title: 'Jazzpot',
-    artist: 'jestR',
-    slug: 'jazzpot',
-    file: 'audio/singles/jazzpot3.mp3',
-    description: 'Jazz pot session.',
-    artwork: null,
-    category: 'rap',
-    explicit: true,
-    // lyrics hardcoded for reliable loading (dynamic fetch often fails when opening index.html directly via file://)
-    // To regenerate: run the sync script, then copy the array here (or serve the site with a web server for dynamic load)
-    lyrics: [
-      {"time":24.0,"text":"No stress when I flex"},
-      {"time":25.59,"text":"Feel it in the back of ya necks"},
-      {"time":27.179,"text":"Spit straight shots, I got next"},
-      {"time":28.769,"text":"Wrist watches stop for this text"},
-      {"time":30.359,"text":"The tip-top cream of the crop"},
-      {"time":31.949,"text":"Swept off ya feet for this bop"},
-      {"time":33.538,"text":"I split seven seas when I rock"},
-      {"time":35.128,"text":"Cooking up steez like a crackshot"},
-      {"time":36.718,"text":"I’m the mascot of hittin’ the jackpot"},
-      {"time":38.308,"text":"A Sasquatch laughing his ass off"},
-      {"time":39.897,"text":"A Mothman trippin’ off bath salts"},
-      {"time":41.487,"text":"The sugar cane drippin’ on ya windowpane"},
-      {"time":43.077,"text":"The profane finger point on both hands to stay sane"},
-      {"time":44.667,"text":"Folks, it’s the ace in the hole"},
-      {"time":46.256,"text":"The best-kept secret since Coke"},
-      {"time":47.846,"text":"Slept on and treated like I’m slow"},
-      {"time":49.436,"text":"’Cuz I take my time when I line up these flows"},
-      {"time":51.026,"text":"As soon as it enters ya soul"},
-      {"time":52.615,"text":"Everything shiny as gold"},
-      {"time":54.205,"text":"Feelings that I can’t control"},
-      {"time":55.795,"text":"No prophets have ever foretold"},
-      {"time":57.385,"text":"The raps that shattered the mold"},
-      {"time":58.974,"text":"Real talk that matters the most"},
-      {"time":60.564,"text":"The worm inside of the host"},
-      {"time":62.154,"text":"Make puppets out of holy ghosts"},
-      {"time":63.744,"text":"’Cuz I swear that ya doing the most"},
-      {"time":65.333,"text":"On the twos and the fours"},
-      {"time":66.923,"text":"Ain’t looking for boos or applause"},
-      {"time":68.513,"text":"Just tryna find who wit the cause"},
-      {"time":70.103,"text":"Pursuit of the finest of awes"},
-      {"time":71.692,"text":"My mind is a pilot, got mileage"},
-      {"time":73.282,"text":"But they say that no man an island"},
-      {"time":74.872,"text":"I feel like I died in asylum"},
-      {"time":76.462,"text":"Came back and grew a new phylum"},
-      {"time":78.051,"text":"Got fat off stacks"},
-      {"time":79.641,"text":"And still I’m unrivaled"},
-      {"time":81.231,"text":"Like hot wax spilling on vinyl"},
-      {"time":82.821,"text":"Turn a black sheep into an albino"},
-      {"time":84.41,"text":"Murder I reap, blood with the spinal"},
-    {"time":86.0,"text":"And judgment is final"}
-    ],
-  },
-  {
-    title: 'Fat Stacks',
-    artist: 'jestR',
-    slug: 'fat-stacks',
-    file: 'audio/singles/Fat Stacks.mp3',
-    description: '',
-    category: 'rap',
-    explicit: true,
-    lyrics: []
-  },
-  {
-    title: 'Chokeslam',
-    artist: 'jestR',
-    slug: 'chokeslam',
-    file: 'audio/singles/Chokeslam.mp3',
-    description: '',
-    category: 'rap',
-    explicit: true,
-    lyrics: []
-  },
-  {
-    title: 'Grateful Sharpie',
-    artist: 'jestR',
-    slug: 'grateful-sharpie',
-    file: 'audio/singles/Grateful_Sharpie.mp3',
-    description: '',
-    category: 'rap',
-    explicit: true
-  },
-  {
-    title: 'My Anthem',
-    artist: 'jestR',
-    slug: 'my-anthem',
-    file: "audio/albums/jestR- Don't Say Nothing About Them Building Blocks/My Anthem.mp3",
-    year: 2017,
-    description: 'instrumental produced by Felly',
-    category: 'rap',
-    explicit: true,
-    album: "Don't Say Nothing About Them Building Blocks",
-    albumSlug: 'building-blocks',
-    albumTrack: 2
-  },
-  {
-    title: 'Sublime Beginnings',
-    artist: 'jestR',
-    slug: 'sublime-beginnings',
-    file: "audio/albums/jestR- Don't Say Nothing About Them Building Blocks/Sublime Beginnings.mp3",
-    year: 2017,
-    description: 'instrumental produced by Felly',
-    category: 'rap',
-    explicit: true,
-    album: "Don't Say Nothing About Them Building Blocks",
-    albumSlug: 'building-blocks',
-    albumTrack: 12
-  },
-  {
-    title: 'Nonnin',
-    artist: 'jestR',
-    slug: 'nonnin',
-    file: "audio/albums/jestR- Don't Say Nothing About Them Building Blocks/Nonnin.mp3",
-    year: 2017,
-    description: '',
-    category: 'rap',
-    explicit: true,
-    album: "Don't Say Nothing About Them Building Blocks",
-    albumSlug: 'building-blocks',
-    albumTrack: 3
-  },
-  {
-    title: 'WHOiAM2u',
-    artist: 'jestR',
-    slug: 'whoiam2u',
-    file: "audio/albums/jestR- Don't Say Nothing About Them Building Blocks/WHOiAM2u.mp3",
-    year: 2017,
-    description: 'instrumental produced by 40 Winks',
-    category: 'rap',
-    explicit: true,
-    album: "Don't Say Nothing About Them Building Blocks",
-    albumSlug: 'building-blocks',
-    albumTrack: 7
-  },
-  {
-    title: 'Still Going Higher',
-    artist: 'jestR',
-    slug: 'still-going-higher',
-    file: 'audio/singles/Still_Going_Higher.mp3',
-    description: '',
-    category: 'rap',
-    explicit: true,
-    lyrics: []
-  },
-  {
-    title: 'Tomb of the Creator ft. Tevin Page',
-    artist: 'jestR',
-    slug: 'tomb-of-the-creator',
-    file: "audio/albums/jestR- act like your doing something cuz i see everything/1 - Tomb of the Creator- jestR - act like you're doing something cuz i see everything.mp3",
-    year: 2018,
-    description: '',
-    category: 'rap',
-    explicit: true,
-    album: "act like you're doing something cuz i see everything",
-    albumSlug: 'act-like-youre-doing-something',
-    albumTrack: 1
-  },
-  {
-    title: 'What Is it Now?',
-    artist: 'jestR',
-    slug: 'what-is-it-now',
-    file: "audio/albums/jestR- act like your doing something cuz i see everything/3 - What Is it Now- jestR - act like you're doing something cuz i see everything.mp3",
-    year: 2018,
-    description: '',
-    category: 'rap',
-    explicit: true,
-    album: "act like you're doing something cuz i see everything",
-    albumSlug: 'act-like-youre-doing-something',
-    albumTrack: 3
-  },
-  {
-    title: '420',
-    artist: 'jestR',
-    slug: 'four-twenty',
-    file: "audio/albums/jestR- Don't Say Nothing About Them Building Blocks/420.mp3",
-    year: 2017,
-    description: '',
-    category: 'rap',
-    explicit: true,
-    album: "Don't Say Nothing About Them Building Blocks",
-    albumSlug: 'building-blocks',
-    albumTrack: 4
-  },
-  {
-    title: 'Get',
-    artist: 'jestR',
-    slug: 'get',
-    file: "audio/albums/jestR- Don't Say Nothing About Them Building Blocks/Get.mp3",
-    year: 2017,
-    description: '',
-    category: 'rap',
-    explicit: true,
-    album: "Don't Say Nothing About Them Building Blocks",
-    albumSlug: 'building-blocks',
-    albumTrack: 11
-  },
-  {
-    title: 'death of jestR',
-    artist: 'jestR',
-    slug: 'death-of-jestr',
-    file: "audio/albums/jestR- Don't Say Nothing About Them Building Blocks/death of jestR.mp3",
-    year: 2017,
-    description: '',
-    category: 'rap',
-    explicit: true,
-    album: "Don't Say Nothing About Them Building Blocks",
-    albumSlug: 'building-blocks',
-    albumTrack: 13
-  },
-  {
-    title: 'Blockbuster ft. Tevin Page',
-    artist: 'jestR',
-    slug: 'blockbuster',
-    file: "audio/albums/jestR- act like your doing something cuz i see everything/2 - Blockbuster- jestR - act like you're doing something cuz i see everything.mp3",
-    year: 2018,
-    description: '',
-    category: 'instrumental',
-    album: "act like you're doing something cuz i see everything",
-    albumSlug: 'act-like-youre-doing-something',
-    albumTrack: 2
-  },
-  {
-    title: 'got nun?',
-    artist: 'jestR',
-    slug: 'got-nun',
-    file: "audio/albums/jestR- act like your doing something cuz i see everything/4 - got nun- jestR - act like you're doing something cuz i see everything.mp3",
-    year: 2018,
-    description: '',
-    category: 'instrumental',
-    album: "act like you're doing something cuz i see everything",
-    albumSlug: 'act-like-youre-doing-something',
-    albumTrack: 4
-  },
-  {
-    title: 'Space Radio',
-    artist: 'jestR',
-    slug: 'space-radio',
-    file: "audio/albums/jestR- Don't Say Nothing About Them Building Blocks/Space Radio.mp3",
-    year: 2017,
-    description: '',
-    category: 'instrumental',
-    album: "Don't Say Nothing About Them Building Blocks",
-    albumSlug: 'building-blocks',
-    albumTrack: 9
-  },
-  {
-    title: 'Exploding Galaxies',
-    artist: 'jestR',
-    slug: 'exploding-galaxies',
-    file: "audio/albums/jestR- Don't Say Nothing About Them Building Blocks/Exploding Galaxies.mp3",
-    year: 2017,
-    description: '',
-    category: 'instrumental',
-    album: "Don't Say Nothing About Them Building Blocks",
-    albumSlug: 'building-blocks',
-    albumTrack: 10
-  },
-  {
-    title: 'Acid Rain',
-    artist: 'jestR',
-    slug: 'acid-rain',
-    file: "audio/albums/jestR- Don't Say Nothing About Them Building Blocks/Acid Rain.mp3",
-    year: 2017,
-    description: '',
-    category: 'instrumental',
-    album: "Don't Say Nothing About Them Building Blocks",
-    albumSlug: 'building-blocks',
-    albumTrack: 1
-  }
-];
-  window.ORBIT_TRACKS = TRACKS;
+const TRACKS = window.ORBIT_TRACKS || [];
+window.ORBIT_TRACKS = TRACKS;
+
 
 const ALBUMS = [
   {
@@ -2973,3 +2525,42 @@ window.addEventListener('load', handleSongRouting);
 
 // NOTE: handleSongRouting handles /song/slug and #song/slug paths.
 // It only does loadTrack(..., true) now — the song plays but the details window is never opened.
+
+/* Adjacent-track prefetch. Safe with PR #8: never plays a second element,
+   never seeks across a MediaElementSource graph. Warm HTTP cache only. */
+function prefetchAdjacentOrbitTracks(idx) {
+  if (typeof TRACKS === 'undefined' || !TRACKS.length) return;
+  const around = [
+    TRACKS[idx],
+    TRACKS[(idx + 1) % TRACKS.length],
+    TRACKS[(idx - 1 + TRACKS.length) % TRACKS.length]
+  ];
+  around.forEach((t) => {
+    if (!t || !t.file) return;
+    const href = encodeURI(t.file);
+    const key = t.slug || href;
+    if (document.querySelector(`[data-orbit-prefetch="${key}"]`)) return;
+    let hold = document.getElementById('orbit-prefetch-hold');
+    if (!hold) {
+      hold = document.createElement('div');
+      hold.id = 'orbit-prefetch-hold';
+      hold.hidden = true;
+      document.body.appendChild(hold);
+    }
+    const probe = document.createElement('audio');
+    probe.preload = 'auto';
+    probe.setAttribute('data-orbit-prefetch', key);
+    probe.setAttribute('aria-hidden', 'true');
+    probe.src = href;
+    hold.appendChild(probe);
+  });
+}
+
+(function wrapLoadTrackPrefetch() {
+  if (typeof loadTrack !== 'function') return;
+  const orig = loadTrack;
+  loadTrack = function (idx, autoplay) {
+    orig(idx, autoplay);
+    try { prefetchAdjacentOrbitTracks(idx); } catch (e) {}
+  };
+})();
