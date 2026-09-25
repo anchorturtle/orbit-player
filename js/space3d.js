@@ -723,6 +723,21 @@
   let swipeDragging = false;
   let swipeNudgeX = 0;
   let swipeNudgeY = 0;
+  let swipeTargetK = 0;
+  let swipeTargetNudgeX = 0;
+  let swipeTargetNudgeY = 0;
+  let swipeCoastVel = 0;
+  let swipeCoasting = false;
+  let swipeGrabScale = 1;
+  let swipeSensPx = 180;
+  const SWIPE_K_LINEAR = 0.42;
+  const SWIPE_K_MAX = 0.58;
+
+  function rubberPreviewK(raw) {
+    if (raw <= SWIPE_K_LINEAR) return Math.max(0, raw);
+    const extra = raw - SWIPE_K_LINEAR;
+    return SWIPE_K_LINEAR + (SWIPE_K_MAX - SWIPE_K_LINEAR) * (1 - Math.exp(-extra / 0.28));
+  }
 
   function easeInOutCubic(k) {
     return k < 0.5 ? 4 * k * k * k : 1 - Math.pow(-2 * k + 2, 3) / 2;
@@ -786,7 +801,7 @@
     const palette = slug ? paletteFor(slug) : PALETTES[0];
     const inView = buildPlanetClone(palette);
     const outView = currentView;
-    const outFrom = THREE.MathUtils.clamp(swipePreviewK, 0, 0.4) * -dir * PLATE_SLOT;
+    const outFrom = THREE.MathUtils.clamp(swipePreviewK, 0, SWIPE_K_MAX) * -dir * PLATE_SLOT;
     const outTo = -dir * PLATE_SLOT;
     const inFrom = dir * PLATE_SLOT;
     applyPose(inView, platePose(inFrom));
@@ -1504,27 +1519,49 @@
   }
 
   /* ════════════════ PLANET SWIPE DRIVE ════════════════
-     Drag turns the cake-stand plate. Commit finishes the slot rotation. */
+     Drag turns the cake-stand plate. Preview follows with easing;
+     release coasts on residual velocity, then springs home. Commit
+     finishes the slot rotation. */
   window.__PLANET_SWIPE_SET__ = function (dxPx, dyPx, dxRaw) {
     swipeDragging = true;
     swipeOrbitHome = false;
+    swipeCoasting = false;
+    swipeCoastVel = 0;
     const hx = (dxRaw != null ? dxRaw : dxPx) || 0;
     const hy = dyPx || 0;
     swipePreviewDir = hx < 0 ? 1 : -1;
-    swipePreviewK = THREE.MathUtils.clamp(Math.abs(dxPx) / 240, 0, 0.4);
     const span = Math.min(window.innerWidth, window.innerHeight);
+    swipeSensPx = Math.max(140, span * 0.16);
+    swipeTargetK = rubberPreviewK(Math.abs(dxPx || 0) / swipeSensPx);
     const pull = Math.min(1, Math.hypot(hx, hy) / Math.max(1, span * 0.35));
     const ang = Math.atan2(-hy, hx === 0 ? 0.0001 : hx);
     const planetPx = Math.min(360, window.innerHeight * 0.46);
     const wpp = (PLANET_R * 2) / Math.max(1, planetPx);
-    const maxN = span * 0.018 * wpp;
-    swipeNudgeX = Math.cos(ang) * pull * maxN;
-    swipeNudgeY = Math.sin(ang) * pull * maxN;
+    const maxN = span * 0.022 * wpp;
+    swipeTargetNudgeX = Math.cos(ang) * pull * maxN;
+    swipeTargetNudgeY = Math.sin(ang) * pull * maxN;
   };
 
-  window.__PLANET_SWIPE_RELEASE__ = function (commit) {
+  window.__PLANET_SWIPE_RELEASE__ = function (commit, _dir, velX) {
     swipeDragging = false;
-    if (!commit) swipeOrbitHome = true;
+    if (commit) {
+      swipeCoasting = false;
+      swipeCoastVel = 0;
+      swipeOrbitHome = false;
+      return;
+    }
+    // velX is px/ms. Drag-right stores previewDir -1; keep coast going the same way.
+    const along = (swipePreviewDir < 0 ? 1 : -1) * (typeof velX === 'number' ? velX : 0);
+    const kVel = along * (1000 / Math.max(1, swipeSensPx));
+    if (Math.abs(kVel) > 0.35) {
+      swipeCoasting = true;
+      swipeCoastVel = kVel;
+      swipeOrbitHome = false;
+    } else {
+      swipeCoasting = false;
+      swipeCoastVel = 0;
+      swipeOrbitHome = true;
+    }
   };
 
   let holdRumble = 0;
@@ -1744,22 +1781,50 @@
     camera.position.z += ((baseZ + Math.sin(t * 0.013) * 0.45) - camera.position.z) * 0.008;
     camera.lookAt(0, 0, 0);
 
-    // ── drag / cancel: preview the recede-arc ──
-    if (!arcAnim && (swipeDragging || swipeOrbitHome)) {
-      if (!swipeDragging) {
-        swipePreviewK += (0 - swipePreviewK) * Math.min(1, dt * 7);
-        if (swipePreviewK < 0.004) {
+    // ── drag / coast / cancel: eased plate preview ──
+    const swipeLive = swipeDragging || swipeCoasting || swipeOrbitHome
+      || swipePreviewK > 0.001 || swipeGrabScale > 1.001;
+    if (!arcAnim && swipeLive && currentView && currentView.group) {
+      if (swipeDragging) {
+        const follow = 1 - Math.exp(-dt * 16);
+        swipePreviewK += (swipeTargetK - swipePreviewK) * follow;
+        swipeNudgeX += (swipeTargetNudgeX - swipeNudgeX) * follow;
+        swipeNudgeY += (swipeTargetNudgeY - swipeNudgeY) * follow;
+        swipeGrabScale += (1.03 - swipeGrabScale) * follow;
+      } else if (swipeCoasting) {
+        swipePreviewK = Math.max(0, swipePreviewK + swipeCoastVel * dt);
+        if (swipePreviewK > SWIPE_K_MAX) {
+          swipePreviewK = SWIPE_K_MAX;
+          swipeCoastVel *= 0.15;
+        }
+        swipeCoastVel *= Math.exp(-dt * 3.6);
+        const ease = 1 - Math.exp(-dt * 3.2);
+        swipeNudgeX += (0 - swipeNudgeX) * ease;
+        swipeNudgeY += (0 - swipeNudgeY) * ease;
+        swipeGrabScale += (1 - swipeGrabScale) * (1 - Math.exp(-dt * 8));
+        if (swipePreviewK <= 0.002 || Math.abs(swipeCoastVel) < 0.12) {
+          swipeCoasting = false;
+          swipeCoastVel = 0;
+          swipeOrbitHome = true;
+        }
+      } else {
+        const home = 1 - Math.exp(-dt * 5.2);
+        swipePreviewK += (0 - swipePreviewK) * home;
+        swipeNudgeX += (0 - swipeNudgeX) * home;
+        swipeNudgeY += (0 - swipeNudgeY) * home;
+        swipeGrabScale += (1 - swipeGrabScale) * (1 - Math.exp(-dt * 10));
+        if (swipePreviewK < 0.003 && Math.abs(swipeNudgeX) < 0.0004 && Math.abs(swipeNudgeY) < 0.0004) {
           swipePreviewK = 0;
+          swipeNudgeX = 0;
+          swipeNudgeY = 0;
+          swipeGrabScale = 1;
           swipeOrbitHome = false;
         }
       }
       applyPose(currentView, platePose(-swipePreviewDir * swipePreviewK * PLATE_SLOT));
-      if (!swipeDragging) {
-        swipeNudgeX += (0 - swipeNudgeX) * Math.min(1, dt * 7);
-        swipeNudgeY += (0 - swipeNudgeY) * Math.min(1, dt * 7);
-      }
       currentView.group.position.x += swipeNudgeX;
       currentView.group.position.y += swipeNudgeY;
+      currentView.group.scale.multiplyScalar(swipeGrabScale);
     }
 
     // ── commit: plate rotates one slot; cakes stay upright ──
@@ -1787,8 +1852,14 @@
         currentView = heroView;
         planetViews = [heroView];
         swipePreviewK = 0;
+        swipeTargetK = 0;
         swipeNudgeX = 0;
         swipeNudgeY = 0;
+        swipeTargetNudgeX = 0;
+        swipeTargetNudgeY = 0;
+        swipeCoastVel = 0;
+        swipeCoasting = false;
+        swipeGrabScale = 1;
         swipeOrbitHome = false;
         arcAnim = null;
         if (typeof done === 'function') done();
