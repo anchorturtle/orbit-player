@@ -3120,7 +3120,7 @@ a.mob-btn:visited {
 .orbit-mode-track {
   position: relative;
   display: block;
-  width: 22px;
+  width: 32px;
   height: 9px;
   border-radius: 999px;
   border: 1px solid currentColor;
@@ -3137,8 +3137,17 @@ a.mob-btn:visited {
   background: currentColor;
   transition: transform .22s cubic-bezier(.22, 1, .36, 1);
 }
+.orbit-mode-btn[data-skin="glass"] .orbit-mode-knob,
+.orbit-mode-btn.is-glass .orbit-mode-knob {
+  transform: translateX(0);
+}
+.orbit-mode-btn[data-skin="holo"] .orbit-mode-knob,
 .orbit-mode-btn.is-holo .orbit-mode-knob {
-  transform: translateX(12px);
+  transform: translateX(11px);
+}
+.orbit-mode-btn[data-skin="patch"] .orbit-mode-knob,
+.orbit-mode-btn.is-patch .orbit-mode-knob {
+  transform: translateX(22px);
 }
 .orbit-mode-label {
   font-size: 7px;

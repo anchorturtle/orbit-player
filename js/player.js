@@ -1518,7 +1518,17 @@ function loadTrack(idx, autoplay) {
   } else {
     isPlaying = false; updatePlayUI();
   }
+
+  try {
+    window.dispatchEvent(new CustomEvent('orbit-track-change', {
+      detail: { index: idx, track: t, slug: t.slug, title: t.title, artwork: t.artwork || null }
+    }));
+  } catch (e) {}
 }
+
+window.__ORBIT_CURRENT_TRACK__ = function () {
+  return TRACKS[currentIndex] || null;
+};
 
 /* ── PLAYER CONTROLS ── */
 document.getElementById('btn-play').addEventListener('click', () => {

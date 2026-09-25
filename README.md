@@ -75,13 +75,37 @@ cd orbit-player
 # Option 1: Just open index.html in your browser
 # Option 2: Use a local server if you prefer
 npx serve -l 3456
-# then open http://localhost:3456/?skin=holo  (Hermes lab default)
-# or      http://localhost:3456/?skin=live   (current production look)
+# then open http://localhost:3456/?skin=holo   (Hermes / v2)
+# or      http://localhost:3456/?skin=glass  (live analog look; ?skin=live still works)
+# or      http://localhost:3456/?skin=patch  (v3 Patchwork collage room)
 # or
 python -m http.server 8000
 ```
 
-`launch/holo-ready` keeps the live player (including `softBreakTitle` so now-playing titles never wrap mid-word) and adds the hologram skin as an optional theme. Default is holo until **Change mode** → Live. Preference is stored in `localStorage.orbitSkin` and `?skin=holo|live`.
+Three skins share the same Orbit windows, tracklist, playback, Quarters, and AI videos. Glass and holo palettes are unchanged; Patchwork is a third room.
+
+| Skin | URL | What you should see |
+| --- | --- | --- |
+| **glass** | `?skin=glass` or `?skin=live` | Current production analog / purple glass |
+| **holo** | `?skin=holo` | v2 Hermes wire + light (default if nothing stored) |
+| **patch** | `?skin=patch` or `?skin=patchwork` | v3 Patchwork — magazine collage, purple hills, Warhol plates |
+
+The dock **Mode** pill cycles glass → holo → patch. Preference is `localStorage.orbitSkin` (`glass` \| `holo` \| `patch`).
+
+### Patchwork (v3) — how James tries it locally after Relay pulls
+
+```bash
+git fetch origin
+git checkout cursor/theme-patchwork-6d70
+npm run start                              # npx serve -l 3456 .
+# open http://localhost:3456/?skin=patch
+```
+
+This branch is based on `a11f95c` (Quarters AI video stream), **not** later `launch/holo-ready` tip commits. Do **not** merge to `main` or deploy production.
+
+Click **Mode** to flip glass / holo / patch. Play a few tracks — the circular plate is a per-song collage. The torn-paper TV loops the existing Quarters AI video as a motion seed; it does **not** force the Quarters track onto every screen.
+
+**Asset generation still pending:** plates are a procedural compositor over authored stills (`assets/patch/*.png`) plus existing jestR art. To swap in a finished still: drop `assets/patch/songs/<slug>.jpg` and add it to `SONG_STILLS` in `js/orbit-patch.js`.
 
 ## Under the hood
 

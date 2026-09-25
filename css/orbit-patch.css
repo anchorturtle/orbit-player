@@ -1,0 +1,613 @@
+/* ============================================
+   ORBIT v3 — Patchwork
+   Collage / stencil / Warhol / Rockwell-jester living room.
+   Not a holo recolor. Glass + holo stay untouched.
+   ============================================ */
+
+html.theme-patch {
+  --grain-opacity: .22;
+  --scanline-opacity: 0;
+  --vignette-strength: .28;
+  --jestr-blue: #7B2FBF;
+  --jestr-green: #1F8A7A;
+  --jestr-purple: #4B1F7A;
+  --jestr-red: #E85A4F;
+  --baby-blue: #00C2CB;
+  --track-a: #4B1F7A;
+  --track-b: #E8B84A;
+  --track-c: #E85A4F;
+  --win-bg: rgba(246, 231, 193, .90);
+  --win-border: #1A1020;
+  --win-radius: 3px;
+  --win-shadow:
+    7px 8px 0 #1A1020,
+    0 0 0 1px #1A1020;
+  --patch-mustard: #E8B84A;
+  --patch-coral: #E85A4F;
+  --patch-teal: #1F8A7A;
+  --patch-magenta: #C43B9A;
+  --patch-cream: #F6E7C1;
+  --patch-ink: #1A1020;
+  --patch-hill: #4B1F7A;
+  --patch-hill-2: #7B2FBF;
+  --patch-pop-yellow: #FFE66D;
+  --patch-pop-cyan: #00C2CB;
+  --patch-paper: #F3D9B0;
+  --patch-tape: #D4B483;
+}
+
+html.theme-patch,
+html.theme-patch body {
+  background: #2A1250;
+  color: #1A1020;
+  font-family: 'Special Elite', 'Plus Jakarta Sans', serif;
+}
+
+html.theme-patch body {
+  perspective: none;
+}
+
+/* ---- Hide holo-only chrome; keep Orbit windows + playback ---- */
+html.theme-patch #holo-env-wash,
+html.theme-patch #holo-env-canvas,
+html.theme-patch #holo-iso-grid,
+html.theme-patch #holo-tubes,
+html.theme-patch #holo-hud,
+html.theme-patch #holo-click-ring,
+html.theme-patch .holo-paper {
+  display: none !important;
+}
+
+html.theme-patch #space-bg {
+  background:
+    linear-gradient(180deg, #F6E7C1 0%, #E8B84A 28%, #C43B9A 58%, #2A1250 100%);
+  opacity: 1;
+}
+
+html.theme-patch #stars-canvas {
+  opacity: 0.12;
+  mix-blend-mode: screen;
+  filter: hue-rotate(40deg) saturate(1.6);
+}
+
+html.theme-patch #space3d-canvas {
+  opacity: 0.18;
+  mix-blend-mode: multiply;
+  filter: saturate(1.8) contrast(1.15) hue-rotate(-8deg);
+}
+
+html.theme-patch .scanlines { opacity: 0; }
+html.theme-patch .grain-overlay {
+  opacity: .28;
+  mix-blend-mode: multiply;
+}
+html.theme-patch .vignette {
+  opacity: .22;
+  background: radial-gradient(ellipse 80% 70% at 50% 42%, transparent 40%, rgba(26,16,32,.55) 100%);
+}
+
+/* ---- Patch room (injected) ---- */
+html.theme-patch #patch-room {
+  display: block;
+  position: fixed;
+  inset: 0;
+  z-index: 2;
+  pointer-events: none;
+  overflow: hidden;
+}
+
+#patch-room { display: none; }
+
+html.theme-patch .patch-sky {
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(180deg, #F6E7C1 0 18%, #7EC8C0 18% 34%, #E85A4F 34% 38%, transparent 38%),
+    radial-gradient(ellipse 90% 50% at 50% 0%, #FFE66D 0%, transparent 55%);
+}
+
+html.theme-patch .patch-hills {
+  position: absolute;
+  left: -4%;
+  right: -4%;
+  bottom: -2%;
+  height: 58%;
+  background:
+    url('../assets/patch/patch-purple-hills.png') center bottom / cover no-repeat;
+  filter: contrast(1.15) saturate(1.25);
+  -webkit-mask-image: linear-gradient(180deg, transparent 0%, #000 18%, #000 100%);
+  mask-image: linear-gradient(180deg, transparent 0%, #000 18%, #000 100%);
+}
+
+html.theme-patch .patch-hills::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background:
+    repeating-linear-gradient(0deg, transparent 0 7px, rgba(26,16,32,.06) 7px 8px);
+  mix-blend-mode: multiply;
+}
+
+html.theme-patch .patch-halftone {
+  position: absolute;
+  inset: 0;
+  background-image: radial-gradient(#1A1020 0.7px, transparent 0.8px);
+  background-size: 6px 6px;
+  opacity: .14;
+  mix-blend-mode: multiply;
+}
+
+html.theme-patch .patch-scrap {
+  position: absolute;
+  background-size: cover;
+  background-position: center;
+  box-shadow: 4px 5px 0 #1A1020;
+  border: 2px solid #1A1020;
+  transform-origin: center;
+}
+
+html.theme-patch.patch-still .patch-scrap {
+  animation: none !important;
+}
+
+html.theme-patch .patch-tv {
+  position: absolute;
+  left: 18px;
+  bottom: calc(var(--orbit-dock-clearance, 84px) + 18px);
+  width: min(220px, 22vw);
+  aspect-ratio: 16 / 10;
+  background: #1A1020;
+  border: 3px solid #1A1020;
+  box-shadow: 8px 9px 0 #E8B84A, 11px 12px 0 #1A1020;
+  overflow: hidden;
+  transform: rotate(-3.5deg);
+}
+
+html.theme-patch .patch-tv::before {
+  content: '';
+  position: absolute;
+  top: -10px;
+  left: 18%;
+  width: 38%;
+  height: 16px;
+  background: repeating-linear-gradient(90deg, #D4B483 0 8px, #c4a36e 8px 10px);
+  transform: rotate(-2deg);
+  z-index: 2;
+}
+
+html.theme-patch .patch-tv video,
+html.theme-patch .patch-tv img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  filter: saturate(1.4) contrast(1.12);
+}
+
+html.theme-patch .patch-stamp {
+  position: absolute;
+  font-family: 'Bungee', Impact, sans-serif;
+  font-size: clamp(28px, 5vw, 64px);
+  letter-spacing: .04em;
+  color: transparent;
+  -webkit-text-stroke: 2px #1A1020;
+  text-transform: none;
+  opacity: .22;
+  mix-blend-mode: multiply;
+  pointer-events: none;
+}
+
+@media (max-width: 767px) {
+  html.theme-patch .patch-tv {
+    left: 10px;
+    bottom: calc(var(--mob-dock-h, 88px) + 8px);
+    width: min(132px, 34vw);
+  }
+  html.theme-patch .patch-scrap { display: none; }
+}
+
+/* ---- Focal plate + type ---- */
+html.theme-patch #planet-bg {
+  z-index: 6 !important;
+}
+
+html.theme-patch .focal-orbit {
+  width: min(420px, 62vw);
+  height: min(420px, 62vw);
+}
+
+html.theme-patch .focal-backdrop,
+html.theme-patch .planet-fallback-glow {
+  display: none !important;
+}
+
+html.theme-patch #patch-plate-wrap {
+  position: absolute;
+  inset: 6%;
+  border-radius: 50%;
+  overflow: hidden;
+  border: 4px solid #1A1020;
+  box-shadow:
+    0 0 0 8px #E8B84A,
+    0 0 0 11px #1A1020,
+    10px 12px 0 rgba(26,16,32,.35);
+  background: #2A1250;
+}
+
+html.theme-patch #patch-plate {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+html.theme-patch .focal-text {
+  filter: none;
+  text-shadow: 3px 3px 0 #FFE66D, 5px 5px 0 #1A1020;
+}
+
+html.theme-patch .focal-eyebrow,
+html.theme-patch .tape-counter.focal-eyebrow {
+  font-family: 'Special Elite', monospace;
+  color: #1A1020 !important;
+  letter-spacing: .28em;
+  background: #FFE66D;
+  border: 2px solid #1A1020;
+  padding: 3px 8px;
+  box-shadow: 3px 3px 0 #1A1020;
+}
+
+html.theme-patch .focal-title,
+html.theme-patch #focal-title {
+  font-family: 'Bungee', Impact, sans-serif;
+  font-weight: 400;
+  color: #F6E7C1;
+  -webkit-text-stroke: 1px #1A1020;
+  letter-spacing: .02em;
+  line-height: 1.05;
+}
+
+html.theme-patch .focal-artist,
+html.theme-patch #focal-artist {
+  font-family: 'Special Elite', serif;
+  color: #FFE66D !important;
+  background: #1A1020;
+  padding: 2px 10px;
+  display: inline-block;
+}
+
+/* ---- Windows: torn magazine pages, tape, hard print shadow ---- */
+html.theme-patch .win {
+  background:
+    repeating-linear-gradient(180deg, rgba(26,16,32,.04) 0 2px, transparent 2px 7px),
+    linear-gradient(180deg, var(--patch-cream), var(--patch-paper));
+  color: #1A1020;
+  border: 3px solid #1A1020 !important;
+  border-radius: 2px !important;
+  box-shadow: 7px 8px 0 #1A1020, 0 0 0 1px #1A1020 !important;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+}
+
+html.theme-patch .win::before {
+  content: '';
+  position: absolute;
+  top: -9px;
+  left: 22%;
+  width: 56px;
+  height: 18px;
+  background: repeating-linear-gradient(90deg, var(--patch-tape) 0 9px, #c4a36e 9px 11px);
+  transform: rotate(-2deg);
+  pointer-events: none;
+  z-index: 5;
+  opacity: .92;
+}
+
+html.theme-patch .win::after {
+  content: '';
+  position: absolute;
+  top: -8px;
+  right: 16%;
+  width: 44px;
+  height: 16px;
+  background: repeating-linear-gradient(90deg, var(--patch-tape) 0 9px, #c4a36e 9px 11px);
+  transform: rotate(4deg);
+  pointer-events: none;
+  z-index: 5;
+  opacity: .88;
+}
+
+html.theme-patch .win.win-glass-lite,
+html.theme-patch .win.win-glass-lite:not(#dock-win) {
+  background: var(--patch-cream);
+}
+
+html.theme-patch .win-bar {
+  background: #1A1020;
+  color: #F6E7C1;
+  border-bottom: 3px solid #1A1020;
+}
+
+html.theme-patch .win-bar::after { display: none; }
+
+html.theme-patch .win-title,
+html.theme-patch .dock-logo-main,
+html.theme-patch .dock-logo-main.phosphor {
+  font-family: 'Bungee', Impact, sans-serif;
+  color: #FFE66D !important;
+  letter-spacing: .06em;
+  text-shadow: none;
+}
+
+html.theme-patch .dock-logo-sub {
+  font-family: 'Special Elite', serif;
+  color: #F6E7C1;
+}
+
+html.theme-patch .dock-logo-wrap::before { display: none; }
+
+html.theme-patch .phosphor:not(.focal-eyebrow):not(.focal-artist) {
+  color: #1F8A7A;
+  text-shadow: none;
+}
+
+html.theme-patch .tape-counter:not(.focal-eyebrow) {
+  font-family: 'Special Elite', monospace;
+  color: #C43B9A;
+}
+
+html.theme-patch .win-close {
+  background: #E85A4F !important;
+  color: #F6E7C1 !important;
+  border: 2px solid #1A1020 !important;
+  border-radius: 2px !important;
+}
+
+html.theme-patch .win-resize {
+  background: transparent;
+}
+
+/* ---- Dock / mobile ---- */
+html.theme-patch #dock-win {
+  background: #1A1020 !important;
+  border: 3px solid #FFE66D !important;
+  box-shadow: 6px 6px 0 #C43B9A !important;
+}
+
+html.theme-patch #dock-win::before,
+html.theme-patch #dock-win::after { display: none; }
+
+html.theme-patch #mobile-dock {
+  background: #1A1020;
+  border-top: 3px solid #FFE66D;
+}
+
+html.theme-patch .taskbar-btn,
+html.theme-patch .mob-btn,
+html.theme-patch .ctrl-btn,
+html.theme-patch .tab,
+html.theme-patch .orbit-mode-btn {
+  background: #F6E7C1 !important;
+  color: #1A1020 !important;
+  border: 2px solid #1A1020 !important;
+  border-radius: 2px !important;
+  box-shadow: 3px 3px 0 #1A1020;
+  font-family: 'Special Elite', serif;
+}
+
+html.theme-patch .taskbar-btn:hover,
+html.theme-patch .mob-btn:hover,
+html.theme-patch .ctrl-btn:hover,
+html.theme-patch .tab:hover {
+  background: #FFE66D !important;
+  transform: translate(-1px, -1px);
+  box-shadow: 4px 4px 0 #1A1020;
+}
+
+html.theme-patch .taskbar-btn.win-open,
+html.theme-patch .mob-btn.active,
+html.theme-patch .tab.active,
+html.theme-patch .ctrl-btn.active-state {
+  background: #E85A4F !important;
+  color: #F6E7C1 !important;
+}
+
+html.theme-patch .taskbar-dot,
+html.theme-patch .mob-dot {
+  background: #FFE66D;
+}
+
+html.theme-patch #dock-win .taskbar-btn,
+html.theme-patch #dock-win .orbit-mode-btn,
+html.theme-patch #dock-win .dock-logo-wrap {
+  /* keep dock readable on ink bar */
+}
+
+html.theme-patch .player-title {
+  font-family: 'Bungee', Impact, sans-serif;
+  color: #1A1020;
+  letter-spacing: .02em;
+}
+
+html.theme-patch .player-artist,
+html.theme-patch .track-artist,
+html.theme-patch .time-label,
+html.theme-patch .tab {
+  color: #4B1F7A;
+}
+
+html.theme-patch .track-title {
+  color: #1A1020;
+  font-weight: 700;
+}
+
+html.theme-patch .player-faceplate,
+html.theme-patch .player-art-side,
+html.theme-patch .player-art {
+  background: transparent;
+}
+
+html.theme-patch .player-art-side {
+  background: #FFE66D;
+  border: 2px solid #1A1020;
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+html.theme-patch .player-art-side img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+html.theme-patch .player-transport .play-btn,
+html.theme-patch .play-btn,
+html.theme-patch #btn-play,
+html.theme-patch #song-detail-play.play-btn {
+  background: #C43B9A !important;
+  border: 3px solid #1A1020 !important;
+  border-radius: 50% !important;
+  box-shadow: 4px 4px 0 #1A1020 !important;
+}
+
+html.theme-patch .play-btn::before,
+html.theme-patch .play-btn::after,
+html.theme-patch #btn-play::before,
+html.theme-patch #btn-play::after {
+  display: none !important;
+}
+
+html.theme-patch .play-btn.playing,
+html.theme-patch #btn-play.playing {
+  background: #1F8A7A !important;
+}
+
+html.theme-patch .progress-fill-bar,
+html.theme-patch .progress-thumb {
+  background: #E85A4F !important;
+  border-color: #1A1020;
+}
+
+html.theme-patch .progress-track-bg {
+  background: #1A1020 !important;
+  opacity: .25;
+}
+
+html.theme-patch .track-item {
+  background: rgba(255, 230, 109, .18);
+  border: 2px solid transparent;
+  border-radius: 2px;
+}
+
+html.theme-patch .track-item.active {
+  background: #FFE66D;
+  border-color: #1A1020;
+  box-shadow: 3px 3px 0 #1A1020;
+}
+
+html.theme-patch .track-item:hover {
+  background: #F6E7C1;
+  border-color: #1A1020;
+}
+
+html.theme-patch .search-wrap {
+  background: #F6E7C1;
+  border: 2px solid #1A1020;
+  border-radius: 2px;
+}
+
+html.theme-patch input,
+html.theme-patch textarea {
+  color: #1A1020;
+  background: transparent;
+}
+
+html.theme-patch ::placeholder {
+  color: rgba(26,16,32,.45);
+}
+
+html.theme-patch .explicit-badge {
+  background: #E85A4F !important;
+  color: #F6E7C1 !important;
+  border: 2px solid #1A1020 !important;
+}
+
+html.theme-patch .gallery-item {
+  border: 3px solid #1A1020;
+  box-shadow: 4px 4px 0 #C43B9A;
+  border-radius: 2px;
+}
+
+html.theme-patch #drop-line,
+html.theme-patch #drop-line::before,
+html.theme-patch #drop-line::after {
+  background: #E85A4F !important;
+}
+
+html.theme-patch ::-webkit-scrollbar-thumb {
+  background: #C43B9A !important;
+  border-radius: 2px !important;
+}
+html.theme-patch ::-webkit-scrollbar-track {
+  background: #F3D9B0 !important;
+}
+html.theme-patch .no-scrollbar {
+  scrollbar-color: #C43B9A #F3D9B0;
+}
+
+/* ---- 3-position mode switch ---- */
+html.theme-patch .orbit-mode-btn,
+html.theme-patch .orbit-mode-btn-mob {
+  background: #FFE66D !important;
+  color: #1A1020 !important;
+  border: 2px solid #1A1020 !important;
+  box-shadow: 3px 3px 0 #1A1020;
+}
+
+html.theme-patch .orbit-mode-track {
+  width: 34px !important;
+  height: 12px !important;
+  background: #1A1020 !important;
+  border: 2px solid #1A1020 !important;
+  opacity: 1 !important;
+}
+
+html.theme-patch .orbit-mode-knob {
+  background: #E85A4F !important;
+  width: 8px !important;
+  height: 8px !important;
+  top: 0 !important;
+  left: 1px !important;
+}
+
+html.theme-patch .orbit-mode-btn[data-skin="glass"] .orbit-mode-knob { transform: translateX(0); }
+html.theme-patch .orbit-mode-btn[data-skin="holo"] .orbit-mode-knob { transform: translateX(10px); }
+html.theme-patch .orbit-mode-btn[data-skin="patch"] .orbit-mode-knob { transform: translateX(20px); }
+
+html.theme-patch .orbit-mode-label {
+  font-family: 'Bungee', Impact, sans-serif;
+  letter-spacing: .08em;
+  color: #1A1020;
+}
+
+html.theme-patch .lyric-line.is-current,
+html.theme-patch .lyric-line.current {
+  background: #FFE66D;
+  color: #1A1020;
+}
+
+html.orbit-skin-xfade.theme-patch #patch-room,
+html.orbit-skin-xfade.theme-patch .win {
+  animation: patch-in .45s cubic-bezier(.22, 1, .36, 1);
+}
+
+@keyframes patch-in {
+  from { filter: contrast(1.4) saturate(1.6); }
+  to { filter: none; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html.theme-patch .patch-scrap,
+  html.theme-patch .patch-tv,
+  html.orbit-skin-xfade.theme-patch #patch-room {
+    animation: none !important;
+  }
+}

@@ -701,7 +701,7 @@ html.theme-holo .orbit-mode-btn-mob {
 html.theme-holo .orbit-mode-track {
   display: block !important;
   position: relative !important;
-  width: 28px !important;
+  width: 34px !important;
   height: 12px !important;
   border-radius: 999px !important;
   background: rgba(26, 88, 232, .12) !important;
@@ -719,8 +719,17 @@ html.theme-holo .orbit-mode-knob {
   background: #C41422 !important;
   box-shadow: 0 0 6px rgba(196, 20, 34, .7) !important;
 }
+html.theme-holo .orbit-mode-btn[data-skin="glass"] .orbit-mode-knob,
+html.theme-holo .orbit-mode-btn.is-glass .orbit-mode-knob {
+  transform: translateX(0);
+}
+html.theme-holo .orbit-mode-btn[data-skin="holo"] .orbit-mode-knob,
 html.theme-holo .orbit-mode-btn.is-holo .orbit-mode-knob {
-  transform: translateX(14px);
+  transform: translateX(11px);
+}
+html.theme-holo .orbit-mode-btn[data-skin="patch"] .orbit-mode-knob,
+html.theme-holo .orbit-mode-btn.is-patch .orbit-mode-knob {
+  transform: translateX(22px);
 }
 html.theme-holo .orbit-mode-label {
   font-size: 7px !important;
