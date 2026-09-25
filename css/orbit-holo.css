@@ -34,28 +34,42 @@ html.theme-holo #holo-env-canvas {
 html.theme-holo #holo-env-wash { z-index: 191; }
 html.theme-holo #holo-env-canvas {
   z-index: 192;
-  mix-blend-mode: screen;
+  mix-blend-mode: plus-lighter;
 }
 html.theme-holo #planet-bg {
   z-index: 193 !important;
 }
 html.theme-holo #holo-env-wash {
-  opacity: 0.55;
+  opacity: 0.42;
   filter: saturate(var(--holo-env-sat, 1.25));
   background:
-    radial-gradient(ellipse 92% 72% at 50% 46%,
-      color-mix(in srgb, var(--holo-tone-b, #1A58E8) calc(16% + var(--holo-kick, 0) * 62%), transparent) 0%,
-      transparent 64%),
-    radial-gradient(ellipse 80% 55% at 50% 88%,
-      color-mix(in srgb, var(--holo-tone-c, #C41422) calc(14% + var(--holo-bass, 0) * 56%), transparent) 0%,
-      transparent 72%),
-    radial-gradient(ellipse 40% 30% at 18% 28%,
-      color-mix(in srgb, var(--holo-tone-b, #1A58E8) calc(10% + var(--holo-hat, 0) * 36%), transparent),
+    radial-gradient(ellipse 100% 80% at 50% 46%,
+      color-mix(in srgb, var(--holo-tone-b, #1A58E8) calc(22% + var(--holo-kick, 0) * 70%), transparent) 0%,
+      transparent 68%),
+    radial-gradient(ellipse 90% 60% at 50% 90%,
+      color-mix(in srgb, var(--holo-tone-c, #C41422) calc(18% + var(--holo-bass, 0) * 62%), transparent) 0%,
+      transparent 74%),
+    radial-gradient(ellipse 48% 36% at 14% 24%,
+      color-mix(in srgb, var(--holo-tone-b, #1A58E8) calc(14% + var(--holo-hat, 0) * 42%), transparent),
       transparent 70%),
-    radial-gradient(ellipse 36% 28% at 84% 24%,
-      color-mix(in srgb, var(--holo-tone-c, #C41422) calc(9% + var(--holo-snare, 0) * 38%), transparent),
+    radial-gradient(ellipse 44% 34% at 86% 20%,
+      color-mix(in srgb, var(--holo-tone-c, #C41422) calc(12% + var(--holo-snare, 0) * 44%), transparent),
       transparent 70%);
   transition: opacity 0.12s linear;
+}
+html.theme-holo.holo-playing #holo-env-wash,
+html.theme-holo.holo-env-live #holo-env-wash {
+  opacity: 0.9;
+}
+html.theme-holo.holo-playing .grain-overlay,
+html.theme-holo.holo-env-live .grain-overlay {
+  opacity: 0.16;
+  mix-blend-mode: overlay;
+}
+html.theme-holo[data-holo-pair="bw-purple"] #holo-env-wash,
+html.theme-holo[data-holo-pair="bw-blue"] #holo-env-wash,
+html.theme-holo[data-holo-pair="bw-red"] #holo-env-wash {
+  filter: saturate(var(--holo-env-sat, 1.05)) contrast(1.18);
 }
 html:not(.theme-holo) #holo-env-wash,
 html:not(.theme-holo) #holo-env-canvas {
@@ -69,8 +83,8 @@ html:not(.theme-holo) #holo-click-ring {
 
 html.theme-holo,
 html.theme-holo body {
-  background: #050608;
-  color: #1A58E8;
+  background: var(--holo-tone-a, #050608);
+  color: var(--holo-tone-b, #1A58E8);
   font-family: 'Share Tech Mono', 'Rajdhani', sans-serif;
 }
 

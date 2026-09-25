@@ -498,6 +498,8 @@ function initAudioContext() {
     if (audioContext.state === 'suspended') {
       audioContext.resume().catch(() => {});
     }
+    window.__ORBIT_AUDIO_CTX__ = audioContext;
+    window.__ORBIT_GAIN__ = gainNode;
     return;
   }
 
@@ -511,11 +513,15 @@ function initAudioContext() {
 
     // Set initial gain from current volume setting
     gainNode.gain.value = (premuteVolume || 100) / 100;
+    window.__ORBIT_AUDIO_CTX__ = audioContext;
+    window.__ORBIT_GAIN__ = gainNode;
 
   } catch (e) {
     console.warn('Web Audio API not supported or failed to initialize. Falling back to native volume.', e);
     audioContext = null;
     gainNode = null;
+    window.__ORBIT_AUDIO_CTX__ = null;
+    window.__ORBIT_GAIN__ = null;
   }
 }
 

@@ -139,49 +139,73 @@
     for (let i = 0; i < s.length; i++) h = (h * 31 + s.charCodeAt(i)) >>> 0;
     return h;
   }
-  /* Distinct two-tone holo worlds — not one global cyan/red. */
+  /* Distinct two-tone / pop-art holo worlds — env script is source of truth. */
   const HOLO_WORLDS = {
     'quarters': ['#050608', '#1A58E8', '#C41422'],
-    'offers': ['#0A0614', '#EDE8FF', '#7B2FFF'],
-    'thousand-dragon': ['#0C0804', '#F2C14E', '#C41422'],
-    'ko': ['#04080A', '#00E5A8', '#FF2D6A'],
-    'hyperdream-odyssey': ['#06040E', '#FF6EC7', '#2D5BFF'],
-    'soul-seer': ['#070A08', '#9AFF6B', '#2D6BFF'],
-    'geronimo': ['#0A0404', '#FF4D1A', '#FFE8D0'],
-    'spin-cycle': ['#05060A', '#7EC8E3', '#C41422'],
-    'mile-high': ['#04060C', '#2D6BFF', '#FFFFFF'],
-    'follow-the-flow': ['#061014', '#19E3C2', '#1A58E8'],
-    'peace': ['#08060C', '#C9B8FF', '#FFFFFF'],
-    'strider': ['#0A0806', '#FF9A3C', '#1A58E8'],
-    'insane-membrane': ['#08040A', '#FF2D9A', '#2D6BFF'],
-    'wavy': ['#040A12', '#3DDCFF', '#C41422'],
-    'boa-constrictor': ['#0A0604', '#6BFF4D', '#C41422'],
-    'news': ['#06080C', '#FFFFFF', '#1A58E8'],
-    'wheels': ['#080604', '#FFB020', '#C41422'],
-    'pop': ['#0C0410', '#FF4DDF', '#FFE14D'],
-    'the-sum-of-hippy-thoughts': ['#061208', '#B8FF4D', '#7B2FFF'],
-    'what-dreams-may-come': ['#06040E', '#B48CFF', '#1A58E8'],
-    'jazzpot': ['#0A0608', '#FF7A3C', '#2D6BFF']
+    'offers': ['#000000', '#F4F0FF', '#7B2FFF'],
+    'thousand-dragon': ['#1A0A00', '#FFD100', '#FF1A1A'],
+    'ko': ['#001410', '#00FFC2', '#FF2D6A'],
+    'hyperdream-odyssey': ['#0A0030', '#FF4DFF', '#3D7BFF'],
+    'soul-seer': ['#001408', '#B8FF00', '#2D6BFF'],
+    'geronimo': ['#140000', '#FF3300', '#FFE8D0'],
+    'spin-cycle': ['#000814', '#7EF0FF', '#FF2A5A'],
+    'mile-high': ['#000000', '#2D6BFF', '#FFFFFF'],
+    'follow-the-flow': ['#001820', '#00FFD0', '#1A58E8'],
+    'peace': ['#0A0614', '#FFFFFF', '#C9B8FF'],
+    'strider': ['#120800', '#FF7A00', '#1A58E8'],
+    'insane-membrane': ['#120018', '#FF0099', '#00E5FF'],
+    'wavy': ['#001028', '#00E5FF', '#FF3366'],
+    'boa-constrictor': ['#051400', '#66FF00', '#FF0044'],
+    'news': ['#000000', '#FFFFFF', '#1A58E8'],
+    'wheels': ['#140A00', '#FFB000', '#FF2200'],
+    'pop': ['#1A0030', '#FF00AA', '#FFF000'],
+    'the-sum-of-hippy-thoughts': ['#0A1800', '#D4FF00', '#9B30FF'],
+    'what-dreams-may-come': ['#0A0020', '#B48CFF', '#00FFC8'],
+    'jazzpot': ['#180810', '#FF6A00', '#2D6BFF'],
+    'fat-stacks': ['#001400', '#00FF66', '#FFD100'],
+    'chokeslam': ['#100000', '#FFFFFF', '#C41422'],
+    'grateful-sharpie': ['#000814', '#00A3FF', '#FF4D00'],
+    'my-anthem': ['#140010', '#FF0055', '#00F0FF'],
+    'sublime-beginnings': ['#001010', '#FFEE00', '#FF00AA'],
+    'nonnin': ['#000000', '#7B2FFF', '#FFFFFF'],
+    'whoiam2u': ['#0C0018', '#FF66FF', '#00FF88'],
+    'still-going-higher': ['#000818', '#4D7CFF', '#FFE14D'],
+    'tomb-of-the-creator': ['#0A0A00', '#C8A000', '#8B0000'],
+    'what-is-it-now': ['#180000', '#FF2200', '#00FFDD'],
+    'four-twenty': ['#0A1400', '#66FF00', '#FF00AA'],
+    'get': ['#000000', '#FFEE00', '#FF0066'],
+    'death-of-jestr': ['#000000', '#FFFFFF', '#7B2FFF'],
+    'blockbuster': ['#100000', '#FF0044', '#FFE14D'],
+    'got-nun': ['#000000', '#E8E8E8', '#C41422'],
+    'space-radio': ['#000818', '#39FF14', '#FF00FF'],
+    'exploding-galaxies': ['#080010', '#FF00FF', '#00FFFF'],
+    'acid-rain': ['#001408', '#CCFF00', '#FF00CC']
   };
   const PALETTES_HOLO = [
     ['#050608', '#1A58E8', '#C41422'],
-    ['#0A0614', '#EDE8FF', '#7B2FFF'],
-    ['#04080A', '#00E5A8', '#FF2D6A'],
-    ['#0C0804', '#F2C14E', '#C41422'],
-    ['#06040E', '#FF6EC7', '#2D5BFF'],
-    ['#04060C', '#FFFFFF', '#1A58E8'],
-    ['#0A0404', '#FF4D1A', '#FFE8D0'],
-    ['#070A08', '#9AFF6B', '#2D6BFF'],
-    ['#08040A', '#FF2D9A', '#2D6BFF'],
-    ['#040A12', '#3DDCFF', '#C41422'],
-    ['#0C0410', '#FF4DDF', '#FFE14D'],
-    ['#061208', '#B8FF4D', '#7B2FFF'],
-    ['#080604', '#FFB020', '#C41422'],
-    ['#06080C', '#FFFFFF', '#7B2FFF']
+    ['#000000', '#F4F0FF', '#7B2FFF'],
+    ['#001410', '#00FFC2', '#FF2D6A'],
+    ['#1A0A00', '#FFD100', '#FF1A1A'],
+    ['#0A0030', '#FF4DFF', '#3D7BFF'],
+    ['#000000', '#FFFFFF', '#1A58E8'],
+    ['#140000', '#FF3300', '#FFE8D0'],
+    ['#001408', '#B8FF00', '#2D6BFF'],
+    ['#120018', '#FF0099', '#00E5FF'],
+    ['#001028', '#00E5FF', '#FF3366'],
+    ['#1A0030', '#FF00AA', '#FFF000'],
+    ['#0A1800', '#D4FF00', '#9B30FF'],
+    ['#140A00', '#FFB000', '#FF2200'],
+    ['#000000', '#FFFFFF', '#7B2FFF']
   ];
   let lastSlug = null;
+  const holoClear = new THREE.Color('#050608');
+  function holoWorlds() {
+    return window.__HOLO_WORLDS__ || null;
+  }
   function paletteFor(slug) {
     if (holoOn) {
+      const env = holoWorlds();
+      if (slug && env && env[slug] && env[slug].pal) return env[slug].pal;
       if (slug && HOLO_WORLDS[slug]) return HOLO_WORLDS[slug];
       if (!slug) return PALETTES_HOLO[0];
       return PALETTES_HOLO[hashStr(slug) % PALETTES_HOLO.length];
@@ -2664,10 +2688,17 @@
     beatPulse *= Math.exp(-dt * 8.5);
     beatPhase += dt * (bpmSm / 60) * Math.PI * 2;
 
-    // smooth palette flow (planet melts from one song's world to the next)
-    palA.lerp(tgtA, 0.022);
-    palB.lerp(tgtB, 0.022);
-    palC.lerp(tgtC, 0.022);
+    // smooth palette flow — holo snaps worlds faster so each track is a new room
+    const palK = holoOn ? 0.14 : 0.022;
+    palA.lerp(tgtA, palK);
+    palB.lerp(tgtB, palK);
+    palC.lerp(tgtC, palK);
+    if (holoOn) {
+      const pulse = reduceMotion.matches ? 0 : Math.min(1, bassSm * 0.7 + kickEnv * 0.45);
+      holoClear.copy(palA).lerp(palB, 0.08 + pulse * 0.28);
+      holoClear.multiplyScalar(0.28 + pulse * 0.55);
+      renderer.setClearColor(holoClear, 1);
+    }
 
     // uniforms — every visible planet view (hero + in-flight clones)
     for (let vi = 0; vi < planetViews.length; vi++) {
