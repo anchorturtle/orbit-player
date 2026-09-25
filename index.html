@@ -38,7 +38,7 @@
   <div class="scanlines"></div>
   <div class="grain-overlay"></div>
 
-  <!-- AUDIO ELEMENT -->
+  <!-- Single native audio element. iOS lock-screen needs this path, not Web Audio. -->
   <audio id="audio-player" preload="metadata" playsinline></audio>
 
   <!-- PLANET FOCAL TEXT (the planet itself is rendered live in 3D behind this) -->
@@ -554,7 +554,7 @@
   <script src="https://unpkg.com/three@0.147.0/build/three.min.js"></script>
   <script src="js/utils.js?v=20260821a"></script>
   <script src="js/space3d.js?v=20260820j"></script>
-  <script src="js/player.js?v=20260923quarters"></script>
+  <script src="js/player.js?v=20260924pitch"></script>
   <script src="js/planet-swipe.js?v=20260820l"></script>
   <script src="js/gallery.js?v=20260925enlarge"></script>
   <script src="js/main.js?v=20260821a"></script>
