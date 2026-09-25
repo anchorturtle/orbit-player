@@ -810,11 +810,38 @@ function applyOrbitDockClearance() {
     const dock = document.getElementById('dock-win');
     if (dock && dock.offsetHeight) {
       const r = dock.getBoundingClientRect();
-      px = Math.max(72, Math.round(window.innerHeight - r.top + 8));
+      // Dock floats above the bottom edge. Prefer height+gap over innerHeight-r.top.
+      const gap = Math.max(0, window.innerHeight - r.bottom);
+      px = Math.round(dock.offsetHeight + gap + 8);
     }
   }
+  px = Math.max(64, Math.min(px, Math.floor(window.innerHeight * 0.28)));
   win.style.setProperty('--orbit-dock-clearance', px + 'px');
   document.documentElement.style.setProperty('--orbit-dock-clearance', px + 'px');
+}
+
+function clearVideoWinInlineBox(win) {
+  if (!win) return;
+  ['left', 'top', 'right', 'bottom', 'width', 'height', 'max-width', 'max-height'].forEach((p) => {
+    win.style.removeProperty(p);
+  });
+}
+
+function applyVideoEnlargeInlineBox(win) {
+  if (!win) return;
+  const clear = (document.documentElement.style.getPropertyValue('--orbit-dock-clearance') ||
+    getComputedStyle(document.documentElement).getPropertyValue('--orbit-dock-clearance') ||
+    '84px').trim() || '84px';
+  // Nuclear fill so leftover card left/top/width cannot leave a mid-size floater.
+  win.style.setProperty('position', 'fixed', 'important');
+  win.style.setProperty('left', '0px', 'important');
+  win.style.setProperty('top', '0px', 'important');
+  win.style.setProperty('right', '0px', 'important');
+  win.style.setProperty('bottom', clear, 'important');
+  win.style.setProperty('width', '100%', 'important');
+  win.style.setProperty('height', 'calc(100dvh - ' + clear + ')', 'important');
+  win.style.setProperty('max-width', 'none', 'important');
+  win.style.setProperty('max-height', 'none', 'important');
 }
 
 function enterVideoEnlarge() {
@@ -824,6 +851,8 @@ function enterVideoEnlarge() {
     captureVideoWinGeometry(win);
   }
   applyOrbitDockClearance();
+  clearVideoWinInlineBox(win);
+  applyVideoEnlargeInlineBox(win);
   win.classList.add('video-enlarged');
   document.documentElement.classList.add('orbit-video-enlarge-lock');
 }
@@ -833,6 +862,8 @@ function exitVideoEnlarge() {
   if (win) {
     win.classList.remove('video-enlarged');
     win.style.removeProperty('--orbit-dock-clearance');
+    clearVideoWinInlineBox(win);
+    win.style.removeProperty('position');
   }
   document.documentElement.style.removeProperty('--orbit-dock-clearance');
   document.documentElement.classList.remove('orbit-video-enlarge-lock');
@@ -966,7 +997,10 @@ function onVideoFullscreenLeave() {
 }
 
 function onVideoEnlargeViewportChange() {
-  if (isVideoEnlarged()) applyOrbitDockClearance();
+  if (!isVideoEnlarged()) return;
+  applyOrbitDockClearance();
+  const win = document.getElementById('video-win');
+  if (win) applyVideoEnlargeInlineBox(win);
 }
 
 function bindVideoFsChromeListeners() {
