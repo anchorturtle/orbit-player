@@ -57,6 +57,16 @@
   }
 }
 
+/* Pick mode: eyedropper cursor everywhere (beats mix-canvas inline crosshair). */
+html.is-sfumato-pick,
+html.is-sfumato-pick * {
+  cursor: url("/sfumato/eyedropper-cursor.svg") 4 28, crosshair !important;
+}
+html.is-sfumato-pick #sfumato-pick,
+html.is-sfumato-pick #sfumato-pick * {
+  cursor: pointer !important;
+}
+
 /* ---- Holo chrome only. Does not remap live/glass :root tokens. ---- */
 html.theme-holo {
   --sf-bg: #050608;

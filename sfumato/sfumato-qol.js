@@ -63,9 +63,13 @@
   }
 
   function syncTop() {
+    var on = pickOn();
+    var root = document.documentElement;
+    if (root.classList.contains('is-sfumato-pick') !== on) {
+      root.classList.toggle('is-sfumato-pick', on);
+    }
     var top = document.getElementById('sfumato-pick');
     if (!top) return;
-    var on = pickOn();
     var pressed = on ? 'true' : 'false';
     if (top.classList.contains('is-on') !== on) top.classList.toggle('is-on', on);
     if (top.getAttribute('aria-pressed') !== pressed) top.setAttribute('aria-pressed', pressed);
