@@ -118,7 +118,26 @@ input, textarea {
   position: fixed; inset: 0; z-index: 3;
   pointer-events: auto;
   display: block;
-  touch-action: pan-y; /* vertical scroll passes through; we capture horizontal */
+  touch-action: none;
+  cursor: grab;
+}
+#planet-swipe-layer.pressing,
+#planet-swipe-layer.swiping,
+html.planet-pressing,
+html.planet-dragging,
+html.planet-pressing body,
+html.planet-dragging body {
+  cursor: grabbing;
+}
+#planet-bg.pressing .focal-orbit,
+#planet-bg.swiping .focal-orbit {
+  filter: brightness(1.07) saturate(1.12);
+}
+#planet-bg.swiping .focal-title {
+  text-shadow:
+    0 2px 24px rgba(3,2,10,.9),
+    0 0 52px var(--track-a, rgba(123,47,255,.8)),
+    0 0 110px var(--track-b, rgba(45,91,255,.55));
 }
 /* Stationary white #focal-title sits over the planet (no marquee / 3D band). */
 

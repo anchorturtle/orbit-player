@@ -1401,14 +1401,21 @@ html.theme-holo.holo-cursor-press input[type="range"],
 html.theme-holo.holo-cursor-press input[type="color"] {
   cursor: url('../assets/holo-cursors/pressed.svg?v=20260824h29') 8 1, pointer;
 }
-html.theme-holo .win-bar {
+html.theme-holo .win-bar,
+html.theme-holo #planet-swipe-layer {
   cursor: url('../assets/holo-cursors/grab.svg?v=20260824h29') 13 13, grab;
 }
 html.theme-holo .win-bar:active,
 html.theme-holo .win.holo-dragging,
 html.theme-holo .win.holo-dragging .win-bar,
 html.theme-holo .drag-handle.grabbing,
-html.theme-holo .tracklist-tabs:active {
+html.theme-holo .tracklist-tabs:active,
+html.theme-holo #planet-swipe-layer.pressing,
+html.theme-holo #planet-swipe-layer.swiping,
+html.theme-holo.planet-pressing,
+html.theme-holo.planet-dragging,
+html.theme-holo.planet-pressing body,
+html.theme-holo.planet-dragging body {
   cursor: url('../assets/holo-cursors/grabbing.svg?v=20260824h29') 13 13, grabbing;
 }
 html.theme-holo .drag-handle,
