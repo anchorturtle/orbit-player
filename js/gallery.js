@@ -644,15 +644,18 @@ function scheduleSyncVideoUi() {
   });
 }
 
-/** Pin + remember window box before native fullscreen (exit FS must not leave 100vw inline). */
+/** Pin + remember the layout box (not clip-path / getBoundingClientRect). */
 function captureVideoWinGeometry(win) {
   if (!win || isMob()) return;
-  const r = win.getBoundingClientRect();
+  const left = parseFloat(win.style.left);
+  const top = parseFloat(win.style.top);
+  const w = win.offsetWidth || parseFloat(win.style.width) || 720;
+  const h = win.offsetHeight || parseFloat(win.style.height) || 540;
   _videoPreFsRect = {
-    left: Math.round(r.left) + 'px',
-    top: Math.round(r.top) + 'px',
-    width: Math.round(r.width) + 'px',
-    height: Math.round(r.height) + 'px',
+    left: (Number.isFinite(left) ? Math.round(left) : Math.round(win.offsetLeft || 0)) + 'px',
+    top: (Number.isFinite(top) ? Math.round(top) : Math.round(win.offsetTop || 0)) + 'px',
+    width: Math.round(w) + 'px',
+    height: Math.round(h) + 'px',
     userPositioned: win.dataset.userPositioned === 'true',
   };
   win.style.left = _videoPreFsRect.left;
@@ -668,35 +671,36 @@ function captureVideoWinGeometry(win) {
 function restoreVideoWinAfterFullscreen() {
   const win = document.getElementById('video-win');
   if (!win || win.style.display !== 'flex' || isMob()) return;
-  const rect = _videoPreFsRect;
+  const vw = window.innerWidth;
+  const vh = window.innerHeight;
+  let rect = _videoPreFsRect;
+  if (rect) {
+    const rw = parseFloat(rect.width);
+    const rh = parseFloat(rect.height);
+    /* Theater leftovers are not a small card — fall back to the default card. */
+    if (!Number.isFinite(rw) || !Number.isFinite(rh) || rw > vw * 0.88 || rh > vh * 0.78) {
+      rect = null;
+    }
+  }
   const apply = () => {
     if (rect) {
       win.style.left = rect.left;
       win.style.top = rect.top;
       win.style.width = rect.width;
       win.style.height = rect.height;
-      win.style.bottom = '';
-      win.style.right = '';
-      win.style.maxWidth = '';
-      win.style.maxHeight = '';
       if (rect.userPositioned) win.dataset.userPositioned = 'true';
-    } else if (win.dataset.userPositioned !== 'true') {
-      const vw = window.innerWidth;
-      const vh = window.innerHeight;
-      const w = Math.min(720, vw - 80);
-      const h = Math.min(540, vh - 120);
-      win.style.width = w + 'px';
-      win.style.height = h + 'px';
-      win.style.left = ((vw - w) / 2) + 'px';
-      win.style.top = ((vh - h) / 2) + 'px';
-      win.style.bottom = '';
-      win.style.right = '';
+    } else if (typeof layoutVideoWinDefault === 'function') {
+      layoutVideoWinDefault(win);
     }
-    if (typeof clampWindowToViewport === 'function') clampWindowToViewport(win, 8);
+    win.style.bottom = '';
+    win.style.right = '';
+    win.style.maxWidth = '';
+    win.style.maxHeight = '';
     if (typeof syncWindowGlassTiers === 'function') syncWindowGlassTiers();
     nudgeVideoPaint(document.getElementById('video-win-player'));
   };
-  requestAnimationFrame(() => requestAnimationFrame(apply));
+  apply();
+  requestAnimationFrame(apply);
 }
 
 function layoutVideoWinDefault(win) {
