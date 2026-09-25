@@ -259,6 +259,15 @@
             if (cage && cage.material && cage.material.color) cage.material.color.set(p[1]);
           }
         } catch (e2) {}
+      } else {
+        root.removeProperty('--holo-tone-a');
+        root.removeProperty('--holo-tone-b');
+        root.removeProperty('--holo-tone-c');
+        root.removeProperty('--jestr-green');
+        root.removeProperty('--jestr-blue');
+        root.removeProperty('--jestr-red');
+        root.removeProperty('--baby-blue');
+        root.removeProperty('--win-border');
       }
     } catch (e) {}
   }
@@ -392,15 +401,26 @@
       depthTest: true,
       side: THREE.FrontSide,
       vertexShader: `
+        uniform float uHolo;
+        uniform float uTime;
+        uniform float uBass;
+        uniform float uAudio;
+        uniform float uHoloFlow;
         varying vec3 vNormal;
         varying vec3 vPos;
         varying vec3 vView;
         varying vec3 vWorld;
         void main(){
+          vec3 p = position;
+          if (uHolo > 0.5 && uHoloFlow > 0.5) {
+            vec3 nn = normalize(position);
+            float wave = sin(nn.y * 10.0 + uTime * 1.55) * sin(atan(nn.z, nn.x) * 6.0 - uTime * 1.05);
+            p = position + nn * wave * (0.008 + uBass * 0.04 + uAudio * 0.018);
+          }
           vNormal = normalize(normalMatrix * normal);
           vPos = position;
-          vWorld = (modelMatrix * vec4(position, 1.0)).xyz;
-          vec4 mv = modelViewMatrix * vec4(position, 1.0);
+          vWorld = (modelMatrix * vec4(p, 1.0)).xyz;
+          vec4 mv = modelViewMatrix * vec4(p, 1.0);
           vView = -mv.xyz;
           gl_Position = projectionMatrix * mv;
         }
@@ -427,9 +447,10 @@
           vec3 n = normalize(vPos);
 
           if (uHolo > 0.5) {
-            /* Opaque off-black body. Red/black fbm mountains. Grid lives on a sibling cage. */
-            vec3 body = vec3(0.0196, 0.0235, 0.0314);
-            vec3 ink = vec3(0.7686, 0.0784, 0.1333);
+            /* Graphic ink globe — Ōkami paper/vermillion bands, Jack-hard cuts. */
+            vec3 body = vec3(0.016, 0.018, 0.024);
+            vec3 paper = vec3(0.949, 0.929, 0.894);
+            vec3 blood = mix(vec3(0.882, 0.024, 0.0), uColC, 0.35);
             float seed = uSeed;
             float stormS = mix(0.8, 2.2, fract(seed * 5.91));
             float ht = uTime * 0.022 * uHoloFlow;
@@ -441,13 +462,13 @@
             float height = mix(climate, bands, 0.45);
             height = mix(height, ridge, 0.4);
             height = clamp(height + uBass * 0.10 * smoothstep(0.45, 0.8, height), 0.0, 1.0);
+            float bandH = floor(height * 4.999) / 4.0;
 
-            float basin = 1.0 - smoothstep(0.22, 0.42, height);
-            float mountain = smoothstep(0.48, 0.78, height);
-            vec3 topo = mix(body, body * 0.22, basin);
-            topo = mix(topo, ink * 0.18, smoothstep(0.32, 0.52, height) * (1.0 - mountain));
-            topo = mix(topo, ink, mountain * (0.55 + height * 0.45));
-            topo = mix(topo, ink * 1.15, ridge * mountain * 0.45);
+            vec3 topo = body;
+            topo = mix(topo, blood * 0.28, step(0.25, bandH) * (1.0 - step(0.5, bandH)));
+            topo = mix(topo, blood * 0.68, step(0.5, bandH) * (1.0 - step(0.75, bandH)));
+            topo = mix(topo, blood, step(0.75, bandH));
+            topo = mix(topo, paper, ridge * step(0.75, bandH) * 0.78);
 
             /* Idle = full topo. uPulse 0..1 is a slow south→north refresh wave. */
             float lat01 = clamp(n.y * 0.5 + 0.5, 0.0, 1.0);
@@ -900,6 +921,7 @@
     uniform float uRipR;
     uniform vec3 uColB;
     uniform vec3 uColC;
+    uniform float uDockPx;
     varying vec3 vWorld;
     varying vec2 vXZ;
     varying float vWave;
@@ -923,17 +945,18 @@
       float L = max(max(line * 0.78, major * 1.0), crest * 0.42);
       float riseAng = length(vXZ) / max(0.001, uBowlR);
       float fade = 1.0 - smoothstep(0.70, 1.00, riseAng);
-      vec3 nearC = uColC;
-      vec3 midC = uColB;
-      vec3 plate = mix(nearC, midC, smoothstep(0.12, 0.58, riseAng));
-      plate = mix(plate, vec3(0.0), smoothstep(0.58, 0.96, riseAng));
+      vec3 ink = vec3(0.016, 0.018, 0.024);
+      vec3 punch = uColC;
+      vec3 structC = uColB;
       float n = fract(sin(dot(uv * 37.0, vec2(12.9898, 78.233))) * 43758.5453);
-      float hatch = step(0.52, fract((uv.x + uv.y) * 5.5 + uTime * 0.08));
-      plate *= 0.62 + n * 0.28 + hatch * 0.1;
-      vec3 col = plate * (0.55 + L * 0.85);
-      col += midC * (crest * 0.12);
+      float hatch = step(0.5, fract((uv.x + uv.y) * 6.0 + uTime * 0.08));
+      vec3 plate = mix(ink, punch, (1.0 - smoothstep(0.10, 0.48, riseAng)) * 0.20);
+      plate *= 0.68 + n * 0.24 + hatch * 0.18;
+      vec3 col = mix(plate, structC, L * 0.95);
+      col += punch * crest * 0.20;
       col *= 1.0 + uBass * 0.06;
-      float alpha = (0.16 + L * 0.58 + n * 0.08) * fade;
+      float dockFade = smoothstep(0.0, max(1.0, uDockPx), gl_FragCoord.y);
+      float alpha = (0.12 + L * 0.64 + n * 0.10 + hatch * 0.04) * fade * dockFade;
       gl_FragColor = vec4(col, alpha);
     }
   `;
@@ -962,7 +985,8 @@
     uBowlR: { value: HOLO_BOWL_R },
     uRipR: { value: 8 },
     uColB: { value: new THREE.Color('#FFFFFF') },
-    uColC: { value: new THREE.Color('#E10600') }
+    uColC: { value: new THREE.Color('#E10600') },
+    uDockPx: { value: 110 }
   };
   const holoGridGeo = new THREE.PlaneGeometry(128, 128, 48, 48);
   holoGridGeo.rotateX(-Math.PI / 2);
@@ -1076,9 +1100,12 @@
         float flow = t * 0.22 + aPhase;
         p.x += sin(flow * 0.71 + p.z * 0.055 + p.y * 0.04) * mix(0.35, 1.85, far);
         p.z += cos(flow * 0.63 + p.x * 0.05 - p.y * 0.03) * mix(0.35, 1.85, far);
-        p.y += sin(flow * 0.41 + aPhase * 2.0) * mix(0.22, 1.15, far);
-        p.y += uBeatPhase * mix(0.06, 0.55, far) * (0.4 + fract(aPhase));
-        p.y += uBass * mix(0.08, 0.45, far);
+        p.y += sin(flow * 0.41 + aPhase * 2.0) * mix(0.28, 1.35, far);
+        p.y += sin(t * 0.21 + aPhase) * mix(0.10, 0.42, far);
+        p.y += uBeatPhase * mix(0.04, 0.38, far) * (0.4 + fract(aPhase));
+        p.y += uBass * mix(0.10, 0.55, far);
+        vec3 nrm = normalize(p + vec3(0.001));
+        p += nrm * uBass * mix(0.08, 0.55, far) * sin(t * 1.2 + aPhase);
         float flick = pow(abs(sin(uBeatPhase * 1.4 + aPhase * 6.0)), 5.0);
         vHot = clamp(uBass * 0.35 + uAudio * 0.25 + uBeat * 0.2 + flick * 0.15, 0.0, 1.0);
         vColor = aColor;
@@ -1103,13 +1130,12 @@
       void main(){
         vec2 d = gl_PointCoord - 0.5;
         float r = length(d);
-        float smoke = smoothstep(0.5, 0.0, r);
-        smoke *= smoothstep(0.5, 0.04, r);
-        float grain = fract(sin(dot(gl_PointCoord * 23.0, vec2(12.9898, 78.233))) * 43758.5453);
-        float a = smoke * (0.34 + grain * 0.2) * vG * (0.2 + vBri * 1.6);
-        if (a < 0.012) discard;
-        vec3 col = vColor * (0.35 + vBri);
-        gl_FragColor = vec4(col, clamp(a, 0.0, 0.7));
+        float core = 1.0 - smoothstep(0.0, 0.14, r);
+        float rim = 1.0 - smoothstep(0.14, 0.28, r);
+        float a = (core * 0.96 + rim * 0.20) * vG * (0.42 + vBri * 0.85);
+        if (a < 0.02) discard;
+        vec3 col = vColor * (0.62 + vBri * 0.7 + vHot * 0.25);
+        gl_FragColor = vec4(col, clamp(a, 0.0, 0.9));
       }
     `
   }));
@@ -1383,10 +1409,10 @@
     for (let i = 0; i < nebulae.length; i++) {
       const n = nebulae[i];
       if (holoOn) {
-        n.u.uC1.value.set('#1A58E8');
-        n.u.uC2.value.set('#C41422');
-        n.u.uOpacity.value = n.baseO * 0.35;
+        n.mesh.visible = false;
+        n.u.uOpacity.value = 0;
       } else {
+        n.mesh.visible = true;
         n.u.uC1.value.copy(n.origC1);
         n.u.uC2.value.copy(n.origC2);
         n.u.uOpacity.value = n.baseO;
@@ -2708,6 +2734,15 @@
       renderer.setClearColor(holoClear, 1);
       if (holoGridUniforms.uColB) holoGridUniforms.uColB.value.copy(palB);
       if (holoGridUniforms.uColC) holoGridUniforms.uColC.value.copy(palC);
+      if (holoGridUniforms.uDockPx) {
+        const dock = document.getElementById('dock-win');
+        let band = 110;
+        if (dock) {
+          const r = dock.getBoundingClientRect();
+          band = Math.max(24, window.innerHeight - r.top + 14);
+        }
+        holoGridUniforms.uDockPx.value = band * (renderer.getPixelRatio ? renderer.getPixelRatio() : 1);
+      }
     }
 
     // uniforms — every visible planet view (hero + in-flight clones)
@@ -2803,8 +2838,8 @@
     const isoX = 0;
     const isoY = holoOn ? HOLO_CAM_Y : 0;
     const isoZ = holoOn ? baseZ * HOLO_CAM_Z_MUL : baseZ;
-    const dX = holoOn ? driftX * 0.12 : driftX;
-    const dY = holoOn ? driftY * 0.12 : driftY;
+    const dX = holoOn ? driftX * 0.20 : driftX;
+    const dY = holoOn ? driftY * 0.18 : driftY;
     const camK = holoOn ? 0.06 : 0.012;
     camera.position.x += ((isoX + dX + mx) - camera.position.x) * camK;
     camera.position.y += ((isoY + dY + my) - camera.position.y) * camK;
