@@ -270,7 +270,7 @@
       speed = t * (0.22 + li * 0.05 + highSm * 0.08);
       ctx.beginPath();
       ctx.lineWidth = (li === 2 ? 2.4 : 1.35);
-      ctx.strokeStyle = rgba(li % 2 ? col.c : col.b, live ? (0.72 + m * 0.2) : 0.22);
+      ctx.strokeStyle = rgba(li % 2 ? col.c : col.b, live ? (0.84 + m * 0.16) : 0.28);
       for (x = 0; x <= W; x += 6) {
         y = y0
           + Math.sin(x * freq + speed + li * 0.7) * amp * (0.7 + li * 0.08)
@@ -282,35 +282,63 @@
     }
   }
 
+  function dockClearY(floorTop) {
+    var d = document.getElementById('dock-win');
+    var gap = 12;
+    if (!d) return Math.max(floorTop + 8, H - 110);
+    var r = d.getBoundingClientRect();
+    return Math.max(floorTop + 8, r.top - gap);
+  }
+
   function drawFloor(col, b, t, live) {
-    /* Existing perspective floor only — gradient plate + one grid. No extra verts. */
+    /* Existing perspective floor only — ink gradient + hatch. No extra verts.
+       Clamp above #dock-win so the plate cannot tile a red/blue strip under chrome. */
     var cx = W * 0.5;
     var vanishY = H * 0.52;
     var floorTop = H * 0.58;
+    var floorBot = Math.min(H, dockClearY(floorTop));
+    if (floorBot <= floorTop + 4) return;
     var m = b.melody || 0;
     var pulse = 1 + m * 0.05;
-    var g, k, yy, half, gLine, gx, gy;
+    var g, k, yy, half, gLine, gx, gy, hx, hs;
 
-    g = ctx.createLinearGradient(0, floorTop, 0, H);
+    g = ctx.createLinearGradient(0, floorTop, 0, floorBot);
     g.addColorStop(0, rgba(col.a, 0));
-    g.addColorStop(0.22, rgba(col.c, live ? 0.2 : 0.07));
-    g.addColorStop(0.62, rgba(col.b, live ? 0.34 : 0.1));
-    g.addColorStop(1, rgba(col.a, live ? 0.88 : 0.4));
+    g.addColorStop(0.26, rgba(col.c, live ? 0.18 : 0.07));
+    g.addColorStop(0.70, rgba(col.a, live ? 0.58 : 0.22));
+    g.addColorStop(1, rgba(col.a, 0));
     ctx.fillStyle = g;
-    ctx.fillRect(0, floorTop, W, H - floorTop);
+    ctx.fillRect(0, floorTop, W, floorBot - floorTop);
 
-    ctx.lineWidth = 1.15;
-    ctx.strokeStyle = rgba(col.b, live ? (0.34 + m * 0.16) : 0.1);
+    ctx.save();
+    ctx.beginPath();
+    ctx.rect(0, floorTop, W, floorBot - floorTop);
+    ctx.clip();
+    ctx.strokeStyle = rgba(col.b, live ? 0.14 : 0.06);
+    ctx.lineWidth = 1;
+    hs = 8;
+    for (hx = -H; hx < W + H; hx += hs) {
+      ctx.beginPath();
+      ctx.moveTo(hx, floorTop);
+      ctx.lineTo(hx + (floorBot - floorTop), floorBot);
+      ctx.stroke();
+    }
+    ctx.restore();
+
+    ctx.lineCap = 'square';
+    ctx.lineWidth = 1.25;
+    ctx.strokeStyle = rgba(col.b, live ? (0.46 + m * 0.2) : 0.14);
     ctx.beginPath();
     for (gLine = -8; gLine <= 8; gLine++) {
       gx = cx + gLine * (W * 0.11) * pulse;
       ctx.moveTo(cx, vanishY);
-      ctx.lineTo(gx, H + 8);
+      ctx.lineTo(gx, floorBot);
     }
     for (gy = 0; gy < 9; gy++) {
       k = (gy + (t * 0.07 % 1)) / 8;
       if (k > 1) k -= 1;
-      yy = floorTop + Math.pow(k, 1.55) * (H - floorTop);
+      yy = floorTop + Math.pow(k, 1.55) * (floorBot - floorTop);
+      if (yy >= floorBot - 1) continue;
       half = (W * 0.08 + k * W * 0.55) * pulse;
       ctx.moveTo(cx - half, yy);
       ctx.lineTo(cx + half, yy);
