@@ -1,21 +1,65 @@
 /* ============================================
    ORBIT PLAYER — visual mode switch
-   Toggles html.theme-holo. Does not change features.
+   Three living rooms: glass (live) | holo (v2) | patch (v3 Patchwork).
+   Does not change features.
    ============================================ */
 (function () {
   'use strict';
 
   var KEY = 'orbitSkin';
+  var SKINS = ['glass', 'holo', 'patch'];
   var html = document.documentElement;
+  var current = 'holo';
 
-  function isHolo() {
-    return html.classList.contains('theme-holo');
+  function normalize(raw) {
+    var s = String(raw == null ? '' : raw).toLowerCase().trim();
+    if (s === 'live' || s === 'glass') return 'glass';
+    if (s === 'holo' || s === 'hermes') return 'holo';
+    if (s === 'patch' || s === 'patchwork' || s === 'v3') return 'patch';
+    return '';
   }
 
-  function syncButtons(on) {
+  function readStored() {
+    try {
+      return normalize(localStorage.getItem(KEY));
+    } catch (e) {
+      return '';
+    }
+  }
+
+  function detect() {
+    if (html.classList.contains('theme-patch')) return 'patch';
+    if (html.classList.contains('theme-holo')) return 'holo';
+    return 'glass';
+  }
+
+  function isHolo() {
+    return current === 'holo';
+  }
+
+  function labelFor(skin) {
+    if (skin === 'patch') return 'Patch';
+    if (skin === 'holo') return 'Holo';
+    return 'Glass';
+  }
+
+  function titleFor(skin) {
+    if (skin === 'patch') return 'Patchwork — collage / pop-art living room';
+    if (skin === 'holo') return 'Holo — Hermes wire + light';
+    return 'Glass — live analog look';
+  }
+
+  function syncButtons(skin) {
     document.querySelectorAll('.orbit-mode-btn').forEach(function (btn) {
-      btn.setAttribute('aria-pressed', on ? 'true' : 'false');
-      btn.classList.toggle('is-holo', on);
+      btn.setAttribute('data-skin', skin);
+      btn.setAttribute('aria-pressed', skin !== 'glass' ? 'true' : 'false');
+      btn.classList.toggle('is-holo', skin === 'holo');
+      btn.classList.toggle('is-patch', skin === 'patch');
+      btn.classList.toggle('is-glass', skin === 'glass');
+      btn.title = titleFor(skin) + ' (click to cycle)';
+      btn.setAttribute('aria-label', 'Visual mode: ' + labelFor(skin) + '. Click to change.');
+      var lab = btn.querySelector('.orbit-mode-label');
+      if (lab) lab.textContent = labelFor(skin);
     });
   }
 
@@ -34,35 +78,47 @@
       reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
     } catch (e) {}
     html.classList.toggle('holo-still', reduce);
-    pauseWrapAnims(!isHolo() || reduce);
+    html.classList.toggle('patch-still', reduce);
+    pauseWrapAnims(current !== 'holo' || reduce);
   }
 
-  function apply(on, persist) {
-    on = !!on;
-    html.classList.toggle('theme-holo', on);
+  function apply(next, persist) {
+    var skin = normalize(next);
+    if (!skin) {
+      if (next === true || next === 1) skin = 'holo';
+      else if (next === false || next === 0) skin = 'glass';
+      else skin = detect();
+    }
+    current = skin;
+    html.classList.toggle('theme-holo', skin === 'holo');
+    html.classList.toggle('theme-patch', skin === 'patch');
     html.classList.add('orbit-skin-xfade');
     if (window.__orbitSkinXfadeT) clearTimeout(window.__orbitSkinXfadeT);
     window.__orbitSkinXfadeT = setTimeout(function () {
       html.classList.remove('orbit-skin-xfade');
     }, 520);
     if (persist !== false) {
-      try { localStorage.setItem(KEY, on ? 'holo' : 'live'); } catch (e) {}
+      try { localStorage.setItem(KEY, skin); } catch (e) {}
       try {
         var u = new URL(location.href);
-        u.searchParams.set('skin', on ? 'holo' : 'live');
+        u.searchParams.set('skin', skin);
         if (history.replaceState) history.replaceState({}, '', u);
       } catch (e2) {}
     }
-    syncButtons(on);
+    syncButtons(skin);
     syncMotion();
     if (typeof window.__ORBIT_SKIN_APPLY__ === 'function') {
-      try { window.__ORBIT_SKIN_APPLY__(on); } catch (e) {}
+      try { window.__ORBIT_SKIN_APPLY__(skin === 'holo'); } catch (e) {}
     }
-    window.dispatchEvent(new CustomEvent('orbit-skin-change', { detail: { holo: on } }));
+    window.dispatchEvent(new CustomEvent('orbit-skin-change', {
+      detail: { skin: skin, holo: skin === 'holo', patch: skin === 'patch', glass: skin === 'glass' }
+    }));
   }
 
   function toggle() {
-    apply(!isHolo());
+    var i = SKINS.indexOf(current);
+    if (i < 0) i = 0;
+    apply(SKINS[(i + 1) % SKINS.length]);
   }
 
   document.addEventListener('click', function (e) {
@@ -93,14 +149,15 @@
   } catch (e) {}
 
   try {
-    var bootQ = new URLSearchParams(location.search).get('skin');
-    if (bootQ === 'holo') apply(true, true);
-    else if (bootQ === 'live') apply(false, true);
-    else apply(isHolo(), false);
+    var bootQ = normalize(new URLSearchParams(location.search).get('skin'));
+    if (bootQ) apply(bootQ, true);
+    else apply(readStored() || detect(), false);
   } catch (e) {
-    apply(isHolo(), false);
+    apply(detect(), false);
   }
 
   window.__ORBIT_SKIN_TOGGLE__ = toggle;
   window.__ORBIT_SKIN_SET__ = apply;
+  window.__ORBIT_SKIN_GET__ = function () { return current; };
+  window.__ORBIT_SKINS__ = SKINS.slice();
 })();

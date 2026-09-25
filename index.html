@@ -9,10 +9,16 @@
       try {
         var q = '';
         try { q = new URLSearchParams(location.search).get('skin') || ''; } catch (e2) {}
-        if (q === 'holo' || q === 'live') {
-          localStorage.setItem('orbitSkin', q);
+        q = String(q).toLowerCase();
+        if (q === 'holo' || q === 'live' || q === 'glass' || q === 'patch' || q === 'patchwork') {
+          localStorage.setItem('orbitSkin', q === 'live' ? 'glass' : (q === 'patchwork' ? 'patch' : q));
         }
-        if (localStorage.getItem('orbitSkin') !== 'live') {
+        var stored = localStorage.getItem('orbitSkin') || '';
+        if (stored === 'live') stored = 'glass';
+        if (stored === 'patchwork') stored = 'patch';
+        if (stored === 'patch') {
+          document.documentElement.classList.add('theme-patch');
+        } else if (stored !== 'glass' && stored !== 'live') {
           document.documentElement.classList.add('theme-holo');
         }
       } catch (e) {}
@@ -39,10 +45,11 @@
   <!-- Modular CSS first (critical path). ?v= busts stale device caches on deploy. -->
   <link rel="stylesheet" href="css/styles.css?v=20260925holo2">
   <link rel="stylesheet" href="css/orbit-holo.css?v=20260925holo2">
+  <link rel="stylesheet" href="css/orbit-patch.css?v=20260925patch2">
   <link rel="stylesheet" href="css/orbit-custom.css?v=20260831pl">
 
   <!-- Google Fonts -->
-  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Rajdhani:wght@500;600;700&family=Share+Tech+Mono&display=swap" rel="stylesheet"/>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Rajdhani:wght@500;600;700&family=Share+Tech+Mono&family=Bungee&family=Special+Elite&display=swap" rel="stylesheet"/>
   <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
 </head>
 <body>
@@ -55,6 +62,7 @@
   <div class="scanlines"></div>
   <div class="grain-overlay"></div>
   <div class="holo-paper" aria-hidden="true"></div>
+  <div id="patch-room" aria-hidden="true"></div>
   <svg id="holo-svg-defs" aria-hidden="true" focusable="false" width="0" height="0" style="position:absolute;width:0;height:0;overflow:hidden">
     <defs>
       <filter id="holo-wrap-filter" x="-20%" y="-20%" width="140%" height="140%" color-interpolation-filters="sRGB">
@@ -599,9 +607,9 @@
       </button>
       </div>
       <div class="dock-divider dock-mode-split"></div>
-      <button type="button" class="orbit-mode-btn" id="btn-orbit-mode" title="Change mode" aria-label="Switch visual mode" aria-pressed="false">
+      <button type="button" class="orbit-mode-btn" id="btn-orbit-mode" title="Change mode" aria-label="Switch visual mode" aria-pressed="false" data-skin="holo">
         <span class="orbit-mode-track" aria-hidden="true"><span class="orbit-mode-knob"></span></span>
-        <span class="orbit-mode-label">Change mode</span>
+        <span class="orbit-mode-label">Holo</span>
       </button>
       <div class="dock-divider dock-overflow-split" hidden></div>
       <div id="dock-overflow" class="dock-overflow" hidden></div>
@@ -641,9 +649,9 @@
       <div class="mob-dot"></div>
     </button>
     </div>
-    <button type="button" class="orbit-mode-btn orbit-mode-btn-mob" id="btn-orbit-mode-mob" title="Change mode" aria-label="Switch visual mode" aria-pressed="false">
+    <button type="button" class="orbit-mode-btn orbit-mode-btn-mob" id="btn-orbit-mode-mob" title="Change mode" aria-label="Switch visual mode" aria-pressed="false" data-skin="holo">
       <span class="orbit-mode-track" aria-hidden="true"><span class="orbit-mode-knob"></span></span>
-      <span class="orbit-mode-label">Mode</span>
+      <span class="orbit-mode-label">Holo</span>
     </button>
     <div id="mob-overflow" class="mob-overflow" hidden></div>
   </div>
@@ -655,9 +663,10 @@
   <script src="js/utils.js?v=20260921holo"></script>
   <script src="js/holo-props.js?v=20260831mag2"></script>
   <script src="js/space3d.js?v=20260925holo"></script>
-  <script src="js/orbit-skin.js?v=20260831xfade"></script>
+  <script src="js/orbit-skin.js?v=20260925patch"></script>
+  <script src="js/orbit-patch.js?v=20260925patch"></script>
   <script src="js/holo-fx.js?v=20260831noflare"></script>
-  <script src="js/player.js?v=20260925quarters-holo"></script>
+  <script src="js/player.js?v=20260925patch"></script>
   <script src="js/custom-library.js?v=20260831pl"></script>
   <script src="js/planet-swipe.js?v=20260925holo2"></script>
   <script src="js/gallery.js?v=20260925quarters-vid"></script>
