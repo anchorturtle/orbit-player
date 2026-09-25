@@ -29,7 +29,7 @@
   }
 
   function commitPx() {
-    return Math.max(48, Math.round(spanPx() * 0.055));
+    return Math.max(80, Math.round(spanPx() * 0.08));
   }
 
   /* Soft knee through 2×deadzone so the globe starts turning immediately
@@ -148,7 +148,7 @@
     var dist = Math.abs(dx);
     if (dist >= commitPx()) return true;
     var sameDir = !dx || (vx < 0) === (dx < 0);
-    return sameDir && Math.abs(vx) >= 0.7 && dist >= commitPx() * 0.3;
+    return sameDir && Math.abs(vx) >= 1.15 && dist >= commitPx() * 0.5;
   }
 
   function endSwipe(e) {
