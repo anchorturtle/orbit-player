@@ -5,8 +5,8 @@
   z-index: 340;
   width: 280px;
   height: 440px;
-  left: 28px;
-  top: 72px;
+  left: calc(50% - 140px);
+  top: 96px;
 }
 
 #custom-win .win-body {

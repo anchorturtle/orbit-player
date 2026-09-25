@@ -79,25 +79,82 @@ function fitPlayerWindow() {
 }
 window.fitPlayerWindow = fitPlayerWindow;
 
-/* LAYOUT_V=2: media player parks near the top (not the old cy+300 low slot).
-   One-shot migrate: if localStorage orbitLayoutV is stale, ignore player-win
-   userPositioned once so an old drag cannot keep the player at the bottom. */
-const LAYOUT_V = 2;
+/* LAYOUT_V=3: hard-refresh defaults leave a measured gap above the dock
+   and keep the player near the top (not the old cy+300 low slot). */
+const LAYOUT_V = 3;
 window.__ORBIT_LAYOUT_V = LAYOUT_V;
+
+function isHoloSkin() {
+  return document.documentElement.classList.contains('theme-holo');
+}
+
+function clampDesktopWindows(margin) {
+  if (typeof clampWindowToViewport !== 'function' || isMob()) return;
+  const m = margin == null ? 8 : margin;
+  ['tracklist-win', 'gallery-win', 'player-win', 'custom-win', 'lyrics-win'].forEach((id) => {
+    const w = document.getElementById(id);
+    if (!w || w.style.display === 'none') return;
+    clampWindowToViewport(w, m);
+  });
+}
+
+function relayoutAfterSkin() {
+  document.querySelectorAll('.win').forEach((w) => {
+    w.style.clipPath = '';
+    w.style.webkitClipPath = '';
+    try {
+      w.style.removeProperty('clip-path');
+      w.style.removeProperty('-webkit-clip-path');
+    } catch (e) { /* ignore */ }
+    w.classList.remove('holo-dragging');
+  });
+  ['holo-tubes', 'holo-hud', 'holo-click-ring', 'holo-flare'].forEach((id) => {
+    const el = document.getElementById(id);
+    if (!el) return;
+    if (!isHoloSkin()) {
+      el.style.display = 'none';
+      const draw = el.querySelector && el.querySelector('#holo-tube-draw');
+      if (draw) draw.innerHTML = '';
+    } else {
+      el.style.display = '';
+    }
+  });
+  const pl = document.getElementById('player-win');
+  if (pl) {
+    pl.style.transform = '';
+    pl.style.overflow = '';
+    pl.style.contain = '';
+    pl.style.boxShadow = '';
+    pl.style.clipPath = '';
+    pl.style.webkitClipPath = '';
+    pl.classList.remove('holo-dragging');
+  }
+  if (typeof isMob === 'function' && isMob()) {
+    if (typeof fitPlayerWindow === 'function') fitPlayerWindow();
+    return;
+  }
+  applyDesktopLayout();
+  requestAnimationFrame(() => {
+    applyDesktopLayout();
+    if (typeof fitPlayerWindow === 'function') fitPlayerWindow();
+    clampDesktopWindows(8);
+  });
+}
+window.relayoutAfterSkin = relayoutAfterSkin;
 
 /* ── DESKTOP LAYOUT (auto-position windows) — planet stays the hero in the middle.
    Player sits near the top, X-centered, on both live and holo. Dock stays bottom. */
 function applyDesktopLayout() {
   if (isMob()) return;
 
+  if (typeof syncOrbitDockClearance === 'function') syncOrbitDockClearance();
+
   const vw = window.innerWidth, vh = window.innerHeight;
-  const dock = document.getElementById('dock-win');
-  const dockH = dock ? dock.offsetHeight : 70;
-  const usableH = vh - dockH - 20;
+  const floorY = (typeof dockFloorY === 'function') ? dockFloorY(vh) : (vh - 84);
+  const usableH = Math.max(220, floorY - 16);
   const cx = vw / 2, cy = usableH / 2;
-  // Larger clearance to ensure windows (tracklist, gallery, player) do not overlap the central planet glow or focal "NOW PLAYING" text by default.
-  // Previous values were too tight, causing visual overlap in the screenshot.
-  const PLANET_CLEARANCE = 205, PAD = 20;
+  // Leave the planet + focal title clear, and keep a real gap above the dock.
+  const PLANET_CLEARANCE = 205, PAD = 24;
 
   const tl = document.getElementById('tracklist-win');
   const g = document.getElementById('gallery-win');
@@ -112,17 +169,17 @@ function applyDesktopLayout() {
   const plW = Math.min(420, Math.max(380, Math.floor(vw * 0.30)));
 
   // Only force sizes/positions for windows the user hasn't manually dragged or resized
-  if (tl.dataset.userPositioned !== 'true') {
+  if (tl && tl.dataset.userPositioned !== 'true') {
     tl.style.width = tlW + 'px'; tl.style.height = tlH + 'px';
     tl.style.left = Math.max(PAD, cx - PLANET_CLEARANCE - tlW - 20) + 'px';
-    tl.style.top = Math.max(PAD, cy - tlH / 2 - 20) + 'px';
+    tl.style.top = Math.max(PAD, cy - tlH / 2) + 'px';
     tl.style.bottom = ''; tl.style.right = '';
   }
 
-  if (g.dataset.userPositioned !== 'true') {
+  if (g && g.dataset.userPositioned !== 'true') {
     g.style.width = gW + 'px'; g.style.height = gH + 'px';
     g.style.left = Math.min(vw - gW - PAD, cx + PLANET_CLEARANCE + 20) + 'px';
-    g.style.top = Math.max(PAD, cy - gH / 2 - 20) + 'px';
+    g.style.top = Math.max(PAD, cy - gH / 2) + 'px';
     g.style.bottom = ''; g.style.right = '';
   }
 
@@ -133,13 +190,27 @@ function applyDesktopLayout() {
     try { localStorage.setItem('orbitLayoutV', String(LAYOUT_V)); } catch (e) {}
   }
 
-  if (pl.dataset.userPositioned !== 'true' || layoutStale) {
+  if (pl && (pl.dataset.userPositioned !== 'true' || layoutStale)) {
     pl.style.width = plW + 'px';
     pl.style.height = 'auto';
     pl.style.left = Math.max(PAD, cx - plW / 2) + 'px';
     pl.style.bottom = ''; pl.style.right = '';
+    pl.style.transform = '';
     if (typeof fitPlayerWindow === 'function') fitPlayerWindow();
     pl.style.top = PAD + 'px';
+  }
+
+  // Custom / playlist window: centered in the usable band, not the old left-corner stack.
+  const cu = document.getElementById('custom-win');
+  if (cu && cu.dataset.userPositioned !== 'true') {
+    const cuW = 280;
+    const cuH = Math.min(440, usableH - 2 * PAD);
+    cu.style.width = cuW + 'px';
+    cu.style.height = cuH + 'px';
+    cu.style.left = Math.max(PAD, Math.round((vw - cuW) / 2)) + 'px';
+    cu.style.top = Math.max(PAD, Math.round((usableH - cuH) / 2)) + 'px';
+    cu.style.bottom = '';
+    cu.style.right = '';
   }
 
   // Lyrics viewer: center top middle. Default 15% narrower. Leaves room at bottom for media player.
@@ -154,6 +225,8 @@ function applyDesktopLayout() {
     ly.style.bottom = '';
     ly.style.right = '';
   }
+
+  clampDesktopWindows(8);
 }
 
 /* ── WINDOW DRAG + RESIZE ── */
@@ -333,6 +406,9 @@ function toggleWin(winId, btnId) {
       // This makes nav-bar close/reopen remember the exact location.
       // On full page refresh we do NOT restore (standard layout is applied in init).
       restoreSessionWindowPosition(winId);
+    }
+    if (wasHidden && !isMob() && typeof clampWindowToViewport === 'function') {
+      clampWindowToViewport(win, 8);
     }
     bringToFront(winId);
     if (winId === 'gallery-win' && wasHidden) {
@@ -548,10 +624,19 @@ makeWindowDraggable('lyrics-win', 'lyrics-bar');
         if (b) b.classList.add('win-open');
       }
     });
-    requestAnimationFrame(() => {
+    const settleDesktop = () => {
       applyDesktopLayout();
-      setTimeout(applyDesktopLayout, 80);
+      if (typeof fitPlayerWindow === 'function') fitPlayerWindow();
+      clampDesktopWindows(8);
+    };
+    requestAnimationFrame(() => {
+      settleDesktop();
+      setTimeout(settleDesktop, 80);
+      setTimeout(settleDesktop, 240);
     });
+    if (document.fonts && document.fonts.ready && typeof document.fonts.ready.then === 'function') {
+      document.fonts.ready.then(settleDesktop).catch(() => {});
+    }
     // Ensure lyrics-win starts hidden (only shown via button click, never on refresh/load)
     const lyricsW = document.getElementById('lyrics-win');
     if (lyricsW) {
@@ -636,47 +721,8 @@ makeWindowDraggable('lyrics-win', 'lyrics-bar');
       }
     }
 
-    // Clamp only non-user-positioned core windows on browser/viewport resize (incl. zoom).
-    // This prevents the gallery (or tracklist/player) from getting moved around when you
-    // have manually positioned it (userPositioned=true). Auto-positioned ones still follow
-    // the layout. User windows stay exactly where you left them (may overhang on heavy zoom-in;
-    // re-drag if desired).
-    ['tracklist-win', 'gallery-win', 'player-win'].forEach(id => {
-      const w = document.getElementById(id);
-      if (w && w.style.display === 'flex' && w.dataset.userPositioned !== 'true') {
-        if (typeof clampWindowToViewport === 'function') {
-          requestAnimationFrame(() => clampWindowToViewport(w, 8));
-        }
-      }
-    });
-
-    // For *user-positioned* windows (e.g. gallery you dragged): never change their
-    // left/top on zoom/resize (so it doesn't "get moved around"). But cap size if the
-    // viewport shrunk a lot, so it doesn't become bigger than the screen.
-    ['tracklist-win', 'gallery-win', 'player-win'].forEach(id => {
-      const w = document.getElementById(id);
-      if (w && w.style.display === 'flex' && w.dataset.userPositioned === 'true') {
-        const rect = w.getBoundingClientRect();
-        const vw = window.innerWidth;
-        const vh = window.innerHeight;
-        let newW = rect.width;
-        let newH = rect.height;
-        const minW = (id === 'player-win' ? 380 : 240);
-        const minH = (id === 'player-win' ? (w.offsetHeight || 200) : 200);
-        const maxW = Math.max(minW, vw - 16);
-        const maxH = Math.max(minH, vh - 16);
-        let changed = false;
-        if (newW > maxW) { newW = maxW; changed = true; }
-        if (newH > maxH) { newH = maxH; changed = true; }
-        if (changed) {
-          w.style.width = Math.round(newW) + 'px';
-          w.style.height = Math.round(newH) + 'px';
-          if (typeof saveWindowPosition === 'function') {
-            saveWindowPosition(id);
-          }
-        }
-      }
-    });
+    // Keep floating windows inside the viewport and above the dock on resize.
+    requestAnimationFrame(() => clampDesktopWindows(8));
 
     // Refresh player waveform after browser resize (layout or clamp may have changed width)
     const pl = document.getElementById('player-win');
@@ -693,5 +739,9 @@ makeWindowDraggable('lyrics-win', 'lyrics-bar');
     if (isMob() && typeof updateMobPlayerHeight === 'function') {
       updateMobPlayerHeight();
     }
+  });
+
+  window.addEventListener('orbit-skin-change', () => {
+    relayoutAfterSkin();
   });
 })();

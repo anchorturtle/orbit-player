@@ -265,7 +265,7 @@ html.theme-holo #dock-win {
   max-width: min(720px, 96vw);
   margin-left: auto;
   margin-right: auto;
-  bottom: 32px !important;
+  bottom: 28px !important;
   transform: none !important;
   border-radius: 22px !important;
   overflow: visible !important;
@@ -837,6 +837,15 @@ html.theme-holo #holo-tubes .holo-tube-ember {
   fill: #F4F8FF;
   stroke: none;
   opacity: 0.95;
+}
+/* Dock tube stays; plasma under #dock-win is a thin idle ribbon, not a flare. */
+html.theme-holo #holo-tubes .holo-tube-dock.holo-tube-plasma,
+html.theme-holo #holo-tubes .holo-tube-dock.holo-tube-trail {
+  opacity: 0.22;
+}
+html.theme-holo #holo-tubes .holo-tube-dock.holo-tube-hot,
+html.theme-holo #holo-tubes .holo-tube-dock.holo-tube-ember {
+  opacity: 0.28;
 }
 html.theme-holo #holo-tubes .holo-tube-platehide,
 html.theme-holo #holo-tubes .holo-tube-cornerhide-core,

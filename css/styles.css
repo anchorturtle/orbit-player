@@ -364,6 +364,31 @@ html.orbit-resizing .win {
   contain: layout style;
   overflow: hidden !important;
 }
+/* Live/main: never keep holo void-halo / wavy clip / extra corner grips. */
+html:not(.theme-holo) .win {
+  clip-path: none !important;
+  -webkit-clip-path: none !important;
+}
+html:not(.theme-holo) #player-win {
+  overflow: hidden !important;
+  contain: layout style;
+  clip-path: none !important;
+  -webkit-clip-path: none !important;
+}
+html:not(.theme-holo) #player-win .win-resize.n,
+html:not(.theme-holo) #player-win .win-resize.s,
+html:not(.theme-holo) #player-win .win-resize.ne,
+html:not(.theme-holo) #player-win .win-resize.nw,
+html:not(.theme-holo) #player-win .win-resize.se,
+html:not(.theme-holo) #player-win .win-resize.sw {
+  display: none !important;
+}
+html:not(.theme-holo) #holo-tubes,
+html:not(.theme-holo) #holo-hud,
+html:not(.theme-holo) #holo-click-ring,
+html:not(.theme-holo) #holo-flare {
+  display: none !important;
+}
 #player-win .win-body,
 #player-win .player-faceplate {
   overflow: hidden !important;
@@ -2379,8 +2404,8 @@ html.orbit-video-enlarge-lock body {
 
 /* ============ DESKTOP DOCK ============ */
 #dock-win {
-  position: fixed; bottom: 12px; left: 50%; transform: translateX(-50%);
-  width: max-content; max-width: min(960px, calc(100vw - 12px)); z-index: 400; border-radius: 999px;
+  position: fixed; bottom: 16px; left: 50%; transform: translateX(-50%);
+  width: max-content; max-width: min(960px, calc(100vw - 24px)); z-index: 400; border-radius: 999px;
   /* Dock is always on-screen — keep glass look with a fixed cheap blur (not 40–52px full-window stack). */
   backdrop-filter: blur(22px) saturate(1.7) brightness(1.04);
   -webkit-backdrop-filter: blur(22px) saturate(1.7) brightness(1.04);
@@ -2501,6 +2526,24 @@ html.orbit-video-enlarge-lock body {
 .taskbar-btn.win-open .taskbar-dot { opacity: 1; }
 .taskbar-btn.win-open .material-symbols-outlined {
   color: var(--jestr-green); text-shadow: 0 0 8px rgba(0,200,150,.4);
+}
+/* Dock/mobile opener for the existing custom-library window. */
+.taskbar-btn-add-music,
+.mob-btn.taskbar-btn-add-music {
+  min-width: 86px;
+  text-transform: none;
+  letter-spacing: 0.02em;
+}
+.taskbar-btn-add-music > span:not(.material-symbols-outlined) {
+  white-space: normal;
+  text-align: center;
+  line-height: 1.15;
+  max-width: 7.2em;
+}
+#mobile-dock .taskbar-btn-add-music {
+  min-width: 72px;
+  max-width: 96px;
+  font-size: 9px;
 }
 
 /* ============ MOBILE NAV DOCK ============ */
