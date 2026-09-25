@@ -40,7 +40,8 @@ html.theme-patch,
 html.theme-patch body {
   background: #2A1250;
   color: #1A1020;
-  font-family: 'Special Elite', 'Plus Jakarta Sans', serif;
+  /* UI stays readable; display faces are Bungee / Special Elite below */
+  font-family: 'Plus Jakarta Sans', sans-serif;
 }
 
 html.theme-patch body {
@@ -260,9 +261,10 @@ html.theme-patch #focal-title {
   font-family: 'Bungee', Impact, sans-serif;
   font-weight: 400;
   color: #F6E7C1;
-  -webkit-text-stroke: 1px #1A1020;
+  -webkit-text-stroke: 2px #1A1020;
   letter-spacing: .02em;
   line-height: 1.05;
+  text-shadow: 3px 3px 0 #1A1020, 0 0 0 #1A1020;
 }
 
 html.theme-patch .focal-artist,
@@ -291,7 +293,7 @@ html.theme-patch .win::before {
   content: '';
   position: absolute;
   top: -9px;
-  left: 22%;
+  left: 14%;
   width: 56px;
   height: 18px;
   background: repeating-linear-gradient(90deg, var(--patch-tape) 0 9px, #c4a36e 9px 11px);
@@ -301,15 +303,17 @@ html.theme-patch .win::before {
   opacity: .92;
 }
 
+/* Second tape stays left — never over the close control */
 html.theme-patch .win::after {
   content: '';
   position: absolute;
   top: -8px;
-  right: 16%;
-  width: 44px;
+  left: 38%;
+  right: auto;
+  width: 40px;
   height: 16px;
   background: repeating-linear-gradient(90deg, var(--patch-tape) 0 9px, #c4a36e 9px 11px);
-  transform: rotate(4deg);
+  transform: rotate(3deg);
   pointer-events: none;
   z-index: 5;
   opacity: .88;
@@ -390,7 +394,7 @@ html.theme-patch .orbit-mode-btn {
   border: 2px solid #1A1020 !important;
   border-radius: 2px !important;
   box-shadow: 3px 3px 0 #1A1020;
-  font-family: 'Special Elite', serif;
+  font-family: 'Plus Jakarta Sans', sans-serif;
 }
 
 html.theme-patch .taskbar-btn:hover,
@@ -434,9 +438,21 @@ html.theme-patch .tab {
   color: #4B1F7A;
 }
 
-html.theme-patch .track-title {
+html.theme-patch .track-title,
+html.theme-patch .track-item .track-title,
+html.theme-patch .track-item .track-artist {
+  font-family: 'Plus Jakarta Sans', sans-serif;
   color: #1A1020;
   font-weight: 700;
+}
+html.theme-patch .track-item .track-artist {
+  font-weight: 600;
+  color: #4B1F7A;
+}
+html.theme-patch .search-wrap input,
+html.theme-patch #search-input {
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  color: #1A1020;
 }
 
 html.theme-patch .player-faceplate,
