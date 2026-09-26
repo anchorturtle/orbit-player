@@ -747,11 +747,10 @@ function toggleVideoPlayback() {
   if (!player) return;
   if (player.paused || player.ended) {
     if (player.ended) player.currentTime = 0;
-    if (useNativeDeviceVideoPlayer()) applyNativeDeviceVideoAttrs(player);
+    const goNative = useNativeDeviceVideoPlayer() && !_videoUserExitedFs;
+    if (goNative) applyNativeDeviceVideoAttrs(player);
     player.play().catch(() => {});
-    if (useNativeDeviceVideoPlayer() && !_videoUserExitedFs) {
-      requestNativeDeviceVideoFullscreen();
-    }
+    if (goNative) requestNativeDeviceVideoFullscreen();
   } else {
     player.pause();
   }
@@ -809,10 +808,59 @@ function applyNativeDeviceVideoAttrs(player) {
     /* Native iOS FS player supplies device controls. Do not stack HTML controls
        on the existing room-scale window chrome. */
   } else {
-    player.setAttribute('playsinline', '');
-    player.setAttribute('webkit-playsinline', '');
-    try { player.playsInline = true; } catch (_) {}
+    applyInlineVideoAttrs(player);
   }
+}
+
+/** After native FS exit, iOS will not paint #video-win unless playsInline is on. */
+function applyInlineVideoAttrs(player) {
+  if (!player) return;
+  player.setAttribute('playsinline', '');
+  player.setAttribute('webkit-playsinline', '');
+  try { player.playsInline = true; } catch (_) {}
+}
+
+/**
+ * Restore a visible inline frame after webkitendfullscreen.
+ * Next play() still goes native (play handlers clear _videoUserExitedFs).
+ */
+function restoreInlineVideoAfterNativeFullscreen(player) {
+  if (!player || !useNativeDeviceVideoPlayer()) return;
+  applyInlineVideoAttrs(player);
+
+  const entry = VIDEOS[_videoIdx];
+  if (entry && entry.poster) player.setAttribute('poster', entry.poster);
+
+  const win = document.getElementById('video-win');
+  if (win) {
+    win.classList.remove('video-enlarged', 'video-fs-chrome-hidden', 'video-fs-pointer-in-zone');
+    if (typeof isMob === 'function' && isMob()) layoutVideoWinMobileRoom(win);
+  }
+  document.documentElement.classList.remove('orbit-video-enlarge-lock');
+
+  const paintFrame = () => {
+    if (!player || !useNativeDeviceVideoPlayer()) return;
+    if (isNativeVideoElementFullscreen(player)) return;
+    applyInlineVideoAttrs(player);
+    const t = player.currentTime;
+    const dur = player.duration;
+    const ended = player.ended || (isFinite(dur) && isFinite(t) && t >= dur - 0.05);
+    try { player.pause(); } catch (_) {}
+    try {
+      if (ended && isFinite(dur) && dur > 0.05) {
+        player.currentTime = Math.max(0, dur - 0.05);
+      } else if (isFinite(t) && t > 0) {
+        player.currentTime = t;
+      } else if (player.readyState >= 2 && isFinite(dur) && dur > 0) {
+        player.currentTime = Math.min(0.001, dur);
+      }
+    } catch (_) {}
+    void player.offsetHeight;
+    syncVideoUi();
+  };
+
+  paintFrame();
+  requestAnimationFrame(paintFrame);
 }
 
 function isNativeVideoElementFullscreen(player) {
@@ -839,27 +887,6 @@ function isVideoFullscreenActive() {
   return isVideoEnlarged();
 }
 
-function applyOrbitDockClearance() {
-  const win = document.getElementById('video-win');
-  if (!win) return;
-  let px = 84;
-  if (typeof isMob === 'function' && isMob()) {
-    const dock = document.getElementById('mobile-dock');
-    px = dock && dock.offsetHeight ? dock.offsetHeight : 70;
-  } else {
-    const dock = document.getElementById('dock-win');
-    if (dock && dock.offsetHeight) {
-      const r = dock.getBoundingClientRect();
-      // Dock floats above the bottom edge. Prefer height+gap over innerHeight-r.top.
-      const gap = Math.max(0, window.innerHeight - r.bottom);
-      px = Math.round(dock.offsetHeight + gap + 8);
-    }
-  }
-  px = Math.max(64, Math.min(px, Math.floor(window.innerHeight * 0.28)));
-  win.style.setProperty('--orbit-dock-clearance', px + 'px');
-  document.documentElement.style.setProperty('--orbit-dock-clearance', px + 'px');
-}
-
 /** Room-scale phone player — full viewport. Compact card is desktop-only. */
 function layoutVideoWinMobileRoom(win) {
   if (!win) return;
@@ -876,26 +903,26 @@ function layoutVideoWinMobileRoom(win) {
 }
 function clearVideoWinInlineBox(win) {
   if (!win) return;
-  ['left', 'top', 'right', 'bottom', 'width', 'height', 'max-width', 'max-height'].forEach((p) => {
+  ['left', 'top', 'right', 'bottom', 'width', 'height', 'max-width', 'max-height', 'min-width', 'min-height'].forEach((p) => {
     win.style.removeProperty(p);
   });
 }
 
 function applyVideoEnlargeInlineBox(win) {
   if (!win) return;
-  const clear = (document.documentElement.style.getPropertyValue('--orbit-dock-clearance') ||
-    getComputedStyle(document.documentElement).getPropertyValue('--orbit-dock-clearance') ||
-    '84px').trim() || '84px';
-  // Nuclear fill so leftover card left/top/width cannot leave a mid-size floater.
+  // Nuclear fill so leftover card left/top/width cannot leave a mid-size floater
+  // or a phone-width column. Dock is hidden — this is the real viewport.
   win.style.setProperty('position', 'fixed', 'important');
   win.style.setProperty('left', '0px', 'important');
   win.style.setProperty('top', '0px', 'important');
   win.style.setProperty('right', '0px', 'important');
-  win.style.setProperty('bottom', clear, 'important');
-  win.style.setProperty('width', '100%', 'important');
-  win.style.setProperty('height', 'calc(100dvh - ' + clear + ')', 'important');
+  win.style.setProperty('bottom', '0px', 'important');
+  win.style.setProperty('width', '100vw', 'important');
+  win.style.setProperty('height', '100dvh', 'important');
   win.style.setProperty('max-width', 'none', 'important');
   win.style.setProperty('max-height', 'none', 'important');
+  win.style.setProperty('min-width', '100vw', 'important');
+  win.style.setProperty('min-height', '100vh', 'important');
 }
 
 function enterVideoEnlarge() {
@@ -909,7 +936,6 @@ function enterVideoEnlarge() {
   if (!win.classList.contains('video-enlarged')) {
     captureVideoWinGeometry(win);
   }
-  applyOrbitDockClearance();
   clearVideoWinInlineBox(win);
   applyVideoEnlargeInlineBox(win);
   win.classList.add('video-enlarged');
@@ -921,6 +947,8 @@ function exitVideoEnlarge() {
   if (win) {
     win.classList.remove('video-enlarged');
     win.style.removeProperty('--orbit-dock-clearance');
+    win.style.removeProperty('min-width');
+    win.style.removeProperty('min-height');
     clearVideoWinInlineBox(win);
     win.style.removeProperty('position');
     // Phone returns to room-scale default; desktop returns to the compact card.
@@ -1062,11 +1090,11 @@ function onVideoFullscreenLeave() {
   stopVideoChromeIdleSession();
   exitVideoEnlarge();
   restoreVideoWinAfterFullscreen();
+  restoreInlineVideoAfterNativeFullscreen(document.getElementById('video-win-player'));
 }
 
 function onVideoEnlargeViewportChange() {
   if (!isVideoEnlarged()) return;
-  applyOrbitDockClearance();
   const win = document.getElementById('video-win');
   if (win) applyVideoEnlargeInlineBox(win);
 }
@@ -1141,7 +1169,7 @@ function requestNativeDeviceVideoFullscreen() {
   return Promise.resolve(markBlocked());
 }
 
-/** Desktop: enlarge under the Orbit dock. Phone: native device fullscreen. */
+/** Desktop: full-viewport CSS theater (dock hidden). Phone: native device fullscreen. */
 function requestVideoFullscreen() {
   if (useNativeDeviceVideoPlayer()) {
     return requestNativeDeviceVideoFullscreen();
@@ -1693,6 +1721,7 @@ function setVideoVolume(pct) {
   player.addEventListener('webkitendfullscreen', () => {
     _videoUserExitedFs = true;
     _videoFsPending = false;
+    restoreInlineVideoAfterNativeFullscreen(player);
     syncVideoFullscreenUi();
   });
   player.addEventListener('pause', () => {
