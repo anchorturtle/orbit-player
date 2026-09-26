@@ -943,6 +943,24 @@ function applyVideoEnlargeInlineBox(win) {
   win.style.setProperty('max-height', 'none', 'important');
 }
 
+function setOrbitDockHiddenForVideoEnlarge(hidden) {
+  ['dock-win', 'mobile-dock'].forEach((id) => {
+    const el = document.getElementById(id);
+    if (!el) return;
+    if (hidden) {
+      el.setAttribute('data-orbit-video-enlarge-hidden', '1');
+      el.style.setProperty('display', 'none', 'important');
+      el.style.setProperty('visibility', 'hidden', 'important');
+      el.style.setProperty('pointer-events', 'none', 'important');
+    } else if (el.getAttribute('data-orbit-video-enlarge-hidden') === '1') {
+      el.removeAttribute('data-orbit-video-enlarge-hidden');
+      el.style.removeProperty('display');
+      el.style.removeProperty('visibility');
+      el.style.removeProperty('pointer-events');
+    }
+  });
+}
+
 function enterVideoEnlarge() {
   /* Phone never uses the CSS #video-win enlarge theater. */
   if (useNativeDeviceVideoPlayer()) {
@@ -958,6 +976,7 @@ function enterVideoEnlarge() {
   applyVideoEnlargeInlineBox(win);
   win.classList.add('video-enlarged');
   document.documentElement.classList.add('orbit-video-enlarge-lock');
+  setOrbitDockHiddenForVideoEnlarge(true);
 }
 
 function exitVideoEnlarge() {
@@ -973,6 +992,7 @@ function exitVideoEnlarge() {
   }
   document.documentElement.style.removeProperty('--orbit-dock-clearance');
   document.documentElement.classList.remove('orbit-video-enlarge-lock');
+  setOrbitDockHiddenForVideoEnlarge(false);
 }
 
 /** Idle-hide the enlarge bar only — never the windowed card controls. */
