@@ -747,7 +747,11 @@ function toggleVideoPlayback() {
   if (!player) return;
   if (player.paused || player.ended) {
     if (player.ended) player.currentTime = 0;
+    if (useNativeDeviceVideoPlayer()) applyNativeDeviceVideoAttrs(player);
     player.play().catch(() => {});
+    if (useNativeDeviceVideoPlayer() && !_videoUserExitedFs) {
+      requestNativeDeviceVideoFullscreen();
+    }
   } else {
     player.pause();
   }
@@ -757,7 +761,7 @@ function toggleVideoPlayback() {
 function syncVideoFullscreenUi() {
   const icon = document.getElementById('video-fullscreen-icon');
   const btn = document.getElementById('video-btn-fullscreen');
-  const on = isVideoEnlarged();
+  const on = isVideoFullscreenActive();
   if (icon) icon.textContent = on ? 'fullscreen_exit' : 'fullscreen';
   if (btn) {
     btn.classList.toggle('active', on);
@@ -788,10 +792,43 @@ function isVideoPlayingNow() {
   return !!(player && !player.paused && !player.ended);
 }
 
+/** Phone: native device player. Desktop (and large iPad) keep CSS enlarge. */
+function useNativeDeviceVideoPlayer() {
+  if (typeof isMob === 'function' && isMob()) return true;
+  /* iPhone landscape can be ≥768px; still the phone native-player path. */
+  return typeof navigator !== 'undefined' && /iPhone|iPod/.test(navigator.userAgent);
+}
+
+/** iPhone Safari: playsInline=false so play() uses the default device player. */
+function applyNativeDeviceVideoAttrs(player) {
+  if (!player) return;
+  if (useNativeDeviceVideoPlayer()) {
+    player.removeAttribute('playsinline');
+    player.removeAttribute('webkit-playsinline');
+    try { player.playsInline = false; } catch (_) {}
+    player.setAttribute('controls', '');
+    player.controls = true;
+  } else {
+    player.setAttribute('playsinline', '');
+    player.setAttribute('webkit-playsinline', '');
+    try { player.playsInline = true; } catch (_) {}
+    player.removeAttribute('controls');
+    player.controls = false;
+  }
+}
+
+function isNativeVideoElementFullscreen(player) {
+  const el = player || document.getElementById('video-win-player');
+  if (!el) return false;
+  if (el.webkitDisplayingFullscreen) return true;
+  const active = document.fullscreenElement || document.webkitFullscreenElement;
+  return active === el;
+}
+
 function isNativeVideoFullscreen() {
   const win = document.getElementById('video-win');
   const active = document.fullscreenElement || document.webkitFullscreenElement;
-  return !!(win && active === win);
+  return !!(win && active === win) || isNativeVideoElementFullscreen();
 }
 
 function isVideoEnlarged() {
@@ -800,6 +837,7 @@ function isVideoEnlarged() {
 }
 
 function isVideoFullscreenActive() {
+  if (useNativeDeviceVideoPlayer()) return isNativeVideoElementFullscreen();
   return isVideoEnlarged();
 }
 
@@ -863,6 +901,11 @@ function applyVideoEnlargeInlineBox(win) {
 }
 
 function enterVideoEnlarge() {
+  /* Phone never uses the CSS #video-win enlarge theater. */
+  if (useNativeDeviceVideoPlayer()) {
+    requestNativeDeviceVideoFullscreen();
+    return;
+  }
   const win = document.getElementById('video-win');
   if (!win) return;
   if (!win.classList.contains('video-enlarged')) {
@@ -956,8 +999,12 @@ function revealVideoChromeFromActivity() {
   bumpVideoFsMouseIdle();
 }
 
-function maybeFulfillPendingVideoFullscreen() {
-  /* Enlarge is CSS-only so the Orbit dock stays visible. No native FS retry. */
+function maybeFulfillPendingVideoFullscreen(e) {
+  if (!useNativeDeviceVideoPlayer()) return;
+  if (!_videoFsPending || _videoUserExitedFs || isNativeVideoElementFullscreen()) return;
+  if (!isVideoWinOpen()) return;
+  if (e && (e.key === 'Escape' || e.key === 'Esc')) return;
+  requestNativeDeviceVideoFullscreen();
 }
 
 function onVideoFullscreenPointerMove(e) {
@@ -1006,6 +1053,8 @@ function onVideoFullscreenEnter() {
   _videoFsPending = false;
   _videoUserExitedFs = false;
   win.classList.remove('video-fs-pointer-in-zone');
+  /* Native iOS/Safari player owns chrome. CSS theater idle-hide is desktop only. */
+  if (useNativeDeviceVideoPlayer()) return;
   startVideoChromeIdleSession();
 }
 
@@ -1034,8 +1083,71 @@ function bindVideoFsChromeListeners() {
   window.addEventListener('orientationchange', onVideoEnlargeViewportChange);
 }
 
-/** Enlarge under the Orbit dock — never native Fullscreen (that hides the nav). */
+function exitNativeDeviceVideoFullscreen() {
+  const player = document.getElementById('video-win-player');
+  const doc = document;
+  if (player && player.webkitDisplayingFullscreen && typeof player.webkitExitFullscreen === 'function') {
+    try { player.webkitExitFullscreen(); } catch (_) {}
+  }
+  const active = doc.fullscreenElement || doc.webkitFullscreenElement;
+  if (active) {
+    const exit = doc.exitFullscreen || doc.webkitExitFullscreen;
+    if (exit) return Promise.resolve(exit.call(doc)).catch(() => {});
+  }
+  return Promise.resolve();
+}
+
+/** iPhone Safari / phone: native device player (webkitEnterFullscreen). Not CSS enlarge. */
+function requestNativeDeviceVideoFullscreen() {
+  const player = document.getElementById('video-win-player');
+  if (!player) return Promise.resolve(false);
+  applyNativeDeviceVideoAttrs(player);
+  if (isNativeVideoElementFullscreen(player)) {
+    _videoFsPending = false;
+    _videoFsRequesting = false;
+    syncVideoFullscreenUi();
+    return Promise.resolve(true);
+  }
+  if (_videoFsRequesting) return Promise.resolve(false);
+
+  const markBlocked = () => {
+    _videoFsRequesting = false;
+    _videoFsPending = true;
+    return false;
+  };
+
+  if (typeof player.webkitEnterFullscreen === 'function') {
+    try {
+      player.webkitEnterFullscreen();
+      if (player.webkitDisplayingFullscreen) {
+        _videoFsPending = false;
+        _videoFsRequesting = false;
+        syncVideoFullscreenUi();
+        return Promise.resolve(true);
+      }
+    } catch (_) {}
+  }
+
+  const req = player.requestFullscreen || player.webkitRequestFullscreen;
+  if (req) {
+    _videoFsRequesting = true;
+    return Promise.resolve(req.call(player))
+      .then(() => {
+        _videoFsRequesting = false;
+        _videoFsPending = false;
+        syncVideoFullscreenUi();
+        return true;
+      })
+      .catch(markBlocked);
+  }
+  return Promise.resolve(markBlocked());
+}
+
+/** Desktop: enlarge under the Orbit dock. Phone: native device fullscreen. */
 function requestVideoFullscreen() {
+  if (useNativeDeviceVideoPlayer()) {
+    return requestNativeDeviceVideoFullscreen();
+  }
   const win = document.getElementById('video-win');
   if (!win) return Promise.resolve(false);
   const doc = document;
@@ -1061,6 +1173,23 @@ function toggleVideoFullscreen() {
   if (!win) return;
   const doc = document;
   const active = doc.fullscreenElement || doc.webkitFullscreenElement;
+
+  if (useNativeDeviceVideoPlayer()) {
+    if (isNativeVideoElementFullscreen()) {
+      _videoUserExitedFs = true;
+      _videoFsPending = false;
+      _videoAutoHideOn = false;
+      Promise.resolve(exitNativeDeviceVideoFullscreen()).finally(() => {
+        onVideoFullscreenLeave();
+        syncVideoFullscreenUi();
+      });
+      return;
+    }
+    _videoUserExitedFs = false;
+    requestNativeDeviceVideoFullscreen();
+    return;
+  }
+
   if (isVideoEnlarged() || active === win) {
     _videoUserExitedFs = true;
     _videoFsPending = false;
@@ -1156,6 +1285,8 @@ function openVideoWin(idx) {
     player.load();
   }
 
+  applyNativeDeviceVideoAttrs(player);
+
   if (isMob()) {
     layoutVideoWinMobileRoom(win);
   } else {
@@ -1175,6 +1306,10 @@ function openVideoWin(idx) {
   _videoUserExitedFs = false;
   _videoAutoHideOn = false;
   _videoFsPending = false;
+  if (useNativeDeviceVideoPlayer()) {
+    /* Same user-gesture turn as the gallery tap — native iOS player, not CSS enlarge. */
+    requestNativeDeviceVideoFullscreen();
+  }
   tryAutoplayVideo(player);
   syncVideoUi();
   syncVideoFullscreenUi();
@@ -1203,6 +1338,10 @@ function closeVideoWin() {
     syncVideoFullscreenUi();
     if (window.orbitDock) orbitDock.hide('video-win');
   };
+  if (useNativeDeviceVideoPlayer() && isNativeVideoElementFullscreen(player)) {
+    Promise.resolve(exitNativeDeviceVideoFullscreen()).then(finishClose).catch(finishClose);
+    return;
+  }
   if (active) {
     const exit = doc.exitFullscreen || doc.webkitExitFullscreen;
     if (exit) {
@@ -1512,6 +1651,8 @@ function setVideoVolume(pct) {
   const progressRail = document.getElementById('video-progress-rail');
   if (!player || !body) return;
 
+  applyNativeDeviceVideoAttrs(player);
+
   if (closeBtn) closeBtn.addEventListener('click', closeVideoWin);
 
   const aiBadge = document.getElementById('video-ai-badge');
@@ -1535,12 +1676,26 @@ function setVideoVolume(pct) {
     playBtnEl.addEventListener('click', (e) => {
       e.preventDefault();
       e.stopPropagation();
+      if (useNativeDeviceVideoPlayer()) _videoUserExitedFs = false;
       toggleVideoPlayback();
     });
   }
 
   player.addEventListener('play', () => {
     syncVideoUi();
+    if (_videoNudgePaint) return;
+    if (!useNativeDeviceVideoPlayer()) return;
+    if (_videoUserExitedFs) return;
+    if (!isNativeVideoElementFullscreen(player)) requestNativeDeviceVideoFullscreen();
+  });
+  player.addEventListener('webkitbeginfullscreen', () => {
+    _videoFsPending = false;
+    syncVideoFullscreenUi();
+  });
+  player.addEventListener('webkitendfullscreen', () => {
+    _videoUserExitedFs = true;
+    _videoFsPending = false;
+    syncVideoFullscreenUi();
   });
   player.addEventListener('pause', () => {
     syncVideoUi();
@@ -1573,6 +1728,7 @@ function setVideoVolume(pct) {
 
   player.addEventListener('click', (e) => {
     if (e.target !== player) return;
+    if (useNativeDeviceVideoPlayer()) return;
     if (isVideoChromeIdleArmed() && !_videoFsChromeOpen) {
       openVideoFsChrome();
       bumpVideoFsMouseIdle();
