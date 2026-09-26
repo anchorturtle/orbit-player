@@ -931,17 +931,14 @@ function clearVideoWinInlineBox(win) {
 
 function applyVideoEnlargeInlineBox(win) {
   if (!win) return;
-  const clear = (document.documentElement.style.getPropertyValue('--orbit-dock-clearance') ||
-    getComputedStyle(document.documentElement).getPropertyValue('--orbit-dock-clearance') ||
-    '84px').trim() || '84px';
-  // Nuclear fill so leftover card left/top/width cannot leave a mid-size floater.
+  // Nuclear fill: leftover card left/top/width cannot leave a phone-width strip.
   win.style.setProperty('position', 'fixed', 'important');
   win.style.setProperty('left', '0px', 'important');
   win.style.setProperty('top', '0px', 'important');
   win.style.setProperty('right', '0px', 'important');
-  win.style.setProperty('bottom', clear, 'important');
-  win.style.setProperty('width', '100%', 'important');
-  win.style.setProperty('height', 'calc(100dvh - ' + clear + ')', 'important');
+  win.style.setProperty('bottom', '0px', 'important');
+  win.style.setProperty('width', '100vw', 'important');
+  win.style.setProperty('height', '100dvh', 'important');
   win.style.setProperty('max-width', 'none', 'important');
   win.style.setProperty('max-height', 'none', 'important');
 }
@@ -957,7 +954,6 @@ function enterVideoEnlarge() {
   if (!win.classList.contains('video-enlarged')) {
     captureVideoWinGeometry(win);
   }
-  applyOrbitDockClearance();
   clearVideoWinInlineBox(win);
   applyVideoEnlargeInlineBox(win);
   win.classList.add('video-enlarged');
@@ -1115,7 +1111,6 @@ function onVideoFullscreenLeave() {
 
 function onVideoEnlargeViewportChange() {
   if (!isVideoEnlarged()) return;
-  applyOrbitDockClearance();
   const win = document.getElementById('video-win');
   if (win) applyVideoEnlargeInlineBox(win);
 }
