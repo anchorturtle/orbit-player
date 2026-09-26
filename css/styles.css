@@ -2147,13 +2147,16 @@ html.orbit-video-enlarge-lock body {
   overscroll-behavior: none;
 }
 
-/* Keep the Orbit dock above the theater so nav never gets trapped. */
+/* Desktop enlarge is real theater: Orbit HI-FI dock must not stay on screen. */
 html.orbit-video-enlarge-lock #dock-win,
-html.orbit-video-enlarge-lock #mobile-dock {
-  z-index: 9000 !important;
+html.orbit-video-enlarge-lock #mobile-dock,
+html.orbit-video-enlarge-lock #orbit-factory-rail {
+  display: none !important;
+  visibility: hidden !important;
+  pointer-events: none !important;
 }
 
-/* Enlarge: no floating window. Video fills under the Orbit dock.
+/* Enlarge: full viewport. Vertical video letterboxes inside this box.
    One bar = title + artist + transport. Native :fullscreen is not used. */
 #video-win.video-enlarged {
   display: flex !important;
@@ -2162,11 +2165,13 @@ html.orbit-video-enlarge-lock #mobile-dock {
   top: 0 !important;
   left: 0 !important;
   right: 0 !important;
-  bottom: var(--orbit-dock-clearance, 84px) !important;
-  width: 100% !important;
-  height: calc(100dvh - var(--orbit-dock-clearance, 84px)) !important;
-  min-width: 0 !important;
-  min-height: 0 !important;
+  bottom: 0 !important;
+  width: 100vw !important;
+  width: 100dvw !important;
+  height: 100vh !important;
+  height: 100dvh !important;
+  min-width: 100vw !important;
+  min-height: 100vh !important;
   max-width: none !important;
   max-height: none !important;
   margin: 0 !important;
@@ -2183,7 +2188,7 @@ html.orbit-video-enlarge-lock #mobile-dock {
   animation: none !important;
   transform: none !important;
   filter: none !important;
-  z-index: 8500 !important;
+  z-index: 10000 !important;
 }
 
 #video-win.video-enlarged::before,
@@ -2356,8 +2361,10 @@ html.orbit-video-enlarge-lock #mobile-dock {
 
 @media (max-width: 767px) {
   #video-win.video-enlarged {
-    bottom: var(--orbit-dock-clearance, var(--mob-dock-h)) !important;
-    z-index: 8500 !important;
+    bottom: 0 !important;
+    width: 100vw !important;
+    height: 100dvh !important;
+    z-index: 10000 !important;
   }
   #video-win.video-enlarged .orbit-video-controls-row {
     flex-wrap: wrap;
@@ -2725,7 +2732,7 @@ html.orbit-video-enlarge-lock #mobile-dock {
     border-radius: 0 !important; z-index: 9000 !important;
   }
   /* Room-scale phone player by default (not the desktop compact card).
-     Enlarge still fills the work area above the dock. */
+     Phone play/enlarge uses the native device player, not this CSS theater. */
   #video-win {
     position: fixed !important; left: 0 !important; top: 0 !important;
     width: 100vw !important; height: 100dvh !important;
@@ -2737,15 +2744,15 @@ html.orbit-video-enlarge-lock #mobile-dock {
     top: 0 !important;
     left: 0 !important;
     right: 0 !important;
-    width: 100% !important;
-    height: calc(100dvh - var(--orbit-dock-clearance, var(--mob-dock-h))) !important;
+    width: 100vw !important;
+    height: 100dvh !important;
     max-width: none !important;
     max-height: none !important;
-    min-width: 0 !important;
-    min-height: 0 !important;
-    bottom: var(--orbit-dock-clearance, var(--mob-dock-h)) !important;
+    min-width: 100vw !important;
+    min-height: 100vh !important;
+    bottom: 0 !important;
     border-radius: 0 !important;
-    z-index: 8500 !important;
+    z-index: 10000 !important;
   }
 
   /* SONG DETAIL / INFO WINDOW: good overlay on mobile (not full strip like lists) */
