@@ -806,14 +806,12 @@ function applyNativeDeviceVideoAttrs(player) {
     player.removeAttribute('playsinline');
     player.removeAttribute('webkit-playsinline');
     try { player.playsInline = false; } catch (_) {}
-    player.setAttribute('controls', '');
-    player.controls = true;
+    /* Native iOS FS player supplies device controls. Do not stack HTML controls
+       on the existing room-scale window chrome. */
   } else {
     player.setAttribute('playsinline', '');
     player.setAttribute('webkit-playsinline', '');
     try { player.playsInline = true; } catch (_) {}
-    player.removeAttribute('controls');
-    player.controls = false;
   }
 }
 
@@ -1728,11 +1726,11 @@ function setVideoVolume(pct) {
 
   player.addEventListener('click', (e) => {
     if (e.target !== player) return;
-    if (useNativeDeviceVideoPlayer()) return;
     if (isVideoChromeIdleArmed() && !_videoFsChromeOpen) {
       openVideoFsChrome();
       bumpVideoFsMouseIdle();
     }
+    if (useNativeDeviceVideoPlayer() && player.paused) _videoUserExitedFs = false;
     toggleVideoPlayback();
   });
 
