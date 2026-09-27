@@ -39,6 +39,18 @@
         return order[(pos + dir + order.length) % order.length];
       }
     }
+    var isolated = TRACKS.map(function (_, i) { return i; }).filter(function (i) {
+      var t = TRACKS[i];
+      var ai = !!(t && (t.playlist === 'ai' || t.category === 'ai' || t.ai));
+      var cur = TRACKS[currentIndex];
+      var curAi = !!(cur && (cur.playlist === 'ai' || cur.category === 'ai' || cur.ai));
+      return ai === curAi;
+    });
+    if (isolated.length) {
+      var ipos = isolated.indexOf(currentIndex);
+      if (ipos < 0) ipos = 0;
+      return isolated[(ipos + dir + isolated.length) % isolated.length];
+    }
     return ((currentIndex + dir) + TRACKS.length) % TRACKS.length;
   }
 
