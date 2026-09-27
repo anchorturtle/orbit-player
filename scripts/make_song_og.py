@@ -26,7 +26,7 @@ SLUGS = [
     "grateful-sharpie", "tomb-of-the-creator", "blockbuster", "what-is-it-now",
     "got-nun", "sublime-beginnings", "space-radio", "exploding-galaxies",
     "acid-rain", "four-twenty", "get", "my-anthem",
-    "nonnin", "whoiam2u", "death-of-jestr",
+    "nonnin", "whoiam2u", "death-of-jestr", "a-better-you", "sun-days",
 ]
 
 TITLES = {
@@ -48,6 +48,7 @@ TITLES = {
     "my-anthem": "My Anthem", "nonnin": "Nonnin",
     "whoiam2u": "WHOiAM2u",
     "death-of-jestr": "death of jestR",
+    "a-better-you": "A Better You", "sun-days": "Sun Days",
 }
 
 # Mirrors js/space3d.js PALETTES (surface, swirl, energy)

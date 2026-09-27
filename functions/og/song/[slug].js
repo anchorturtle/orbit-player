@@ -42,6 +42,8 @@ export async function onRequest(context) {
     'nonnin': { title: 'Nonnin', artist: 'jestR' },
     'whoiam2u': { title: 'WHOiAM2u', artist: 'jestR' },
     'death-of-jestr': { title: 'death of jestR', artist: 'jestR' },
+    'a-better-you': { title: 'A Better You', artist: 'jestR' },
+    'sun-days': { title: 'Sun Days', artist: 'jestR' },
   };
 
   const track = tracks[slug] || { title: 'Track', artist: 'jestR' };
