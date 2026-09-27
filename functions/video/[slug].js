@@ -32,6 +32,13 @@ export async function onRequest(context) {
       width: 1080,
       height: 1920,
     },
+    'jazzpot-not-art-remix': {
+      title: 'Jazzpot Not_Art_Remix',
+      poster: '/videos/jazzpot-not-art-remix-poster.jpg',
+      description: 'jestR · AnchorTurtle',
+      width: 1080,
+      height: 1920,
+    },
   };
 
   const video = videos[slug] || {

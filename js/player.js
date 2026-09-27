@@ -451,6 +451,18 @@ const TRACKS = [
     album: "Don't Say Nothing About Them Building Blocks",
     albumSlug: 'building-blocks',
     albumTrack: 1
+  },
+  {
+    title: 'Jazzpot Not_Art_Remix',
+    artist: 'jestR',
+    slug: 'jazzpot-not-art-remix',
+    file: 'audio/singles/jazzpot_NOT_ART_REMIXb.mp3',
+    downloadName: 'jazzpot_NOT_ART_REMIXb.mp3',
+    description: '',
+    category: 'ai',
+    playlist: 'ai',
+    ai: true,
+    explicit: true
   }
 ];
   window.ORBIT_TRACKS = TRACKS;
@@ -574,15 +586,24 @@ function applyRepeatLoopFlag() {
   try { if (audio) audio.loop = one; } catch (e) {}
 }
 
-/* Shared end-of-track routing (main player + iOS screen-off handoff player). */
+function isAiTrack(t) {
+  return !!(t && (t.playlist === 'ai' || t.category === 'ai' || t.ai));
+}
+
+/* Shared end-of-track routing (main player + iOS screen-off handoff player).
+   AI is its own queue: next/prev/shuffle/repeat/auto-advance never cross
+   between AI and the regular tracklist in either direction. */
 function tracklistPlayOrder() {
+  const current = TRACKS[currentIndex];
+  const wantAi = isAiTrack(current);
   const container = document.getElementById('sidebar-tracklist');
   const fromList = container
     ? [...container.querySelectorAll('.track-item')]
         .map(el => +el.dataset.idx)
-        .filter(i => Number.isInteger(i) && TRACKS[i])
+        .filter(i => Number.isInteger(i) && TRACKS[i] && isAiTrack(TRACKS[i]) === wantAi)
     : [];
-  return fromList.length ? fromList : TRACKS.map((_, i) => i);
+  if (fromList.length) return fromList;
+  return TRACKS.map((_, i) => i).filter(i => isAiTrack(TRACKS[i]) === wantAi);
 }
 
 function stepTrack(dir, { wrap = true, autoplay = isPlaying } = {}) {
@@ -1060,6 +1081,8 @@ function loadTrack(idx, autoplay) {
   document.getElementById('focal-artist').textContent = t.artist;
   const expEl = document.getElementById('fp-explicit');
   if (expEl) expEl.hidden = !trackIsExplicit(t);
+  const aiEl = document.getElementById('fp-ai');
+  if (aiEl) aiEl.hidden = !isAiTrack(t);
 
   // Lyrics button only for rap category tracks (more intuitive)
   const lyricsBtn = document.getElementById('btn-lyrics');
@@ -1344,11 +1367,11 @@ updateVolumeIcon();
       toggleMuteFromKeys();
     } else if (e.key === 'n' || e.key === 'N') {
       e.preventDefault();
-      loadTrack((currentIndex + 1) % TRACKS.length, isPlaying);
+      stepTrack(1, { wrap: true, autoplay: isPlaying });
     } else if (e.key === 'p' || e.key === 'P') {
       e.preventDefault();
       if (audio.currentTime > 3) { audio.currentTime = 0; return; }
-      loadTrack((currentIndex - 1 + TRACKS.length) % TRACKS.length, isPlaying);
+      stepTrack(-1, { wrap: true, autoplay: isPlaying });
     }
   });
 
@@ -1370,15 +1393,34 @@ updateVolumeIcon();
 })();
 
 /* ── DOWNLOAD ── */
+function trackDownloadName(t) {
+  if (t && t.downloadName) return t.downloadName;
+  const parts = String(t && t.file || 'track.mp3').split('/');
+  return parts[parts.length - 1] || 'track.mp3';
+}
+
+function downloadTrackFile(t) {
+  if (!t) return;
+  const a = document.createElement('a');
+  a.href = t.file;
+  a.download = trackDownloadName(t);
+  a.rel = 'noopener';
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+}
+
 document.getElementById('btn-download').addEventListener('click', () => {
-  const t = TRACKS[currentIndex]; if (!t) return;
-  const a = document.createElement('a'); a.href = t.file; a.download = t.file; a.click();
+  downloadTrackFile(TRACKS[currentIndex]);
 });
 
 const EXPLICIT_TIP = 'Warning! Parental Advisory: explicit language may be used in this content.';
+const AI_TIP = 'AI was used to generate content for this art.';
 
 function trackIsExplicit(t) {
-  return !!(t && (t.category === 'rap' || t.slug === 'mile-high' || t.slug === 'exploding-galaxies'));
+  if (!t) return false;
+  if (t.explicit === false) return false;
+  return !!(t.explicit || t.category === 'rap' || t.slug === 'mile-high' || t.slug === 'exploding-galaxies');
 }
 
 function explicitChipHTML(compact) {
@@ -1386,26 +1428,68 @@ function explicitChipHTML(compact) {
   return `<span class="explicit-badge" title="${EXPLICIT_TIP}" aria-label="${EXPLICIT_TIP}">${text}</span>`;
 }
 
+function aiChipHTML() {
+  return `<span class="ai-badge" title="${AI_TIP}" aria-label="AI">AI</span>`;
+}
+
+function trackBadgesHTML(t) {
+  const bits = [];
+  if (trackIsExplicit(t)) {
+    bits.push(isAiTrack(t)
+      ? `<span class="explicit-badge" title="${EXPLICIT_TIP}" aria-label="${EXPLICIT_TIP}">Explicit</span>`
+      : explicitChipHTML(true));
+  }
+  if (isAiTrack(t)) bits.push(aiChipHTML());
+  return bits.join('');
+}
+
 function makeTrackRow(t, origIdx) {
   const el = document.createElement('div');
-  el.className = 'track-item' + (origIdx === currentIndex ? ' active' : '');
+  el.className = 'track-item' + (origIdx === currentIndex ? ' active' : '') + (isAiTrack(t) ? ' track-item-ai' : '');
   el.dataset.idx = origIdx;
-  const eBadge = trackIsExplicit(t) ? explicitChipHTML(true) : '';
+  const badges = trackBadgesHTML(t);
+  const dl = isAiTrack(t)
+    ? `<button type="button" class="ctrl-btn track-dl-btn" title="Download MP3" aria-label="Download ${trackDownloadName(t)}"><span class="material-symbols-outlined">download</span></button>`
+    : `<span class="material-symbols-outlined" style="font-size:13px;color:rgba(150,100,255,.3);flex-shrink:0;font-variation-settings:'FILL' 1">music_note</span>`;
+  const drag = isAiTrack(t)
+    ? `<div class="drag-handle drag-handle-locked" aria-hidden="true"><span class="material-symbols-outlined" style="font-size:16px;pointer-events:none;opacity:.25">drag_indicator</span></div>`
+    : `<div class="drag-handle" title="Drag to reorder"><span class="material-symbols-outlined" style="font-size:16px;pointer-events:none">drag_indicator</span></div>`;
   el.innerHTML = `
-      <div class="drag-handle" title="Drag to reorder"><span class="material-symbols-outlined" style="font-size:16px;pointer-events:none">drag_indicator</span></div>
+      ${drag}
       <div style="flex:1;min-width:0">
         <div class="track-title-row">
           <p class="track-title" style="font-weight:700;color:rgba(233,225,222,.82);margin:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${t.title}</p>
-          ${eBadge}
+          ${badges}
         </div>
         <p class="track-artist" style="font-weight:600;letter-spacing:.06em;text-transform:none;color:rgba(0,200,150,.5);margin:0">${t.artist}</p>
       </div>
-      <span class="material-symbols-outlined" style="font-size:13px;color:rgba(150,100,255,.3);flex-shrink:0;font-variation-settings:'FILL' 1">music_note</span>`;
+      ${dl}`;
   el.addEventListener('click', e => {
     if (e.target.closest('.drag-handle')) return;
+    if (e.target.closest('.track-dl-btn')) {
+      e.preventDefault();
+      e.stopPropagation();
+      downloadTrackFile(t);
+      return;
+    }
     loadTrack(origIdx, true);
   });
   return el;
+}
+
+function appendAiPlaylistSection(container, aiItems) {
+  if (!aiItems.length) return;
+  const group = document.createElement('div');
+  group.className = 'playlist-group playlist-group-ai';
+  group.innerHTML = `
+    <div class="playlist-head" aria-label="AI playlist">
+      <div class="playlist-head-copy">
+        <p class="playlist-head-title">AI</p>
+        <p class="playlist-head-meta">${aiItems.length} track${aiItems.length === 1 ? '' : 's'}</p>
+      </div>
+    </div>`;
+  aiItems.forEach(({ t, origIdx }) => group.appendChild(makeTrackRow(t, origIdx)));
+  container.appendChild(group);
 }
 
 /* ── TRACKLIST RENDER + DRAG-REORDER ── */
@@ -1416,15 +1500,30 @@ function renderTracklist(filter) {
   const q = (filter || '').toLowerCase();
   let items = TRACKS.map((t, i) => ({ t, origIdx: i }));
 
-  if (currentTracklistCategory === 'albums') {
-    items = items.filter(({ t }) => !!t.albumSlug);
+  if (currentTracklistCategory === 'ai') {
+    items = items.filter(({ t }) => isAiTrack(t));
+  } else if (currentTracklistCategory === 'albums') {
+    items = items.filter(({ t }) => !!t.albumSlug && !isAiTrack(t));
   } else if (currentTracklistCategory && currentTracklistCategory !== 'all') {
-    items = items.filter(({ t }) => (t.category || 'instrumental') === currentTracklistCategory);
+    items = items.filter(({ t }) => !isAiTrack(t) && (t.category || 'instrumental') === currentTracklistCategory);
   }
 
   items = items.filter(({ t }) => !q || t.title.toLowerCase().includes(q) || t.artist.toLowerCase().includes(q) || (t.album || '').toLowerCase().includes(q));
 
   document.getElementById('track-count').textContent = `${items.length}/${TRACKS.length}`;
+
+  if (currentTracklistCategory === 'ai') {
+    appendAiPlaylistSection(container, items);
+    return;
+  }
+
+  if (currentTracklistCategory === 'all') {
+    const regular = items.filter(({ t }) => !isAiTrack(t));
+    const aiItems = items.filter(({ t }) => isAiTrack(t));
+    regular.forEach(({ t, origIdx }) => container.appendChild(makeTrackRow(t, origIdx)));
+    appendAiPlaylistSection(container, aiItems);
+    return;
+  }
 
   if (currentTracklistCategory === 'albums') {
     (ALBUMS || []).forEach(album => {
@@ -1598,7 +1697,10 @@ window.openAlbumWindow = openAlbumWindow;
   function startDrag(handle, e) {
     const item = handle.closest('.track-item');
     if (!item) return;
-    dragOrigIdx = +item.dataset.idx;
+    if (handle.classList.contains('drag-handle-locked')) return;
+    const startIdx = +item.dataset.idx;
+    if (isAiTrack(TRACKS[startIdx])) return;
+    dragOrigIdx = startIdx;
     dragging = item;
     dragMoved = false;
     item.classList.add('is-dragging');
@@ -2369,10 +2471,7 @@ function populateSongDetail(idx) {
 
     if (downloadBtn) {
       downloadBtn.onclick = () => {
-        const a = document.createElement('a');
-        a.href = track.file;
-        a.download = track.file;
-        a.click();
+        downloadTrackFile(track);
       };
     }
 
