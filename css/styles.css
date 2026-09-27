@@ -1776,7 +1776,9 @@ html.orbit-resizing .win {
 #image-win:-webkit-full-screen.image-fs-chrome-hidden {
   cursor: none;
 }
-#video-win.video-enlarged.video-fs-chrome-hidden {
+#video-win.video-enlarged.video-fs-chrome-hidden,
+#video-fullscreen-host:fullscreen.video-fs-chrome-hidden,
+#video-fullscreen-host:-webkit-full-screen.video-fs-chrome-hidden {
   cursor: none;
 }
 
@@ -2191,10 +2193,12 @@ html.orbit-video-enlarge-lock body {
   overscroll-behavior: none;
 }
 
-/* Keep the Orbit dock above the theater so nav never gets trapped. */
+/* Desktop real FS: Orbit HI-FI dock must not stay on screen. Mobile never sets this lock. */
 html.orbit-video-enlarge-lock #dock-win,
-html.orbit-video-enlarge-lock #mobile-dock {
-  z-index: 9000 !important;
+html.orbit-video-enlarge-lock #orbit-factory-rail {
+  display: none !important;
+  visibility: hidden !important;
+  pointer-events: none !important;
 }
 
 /* Enlarge: no floating window. Video fills under the Orbit dock.
@@ -2412,6 +2416,160 @@ html.orbit-video-enlarge-lock #mobile-dock {
     padding-right: 0;
   }
   #video-win.video-enlarged .orbit-video-enlarge-title { font-size: 13px; }
+}
+
+/* Desktop real Fullscreen API on the video container (not a CSS overlay).
+   Phone never enters this — native device player stays gated by isMob(). */
+#video-fullscreen-host:fullscreen,
+#video-fullscreen-host:-webkit-full-screen {
+  display: flex !important;
+  flex-direction: column !important;
+  position: relative !important;
+  width: 100vw !important;
+  height: 100vh !important;
+  max-width: 100vw !important;
+  max-height: 100vh !important;
+  min-width: 100vw !important;
+  min-height: 100vh !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  gap: 0 !important;
+  background: #000 !important;
+  overflow: hidden !important;
+  box-sizing: border-box !important;
+}
+
+#video-fullscreen-host:fullscreen .orbit-video-ai-foot,
+#video-fullscreen-host:-webkit-full-screen .orbit-video-ai-foot {
+  display: none !important;
+}
+
+#video-fullscreen-host:fullscreen .orbit-video-stage,
+#video-fullscreen-host:-webkit-full-screen .orbit-video-stage {
+  position: absolute !important;
+  inset: 0 !important;
+  width: 100% !important;
+  height: 100% !important;
+  min-height: 0 !important;
+  flex: none !important;
+  border: none !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+  background: #000 !important;
+  overflow: hidden !important;
+}
+
+#video-fullscreen-host:fullscreen #video-win-player,
+#video-fullscreen-host:-webkit-full-screen #video-win-player {
+  width: 100% !important;
+  height: 100% !important;
+  max-width: none !important;
+  max-height: none !important;
+  border-radius: 0 !important;
+  object-fit: contain;
+  background: #000;
+}
+
+#video-fullscreen-host:fullscreen .orbit-video-enlarge-meta,
+#video-fullscreen-host:-webkit-full-screen .orbit-video-enlarge-meta {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  min-width: 112px;
+  flex: 0 1 220px;
+  padding: 0 12px 0 2px;
+}
+
+#video-fullscreen-host:fullscreen .orbit-video-enlarge-title,
+#video-fullscreen-host:-webkit-full-screen .orbit-video-enlarge-title {
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+  color: #f6f3ff;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  line-height: 1.2;
+}
+
+#video-fullscreen-host:fullscreen .orbit-video-enlarge-artist,
+#video-fullscreen-host:-webkit-full-screen .orbit-video-enlarge-artist {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--jestr-green);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  line-height: 1.3;
+  margin-top: 2px;
+}
+
+#video-fullscreen-host:fullscreen .orbit-video-controls-row,
+#video-fullscreen-host:-webkit-full-screen .orbit-video-controls-row {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 12;
+  margin: 0 !important;
+  width: 100% !important;
+  max-width: none !important;
+  border: none !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  background: linear-gradient(180deg, rgba(0, 0, 0, 0) 0%, rgba(0, 0, 0, .58) 36%, rgba(0, 0, 0, .88) 100%) !important;
+  padding: 22px max(18px, env(safe-area-inset-right, 0px)) 14px max(18px, env(safe-area-inset-left, 0px)) !important;
+  gap: 10px;
+}
+
+#video-fullscreen-host:fullscreen .orbit-video-play-calm.play-btn,
+#video-fullscreen-host:-webkit-full-screen .orbit-video-play-calm.play-btn,
+#video-fullscreen-host:fullscreen .orbit-video-play-calm.play-btn.playing,
+#video-fullscreen-host:-webkit-full-screen .orbit-video-play-calm.play-btn.playing {
+  background: rgba(255, 255, 255, .08) !important;
+  border: none !important;
+  box-shadow: none !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  border-radius: 50% !important;
+  transform: none !important;
+}
+
+#video-fullscreen-host:fullscreen .orbit-video-controls-row > .ctrl-btn,
+#video-fullscreen-host:-webkit-full-screen .orbit-video-controls-row > .ctrl-btn {
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  border-radius: 8px !important;
+}
+
+#video-fullscreen-host:fullscreen .orbit-video-vol,
+#video-fullscreen-host:-webkit-full-screen .orbit-video-vol {
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+  padding: 0 4px !important;
+}
+
+#video-fullscreen-host:fullscreen .orbit-video-caption-settings,
+#video-fullscreen-host:-webkit-full-screen .orbit-video-caption-settings {
+  bottom: calc(72px + env(safe-area-inset-bottom, 0px));
+  right: max(12px, env(safe-area-inset-right, 0px));
+}
+
+#video-fullscreen-host:fullscreen.video-fs-chrome-hidden .orbit-video-controls-row,
+#video-fullscreen-host:-webkit-full-screen.video-fs-chrome-hidden .orbit-video-controls-row,
+#video-fullscreen-host:fullscreen.video-fs-chrome-hidden .orbit-video-caption-settings,
+#video-fullscreen-host:-webkit-full-screen.video-fs-chrome-hidden .orbit-video-caption-settings {
+  display: none !important;
+  opacity: 0 !important;
+  pointer-events: none !important;
 }
 
 #video-btn-fullscreen.active {
