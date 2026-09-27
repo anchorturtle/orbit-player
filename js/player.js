@@ -572,6 +572,84 @@ function ensureAudioContextRunning() {
   resumeWebAudioIfNeeded();
 }
 
+/* iOS visualizer feed: iOS never routes audio through Web Audio (lock-screen fix, #8),
+   so there is no AnalyserNode there. This mimics one from the track's decoded PCM
+   at audio.currentTime (same fftSize/smoothing/dB range as space3d's analyser).
+   Read-only: never touches playback. */
+const pcmViz = (() => {
+  const FFT = 256, BINS = 128, SMOOTH = 0.8, MIN_DB = -100, MAX_DB = -30;
+  let pcm = null, rate = 44100, slug = null, loading = null;
+  const win = new Float32Array(FFT), re = new Float32Array(FFT), im = new Float32Array(FFT), prev = new Float32Array(BINS);
+  for (let i = 0; i < FFT; i++) win[i] = 0.42 - 0.5 * Math.cos(2 * Math.PI * i / FFT) + 0.08 * Math.cos(4 * Math.PI * i / FFT);
+  function load(t) {
+    if (!t || loading === t.slug) return;
+    loading = t.slug;
+    const Offline = window.OfflineAudioContext || window.webkitOfflineAudioContext;
+    if (!Offline) return;
+    const ctx = new Offline(1, 128, 44100);
+    fetch(encodeURI(t.file), { cache: 'force-cache' })
+      .then(r => { if (!r.ok) throw new Error('fetch'); return r.arrayBuffer(); })
+      .then(b => new Promise((res, rej) => { const p = ctx.decodeAudioData(b, res, rej); if (p && p.then) p.then(res, rej); }))
+      .then(buf => {
+        if (loading !== t.slug) return;
+        const d = buf.getChannelData(0), out = new Int16Array(d.length);
+        for (let i = 0; i < d.length; i++) out[i] = Math.max(-1, Math.min(1, d[i])) * 32767;
+        pcm = out; rate = buf.sampleRate; slug = t.slug; prev.fill(0);
+      })
+      .catch(() => { if (loading === t.slug) loading = null; });
+  }
+  function frame() {
+    const t = TRACKS[currentIndex];
+    if (!t) return null;
+    if (slug !== t.slug) { load(t); return null; }
+    if (audio.paused) return null;
+    const end = Math.floor((audio.currentTime || 0) * rate);
+    const gain = isMuted ? 0 : (premuteVolume || 100) / 100;
+    return { end, gain };
+  }
+  function fft() {
+    for (let i = 1, j = 0; i < FFT; i++) {
+      let bit = FFT >> 1;
+      for (; j & bit; bit >>= 1) j ^= bit;
+      j ^= bit;
+      if (i < j) { let x = re[i]; re[i] = re[j]; re[j] = x; x = im[i]; im[i] = im[j]; im[j] = x; }
+    }
+    for (let len = 2; len <= FFT; len <<= 1) {
+      const a = -2 * Math.PI / len, wr = Math.cos(a), wi = Math.sin(a);
+      for (let i = 0; i < FFT; i += len) {
+        let cr = 1, ci = 0;
+        for (let k = 0; k < len / 2; k++) {
+          const u = i + k, v = u + len / 2;
+          const tr = re[v] * cr - im[v] * ci, ti = re[v] * ci + im[v] * cr;
+          re[v] = re[u] - tr; im[v] = im[u] - ti; re[u] += tr; im[u] += ti;
+          const n = cr * wr - ci * wi; ci = cr * wi + ci * wr; cr = n;
+        }
+      }
+    }
+  }
+  function sample(f, i) { const k = f.end - FFT + i; return (k >= 0 && k < pcm.length) ? pcm[k] / 32768 * f.gain : 0; }
+  return {
+    fftSize: FFT,
+    frequencyBinCount: BINS,
+    getByteTimeDomainData(arr) {
+      const f = frame();
+      for (let i = 0; i < arr.length; i++) arr[i] = f ? Math.max(0, Math.min(255, Math.round(128 * (1 + sample(f, i))))) : 128;
+    },
+    getByteFrequencyData(arr) {
+      const f = frame();
+      for (let i = 0; i < FFT; i++) { re[i] = f ? sample(f, i) * win[i] : 0; im[i] = 0; }
+      fft();
+      for (let k = 0; k < BINS && k < arr.length; k++) {
+        const mag = Math.hypot(re[k], im[k]) / FFT;
+        prev[k] = SMOOTH * prev[k] + (1 - SMOOTH) * mag;
+        const db = prev[k] > 0 ? 20 * Math.log10(prev[k]) : -Infinity;
+        arr[k] = Math.max(0, Math.min(255, Math.round(255 * (db - MIN_DB) / (MAX_DB - MIN_DB))));
+      }
+    }
+  };
+})();
+window.orbitPcmAnalyser = pcmViz;
+
 // Visibility must not seek, swap players, or play a second source.
 document.addEventListener('visibilitychange', () => {
   if (!isPlaying) return;

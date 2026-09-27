@@ -1559,6 +1559,11 @@
         gainNode.connect(analyser); // parallel tap, does not affect output
         freqData = new Uint8Array(analyser.frequencyBinCount);
         timeData = new Uint8Array(analyser.fftSize);
+      } else if (typeof isIOS === 'function' && isIOS() && window.orbitPcmAnalyser) {
+        // iOS has no Web Audio graph (lock-screen fix): PCM-driven stand-in, same data shape
+        analyser = window.orbitPcmAnalyser;
+        freqData = new Uint8Array(analyser.frequencyBinCount);
+        timeData = new Uint8Array(analyser.fftSize);
       }
     } catch (e) { /* audio graph not ready yet */ }
   }
