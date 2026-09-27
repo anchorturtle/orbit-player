@@ -189,7 +189,8 @@ const TRACKS = [
     file: 'audio/singles/A Better You_vocals2.mp3',
     wav: 'audio/wavs/A Better You_vocals2.wav',
     description: '',
-    category: 'rap'
+    category: 'rap',
+    explicit: false
   },
   {
     title: 'Sun Days',
@@ -198,7 +199,8 @@ const TRACKS = [
     file: 'audio/singles/Sun Days-jestr-raponly.mp3',
     wav: 'audio/wavs/Sun Days-jestr-raponly.wav',
     description: '',
-    category: 'rap'
+    category: 'rap',
+    explicit: false
   },
   {
     title: 'Jazzpot',
