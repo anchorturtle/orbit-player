@@ -816,7 +816,7 @@ function syncVideoFullscreenUi() {
   if (icon) icon.textContent = on ? 'fullscreen_exit' : 'fullscreen';
   if (btn) {
     btn.classList.toggle('active', on);
-    btn.title = on ? 'Exit enlarge' : 'Enlarge';
+    btn.title = on ? 'Exit fullscreen' : 'Fullscreen';
   }
   if (on && !_videoFsWasActive) onVideoFullscreenEnter();
   else if (!on && _videoFsWasActive) onVideoFullscreenLeave();
@@ -843,11 +843,23 @@ function isVideoPlayingNow() {
   return !!(player && !player.paused && !player.ended);
 }
 
-/** Phone: native device player. Desktop (and large iPad) keep CSS enlarge. */
+/** Phone: native device player. Desktop uses Fullscreen API on the container. */
 function useNativeDeviceVideoPlayer() {
   if (typeof isMob === 'function' && isMob()) return true;
   /* iPhone landscape can be ≥768px; still the phone native-player path. */
   return typeof navigator !== 'undefined' && /iPhone|iPod/.test(navigator.userAgent);
+}
+
+/** Desktop theater target: the video container, not the <video> element. */
+function getVideoFullscreenContainer() {
+  return document.getElementById('video-fullscreen-host') || document.getElementById('video-win');
+}
+
+function isDesktopVideoContainerFullscreen() {
+  if (useNativeDeviceVideoPlayer()) return false;
+  const container = getVideoFullscreenContainer();
+  const active = document.fullscreenElement || document.webkitFullscreenElement;
+  return !!(container && active === container);
 }
 
 /** iPhone Safari: playsInline=false so play() uses the default device player. */
@@ -876,18 +888,20 @@ function isNativeVideoElementFullscreen(player) {
 
 function isNativeVideoFullscreen() {
   const win = document.getElementById('video-win');
+  const container = getVideoFullscreenContainer();
   const active = document.fullscreenElement || document.webkitFullscreenElement;
-  return !!(win && active === win) || isNativeVideoElementFullscreen();
+  return !!(win && active === win) || !!(container && active === container) || isNativeVideoElementFullscreen();
 }
 
 function isVideoEnlarged() {
+  if (isDesktopVideoContainerFullscreen()) return true;
   const win = document.getElementById('video-win');
   return !!(win && win.classList.contains('video-enlarged'));
 }
 
 function isVideoFullscreenActive() {
   if (useNativeDeviceVideoPlayer()) return isNativeVideoElementFullscreen();
-  return isVideoEnlarged();
+  return isDesktopVideoContainerFullscreen();
 }
 
 function applyOrbitDockClearance() {
@@ -950,52 +964,49 @@ function applyVideoEnlargeInlineBox(win) {
 }
 
 function enterVideoEnlarge() {
-  /* Phone never uses the CSS #video-win enlarge theater. */
+  /* Phone never uses desktop container fullscreen or CSS enlarge. */
   if (useNativeDeviceVideoPlayer()) {
     requestNativeDeviceVideoFullscreen();
     return;
   }
-  const win = document.getElementById('video-win');
-  if (!win) return;
-  if (!win.classList.contains('video-enlarged')) {
-    captureVideoWinGeometry(win);
-  }
-  applyOrbitDockClearance();
-  clearVideoWinInlineBox(win);
-  applyVideoEnlargeInlineBox(win);
-  win.classList.add('video-enlarged');
-  document.documentElement.classList.add('orbit-video-enlarge-lock');
+  requestDesktopVideoContainerFullscreen();
 }
 
 function exitVideoEnlarge() {
   const win = document.getElementById('video-win');
+  const host = document.getElementById('video-fullscreen-host');
   if (win) {
-    win.classList.remove('video-enlarged');
+    win.classList.remove('video-enlarged', 'video-fs-chrome-hidden', 'video-fs-pointer-in-zone');
     win.style.removeProperty('--orbit-dock-clearance');
-    clearVideoWinInlineBox(win);
-    win.style.removeProperty('position');
-    // Phone returns to room-scale default; desktop returns to the compact card.
-    if (typeof isMob === 'function' && isMob()) layoutVideoWinMobileRoom(win);
-    else if (typeof restoreVideoWinAfterFullscreen === 'function') restoreVideoWinAfterFullscreen();
+    /* Desktop real FS never rewrites the card box. Only undo a leftover CSS theater. */
+    if (typeof isMob === 'function' && isMob()) {
+      clearVideoWinInlineBox(win);
+      win.style.removeProperty('position');
+      layoutVideoWinMobileRoom(win);
+    }
   }
+  if (host) host.classList.remove('video-fs-chrome-hidden', 'video-fs-pointer-in-zone');
   document.documentElement.style.removeProperty('--orbit-dock-clearance');
   document.documentElement.classList.remove('orbit-video-enlarge-lock');
 }
 
-/** Idle-hide the enlarge bar only — never the windowed card controls. */
+/** Idle-hide the fullscreen bar only — never the windowed card controls. */
 function isVideoChromeIdleArmed() {
-  return isVideoWinOpen() && _videoAutoHideOn && isVideoEnlarged();
+  return isVideoWinOpen() && _videoAutoHideOn && isDesktopVideoContainerFullscreen();
 }
 
 function setVideoFsChromeHidden(hidden) {
   const win = document.getElementById('video-win');
-  if (!win) return;
-  win.classList.toggle('video-fs-chrome-hidden', !!hidden);
+  const host = document.getElementById('video-fullscreen-host');
+  if (win) win.classList.toggle('video-fs-chrome-hidden', !!hidden);
+  if (host) host.classList.toggle('video-fs-chrome-hidden', !!hidden);
 }
 
 function resetVideoChromeClasses() {
   const win = document.getElementById('video-win');
+  const host = document.getElementById('video-fullscreen-host');
   if (win) win.classList.remove('video-fs-pointer-in-zone', 'video-fs-chrome-hidden');
+  if (host) host.classList.remove('video-fs-pointer-in-zone', 'video-fs-chrome-hidden');
 }
 
 function clearVideoFsChromeTimers() {
@@ -1102,8 +1113,10 @@ function onVideoFullscreenEnter() {
   _videoFsPending = false;
   _videoUserExitedFs = false;
   win.classList.remove('video-fs-pointer-in-zone');
-  /* Native iOS/Safari player owns chrome. CSS theater idle-hide is desktop only. */
+  /* Native iOS/Safari player owns chrome. Desktop FS idle-hide is desktop only. */
   if (useNativeDeviceVideoPlayer()) return;
+  captureVideoWinGeometry(win);
+  document.documentElement.classList.add('orbit-video-enlarge-lock');
   startVideoChromeIdleSession();
 }
 
@@ -1112,14 +1125,11 @@ function onVideoFullscreenLeave() {
   _videoUserExitedFs = true;
   stopVideoChromeIdleSession();
   exitVideoEnlarge();
-  restoreVideoWinAfterFullscreen();
+  if (!useNativeDeviceVideoPlayer()) restoreVideoWinAfterFullscreen();
 }
 
 function onVideoEnlargeViewportChange() {
-  if (!isVideoEnlarged()) return;
-  applyOrbitDockClearance();
-  const win = document.getElementById('video-win');
-  if (win) applyVideoEnlargeInlineBox(win);
+  /* Desktop theater is the Fullscreen API — do not apply a CSS enlarge box. */
 }
 
 function bindVideoFsChromeListeners() {
@@ -1192,29 +1202,59 @@ function requestNativeDeviceVideoFullscreen() {
   return Promise.resolve(markBlocked());
 }
 
-/** Desktop: enlarge under the Orbit dock. Phone: native device fullscreen. */
+/** Desktop: Fullscreen API on the video container. Phone: native device player. */
+function requestDesktopVideoContainerFullscreen() {
+  const container = getVideoFullscreenContainer();
+  if (!container) return Promise.resolve(false);
+  const win = document.getElementById('video-win');
+  if (win) captureVideoWinGeometry(win);
+  const doc = document;
+  const active = doc.fullscreenElement || doc.webkitFullscreenElement;
+  if (active === container) {
+    _videoFsPending = false;
+    _videoFsRequesting = false;
+    syncVideoFullscreenUi();
+    return Promise.resolve(true);
+  }
+
+  const enter = () => {
+    const req = container.requestFullscreen || container.webkitRequestFullscreen;
+    if (!req) return false;
+    _videoFsRequesting = true;
+    let result;
+    try {
+      result = req.call(container);
+    } catch (_) {
+      _videoFsRequesting = false;
+      return false;
+    }
+    return Promise.resolve(result)
+      .then(() => {
+        _videoFsRequesting = false;
+        _videoFsPending = false;
+        syncVideoFullscreenUi();
+        return true;
+      })
+      .catch(() => {
+        _videoFsRequesting = false;
+        return false;
+      });
+  };
+
+  if (active) {
+    const exit = doc.exitFullscreen || doc.webkitExitFullscreen;
+    if (exit) {
+      return Promise.resolve(exit.call(doc)).then(enter).catch(() => false);
+    }
+  }
+  return Promise.resolve(enter());
+}
+
 function requestVideoFullscreen() {
   if (useNativeDeviceVideoPlayer()) {
     return requestNativeDeviceVideoFullscreen();
   }
-  const win = document.getElementById('video-win');
-  if (!win) return Promise.resolve(false);
-  const doc = document;
-  const active = doc.fullscreenElement || doc.webkitFullscreenElement;
-  const enter = () => {
-    enterVideoEnlarge();
-    _videoFsPending = false;
-    _videoFsRequesting = false;
-    syncVideoFullscreenUi();
-    return true;
-  };
-  if (active) {
-    const exit = doc.exitFullscreen || doc.webkitExitFullscreen;
-    if (exit) {
-      return Promise.resolve(exit.call(doc)).then(enter).catch(enter);
-    }
-  }
-  return Promise.resolve(enter());
+  return requestDesktopVideoContainerFullscreen();
 }
 
 function toggleVideoFullscreen() {
@@ -1222,6 +1262,7 @@ function toggleVideoFullscreen() {
   if (!win) return;
   const doc = document;
   const active = doc.fullscreenElement || doc.webkitFullscreenElement;
+  const container = getVideoFullscreenContainer();
 
   if (useNativeDeviceVideoPlayer()) {
     if (isNativeVideoElementFullscreen()) {
@@ -1239,7 +1280,7 @@ function toggleVideoFullscreen() {
     return;
   }
 
-  if (isVideoEnlarged() || active === win) {
+  if (isDesktopVideoContainerFullscreen() || active === container || active === win) {
     _videoUserExitedFs = true;
     _videoFsPending = false;
     _videoAutoHideOn = false;
@@ -1247,7 +1288,6 @@ function toggleVideoFullscreen() {
       const exit = doc.exitFullscreen || doc.webkitExitFullscreen;
       if (exit) {
         Promise.resolve(exit.call(doc)).catch(() => {}).finally(() => {
-          onVideoFullscreenLeave();
           syncVideoFullscreenUi();
         });
         return;
