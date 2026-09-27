@@ -5,7 +5,10 @@ export async function onRequest(context) {
   const res = await context.next();
   if (res.status !== 200 && res.status !== 206) return res;
   if (res.status === 206) return res;
-  const size = Number(res.headers.get('Content-Length'));
+  if (!/audio|octet/i.test(res.headers.get('Content-Type') || '')) return res; // SPA fallback / missing file
+  let size = Number(res.headers.get('Content-Length'));
+  let buf = null;
+  if (!(size > 0) && range) { buf = new Uint8Array(await res.arrayBuffer()); size = buf.length; }
   const h = new Headers(res.headers);
   h.set('Accept-Ranges', 'bytes');
   h.set('Content-Type', 'audio/wav');
@@ -16,12 +19,13 @@ export async function onRequest(context) {
   if (m[1] === '') { start = Math.max(0, size - Number(m[2])); end = size - 1; }
   else { start = Number(m[1]); end = m[2] === '' ? size - 1 : Math.min(Number(m[2]), size - 1); }
   if (start >= size || start > end) {
-    if (res.body) res.body.cancel();
+    if (res.body && !buf) res.body.cancel();
     return new Response(null, { status: 416, headers: { 'Content-Range': `bytes */${size}`, 'Accept-Ranges': 'bytes' } });
   }
   h.set('Content-Range', `bytes ${start}-${end}/${size}`);
   h.set('Content-Length', String(end - start + 1));
-  if (req.method === 'HEAD') { if (res.body) res.body.cancel(); return new Response(null, { status: 206, headers: h }); }
+  if (req.method === 'HEAD') { if (res.body && !buf) res.body.cancel(); return new Response(null, { status: 206, headers: h }); }
+  if (buf) return new Response(buf.slice(start, end + 1), { status: 206, headers: h });
   let pos = 0;
   const want = end - start + 1;
   let sent = 0;
