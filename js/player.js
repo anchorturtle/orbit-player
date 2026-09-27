@@ -286,6 +286,16 @@ const TRACKS = [
     explicit: true
   },
   {
+    title: 'Still Going Higher',
+    artist: 'jestR',
+    slug: 'still-going-higher',
+    file: 'audio/singles/Still_Going_Higher.mp3',
+    description: '',
+    category: 'rap',
+    explicit: true,
+    lyrics: []
+  },
+  {
     title: 'My Anthem',
     artist: 'jestR',
     slug: 'my-anthem',
@@ -336,16 +346,6 @@ const TRACKS = [
     album: "Don't Say Nothing About Them Building Blocks",
     albumSlug: 'building-blocks',
     albumTrack: 7
-  },
-  {
-    title: 'Still Going Higher',
-    artist: 'jestR',
-    slug: 'still-going-higher',
-    file: 'audio/singles/Still_Going_Higher.mp3',
-    description: '',
-    category: 'rap',
-    explicit: true,
-    lyrics: []
   },
   {
     title: 'Tomb of the Creator ft. Tevin Page',
