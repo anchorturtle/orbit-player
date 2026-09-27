@@ -95,10 +95,6 @@ const VIDEOS = [
     title: 'Jazzpot Not_Art_Remix',
     artist: 'jestR',
     poster: 'videos/jazzpot-not-art-remix-poster.jpg',
-    group: 'AI',
-    ai: true,
-    explicit: true,
-    orientation: 'portrait',
   },
 ];
 
@@ -238,58 +234,18 @@ function renderGalleryImages() {
   });
 }
 
-function videoCardBadgesHTML(v) {
-  const bits = [];
-  if (v.explicit) {
-    bits.push('<span class="explicit-badge gallery-card-badge">Explicit</span>');
-  }
-  if (v.ai || v.group === 'AI') {
-    bits.push('<span class="ai-badge gallery-card-badge">AI</span>');
-  }
-  if (!bits.length) return '';
-  return `<div class="gallery-card-badges">${bits.join('')}</div>`;
-}
-
-function renderGalleryVideoCard(v, i) {
-  const poster = v.poster || v.src;
-  return `<div class="gallery-item gallery-item-video" data-vi="${i}">
+function renderGalleryVideos() {
+  const grid = document.getElementById('gw-videos-grid');
+  if (!grid) return;
+  grid.innerHTML = VIDEOS.map((v, i) => {
+    const poster = v.poster || v.src;
+    return `<div class="gallery-item gallery-item-video" data-vi="${i}">
       <img class="gallery-video-thumb" src="${poster}" alt="${v.title || 'Video'}" loading="lazy"/>
-      ${videoCardBadgesHTML(v)}
       <div class="gallery-video-hover-play" aria-hidden="true">
         <span class="gallery-video-glass-play"><span class="material-symbols-outlined">play_arrow</span></span>
       </div>
     </div>`;
-}
-
-function renderGalleryVideos() {
-  const grid = document.getElementById('gw-videos-grid');
-  if (!grid) return;
-  const grouped = new Map();
-  const order = [];
-  VIDEOS.forEach((v, i) => {
-    const key = v.group || '';
-    if (!grouped.has(key)) {
-      grouped.set(key, []);
-      order.push(key);
-    }
-    grouped.get(key).push({ v, i });
-  });
-  const hasNamedGroup = order.some(k => k);
-  if (!hasNamedGroup) {
-    grid.innerHTML = VIDEOS.map((v, i) => renderGalleryVideoCard(v, i)).join('');
-  } else {
-    grid.classList.add('gallery-videos-grouped');
-    grid.innerHTML = order.map(key => {
-      const cards = grouped.get(key).map(({ v, i }) => renderGalleryVideoCard(v, i)).join('');
-      if (!key) {
-        return `<div class="gallery-video-group"><div class="gallery-grid">${cards}</div></div>`;
-      }
-      return `<div class="gallery-video-group">
-        <div class="gallery-video-group-head" aria-label="${key} videos">${key}</div>
-        <div class="gallery-grid">${cards}</div>
-      </div>`;
-    }).join('');
-  }
+  }).join('');
 
   grid.querySelectorAll('.gallery-item-video').forEach(el => {
     const idx = +el.dataset.vi;
@@ -1355,8 +1311,6 @@ function openVideoWin(idx) {
 
   titleEl.textContent = entry.title || 'Video';
   syncVideoEnlargeMeta(entry);
-  const vidExp = document.getElementById('video-explicit-badge');
-  if (vidExp) vidExp.hidden = !entry.explicit;
   document.title = (entry.title || 'Video') + ' | AnchorTurtle';
 
   const mediaSrc = videoSrcForEntry(entry);
