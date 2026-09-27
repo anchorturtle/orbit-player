@@ -739,13 +739,13 @@ function toggleHd() {
   const src = audio.currentSrc || audio.src || '';
   if (!src || src === window.location.href) return;
   const pos = audio.currentTime || 0;
+  const dur = audio.duration;
   const wasPlaying = !audio.paused;
+  // reuse the player's own seek-on-ready path (keeps the playback clock in sync)
+  seekOnReady = (isFinite(dur) && dur > 0) ? Math.min(pos / dur, 0.999) : null;
   audio.src = encodeURI(trackSrc(t));
-  audio.addEventListener('loadedmetadata', () => {
-    try { audio.currentTime = pos; } catch (e) {}
-    if (wasPlaying) audio.play().catch(() => {});
-  }, { once: true });
   audio.load();
+  if (wasPlaying) audio.play().catch(() => {});
 }
 document.addEventListener('DOMContentLoaded', () => {
   const b = document.getElementById('btn-hd');
