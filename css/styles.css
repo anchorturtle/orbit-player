@@ -646,8 +646,7 @@ html.orbit-resizing .win {
   gap: 6px;
   margin: 6px 0 0;
 }
-.player-song-header .player-badges .player-explicit,
-.player-song-header .player-badges .player-ai {
+.player-song-header .player-badges .player-explicit {
   margin: 0;
 }
 
@@ -1414,17 +1413,9 @@ html.orbit-resizing .win {
   color: #ffd0d6;
   border-color: rgba(232, 0, 61, .5);
 }
-.track-item .explicit-badge,
-.track-item .ai-badge { margin: 0; height: 16px; flex-shrink: 0; }
+.track-item .explicit-badge { margin: 0; height: 16px; flex-shrink: 0; }
 .track-title-row { display: flex; align-items: center; gap: 6px; min-width: 0; }
 .track-title-row .track-title { flex: 1; min-width: 0; }
-.track-dl-btn {
-  width: 28px;
-  height: 28px;
-  flex-shrink: 0;
-  padding: 0;
-}
-.track-dl-btn .material-symbols-outlined { font-size: 16px; }
 
 /* AI chip — same glass vocabulary as .video-ai-badge (do not retint skins) */
 .ai-badge {
@@ -1441,21 +1432,6 @@ html.orbit-resizing .win {
 .ai-badge[hidden] { display: none !important; }
 #fp-ai { letter-spacing: .14em; }
 
-.playlist-group { display: flex; flex-direction: column; gap: 1px; margin: 10px 0 4px; }
-.playlist-head {
-  display: flex; align-items: center; gap: 8px;
-  padding: 10px 6px 6px; margin: 2px 0 2px;
-  border-bottom: 1px solid rgba(123,47,255,.18);
-}
-.playlist-head-title {
-  font-size: 12px; font-weight: 800; color: rgba(233,225,222,.9); margin: 0;
-  line-height: 1.25; letter-spacing: .08em; text-transform: uppercase;
-}
-.playlist-head-meta {
-  font-size: 10px; font-weight: 600; letter-spacing: .06em;
-  color: rgba(0,200,150,.55); margin: 2px 0 0; text-transform: none;
-}
-.playlist-group-ai .track-item { padding-left: 10px; }
 .gallery-item-video .gallery-video-thumb {
   width: 100%; height: 100%; object-fit: cover; display: block; pointer-events: none;
 }
