@@ -187,6 +187,7 @@ const TRACKS = [
     artist: 'jestR',
     slug: 'a-better-you',
     file: 'audio/singles/A Better You_vocals2.mp3',
+    wav: 'audio/wavs/A Better You_vocals2.wav',
     description: '',
     category: 'rap'
   },
@@ -195,6 +196,7 @@ const TRACKS = [
     artist: 'jestR',
     slug: 'sun-days',
     file: 'audio/singles/Sun Days-jestr-raponly.mp3',
+    wav: 'audio/wavs/Sun Days-jestr-raponly.wav',
     description: '',
     category: 'rap'
   },
@@ -714,12 +716,46 @@ function mediaIsFor(t) {
   if (!t) return false;
   const src = audio.currentSrc || audio.src || '';
   if (!src || src === window.location.href) return false;
-  return src.includes(t.file) || src.includes(encodeURI(t.file));
+  const f = trackSrc(t);
+  return src.includes(f) || src.includes(encodeURI(f));
 }
+
+/* HD: play the audio/wavs WAV for tracks that have one; MP3 otherwise */
+let hdOn = false;
+try { hdOn = localStorage.getItem('orbit-hd') === '1'; } catch (e) {}
+function trackSrc(t) { return (hdOn && t && t.wav) ? t.wav : t.file; }
+function syncHdBtn() {
+  const b = document.getElementById('btn-hd');
+  if (!b) return;
+  b.classList.toggle('on', hdOn);
+  b.setAttribute('aria-pressed', hdOn ? 'true' : 'false');
+}
+function toggleHd() {
+  hdOn = !hdOn;
+  try { localStorage.setItem('orbit-hd', hdOn ? '1' : '0'); } catch (e) {}
+  syncHdBtn();
+  const t = TRACKS[currentIndex];
+  if (!t || !t.wav) return;
+  const src = audio.currentSrc || audio.src || '';
+  if (!src || src === window.location.href) return;
+  const pos = audio.currentTime || 0;
+  const wasPlaying = !audio.paused;
+  audio.src = encodeURI(trackSrc(t));
+  audio.addEventListener('loadedmetadata', () => {
+    try { audio.currentTime = pos; } catch (e) {}
+    if (wasPlaying) audio.play().catch(() => {});
+  }, { once: true });
+  audio.load();
+}
+document.addEventListener('DOMContentLoaded', () => {
+  const b = document.getElementById('btn-hd');
+  if (b) b.addEventListener('click', (e) => { e.preventDefault(); toggleHd(); });
+  syncHdBtn();
+});
 
 function attachMedia(t) {
   if (!t || mediaIsFor(t)) return;
-  audio.src = encodeURI(t.file);
+  audio.src = encodeURI(trackSrc(t));
   audio.load();
 }
 
