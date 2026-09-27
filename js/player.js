@@ -5,6 +5,22 @@
 
 const TRACKS = [
   {
+    title: 'A Better You',
+    artist: 'jestR',
+    slug: 'a-better-you',
+    file: 'audio/singles/A Better You_vocals2.mp3',
+    description: '',
+    category: 'rap'
+  },
+  {
+    title: 'Sun Days',
+    artist: 'jestR',
+    slug: 'sun-days',
+    file: 'audio/singles/Sun Days-jestr-raponly.mp3',
+    description: '',
+    category: 'rap'
+  },
+  {
     title: 'Quarters',
     artist: 'jestR',
     slug: 'quarters',
