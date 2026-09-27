@@ -1429,33 +1429,23 @@ function explicitChipHTML(compact) {
 }
 
 function aiChipHTML() {
-  return `<span class="ai-badge" title="${AI_TIP}" aria-label="AI">AI</span>`;
+  return `<span class="explicit-badge" title="${AI_TIP}" aria-label="AI">AI</span>`;
 }
 
 function trackBadgesHTML(t) {
   const bits = [];
-  if (trackIsExplicit(t)) {
-    bits.push(isAiTrack(t)
-      ? `<span class="explicit-badge" title="${EXPLICIT_TIP}" aria-label="${EXPLICIT_TIP}">Explicit</span>`
-      : explicitChipHTML(true));
-  }
+  if (trackIsExplicit(t)) bits.push(explicitChipHTML(true));
   if (isAiTrack(t)) bits.push(aiChipHTML());
   return bits.join('');
 }
 
 function makeTrackRow(t, origIdx) {
   const el = document.createElement('div');
-  el.className = 'track-item' + (origIdx === currentIndex ? ' active' : '') + (isAiTrack(t) ? ' track-item-ai' : '');
+  el.className = 'track-item' + (origIdx === currentIndex ? ' active' : '');
   el.dataset.idx = origIdx;
   const badges = trackBadgesHTML(t);
-  const dl = isAiTrack(t)
-    ? `<button type="button" class="ctrl-btn track-dl-btn" title="Download MP3" aria-label="Download ${trackDownloadName(t)}"><span class="material-symbols-outlined">download</span></button>`
-    : `<span class="material-symbols-outlined" style="font-size:13px;color:rgba(150,100,255,.3);flex-shrink:0;font-variation-settings:'FILL' 1">music_note</span>`;
-  const drag = isAiTrack(t)
-    ? `<div class="drag-handle drag-handle-locked" aria-hidden="true"><span class="material-symbols-outlined" style="font-size:16px;pointer-events:none;opacity:.25">drag_indicator</span></div>`
-    : `<div class="drag-handle" title="Drag to reorder"><span class="material-symbols-outlined" style="font-size:16px;pointer-events:none">drag_indicator</span></div>`;
   el.innerHTML = `
-      ${drag}
+      <div class="drag-handle" title="Drag to reorder"><span class="material-symbols-outlined" style="font-size:16px;pointer-events:none">drag_indicator</span></div>
       <div style="flex:1;min-width:0">
         <div class="track-title-row">
           <p class="track-title" style="font-weight:700;color:rgba(233,225,222,.82);margin:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${t.title}</p>
@@ -1463,33 +1453,12 @@ function makeTrackRow(t, origIdx) {
         </div>
         <p class="track-artist" style="font-weight:600;letter-spacing:.06em;text-transform:none;color:rgba(0,200,150,.5);margin:0">${t.artist}</p>
       </div>
-      ${dl}`;
+      <span class="material-symbols-outlined" style="font-size:13px;color:rgba(150,100,255,.3);flex-shrink:0;font-variation-settings:'FILL' 1">music_note</span>`;
   el.addEventListener('click', e => {
     if (e.target.closest('.drag-handle')) return;
-    if (e.target.closest('.track-dl-btn')) {
-      e.preventDefault();
-      e.stopPropagation();
-      downloadTrackFile(t);
-      return;
-    }
     loadTrack(origIdx, true);
   });
   return el;
-}
-
-function appendAiPlaylistSection(container, aiItems) {
-  if (!aiItems.length) return;
-  const group = document.createElement('div');
-  group.className = 'playlist-group playlist-group-ai';
-  group.innerHTML = `
-    <div class="playlist-head" aria-label="AI playlist">
-      <div class="playlist-head-copy">
-        <p class="playlist-head-title">AI</p>
-        <p class="playlist-head-meta">${aiItems.length} track${aiItems.length === 1 ? '' : 's'}</p>
-      </div>
-    </div>`;
-  aiItems.forEach(({ t, origIdx }) => group.appendChild(makeTrackRow(t, origIdx)));
-  container.appendChild(group);
 }
 
 /* ── TRACKLIST RENDER + DRAG-REORDER ── */
@@ -1500,30 +1469,17 @@ function renderTracklist(filter) {
   const q = (filter || '').toLowerCase();
   let items = TRACKS.map((t, i) => ({ t, origIdx: i }));
 
-  if (currentTracklistCategory === 'ai') {
-    items = items.filter(({ t }) => isAiTrack(t));
-  } else if (currentTracklistCategory === 'albums') {
+  if (currentTracklistCategory === 'albums') {
     items = items.filter(({ t }) => !!t.albumSlug && !isAiTrack(t));
+  } else if (currentTracklistCategory === 'all') {
+    items = items.filter(({ t }) => !isAiTrack(t));
   } else if (currentTracklistCategory && currentTracklistCategory !== 'all') {
-    items = items.filter(({ t }) => !isAiTrack(t) && (t.category || 'instrumental') === currentTracklistCategory);
+    items = items.filter(({ t }) => (t.category || 'instrumental') === currentTracklistCategory);
   }
 
   items = items.filter(({ t }) => !q || t.title.toLowerCase().includes(q) || t.artist.toLowerCase().includes(q) || (t.album || '').toLowerCase().includes(q));
 
   document.getElementById('track-count').textContent = `${items.length}/${TRACKS.length}`;
-
-  if (currentTracklistCategory === 'ai') {
-    appendAiPlaylistSection(container, items);
-    return;
-  }
-
-  if (currentTracklistCategory === 'all') {
-    const regular = items.filter(({ t }) => !isAiTrack(t));
-    const aiItems = items.filter(({ t }) => isAiTrack(t));
-    regular.forEach(({ t, origIdx }) => container.appendChild(makeTrackRow(t, origIdx)));
-    appendAiPlaylistSection(container, aiItems);
-    return;
-  }
 
   if (currentTracklistCategory === 'albums') {
     (ALBUMS || []).forEach(album => {
@@ -1697,10 +1653,7 @@ window.openAlbumWindow = openAlbumWindow;
   function startDrag(handle, e) {
     const item = handle.closest('.track-item');
     if (!item) return;
-    if (handle.classList.contains('drag-handle-locked')) return;
-    const startIdx = +item.dataset.idx;
-    if (isAiTrack(TRACKS[startIdx])) return;
-    dragOrigIdx = startIdx;
+    dragOrigIdx = +item.dataset.idx;
     dragging = item;
     dragMoved = false;
     item.classList.add('is-dragging');
