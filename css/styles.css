@@ -1272,10 +1272,10 @@ html.orbit-resizing .win {
     flex-grow .34s var(--ease-out),
     padding .34s var(--ease-out);
 }
-/* Active tab claims remaining row space so long labels (Instrumental) can breathe */
+/* Active tab stays compact like the rest; only the label swaps (Inst to Instrumental) */
 .tracklist-tabs .tab.active {
-  flex: 1 1 auto;
-  padding: 5px 12px;
+  flex: 0 1 auto;
+  padding: 5px 8px;
 }
 .gallery-tabs .tab { flex: 1 1 auto; padding: 4px 12px; }
 .tracklist-tabs .tab.active,

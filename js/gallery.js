@@ -95,10 +95,6 @@ const VIDEOS = [
     title: 'Jazzpot Not_Art_Remix',
     artist: 'jestR',
     poster: 'videos/jazzpot-not-art-remix-poster.jpg',
-    group: 'AI',
-    ai: true,
-    explicit: true,
-    orientation: 'portrait',
   },
 ];
 
