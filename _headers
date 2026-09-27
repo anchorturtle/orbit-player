@@ -1,0 +1,3 @@
+/audio/wavs/*
+  Cache-Control: public, max-age=86400, no-transform
+  Accept-Ranges: bytes

@@ -684,7 +684,12 @@ function startDurationPoll() {
 
 function applySavedSeek() {
   if (seekOnReady !== null && audio.readyState >= 1 && isGoodDuration(audio.duration)) {
-    audio.currentTime = seekOnReady * audio.duration;
+    const target = seekOnReady * audio.duration;
+    // servers without byte ranges only allow seeking into buffered data: wait for it
+    let ok = false;
+    for (let i = 0; i < audio.seekable.length; i++) { if (audio.seekable.start(i) <= target && audio.seekable.end(i) >= target) ok = true; }
+    if (!ok) return;
+    audio.currentTime = target;
     resetPlaybackClock(audio);
     seekOnReady = null;
     tryUpdateDuration();
@@ -694,6 +699,7 @@ function applySavedSeek() {
 audio.addEventListener('loadedmetadata', () => { tryUpdateDuration(); applySavedSeek(); });
 audio.addEventListener('canplay', () => { tryUpdateDuration(); applySavedSeek(); });
 audio.addEventListener('durationchange', () => { tryUpdateDuration(); applySavedSeek(); });
+audio.addEventListener('progress', applySavedSeek);
 
 audio.addEventListener('play', () => resetPlaybackClock(audio));
 
