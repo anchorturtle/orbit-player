@@ -729,8 +729,9 @@ function mediaIsFor(t) {
 }
 
 /* HD: play the audio/wavs WAV for tracks that have one; MP3 otherwise */
-let hdOn = false;
-try { hdOn = localStorage.getItem('orbit-hd') === '1'; } catch (e) {}
+// HD defaults ON (new key so everyone starts on HD); tracks without a WAV fall back to MP3
+let hdOn = true;
+try { hdOn = localStorage.getItem('orbit-hd2') !== '0'; localStorage.removeItem('orbit-hd'); } catch (e) {}
 function trackSrc(t) { return (hdOn && t && t.wav) ? t.wav : t.file; }
 function syncHdBtn() {
   const b = document.getElementById('btn-hd');
@@ -740,7 +741,7 @@ function syncHdBtn() {
 }
 function toggleHd() {
   hdOn = !hdOn;
-  try { localStorage.setItem('orbit-hd', hdOn ? '1' : '0'); } catch (e) {}
+  try { localStorage.setItem('orbit-hd2', hdOn ? '1' : '0'); } catch (e) {}
   syncHdBtn();
   const t = TRACKS[currentIndex];
   if (!t || !t.wav) return;
