@@ -2043,6 +2043,7 @@ html.orbit-resizing .win {
   display: flex;
   justify-content: flex-end;
   align-items: center;
+  gap: 6px;
   padding: 2px 6px 6px;
   margin-top: -2px;
   opacity: 0.55;
