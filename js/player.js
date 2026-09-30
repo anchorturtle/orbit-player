@@ -320,6 +320,17 @@ const TRACKS = [
     albumTrack: 2
   },
   {
+    title: 'Lookin Up',
+    artist: 'jestR',
+    slug: 'lookin-up',
+    file: 'audio/singles/Lookin Up.mp3',
+    year: 2012,
+    description: '',
+    category: 'rap',
+    explicit: false,
+    lyrics: []
+  },
+  {
     title: 'In the Sky',
     artist: 'jestR',
     slug: 'in-the-sky',
@@ -342,6 +353,17 @@ const TRACKS = [
     lyrics: []
   },
   {
+    title: 'Butterflies',
+    artist: 'jestR',
+    slug: 'butterflies',
+    file: 'audio/singles/Butterflies.mp3',
+    year: 2012,
+    description: '',
+    category: 'rap',
+    explicit: false,
+    lyrics: []
+  },
+  {
     title: "Hand's Up High",
     artist: 'jestR',
     slug: 'hands-up-high',
@@ -350,6 +372,17 @@ const TRACKS = [
     description: '',
     category: 'rap',
     explicit: true
+  },
+  {
+    title: 'Dos',
+    artist: 'jestR',
+    slug: 'dos',
+    file: 'audio/singles/Dos.mp3',
+    year: 2012,
+    description: '',
+    category: 'rap',
+    explicit: false,
+    lyrics: []
   },
   {
     title: 'Sublime Beginnings',
