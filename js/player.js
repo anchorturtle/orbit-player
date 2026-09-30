@@ -203,6 +203,17 @@ const TRACKS = [
     explicit: false
   },
   {
+    title: 'Calm',
+    artist: 'jestR',
+    slug: 'calm',
+    file: 'audio/singles/Calm.mp3',
+    wav: 'audio/wavs/Calm.wav',
+    description: '',
+    category: 'rap',
+    explicit: true,
+    lyrics: []
+  },
+  {
     title: 'Jazzpot',
     artist: 'jestR',
     slug: 'jazzpot',
