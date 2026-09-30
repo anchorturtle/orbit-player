@@ -204,6 +204,17 @@ const TRACKS = [
     lyrics: []
   },
   {
+    title: 'Marilyn Monroe',
+    artist: 'jestR',
+    slug: 'marilyn-monroe',
+    file: 'audio/singles/Marilyn Monroe.mp3',
+    year: 2012,
+    description: 'instrumental produced by Felly',
+    category: 'rap',
+    explicit: true,
+    lyrics: []
+  },
+  {
     title: 'A Better You',
     artist: 'jestR',
     slug: 'a-better-you',
