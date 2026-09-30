@@ -47,7 +47,7 @@ export async function onRequest(context) {
     'calm': { title: 'Calm', artist: 'jestR' },
     'in-the-sky': { title: 'In the Sky', artist: 'jestR' },
     'marilyn-monroe': { title: 'Marilyn Monroe', artist: 'jestR' },
-    'lookin-up': { title: 'Lookin Up', artist: 'jestR' },
+    'lookin-up': { title: "Lookin' Up", artist: 'jestR' },
     'butterflies': { title: 'Butterflies', artist: 'jestR' },
     'dos': { title: 'Dos', artist: 'jestR' },
     'hands-up-high': { title: "Hand's Up High", artist: 'jestR' },

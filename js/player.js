@@ -4,16 +4,17 @@
    ============================================ */
 
 const TRACKS = [
-  {
+{
     title: 'Quarters',
     artist: 'jestR',
     slug: 'quarters',
     file: 'audio/singles/quarters-9-23b.mp3',
+    downloadName: 'Quarters.mp3',
     description: '',
     category: 'instrumental',
     artwork: 'images/quarters-cover.jpg'
   },
-  {
+{
     title: 'Offers',
     artist: 'jestR',
     slug: 'offers',
@@ -21,78 +22,86 @@ const TRACKS = [
     description: '',
     category: 'instrumental'
   },
-  {
+{
     title: 'Thousand Dragon',
     artist: 'jestR',
     slug: 'thousand-dragon',
     file: 'audio/singles/Thousand-Dragon-jestR.mp3',
+    downloadName: 'Thousand Dragon.mp3',
     description: '',
     category: 'instrumental'
   },
-  {
+{
     title: 'K.O.',
     artist: 'jestR',
     slug: 'ko',
     file: 'audio/singles/KO.mp3',
+    downloadName: 'K.O..mp3',
     description: '',
     category: 'instrumental'
   },
-  {
+{
     title: 'hyperdream.odyssey.exe',
     artist: 'jestR',
     slug: 'hyperdream-odyssey',
     file: 'audio/singles/hyperdream-odyssey.mp3',
+    downloadName: 'hyperdream.odyssey.exe.mp3',
     description: '',
     category: 'instrumental'
   },
-  {
+{
     title: 'Soul Seer',
     artist: 'jestR',
     slug: 'soul-seer',
     file: 'audio/singles/Mp3-SoulSeer.mp3',
+    downloadName: 'Soul Seer.mp3',
     description: '',
     artwork: null,
     category: 'instrumental'
   },
-  {
+{
     title: 'Geronimo',
     artist: 'jestR',
     slug: 'geronimo',
     file: 'audio/singles/11 - Geronimo- jestR - 2020.mp3',
+    downloadName: 'Geronimo.mp3',
     year: 2020,
     description: '',
     artwork: 'images/Jesterdaze.png',
     category: 'instrumental'
   },
-  {
+{
     title: 'Spin Cycle',
     artist: 'jestR',
     slug: 'spin-cycle',
     file: 'audio/singles/Spin-Cycle_.mp3',
+    downloadName: 'Spin Cycle.mp3',
     description: '',
     artwork: null,
     category: 'instrumental'
   },
-  {
+{
     title: 'Mile High',
     artist: 'jestR',
     slug: 'mile-high',
     file: 'audio/singles/3 - Mile High- jestR - 2020.mp3',
+    downloadName: 'Mile High.mp3',
     year: 2020,
     description: '',
     artwork: null,
     category: 'instrumental'
   },
-  {
+{
     title: 'Follow The Flow',
     artist: 'jestR',
     slug: 'follow-the-flow',
     file: 'audio/singles/Mp3-FollowTheFlow.mp3',
+    downloadName: 'Follow The Flow.mp3',
     description: '',
     artwork: null,
     category: 'instrumental'
   },
-  {
+{
     title: 'Peace',
     artist: 'jestR',
     slug: 'peace',
@@ -101,7 +110,7 @@ const TRACKS = [
     artwork: null,
     category: 'instrumental'
   },
-  {
+{
     title: 'Strider',
     artist: 'jestR',
     slug: 'strider',
@@ -110,99 +119,109 @@ const TRACKS = [
     artwork: null,
     category: 'instrumental'
   },
-  {
+{
     title: 'Insane Membrane',
     artist: 'jestR',
     slug: 'insane-membrane',
     file: 'audio/singles/Insane_membrane.mp3',
+    downloadName: 'Insane Membrane.mp3',
     description: '',
     artwork: null,
     category: 'instrumental'
   },
-  {
+{
     title: 'Wavy',
     artist: 'jestR',
     slug: 'wavy',
     file: 'audio/singles/wavy.mp3',
+    downloadName: 'Wavy.mp3',
     description: '',
     artwork: null,
     category: 'instrumental'
   },
-  {
+{
     title: 'Boa Constrictor',
     artist: 'jestR',
     slug: 'boa-constrictor',
     file: 'audio/singles/boaconstrictor.mp3',
+    downloadName: 'Boa Constrictor.mp3',
     description: '',
     artwork: null,
     category: 'instrumental'
   },
-  {
+{
     title: 'News',
     artist: 'jestR',
     slug: 'news',
     file: 'audio/singles/Newsss.mp3',
+    downloadName: 'News.mp3',
     description: '',
     artwork: null,
     category: 'instrumental'
   },
-  {
+{
     title: 'Wheels',
     artist: 'jestR',
     slug: 'wheels',
     file: 'audio/singles/mp3Wheels-36.mp3',
+    downloadName: 'Wheels.mp3',
     description: '',
     artwork: null,
     category: 'instrumental'
   },
-  {
+{
     title: 'Pop',
     artist: 'jestR',
     slug: 'pop',
     file: 'audio/singles/pop.mp3',
+    downloadName: 'Pop.mp3',
     description: '',
     artwork: null,
     category: 'instrumental'
   },
-  {
+{
     title: 'The Sum Of Hippy Thoughts',
     artist: 'jestR',
     slug: 'the-sum-of-hippy-thoughts',
     file: 'audio/singles/the sum of hippy thoughts.mp3',
+    downloadName: 'The Sum Of Hippy Thoughts.mp3',
     description: '',
     artwork: null,
     category: 'instrumental'
   },
-  {
+{
     title: 'What Dreams May Come',
     artist: 'jestR',
     slug: 'what-dreams-may-come',
     file: 'audio/singles/what_dreams_may_comewavy.wav',
+    downloadName: 'What Dreams May Come.wav',
     description: '',
     artwork: null,
     category: 'instrumental'
   },
-  {
+{
     title: 'A Better You',
     artist: 'jestR',
     slug: 'a-better-you',
     file: 'audio/singles/A Better You_vocals2.mp3',
+    downloadName: 'A Better You.mp3',
     wav: 'audio/wavs/A Better You_vocals2.wav',
     description: '',
     category: 'rap',
     explicit: false
   },
-  {
+{
     title: 'Sun Days',
     artist: 'jestR',
     slug: 'sun-days',
     file: 'audio/singles/Sun Days-jestr-raponly.mp3',
+    downloadName: 'Sun Days.mp3',
     wav: 'audio/wavs/Sun Days-jestr-raponly.wav',
     description: '',
     category: 'rap',
     explicit: false
   },
-  {
+{
     title: 'Calm',
     artist: 'jestR',
     slug: 'calm',
@@ -213,11 +232,12 @@ const TRACKS = [
     explicit: true,
     lyrics: []
   },
-  {
+{
     title: 'Jazzpot',
     artist: 'jestR',
     slug: 'jazzpot',
     file: 'audio/singles/jazzpot3.mp3',
+    downloadName: 'Jazzpot.mp3',
     description: 'Jazz pot session.',
     artwork: null,
     category: 'rap',
@@ -267,7 +287,7 @@ const TRACKS = [
     {"time":86.0,"text":"And judgment is final"}
     ],
   },
-  {
+{
     title: 'Fat Stacks',
     artist: 'jestR',
     slug: 'fat-stacks',
@@ -277,7 +297,7 @@ const TRACKS = [
     explicit: true,
     lyrics: []
   },
-  {
+{
     title: 'Chokeslam',
     artist: 'jestR',
     slug: 'chokeslam',
@@ -287,26 +307,28 @@ const TRACKS = [
     explicit: true,
     lyrics: []
   },
-  {
+{
     title: 'Grateful Sharpie',
     artist: 'jestR',
     slug: 'grateful-sharpie',
     file: 'audio/singles/Grateful_Sharpie.mp3',
+    downloadName: 'Grateful Sharpie.mp3',
     description: '',
     category: 'rap',
     explicit: true
   },
-  {
+{
     title: 'Still Going Higher',
     artist: 'jestR',
     slug: 'still-going-higher',
     file: 'audio/singles/Still_Going_Higher.mp3',
+    downloadName: 'Still Going Higher.mp3',
     description: '',
     category: 'rap',
     explicit: true,
     lyrics: []
   },
-  {
+{
     title: 'My Anthem',
     artist: 'jestR',
     slug: 'my-anthem',
@@ -319,72 +341,7 @@ const TRACKS = [
     albumSlug: 'building-blocks',
     albumTrack: 2
   },
-  {
-    title: 'Lookin Up',
-    artist: 'jestR',
-    slug: 'lookin-up',
-    file: 'audio/singles/Lookin Up.mp3',
-    year: 2012,
-    description: '',
-    category: 'rap',
-    explicit: false,
-    lyrics: []
-  },
-  {
-    title: 'In the Sky',
-    artist: 'jestR',
-    slug: 'in-the-sky',
-    file: 'audio/singles/In the Sky.mp3',
-    year: 2012,
-    description: '',
-    category: 'rap',
-    explicit: true,
-    lyrics: []
-  },
-  {
-    title: 'Marilyn Monroe',
-    artist: 'jestR',
-    slug: 'marilyn-monroe',
-    file: 'audio/singles/Marilyn Monroe.mp3',
-    year: 2012,
-    description: 'instrumental produced by Felly',
-    category: 'rap',
-    explicit: true,
-    lyrics: []
-  },
-  {
-    title: 'Butterflies',
-    artist: 'jestR',
-    slug: 'butterflies',
-    file: 'audio/singles/Butterflies.mp3',
-    year: 2012,
-    description: '',
-    category: 'rap',
-    explicit: false,
-    lyrics: []
-  },
-  {
-    title: "Hand's Up High",
-    artist: 'jestR',
-    slug: 'hands-up-high',
-    file: "audio/singles/Hand's Up High.mp3",
-    year: 2012,
-    description: '',
-    category: 'rap',
-    explicit: true
-  },
-  {
-    title: 'Dos',
-    artist: 'jestR',
-    slug: 'dos',
-    file: 'audio/singles/Dos.mp3',
-    year: 2012,
-    description: '',
-    category: 'rap',
-    explicit: false,
-    lyrics: []
-  },
-  {
+{
     title: 'Sublime Beginnings',
     artist: 'jestR',
     slug: 'sublime-beginnings',
@@ -397,7 +354,73 @@ const TRACKS = [
     albumSlug: 'building-blocks',
     albumTrack: 12
   },
-  {
+{
+    title: "Lookin' Up",
+    artist: 'jestR',
+    slug: 'lookin-up',
+    file: 'audio/singles/Lookin Up.mp3',
+    downloadName: "Lookin' Up.mp3",
+    year: 2012,
+    description: '',
+    category: 'rap',
+    explicit: false,
+    lyrics: []
+  },
+{
+    title: 'In the Sky',
+    artist: 'jestR',
+    slug: 'in-the-sky',
+    file: 'audio/singles/In the Sky.mp3',
+    year: 2012,
+    description: '',
+    category: 'rap',
+    explicit: true,
+    lyrics: []
+  },
+{
+    title: 'Marilyn Monroe',
+    artist: 'jestR',
+    slug: 'marilyn-monroe',
+    file: 'audio/singles/Marilyn Monroe.mp3',
+    year: 2012,
+    description: 'instrumental produced by Felly',
+    category: 'rap',
+    explicit: true,
+    lyrics: []
+  },
+{
+    title: 'Butterflies',
+    artist: 'jestR',
+    slug: 'butterflies',
+    file: 'audio/singles/Butterflies.mp3',
+    year: 2012,
+    description: '',
+    category: 'rap',
+    explicit: false,
+    lyrics: []
+  },
+{
+    title: "Hand's Up High",
+    artist: 'jestR',
+    slug: 'hands-up-high',
+    file: "audio/singles/Hand's Up High.mp3",
+    year: 2012,
+    description: '',
+    category: 'rap',
+    explicit: true
+  },
+{
+    title: 'Dos',
+    artist: 'jestR',
+    slug: 'dos',
+    file: 'audio/singles/Dos.mp3',
+    year: 2012,
+    description: 'instrumental produced by ATBeats',
+    category: 'rap',
+    explicit: false,
+    lyrics: []
+  },
+{
     title: 'Nonnin',
     artist: 'jestR',
     slug: 'nonnin',
@@ -410,7 +433,7 @@ const TRACKS = [
     albumSlug: 'building-blocks',
     albumTrack: 3
   },
-  {
+{
     title: 'WHOiAM2u',
     artist: 'jestR',
     slug: 'whoiam2u',
@@ -423,11 +446,12 @@ const TRACKS = [
     albumSlug: 'building-blocks',
     albumTrack: 7
   },
-  {
+{
     title: 'Tomb of the Creator ft. Tevin Page',
     artist: 'jestR',
     slug: 'tomb-of-the-creator',
     file: "audio/albums/jestR- act like your doing something cuz i see everything/1 - Tomb of the Creator- jestR - act like you're doing something cuz i see everything.mp3",
+    downloadName: 'Tomb of the Creator ft. Tevin Page.mp3',
     year: 2018,
     description: '',
     category: 'rap',
@@ -436,11 +460,12 @@ const TRACKS = [
     albumSlug: 'act-like-youre-doing-something',
     albumTrack: 1
   },
-  {
+{
     title: 'What Is it Now?',
     artist: 'jestR',
     slug: 'what-is-it-now',
     file: "audio/albums/jestR- act like your doing something cuz i see everything/3 - What Is it Now- jestR - act like you're doing something cuz i see everything.mp3",
+    downloadName: 'What Is it Now?.mp3',
     year: 2018,
     description: '',
     category: 'rap',
@@ -449,7 +474,7 @@ const TRACKS = [
     albumSlug: 'act-like-youre-doing-something',
     albumTrack: 3
   },
-  {
+{
     title: '420',
     artist: 'jestR',
     slug: 'four-twenty',
@@ -462,7 +487,7 @@ const TRACKS = [
     albumSlug: 'building-blocks',
     albumTrack: 4
   },
-  {
+{
     title: 'Get',
     artist: 'jestR',
     slug: 'get',
@@ -475,7 +500,7 @@ const TRACKS = [
     albumSlug: 'building-blocks',
     albumTrack: 11
   },
-  {
+{
     title: 'death of jestR',
     artist: 'jestR',
     slug: 'death-of-jestr',
@@ -488,11 +513,12 @@ const TRACKS = [
     albumSlug: 'building-blocks',
     albumTrack: 13
   },
-  {
+{
     title: 'Blockbuster ft. Tevin Page',
     artist: 'jestR',
     slug: 'blockbuster',
     file: "audio/albums/jestR- act like your doing something cuz i see everything/2 - Blockbuster- jestR - act like you're doing something cuz i see everything.mp3",
+    downloadName: 'Blockbuster ft. Tevin Page.mp3',
     year: 2018,
     description: '',
     category: 'instrumental',
@@ -500,11 +526,12 @@ const TRACKS = [
     albumSlug: 'act-like-youre-doing-something',
     albumTrack: 2
   },
-  {
+{
     title: 'got nun?',
     artist: 'jestR',
     slug: 'got-nun',
     file: "audio/albums/jestR- act like your doing something cuz i see everything/4 - got nun- jestR - act like you're doing something cuz i see everything.mp3",
+    downloadName: 'got nun?.mp3',
     year: 2018,
     description: '',
     category: 'instrumental',
@@ -512,7 +539,7 @@ const TRACKS = [
     albumSlug: 'act-like-youre-doing-something',
     albumTrack: 4
   },
-  {
+{
     title: 'Space Radio',
     artist: 'jestR',
     slug: 'space-radio',
@@ -524,7 +551,7 @@ const TRACKS = [
     albumSlug: 'building-blocks',
     albumTrack: 9
   },
-  {
+{
     title: 'Exploding Galaxies',
     artist: 'jestR',
     slug: 'exploding-galaxies',
@@ -536,7 +563,7 @@ const TRACKS = [
     albumSlug: 'building-blocks',
     albumTrack: 10
   },
-  {
+{
     title: 'Acid Rain',
     artist: 'jestR',
     slug: 'acid-rain',
@@ -548,18 +575,18 @@ const TRACKS = [
     albumSlug: 'building-blocks',
     albumTrack: 1
   },
-  {
+{
     title: 'Jazzpot Not_Art_Remix',
     artist: 'jestR',
     slug: 'jazzpot-not-art-remix',
     file: 'audio/singles/jazzpot_NOT_ART_REMIXb.mp3',
-    downloadName: 'jazzpot_NOT_ART_REMIXb.mp3',
+    downloadName: 'Jazzpot Not_Art_Remix.mp3',
     description: '',
     category: 'ai',
     playlist: 'ai',
     ai: true,
     explicit: true
-  }
+  },
 ];
   window.ORBIT_TRACKS = TRACKS;
 
