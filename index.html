@@ -1,1 +1,30 @@
-file:///workspace/orbit-index-content.html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<title>AnchorTurtle</title>
+<script>
+(async () => {
+  const urls = [
+    'https://cdn.jsdelivr.net/gh/anchorturtle/orbit-player@10bd44a30d6611ad76e709c786384c6950d92205/index.html',
+    'https://raw.githubusercontent.com/anchorturtle/orbit-player/10bd44a30d6611ad76e709c786384c6950d92205/index.html'
+  ];
+  for (const u of urls) {
+    try {
+      const r = await fetch(u, {cache:'no-store'});
+      if (!r.ok) continue;
+      const t = await r.text();
+      if (t.includes('tracklist-win') && t.includes('js/main.js')) {
+        document.open();
+        document.write(t);
+        document.close();
+        return;
+      }
+    } catch (e) {}
+  }
+  document.body.textContent = 'Loading Orbit… refresh if this persists.';
+})();
+</script>
+</head>
+<body>Loading Orbit…</body>
+</html>
