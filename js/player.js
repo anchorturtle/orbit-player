@@ -193,6 +193,17 @@ const TRACKS = [
     lyrics: []
   },
   {
+    title: 'In the Sky Full',
+    artist: 'jestR',
+    slug: 'in-the-sky-full',
+    file: 'audio/singles/In the Sky Full.mp3',
+    year: 2012,
+    description: '',
+    category: 'rap',
+    explicit: true,
+    lyrics: []
+  },
+  {
     title: 'A Better You',
     artist: 'jestR',
     slug: 'a-better-you',
