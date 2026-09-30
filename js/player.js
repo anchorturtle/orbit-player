@@ -400,10 +400,11 @@ const TRACKS = [
     lyrics: []
   },
 {
-    title: "Hand's Up High",
+    title: 'Hands Up High',
     artist: 'jestR',
     slug: 'hands-up-high',
     file: "audio/singles/Hand's Up High.mp3",
+    downloadName: 'Hands Up High.mp3',
     year: 2012,
     description: '',
     category: 'rap',
