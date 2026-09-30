@@ -183,38 +183,6 @@ const TRACKS = [
     category: 'instrumental'
   },
   {
-    title: 'In the Sky',
-    artist: 'jestR',
-    slug: 'in-the-sky',
-    file: 'audio/singles/In the Sky.mp3',
-    description: '',
-    category: 'rap',
-    explicit: true,
-    lyrics: []
-  },
-  {
-    title: 'In the Sky Full',
-    artist: 'jestR',
-    slug: 'in-the-sky-full',
-    file: 'audio/singles/In the Sky Full.mp3',
-    year: 2012,
-    description: '',
-    category: 'rap',
-    explicit: true,
-    lyrics: []
-  },
-  {
-    title: 'Marilyn Monroe',
-    artist: 'jestR',
-    slug: 'marilyn-monroe',
-    file: 'audio/singles/Marilyn Monroe.mp3',
-    year: 2012,
-    description: 'instrumental produced by Felly',
-    category: 'rap',
-    explicit: true,
-    lyrics: []
-  },
-  {
     title: 'A Better You',
     artist: 'jestR',
     slug: 'a-better-you',
@@ -350,6 +318,37 @@ const TRACKS = [
     album: "Don't Say Nothing About Them Building Blocks",
     albumSlug: 'building-blocks',
     albumTrack: 2
+  },
+  {
+    title: 'In the Sky',
+    artist: 'jestR',
+    slug: 'in-the-sky',
+    file: 'audio/singles/In the Sky.mp3',
+    year: 2012,
+    description: '',
+    category: 'rap',
+    explicit: true,
+    lyrics: []
+  },
+  {
+    title: 'Marilyn Monroe',
+    artist: 'jestR',
+    slug: 'marilyn-monroe',
+    file: 'audio/singles/Marilyn Monroe.mp3',
+    year: 2012,
+    description: 'instrumental produced by Felly',
+    category: 'rap',
+    explicit: true,
+    lyrics: []
+  },
+  {
+    title: "Hand's Up High",
+    artist: 'jestR',
+    slug: 'hands-up-high',
+    file: "audio/singles/Hand's Up High.mp3",
+    description: '',
+    category: 'rap',
+    explicit: false
   },
   {
     title: 'Sublime Beginnings',

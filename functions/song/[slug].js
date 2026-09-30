@@ -46,8 +46,8 @@ export async function onRequest(context) {
     'sun-days': { title: 'Sun Days', artist: 'jestR' },
     'calm': { title: 'Calm', artist: 'jestR' },
     'in-the-sky': { title: 'In the Sky', artist: 'jestR' },
-    'in-the-sky-full': { title: 'In the Sky Full', artist: 'jestR' },
     'marilyn-monroe': { title: 'Marilyn Monroe', artist: 'jestR' },
+    'hands-up-high': { title: "Hand's Up High", artist: 'jestR' },
   };
 
   const track = tracks[slug] || { title: 'Track', artist: 'jestR' };
