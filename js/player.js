@@ -346,9 +346,10 @@ const TRACKS = [
     artist: 'jestR',
     slug: 'hands-up-high',
     file: "audio/singles/Hand's Up High.mp3",
+    year: 2012,
     description: '',
     category: 'rap',
-    explicit: false
+    explicit: true
   },
   {
     title: 'Sublime Beginnings',
