@@ -183,6 +183,16 @@ const TRACKS = [
     category: 'instrumental'
   },
   {
+    title: 'In the Sky',
+    artist: 'jestR',
+    slug: 'in-the-sky',
+    file: 'audio/singles/In the Sky.mp3',
+    description: '',
+    category: 'rap',
+    explicit: true,
+    lyrics: []
+  },
+  {
     title: 'A Better You',
     artist: 'jestR',
     slug: 'a-better-you',
