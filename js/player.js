@@ -363,7 +363,7 @@ const TRACKS = [
     year: 2012,
     description: '',
     category: 'rap',
-    explicit: false,
+    explicit: true,
     lyrics: []
   },
 {
@@ -418,7 +418,7 @@ const TRACKS = [
     year: 2012,
     description: 'instrumental produced by ATBeats',
     category: 'rap',
-    explicit: false,
+    explicit: true,
     lyrics: []
   },
 {
