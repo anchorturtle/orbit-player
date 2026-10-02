@@ -1,2 +1,2 @@
-# redeploy trigger 2026-09-30T13:40Z
-# Forces Cloudflare Pages to rebuild production from main tip (Hands Up High title fix 23ab79b).
+# redeploy trigger 2026-10-02T02:59Z
+# Forces Cloudflare Pages to rebuild production from main tip (restore player.js + index.html after path-stub).
