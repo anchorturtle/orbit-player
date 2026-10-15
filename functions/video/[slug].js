@@ -39,6 +39,13 @@ export async function onRequest(context) {
       width: 1080,
       height: 1920,
     },
+    'jazzpot-holo': {
+      title: 'Jazzpot Holo',
+      poster: '/videos/jazzpot-holo-poster.jpg',
+      description: 'jestR · AnchorTurtle',
+      width: 1920,
+      height: 1080,
+    },
   };
 
   const video = videos[slug] || {

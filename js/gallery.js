@@ -96,6 +96,13 @@ const VIDEOS = [
     artist: 'jestR',
     poster: 'videos/jazzpot-not-art-remix-poster.jpg',
   },
+  {
+    slug: 'jazzpot-holo',
+    src: 'videos/jazzpot-holo.mp4',
+    title: 'Jazzpot Holo',
+    artist: 'jestR',
+    poster: 'videos/jazzpot-holo-poster.jpg',
+  },
 ];
 
 /** Full MP4 on branch media-store (too large for Pages). Local dev uses videos/jazzpotwax.mp4. */
