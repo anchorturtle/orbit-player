@@ -1,0 +1,24 @@
+#tree{position:fixed;inset:0;z-index:60;background:rgba(2,7,19,.8);display:flex;align-items:center;justify-content:center;padding:4rem .8rem 1rem}#tree[hidden]{display:none}
+.treebox{width:min(1400px,100%);max-height:calc(100vh - 5rem);background:rgba(5,12,30,.97);border:1px solid rgba(126,200,232,.3);border-radius:20px;padding:1rem 1.2rem;display:flex;flex-direction:column}
+.treehelp{margin:.3rem 0 .6rem;color:#93a9c8;font-size:.85rem}.treescroll{overflow:auto;flex:1;border-radius:12px;background:#030a1c}
+#treeInfo{min-height:1.5em;margin:.6rem 0 0;font-family:var(--mono);font-size:.85rem;color:#ffd99a}
+#tree .lane{fill:transparent}#tree .lane.l1,#tree .lane.l3{fill:rgba(126,200,232,.035)}#tree .lt{fill:#93a9c8;font:600 13px var(--mono);letter-spacing:.1em;text-transform:uppercase}
+#tree .yr{stroke:rgba(126,200,232,.12)}#tree .yt{fill:#6d89b5;font:12px var(--mono);text-anchor:middle}
+#tree .edges path{fill:none;stroke:rgba(126,200,232,.28);stroke-width:1.5;transition:stroke .2s,stroke-width .2s}#tree .edges path.lit{stroke:#ffd99a;stroke-width:3}#tree .edges path.dash{stroke-dasharray:6 6}
+#tree .node{cursor:pointer;transition:opacity .2s}#tree .node circle{stroke:#020713;stroke-width:2}#tree .node text{fill:#e9f3ff;font:600 12px var(--body);text-anchor:middle;paint-order:stroke;stroke:#030a1c;stroke-width:4px}
+#tree .l0 circle{fill:#3fb59a}#tree .l1 circle{fill:#7ec8e8}#tree .l2 circle{fill:#ffd99a}#tree .l3 circle{fill:#a77dff}#tree .l4 circle{fill:#5ff0e0}
+#tree .node.dim{opacity:.22}#tree .node:focus{outline:none}#tree .node:focus circle,#tree .node:hover circle{stroke:#fff;stroke-width:3}
+.fork{max-width:36rem;margin:0 0 30vh auto!important;border-radius:999px 999px 24px 24px/60px 60px 24px 24px!important;box-shadow:0 0 0 1px var(--tc),0 0 50px color-mix(in srgb,var(--tc) 25%,transparent)!important;padding-top:2.2rem!important}
+.fork .bn{color:var(--tc)!important}.fork .row{display:flex;gap:.6rem;flex-wrap:wrap;margin-top:1rem}
+.fork button,.rejoin{font:600 .85rem var(--mono);color:#fff;background:color-mix(in srgb,var(--tc,#7ec8e8) 30%,transparent);border:1px solid var(--tc,#7ec8e8);border-radius:999px;padding:.6rem 1rem;cursor:pointer}
+.fork .stay{background:transparent;border-color:rgba(255,255,255,.3)}
+#trail{position:fixed;top:0;right:0;bottom:0;z-index:55;width:min(520px,100vw);background:rgba(4,10,24,.97);border-left:2px solid var(--tc);overflow:auto;padding:4.2rem 1.6rem 3rem;animation:slide .45s cubic-bezier(.2,.8,.2,1);box-shadow:-30px 0 80px rgba(0,0,0,.6)}
+#trail[hidden]{display:none}#trailClose{position:sticky;top:0;z-index:2;margin-bottom:1rem}
+#trail h2{font-family:var(--serif);font-weight:400;font-size:2rem;line-height:1.1}
+.tbeat{margin:0 0 3.5rem;padding-left:1.2rem;border-left:2px dashed color-mix(in srgb,var(--tc) 60%,transparent);animation:rise .7s cubic-bezier(.2,.8,.2,1) both;animation-delay:calc(var(--d)*.12s)}
+.tbeat h3{font-family:var(--disp);font-size:1.5rem;margin:.3rem 0;color:#fff}.tbeat p{color:#e3eefc}.tbeat .bn{color:var(--tc)}
+/* trivia: compact pill, never covers cards until opened */
+#quiz{left:auto!important;right:clamp(.6rem,2vw,1.6rem)!important}
+#quiz.pill{width:auto!important;padding:.55rem 1rem!important;border-radius:999px!important;cursor:pointer}
+#quiz.pill>*:not(.pilltxt){display:none!important}#quiz:not(.pill) .pilltxt{display:none}
+.pilltxt{font:600 .85rem var(--mono);color:#ffd99a;background:none;border:none;cursor:pointer}

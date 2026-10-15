@@ -1,3 +1,12 @@
 /audio/wavs/*
   Cache-Control: public, max-age=86400, no-transform
   Accept-Ranges: bytes
+
+/history/photos/*
+  Cache-Control: public, max-age=604800
+/history/people/*
+  Cache-Control: public, max-age=604800
+/history/fonts/*
+  Cache-Control: public, max-age=31536000, immutable
+/history/img/*
+  Cache-Control: public, max-age=604800

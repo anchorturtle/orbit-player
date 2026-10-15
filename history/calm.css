@@ -1,0 +1,19 @@
+/* v7 restraint pass: photos and type lead */
+.photo{margin:0 0 34vh;max-width:44rem;position:relative}
+.photo img{display:block;width:100%;height:auto;border-radius:6px;box-shadow:0 30px 90px rgba(0,0,0,.6);filter:saturate(.92)}
+.photo.tall{max-width:26rem}
+.photo figcaption{margin-top:.8rem;font-family:var(--serif);font-style:italic;font-size:1.02rem;color:#e6f0fb;text-shadow:var(--shadow);max-width:36rem}
+.photo figcaption small{display:block;margin-top:.3rem;font:400 .7rem var(--mono);font-style:normal;color:#8ea6c6;letter-spacing:.02em}
+.photo figcaption a{color:#a9def3}
+/* calmer: no spinning gear, no draw-in sweeps, no bobbing, no ghosting */
+#engines .copy .card::after{display:none!important}
+.era .copy .card::before{display:none!important}
+.nexthook span{animation:none!important}
+[data-face=quantum] h2 .ch{text-shadow:var(--shadow)!important}
+#electronic .copy .card{outline:none!important}
+/* repeated frames: only the first beat in each era carries the themed edge; the rest stay quiet */
+.era .copy .beat~.beat{background:rgba(4,10,24,.9)!important;clip-path:none!important;border-radius:14px!important;box-shadow:0 0 0 1px rgba(126,200,232,.12)!important;padding-top:1.4rem!important}
+.era .copy .beat~.beat::after{display:none!important}
+.beat{margin-bottom:48vh}
+.kin .ch{transition-duration:.6s!important}
+@media (max-width:800px){#hud{gap:.4rem}nav{gap:.25rem!important}nav button{padding:.3rem .45rem!important;font-size:.64rem!important}#motionBtn{display:none}.brand{white-space:nowrap;font-size:.62rem!important;letter-spacing:.12em!important}.brand .el{display:block;max-width:44vw;overflow:hidden;text-overflow:ellipsis}}

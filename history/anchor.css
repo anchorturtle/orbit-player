@@ -1,0 +1,80 @@
+/* v9: AnchorTurtle skin. Palette, glass and type borrowed from anchorturtle.com (Orbit Player). Loaded last. */
+@font-face{font-family:"Plus Jakarta Sans";src:url(fonts/plus-jakarta-sans-latin-wght-normal.woff2) format("woff2");font-weight:200 800;font-display:swap}
+:root{
+ --at-bg:#06040f;--at-ink:#e9e1de;--at-baby:#7EC8E3;--at-purple:#7B2FFF;--at-blue:#2D5BFF;--at-green:#00C896;
+ --at-win:rgba(7,4,20,.72);--at-border:rgba(150,100,255,.30);--at-radius:20px;
+ --at-shadow:0 24px 64px rgba(0,0,0,.6),0 0 0 1px rgba(123,47,255,.10),0 0 42px -8px rgba(123,47,255,.22),inset 0 1px 0 rgba(255,255,255,.10);
+ --at-ease:cubic-bezier(.22,1,.36,1);--at-spring:cubic-bezier(.34,1.56,.64,1);
+ --body:"Plus Jakarta Sans",var(--f,system-ui),sans-serif;--blue:#7EC8E3;
+}
+html{background:var(--at-bg)}
+body{background:var(--at-bg);color:var(--at-ink);font-family:"Plus Jakarta Sans",system-ui,sans-serif}
+/* deep-space wash over the fractal, like Orbit's #space-bg (static, cheap) */
+#vignette::after{content:"";position:absolute;inset:0;pointer-events:none;mix-blend-mode:soft-light;opacity:.55;
+ background:radial-gradient(ellipse 85% 65% at 60% 38%,rgba(52,16,110,.5),transparent 68%),radial-gradient(ellipse 60% 50% at 18% 72%,rgba(0,70,170,.35),transparent 65%),radial-gradient(ellipse 50% 42% at 82% 82%,rgba(0,150,110,.18),transparent 60%)}
+
+/* header: floating glass bar with the AnchorTurtle mark */
+#hud{top:.6rem;left:.6rem;right:.6rem;border-radius:16px;padding:.45rem .8rem;background:linear-gradient(165deg,rgba(123,47,255,.08),transparent 40%),rgba(7,4,20,.62);border:1px solid var(--at-border);box-shadow:var(--at-shadow);-webkit-backdrop-filter:blur(18px) saturate(1.6);backdrop-filter:blur(18px) saturate(1.6)}
+.brand{font-family:"Plus Jakarta Sans",sans-serif;letter-spacing:.02em;display:flex;align-items:center;gap:.15rem;font-weight:700}
+.atmark{display:flex;align-items:center;gap:.5rem;text-decoration:none;color:var(--at-ink);border-radius:10px;padding:.1rem .3rem .1rem .1rem}
+.atmark img{width:28px;height:28px;display:block}
+.atmark b{font-weight:800;font-size:.95rem;letter-spacing:.01em;color:var(--at-baby);text-shadow:0 0 8px rgba(126,200,227,.35)}
+.atmark:focus-visible,.atmark:hover{background:rgba(126,200,227,.12);outline:none}
+.brand>span{color:rgba(150,100,255,.7)!important}
+.brand .hb{font-family:"Plus Jakarta Sans",sans-serif;letter-spacing:.04em;font-weight:700;font-size:.78rem;text-transform:uppercase;color:var(--at-ink)}
+.brand .el{color:var(--at-baby)!important;text-transform:none;font-weight:600;letter-spacing:.01em}
+nav button{font-family:"Plus Jakarta Sans",sans-serif!important;font-weight:600;background:rgba(255,255,255,.045)!important;border:1px solid rgba(255,255,255,.08)!important;border-top-color:rgba(255,255,255,.14)!important;border-bottom-color:rgba(0,0,0,.35)!important;color:var(--at-baby)!important;border-radius:10px!important;box-shadow:0 2px 4px rgba(0,0,0,.4),inset 0 1px 0 rgba(255,255,255,.07);transition:background .16s var(--at-ease),transform .22s var(--at-spring)}
+nav button:hover,nav button:focus-visible{background:rgba(126,200,227,.13)!important;transform:translateY(-1px)}
+#progress{left:16px;right:16px;bottom:-1px}
+#progress i{background:linear-gradient(90deg,var(--at-purple),var(--at-blue),var(--at-green))!important}
+
+/* glass cards, Orbit window chrome */
+.card,.acc-wrap,.side,#glossary,.tocbox,.treebox,#trail{background:linear-gradient(165deg,rgba(123,47,255,.07),transparent 38%),var(--at-win)!important;border:1px solid var(--at-border)!important;border-radius:var(--at-radius)!important;box-shadow:var(--at-shadow)!important}
+.card .acc-wrap{background:none!important;border:0!important;box-shadow:none!important;border-radius:0!important}
+/* glass blur only on fixed overlays (one at a time), not on every scrolling card: keeps Firefox smooth */
+#glossary,.tocbox,#trail{-webkit-backdrop-filter:blur(24px) saturate(1.6);backdrop-filter:blur(24px) saturate(1.6)}
+
+/* accents: gold -> Orbit baby blue / jestR gradient */
+.kicker,.years,.bn,.acc-kick{color:var(--at-baby)!important}
+.hero h1 span{background:linear-gradient(100deg,#fff,var(--at-baby) 55%,#8f7bff)!important;-webkit-background-clip:text!important;background-clip:text!important}
+.hero h1 .disp{color:var(--at-baby)!important;-webkit-text-fill-color:var(--at-baby);text-shadow:0 0 22px rgba(126,200,227,.35)}
+.pull::before{color:rgba(123,47,255,.35)!important}
+.pull cite{color:var(--at-baby)!important}
+.hook{color:#d8eef8!important}
+.term{color:var(--at-baby)!important;border-bottom-color:rgba(126,200,227,.6)!important}
+.acc-btn[aria-expanded=true] .acc-t{color:var(--at-baby)!important}
+.acc-all:hover,.acc-go:hover,.acc-all:focus-visible,.acc-go:focus-visible{border-color:rgba(126,200,227,.7)!important}
+.acc-btn:focus-visible{outline-color:var(--at-baby)!important}
+.finale h2{color:#dff3fb!important;-webkit-text-fill-color:#dff3fb!important}
+:focus-visible{outline-color:var(--at-baby)}
+
+/* site footer */
+.atfoot{position:relative;z-index:2;margin:20vh auto 0;max-width:60rem;padding:2rem 1.2rem 3rem;text-align:center;font-size:.85rem;color:rgba(233,225,222,.75)}
+.atfoot .card{padding:1.2rem 1.4rem}
+.atfoot a{color:var(--at-baby)}
+.atfoot img{width:36px;height:36px;vertical-align:middle;margin-right:.4rem}
+.atfoot nav{display:flex;flex-wrap:wrap;gap:.4rem 1.2rem;justify-content:center;margin-top:.6rem}
+
+@media (max-width:800px){
+ #hud{top:.4rem;left:.4rem;right:.4rem;padding:.35rem .5rem}
+ .atmark b{display:none}
+ .atmark img{width:26px;height:26px}
+ #hud{gap:.4rem}
+ .brand{flex:1;min-width:0;overflow:hidden}
+ .brand #homeBtn,.brand>span:first-of-type{display:none}
+ .brand .el{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;display:block}
+ #hud nav{flex-shrink:0;display:flex;gap:.25rem}
+ nav button{margin-left:0!important;padding:.35rem .55rem!important}
+}
+@media (prefers-reduced-motion:reduce){nav button{transition:none}}
+.acc-wrap{text-align:left}
+/* v9 clip-safety: content never reaches a cut corner. Cut sizes are fixed px and padding always exceeds them. */
+#origins .copy .card{padding:max(1.8rem,40px)!important}
+#theory .copy .card{padding:max(1.6rem,30px)!important}
+#transistor .copy .card,#software .copy .card{padding:max(1.6rem,30px)!important}
+#transistor .side{clip-path:polygon(18px 0,100% 0,100% calc(100% - 18px),calc(100% - 18px) 100%,0 100%,0 18px)!important;padding:max(1.4rem,30px)!important}
+#codebreakers .side,#quantum .side{aspect-ratio:auto!important;padding:1.6rem!important}
+.card,.side{overflow-wrap:anywhere}
+.card img,.side img,.side canvas,.side svg{max-width:100%}
+#codebreakers .side canvas,#quantum .side canvas,.side canvas{border-radius:12px!important}
+.qcard{border-radius:var(--at-radius)!important}

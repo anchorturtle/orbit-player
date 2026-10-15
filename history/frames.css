@@ -1,0 +1,71 @@
+/* v5 era-themed frames, varied shapes and asymmetric layout (see GRAPHICAL-LANGUAGE.md) */
+.era .copy .card{position:relative;border:none!important;box-shadow:0 30px 80px rgba(0,0,0,.45)}
+.era .side{border:none!important}
+/* draw-in trace: an animated outline that grows when revealed */
+.era .copy .card::before{content:"";position:absolute;inset:-1px;pointer-events:none;border-radius:inherit;padding:2px;
+ background:conic-gradient(from 0deg,var(--fc,#7ec8e8) calc(var(--draw,0)*360deg),transparent 0);
+ -webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);-webkit-mask-composite:xor;mask-composite:exclude;transition:--draw 2s}
+.era .copy .card.drawn::before{animation:drawin 2.2s cubic-bezier(.2,.8,.2,1) forwards}
+@property --draw{syntax:"<number>";inherits:false;initial-value:0}
+@keyframes drawin{to{--draw:1}}
+/* ORIGINS: punched card with clipped corner and hole row */
+#origins .copy .card{clip-path:polygon(28px 0,100% 0,100% 100%,0 100%,0 28px);border-radius:0;--fc:#c9a05a;
+ background:radial-gradient(circle,rgba(201,160,90,.5) 2.5px,transparent 3px) 18px 10px/22px 14px repeat-x,linear-gradient(160deg,rgba(14,18,30,.95),rgba(4,8,18,.93))!important;padding-top:2.2rem}
+#origins{grid-template-columns:minmax(0,1.4fr) minmax(0,.8fr)}#origins .side{margin-top:22vh;border-radius:50%/18%}
+/* ENGINES: brass gear-tooth edge */
+#engines .copy .card{--fc:#c9a05a;border-radius:6px;
+ background:linear-gradient(160deg,rgba(18,16,12,.95),rgba(6,6,10,.94)) padding-box,repeating-linear-gradient(90deg,#c9a05a 0 10px,transparent 10px 18px) top/100% 5px no-repeat!important;padding-top:1.9rem}
+#engines .copy .card::after{content:"";position:absolute;right:-26px;top:-26px;width:64px;height:64px;border-radius:50%;
+ background:radial-gradient(circle,rgba(4,8,18,1) 30%,transparent 31%),repeating-conic-gradient(#c9a05a 0 10deg,transparent 10deg 20deg);-webkit-mask:radial-gradient(circle,#000 62%,transparent 63%);animation:spin 14s linear infinite}
+@keyframes spin{to{transform:rotate(1turn)}}
+#engines{grid-template-columns:minmax(0,.9fr) minmax(0,1.3fr)}#engines .copy{order:2}#engines .side{order:1;margin-top:12vh}
+/* THEORY: tape — notched mono strip */
+#theory .copy .card{--fc:#7ec8e8;border-radius:0;clip-path:polygon(0 0,100% 0,100% calc(100% - 18px),calc(100% - 18px) 100%,0 100%);
+ background:repeating-linear-gradient(90deg,rgba(126,200,232,.16) 0 1px,transparent 1px 42px) top/100% 10px no-repeat,linear-gradient(rgba(4,10,24,.95),rgba(4,10,24,.95))!important}
+#theory{grid-template-columns:minmax(0,1.6fr) minmax(0,.9fr)}
+/* CODEBREAKERS: rotor-ring frame */
+#codebreakers .copy .card{--fc:#ffd99a;border-radius:42px 42px 42px 6px;background:radial-gradient(circle at 100% 0,rgba(255,217,154,.1) 0 60px,transparent 61px),rgba(6,10,22,.95)!important}
+#codebreakers .side{border-radius:50%;padding:2.2rem;aspect-ratio:1;display:flex;flex-direction:column;justify-content:center;
+ box-shadow:0 0 0 2px rgba(255,217,154,.35),0 0 0 10px rgba(6,10,22,.9),0 0 0 12px rgba(126,200,232,.3)}
+#codebreakers .side canvas{border-radius:50%}
+/* ELECTRONIC: riveted plugboard panel with warm tube glow */
+#electronic .copy .card{--fc:#ff9a4a;border-radius:4px;background:
+ radial-gradient(circle,#8a7a66 2px,transparent 2.5px) 8px 8px/calc(100% - 16px) calc(100% - 16px) no-repeat,
+ radial-gradient(circle at 50% 120%,rgba(255,154,74,.14),transparent 60%),rgba(12,9,8,.95)!important;
+ outline:1px solid rgba(255,154,74,.25);outline-offset:6px}
+#electronic{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}#electronic .side{margin-top:30vh}
+/* TRANSISTOR / SOFTWARE: circuit trace border, chamfered die */
+#transistor .copy .card,#software .copy .card{--fc:#3fb59a;border-radius:0;clip-path:polygon(16px 0,calc(100% - 16px) 0,100% 16px,100% calc(100% - 16px),calc(100% - 16px) 100%,16px 100%,0 calc(100% - 16px),0 16px);
+ background:linear-gradient(90deg,rgba(63,181,154,.35) 1px,transparent 1px) 0 0/24px 24px,linear-gradient(rgba(63,181,154,.12) 1px,transparent 1px) 0 0/24px 24px,rgba(3,14,14,.95)!important;background-blend-mode:normal}
+#transistor .copy .card{background:linear-gradient(rgba(3,14,14,.93),rgba(3,14,14,.93)),linear-gradient(90deg,rgba(63,181,154,.35) 1px,transparent 1px) 0 0/24px 24px!important}
+#software .copy .card{background:linear-gradient(rgba(4,12,12,.94),rgba(4,12,12,.94))!important;font-family:var(--body)}
+#transistor{grid-template-columns:minmax(0,1.2fr) minmax(0,1fr)}#transistor .side{clip-path:polygon(10% 0,100% 0,100% 90%,90% 100%,0 100%,0 10%);border-radius:0}
+#software{grid-template-columns:minmax(0,.85fr) minmax(0,1.3fr)}#software .copy{order:2}#software .side{margin-top:8vh}
+/* PERSONAL: window chrome */
+#personal .copy .card{--fc:#7ec8e8;border-radius:12px;padding-top:2.6rem;background:linear-gradient(#163a74,#163a74) top/100% 26px no-repeat,rgba(6,14,32,.95)!important}
+#personal .copy .card::after{content:"● ● ●";position:absolute;top:5px;left:12px;font-size:.7rem;letter-spacing:.25em;color:#ffd99a}
+#personal .copy{margin-left:6vw}
+/* NETWORK: node corners */
+#network .copy .card{--fc:#a9e0f7;border-radius:28px;background:
+ radial-gradient(circle,#7ec8e8 4px,transparent 5px) 0 0/22px 22px no-repeat,radial-gradient(circle,#7ec8e8 4px,transparent 5px) 100% 0/22px 22px no-repeat,
+ radial-gradient(circle,#ffd99a 4px,transparent 5px) 0 100%/22px 22px no-repeat,radial-gradient(circle,#7ec8e8 4px,transparent 5px) 100% 100%/22px 22px no-repeat,rgba(5,12,30,.95)!important}
+#network{grid-template-columns:minmax(0,1fr) minmax(0,1.1fr)}#network .side{border-radius:50% 50% 24px 24px/30% 30% 24px 24px}
+/* AI: neural-thread outline, organic asymmetric radii */
+#ai1 .copy .card,#ai2 .copy .card,#ai3 .copy .card{--fc:#a77dff;border-radius:48px 12px 48px 12px;background:radial-gradient(ellipse at 0 0,rgba(167,125,255,.14),transparent 50%),rgba(8,6,24,.95)!important}
+#ai2 .copy .card{border-radius:12px 48px 12px 48px}
+#ai2{grid-template-columns:minmax(0,.9fr) minmax(0,1.3fr)}#ai2 .copy{order:2}
+#ai3 .copy .card{box-shadow:0 0 0 1px rgba(167,125,255,.35),12px 12px 0 -1px rgba(255,217,154,.15),0 30px 80px rgba(0,0,0,.5)}
+#ai3 .side{border-radius:24px 80px 24px 80px}
+/* QUANTUM: wave edge */
+#quantum .copy .card{--fc:#5ff0e0;border-radius:24px;padding-top:2rem;
+ background:radial-gradient(ellipse 14px 8px at 50% 0,#5ff0e0 40%,transparent 45%) 0 -2px/28px 10px repeat-x,rgba(3,14,22,.95)!important}
+#quantum .side{border-radius:50%;aspect-ratio:1;padding:2rem;display:flex;flex-direction:column;justify-content:center;box-shadow:0 0 0 1px rgba(95,240,224,.4),0 0 40px rgba(95,240,224,.15)}
+#quantum .side canvas{border-radius:50%}
+/* knowledge sides: base */
+.era .side{background:rgba(4,10,24,.94)!important}
+/* rhythm: varied vertical spacing */
+#engines,#software,#ai2{padding-top:38vh}#theory,#network{padding-top:22vh}#electronic,#ai3{min-height:210vh}
+.knowmore{border-top:none!important;background:rgba(255,217,154,.06);border-left:3px solid #ffd99a;padding:.8rem 1rem!important;border-radius:0 10px 10px 0}
+@media (max-width:800px){.era{grid-template-columns:1fr!important}.era .copy,.era .side{order:initial!important;margin:0!important}
+ #codebreakers .side,#quantum .side{aspect-ratio:auto;border-radius:24px}#personal .copy{margin-left:0}}
+@media (prefers-reduced-motion:reduce){#engines .copy .card::after{animation:none}.era .copy .card::before{--draw:1;animation:none}}
