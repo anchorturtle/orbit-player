@@ -101,7 +101,7 @@ const VIDEOS = [
     src: 'videos/jazzpot-holo.mp4',
     title: 'Jazzpot Holo',
     artist: 'jestR',
-    poster: 'videos/jazzpot-holo-poster.jpg',
+    poster: 'videos/jazzpot-holo-thumb.jpg',
   },
 ];
 
