@@ -1,3 +1,3 @@
-# Sfumato unpublished 2026-10-17 (source kept in /sfumato, excluded via .assetsignore). Restore: remove sfumato/ from .assetsignore and re-add:
+# Sfumato unlinked from the Orbit UI 2026-10-17 (source kept in /sfumato; direct URL /sfumato/ still serves). Restore old aliases by re-adding:
 # /sfumato.html  /sfumato/  301
 # /sfumato      /sfumato/  301
