@@ -3272,8 +3272,8 @@ a.taskbar-btn:visited,
 a.mob-btn:visited {
   color: var(--baby-blue);
 }
-#btn-sfumato:not(:active),
-#btn-mob-sfumato:not(:active):not(.active) {
+#btn-astor:not(:active),
+#btn-mob-astor:not(:active):not(.active) {
   background: rgba(255,255,255,.045);
   transform: none;
   color: var(--baby-blue);
@@ -3347,3 +3347,46 @@ a.mob-btn:visited {
 @media (max-width: 600px) {
   #btn-hd.hd-btn { width: 28px !important; height: 28px !important; min-width: 28px; font-size: 11px !important; }
 }
+/* ============ ASTOR ACADEMY PROMO (desktop only, overlay card) ============ */
+#astor-promo {
+  position: fixed; right: 24px; bottom: 96px; z-index: 100000;
+  width: 300px; box-sizing: border-box;
+  padding: 22px 22px 18px;
+  background:
+    linear-gradient(165deg, rgba(123,47,255,.10) 0%, transparent 45%),
+    var(--win-bg);
+  backdrop-filter: blur(32px) saturate(1.85) brightness(1.05);
+  -webkit-backdrop-filter: blur(32px) saturate(1.85) brightness(1.05);
+  border: 1px solid var(--win-border);
+  border-radius: var(--win-radius);
+  box-shadow: var(--win-shadow);
+  color: #f2efe8; text-align: center;
+  opacity: 0; transform: translateY(10px) scale(.98);
+  transition: opacity .35s ease, transform .35s ease;
+  pointer-events: none;
+}
+#astor-promo.show { opacity: 1; transform: none; pointer-events: auto; }
+#astor-promo[hidden] { display: none; }
+#astor-promo .astor-promo-close {
+  position: absolute; top: 8px; right: 8px;
+  width: 28px; height: 28px; padding: 0; border: 0; border-radius: 8px;
+  background: rgba(255,255,255,.06); color: var(--baby-blue);
+  display: flex; align-items: center; justify-content: center; cursor: pointer;
+}
+#astor-promo .astor-promo-close:hover { background: rgba(255,255,255,.14); }
+#astor-promo .astor-promo-close .material-symbols-outlined { font-size: 18px; }
+#astor-promo .astor-promo-mark { display: block; width: 190px; max-width: 80%; height: auto; margin: 6px auto 12px; }
+#astor-promo .astor-promo-line {
+  margin: 0 0 16px; font-family: Georgia, 'Times New Roman', serif; font-style: italic;
+  font-size: 14px; line-height: 1.4; color: rgba(242,239,232,.82);
+}
+#astor-promo .astor-promo-cta {
+  display: inline-block; padding: 9px 18px; border-radius: 10px;
+  font: 600 13px/1 'Plus Jakarta Sans', system-ui, sans-serif; letter-spacing: .02em;
+  color: var(--baby-blue); text-decoration: none;
+  background: rgba(255,255,255,.06);
+  border: 1px solid rgba(126,200,227,.35);
+  box-shadow: 0 3px 6px rgba(0,0,0,.45), inset 0 1px 0 rgba(255,255,255,.10);
+}
+#astor-promo .astor-promo-cta:hover { background: rgba(126,200,227,.14); }
+@media (max-width: 767px) { #astor-promo { display: none !important; } }
