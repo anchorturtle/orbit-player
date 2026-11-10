@@ -49,6 +49,26 @@
   // a softer buffer is invisible; dropped frames are not).
   let renderScale = 1.0;
   const SCALE_MIN = 0.5, SCALE_MAX = 1.0;
+
+  // ── Software-GL guard (perf 2026-11-10) ──
+  // If the browser is rendering WebGL on the CPU (SwiftShader / llvmpipe /
+  // Microsoft Basic Render — e.g. Chrome dropped GPU acceleration after a
+  // driver reset or while another app hogs the GPU), the full-res 60fps sky
+  // pins the main thread and the whole page crawls. Start at the floor
+  // resolution, run the sky at 30fps, and drop CSS backdrop blur.
+  let SOFT_GL = false;
+  try {
+    const gl = renderer.getContext();
+    const ext = gl.getExtension('WEBGL_debug_renderer_info');
+    const name = String(gl.getParameter(ext ? ext.UNMASKED_RENDERER_WEBGL : gl.RENDERER) || '');
+    SOFT_GL = /swiftshader|llvmpipe|softpipe|basic render|software/i.test(name);
+  } catch (e) {}
+  if (SOFT_GL) {
+    renderScale = SCALE_MIN;
+    document.documentElement.classList.add('orbit-soft-gl');
+  }
+  const SOFT_FRAME_MIN = 1 / 30;
+  let softAcc = 0;
   function effectiveDPR() {
     return Math.min(window.devicePixelRatio || 1, DPR_CAP) * renderScale;
   }
@@ -59,7 +79,7 @@
   let perfAccum = 0, perfFrames = 0, perfWindow = 0;
   let fpsAtFullScale = 0, floorStrikes = 0, governorOff = false;
   function governFps(dt) {
-    if (governorOff) return;
+    if (governorOff || SOFT_GL) return;
     // ignore stalls (tab switches, decode hitches) so one spike doesn't downscale
     if (dt > 0.25) return;
     perfAccum += dt; perfFrames++; perfWindow += dt;
@@ -1677,7 +1697,12 @@
 
   function frame() {
     rafId = requestAnimationFrame(frame);
-    const rawDt = clock.getDelta();
+    if (SOFT_GL) {
+      // 30fps cap on software GL: skip this tick until a 30fps slot is due
+      softAcc += clock.getDelta();
+      if (softAcc < SOFT_FRAME_MIN) return;
+    }
+    const rawDt = SOFT_GL ? (function () { const d = softAcc; softAcc = 0; return d; })() : clock.getDelta();
     const dt = Math.min(rawDt, 0.05);
     const t = clock.elapsedTime;
 

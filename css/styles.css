@@ -3352,14 +3352,18 @@ a.mob-btn:visited {
   position: fixed; right: 24px; bottom: 96px; z-index: 100000;
   width: 300px; box-sizing: border-box;
   padding: 22px 22px 18px;
+  /* Perf 2026-11-10: no backdrop-filter. A second always-on 32px blur over the
+     animated WebGL sky re-blurs every frame (same "multi-window blur" cost the
+     focused-window-only rule above avoids). Solid glass-lite tier instead. */
   background:
     linear-gradient(165deg, rgba(123,47,255,.10) 0%, transparent 45%),
-    var(--win-bg);
-  backdrop-filter: blur(32px) saturate(1.85) brightness(1.05);
-  -webkit-backdrop-filter: blur(32px) saturate(1.85) brightness(1.05);
+    rgba(6, 4, 18, 0.86);
   border: 1px solid var(--win-border);
   border-radius: var(--win-radius);
-  box-shadow: var(--win-shadow);
+  box-shadow:
+    0 16px 40px rgba(0,0,0,.55),
+    0 0 0 1px rgba(123,47,255,.10),
+    inset 0 1px 0 rgba(255,255,255,.08);
   color: #f2efe8; text-align: center;
   opacity: 0; transform: translateY(10px) scale(.98);
   transition: opacity .35s ease, transform .35s ease;
@@ -3390,3 +3394,12 @@ a.mob-btn:visited {
 }
 #astor-promo .astor-promo-cta:hover { background: rgba(126,200,227,.14); }
 @media (max-width: 767px) { #astor-promo { display: none !important; } }
+
+/* Perf 2026-11-10: when the browser has no GPU (software WebGL, e.g. Chrome fell
+   back after a GPU/driver reset), backdrop blur is computed on the CPU every
+   frame. space3d.js sets this class only in that case; GPU visitors unchanged. */
+html.orbit-soft-gl *, html.orbit-soft-gl *::before, html.orbit-soft-gl *::after {
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+html.orbit-soft-gl .win { background: linear-gradient(165deg, rgba(123,47,255,.07) 0%, transparent 38%), rgba(6, 4, 18, 0.86); }
