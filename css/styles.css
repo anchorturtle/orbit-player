@@ -3402,4 +3402,5 @@ html.orbit-soft-gl *, html.orbit-soft-gl *::before, html.orbit-soft-gl *::after 
   backdrop-filter: none !important;
   -webkit-backdrop-filter: none !important;
 }
-html.orbit-soft-gl .win { background: linear-gradient(165deg, rgba(123,47,255,.07) 0%, transparent 38%), rgba(6, 4, 18, 0.86); }
+/* No-GPU visitors get the existing background-window (glass-lite) tier on every window. */
+html.orbit-soft-gl .win:not(#dock-win)::after { opacity: 1; }
