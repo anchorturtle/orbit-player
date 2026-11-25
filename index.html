@@ -17,7 +17,7 @@
   <meta property="og:site_name" content="AnchorTurtle">
 
   <!-- Modular CSS first (critical path). ?v= busts stale device caches on deploy. -->
-  <link rel="stylesheet" href="css/styles.css?v=20261017astor1">
+  <link rel="stylesheet" href="css/styles.css?v=20261124games2">
 
   <!-- Self-hosted fonts (Plus Jakarta Sans + Material Symbols Outlined); same cascade position as the old Google Fonts links -->
   <link rel="stylesheet" href="css/fonts.css?v=20261027self1"/>
@@ -128,6 +128,27 @@
           <div class="gallery-grid" id="gw-videos-grid"></div>
         </div>
       </div>
+    </div>
+  </div>
+
+  <!-- GAMES WINDOW -->
+  <div id="games-win" class="win" style="display:none;z-index:340">
+    <div class="win-resize nw" data-dir="nw"></div><div class="win-resize ne" data-dir="ne"></div>
+    <div class="win-resize sw" data-dir="sw"></div><div class="win-resize se" data-dir="se"></div>
+    <div class="win-resize n" data-dir="n"></div><div class="win-resize s" data-dir="s"></div>
+    <div class="win-resize e" data-dir="e"></div><div class="win-resize w" data-dir="w"></div>
+    <div class="win-bar" id="games-bar">
+      <div class="win-bar-left">
+        <span class="material-symbols-outlined" style="font-size:12px;color:rgba(150,100,255,.5)">drag_indicator</span>
+        <span class="win-title">Games</span>
+        <span class="tape-counter" id="games-count" style="opacity:.6"></span>
+      </div>
+      <div class="win-bar-right">
+        <button class="win-close" id="close-games" title="Close"><span class="material-symbols-outlined">close</span></button>
+      </div>
+    </div>
+    <div class="win-body games-win-body">
+      <div id="games-list" class="games-list no-scrollbar"></div>
     </div>
   </div>
 
@@ -508,6 +529,11 @@
         <span>Player</span>
         <div class="taskbar-dot"></div>
       </button>
+      <button class="taskbar-btn" id="btn-games" onclick="toggleWin('games-win','btn-games')">
+        <span class="material-symbols-outlined">sports_esports</span>
+        <span>Games</span>
+        <div class="taskbar-dot"></div>
+      </button>
       <a class="taskbar-btn" id="btn-astor" href="https://astor.academy" target="_blank" rel="noopener" title="Astor Academy">
         <span class="material-symbols-outlined">school</span>
         <span>Astor</span>
@@ -541,6 +567,11 @@
       <span>Gallery</span>
       <div class="mob-dot"></div>
     </button>
+    <button class="mob-btn" id="btn-mob-games" onclick="mobToggle('games-win','btn-mob-games')">
+      <span class="material-symbols-outlined">sports_esports</span>
+      <span>Games</span>
+      <div class="mob-dot"></div>
+    </button>
     <a class="mob-btn" id="btn-mob-astor" href="https://astor.academy" target="_blank" rel="noopener" title="Astor Academy">
       <span class="material-symbols-outlined">school</span>
       <span>Astor</span>
@@ -556,12 +587,13 @@
   <!-- Three.js (classic UMD build for zero-build file:// compatibility). If it fails to load
        (offline), space3d.js bails out silently and the 2D star canvas fallback takes over. -->
   <script src="js/vendor/three.min.js?v=r147"></script>
-  <script src="js/utils.js?v=20260925theater"></script>
+  <script src="js/utils.js?v=20261124games2"></script>
   <script src="js/space3d.js?v=20260927viz1"></script>
   <script src="js/player.js?v=20261001bfly1"></script>
   <script src="js/planet-swipe.js?v=20260926fs6"></script>
   <script src="js/gallery.js?v=20261015holo2"></script>
-  <script src="js/main.js?v=20260925fs4"></script>
+  <script src="js/games.js?v=20261124games2"></script>
+  <script src="js/main.js?v=20261124games2"></script>
   <script src="js/astor-promo.js?v=20261017astor1"></script>
 </body>
 </html>
