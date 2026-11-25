@@ -10,7 +10,7 @@ const GAMES = [
     genre: 'Action / Adventure',
     platform: 'Spawn',
     description: 'Swing, grind, dive, and unleash beast mode across Arcadya.',
-    cover: 'images/games/demoboy.webp',
+    cover: 'images/games/demoboy.svg',
     url: 'https://www.spawn.co/@anchorturtle/demoboy-the-madness-within',
     status: 'live'
   },
@@ -20,7 +20,7 @@ const GAMES = [
     genre: 'Painting / Exploration',
     platform: 'Spawn',
     description: "A painter's easel on a windy chalk cliff — load your brush and paint the sea.",
-    cover: 'images/games/paint-haven.webp',
+    cover: 'images/games/paint-haven.svg',
     url: 'https://www.spawn.co/@anchorturtle/paint-haven',
     status: 'live'
   }
