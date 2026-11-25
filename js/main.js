@@ -143,6 +143,18 @@ function applyDesktopLayout() {
     ly.style.bottom = '';
     ly.style.right = '';
   }
+
+  const gm = document.getElementById('games-win');
+  if (gm && gm.dataset.userPositioned !== 'true') {
+    const gmW = Math.min(420, Math.max(300, vw - 40));
+    const gmH = Math.min(520, usableH - 2 * PAD);
+    gm.style.width = gmW + 'px';
+    gm.style.height = gmH + 'px';
+    gm.style.left = Math.max(PAD, Math.round((vw - gmW) / 2)) + 'px';
+    gm.style.top = Math.max(PAD, Math.round(cy - gmH / 2)) + 'px';
+    gm.style.bottom = '';
+    gm.style.right = '';
+  }
 }
 
 /* ── WINDOW DRAG + RESIZE ── */
@@ -221,6 +233,7 @@ function makeWindowDraggable(winId, barId) {
   }
 
   function onUp() {
+    if (!mode) return;
     if (moveRaf) {
       cancelAnimationFrame(moveRaf);
       moveRaf = 0;
@@ -333,6 +346,12 @@ function toggleWin(winId, btnId) {
     bringToFront(winId);
     if (winId === 'gallery-win' && wasHidden) {
       renderGallery();
+    }
+    if (winId === 'games-win') {
+      if (wasHidden && typeof renderGames === 'function') renderGames();
+      if (!isMob() && win.dataset.userPositioned !== 'true' && typeof applyDesktopLayout === 'function') {
+        applyDesktopLayout();
+      }
     }
 
     const doBring = () => bringToFront(winId);
@@ -465,6 +484,9 @@ function mobToggle(winId, btnId) {
       renderGallery();
       // Gallery now uses the same native scroller as tracklist — no custom update needed
     }
+    if (winId === 'games-win' && typeof renderGames === 'function') {
+      renderGames();
+    }
 
     // Aggressive retries for gallery (and any window) on mobile for bringToFront reliability.
     const doBring = () => bringToFront(winId);
@@ -479,6 +501,7 @@ function mobToggle(winId, btnId) {
 /* Wire up close buttons */
 document.getElementById('close-tracklist').addEventListener('click', () => closeWin('tracklist-win', 'btn-tracklist', 'btn-mob-tracks'));
 document.getElementById('close-gallery').addEventListener('click', () => closeWin('gallery-win', 'btn-gallery', 'btn-mob-gallery'));
+document.getElementById('close-games')?.addEventListener('click', () => closeWin('games-win', 'btn-games', 'btn-mob-games'));
 document.getElementById('close-player').addEventListener('click', () => closeWin('player-win', 'btn-player', 'btn-mob-player'));
 document.getElementById('close-album')?.addEventListener('click', (e) => {
   e.preventDefault();
@@ -501,6 +524,7 @@ document.getElementById('close-song-detail').addEventListener('click', () => {
 /* Make all windows draggable/resizable */
 makeWindowDraggable('tracklist-win', 'tracklist-bar');
 makeWindowDraggable('gallery-win', 'gallery-bar');
+makeWindowDraggable('games-win', 'games-bar');
 makeWindowDraggable('player-win', 'player-bar');
 makeWindowDraggable('album-win', 'album-bar');
 makeWindowDraggable('image-win', 'image-win-bar');
@@ -512,6 +536,7 @@ makeWindowDraggable('lyrics-win', 'lyrics-bar');
 (function init() {
   // Player module must be loaded first so TRACKS + renderTracklist exist
   renderTracklist();
+  if (typeof renderGames === 'function') renderGames();
 
   // Make TRACKS[0] chrome-ready on normal visits (titles/focal/active row).
   // loadTrack(..., false) does not set audio.src or fetch/decode the MP3.
@@ -641,7 +666,7 @@ makeWindowDraggable('lyrics-win', 'lyrics-bar');
     // have manually positioned it (userPositioned=true). Auto-positioned ones still follow
     // the layout. User windows stay exactly where you left them (may overhang on heavy zoom-in;
     // re-drag if desired).
-    ['tracklist-win', 'gallery-win', 'player-win'].forEach(id => {
+    ['tracklist-win', 'gallery-win', 'games-win', 'player-win'].forEach(id => {
       const w = document.getElementById(id);
       if (w && w.style.display === 'flex' && w.dataset.userPositioned !== 'true') {
         if (typeof clampWindowToViewport === 'function') {
@@ -653,7 +678,7 @@ makeWindowDraggable('lyrics-win', 'lyrics-bar');
     // For *user-positioned* windows (e.g. gallery you dragged): never change their
     // left/top on zoom/resize (so it doesn't "get moved around"). But cap size if the
     // viewport shrunk a lot, so it doesn't become bigger than the screen.
-    ['tracklist-win', 'gallery-win', 'player-win'].forEach(id => {
+    ['tracklist-win', 'gallery-win', 'games-win', 'player-win'].forEach(id => {
       const w = document.getElementById(id);
       if (w && w.style.display === 'flex' && w.dataset.userPositioned === 'true') {
         const rect = w.getBoundingClientRect();

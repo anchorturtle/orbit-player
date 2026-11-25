@@ -86,7 +86,7 @@ function bringToFront(winId) {
   if (winId === 'lyrics-win') {
     z = Math.max(z, 650);
   }
-  if (isMob() && winId === 'gallery-win') {
+  if (isMob() && (winId === 'gallery-win' || winId === 'games-win')) {
     z = Math.max(z, 650);
   }
   // On mobile, the tracklist element is now full-height to the nav bar (to give "entire screen").
