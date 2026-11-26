@@ -3554,6 +3554,8 @@ a.mob-btn:visited {
 /* ============ DEMOBOY DOCK BUTTON (replaces the Astor entry): silhouette mark, pop-in, circling purple lightning ============ */
 #btn-demoboy, #btn-mob-demoboy { position: relative; overflow: visible; }
 .demoboy-mark { width: 20px; height: 20px; display: block; flex-shrink: 0; filter: drop-shadow(0 0 5px rgba(123,47,255,.65)); }
+.demoboy-mark .db-body { fill: #a77bff; }
+.demoboy-mark .db-eye { fill: #FF2E4D; }
 #btn-mob-demoboy .demoboy-mark { width: 22px; height: 22px; }
 @media (max-width: 767px) { #btn-mob-demoboy .demoboy-mark { width: 20px; height: 20px; } }
 #btn-demoboy:not(:active), #btn-mob-demoboy:not(:active):not(.active) {
