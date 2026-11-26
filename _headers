@@ -2,6 +2,11 @@
   Cache-Control: public, max-age=86400, no-transform
   Accept-Ranges: bytes
 
+/demoboy/ost/*
+  Content-Type: audio/mpeg
+  Accept-Ranges: bytes
+  Cache-Control: public, max-age=86400, no-transform
+
 /demoboy/og.mp4
   Content-Type: video/mp4
   Accept-Ranges: bytes

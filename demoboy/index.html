@@ -371,6 +371,59 @@ button.btn{border:0;cursor:pointer}
 .mini .ib{width:36px;height:36px}
 .mini span{font:700 12px/1.2 var(--f-sign);letter-spacing:.16em;text-transform:uppercase;max-width:42vw;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 @media (max-width:860px){.ost{grid-template-columns:1fr}}
+/* ---------- Soundtrack: gothic comic player (Orbit behaviour, DemoBoy ink) ---------- */
+.gp{--ink:#040107;--pap:#efe4f2;position:relative;display:grid;grid-template-columns:minmax(0,1.05fr) minmax(0,1fr);grid-template-areas:"stage list" "ctl list";gap:10px;padding:10px;margin-top:34px;background:var(--pap);box-shadow:10px 10px 0 var(--lava);transform:rotate(-.4deg)}
+.gp .pn{position:relative;background:var(--ink);color:var(--bone);border:2px solid var(--ink);overflow:hidden;min-width:0}
+.gp .pn::before{content:"";position:absolute;inset:0;background:radial-gradient(circle,rgba(239,228,242,.085) 1px,transparent 1.7px) 0 0/7px 7px;pointer-events:none}
+.gp-stage{grid-area:stage}.gp-ctl{grid-area:ctl;padding:16px 16px 18px}.gp-list{grid-area:list;display:flex;flex-direction:column}
+.gp-win{position:relative;aspect-ratio:5/4;overflow:hidden;background:#0b0612}
+.gp-win img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:50% 30%;filter:contrast(1.15) saturate(.9);transition:transform .25s}
+.gp-win.thump img{transform:scale(1.025)}
+.gp-win svg.arch{position:absolute;inset:0;width:100%;height:100%;pointer-events:none}
+.gp-win canvas{position:absolute;left:9%;right:9%;bottom:0;width:82%;height:28%;display:block}
+.gp-cap{position:absolute;z-index:2;left:12px;top:12px;background:var(--pap);color:var(--ink);font:900 12px/1 var(--f-sign);letter-spacing:.22em;text-transform:uppercase;padding:7px 10px 6px;border:2px solid var(--ink);box-shadow:3px 3px 0 var(--ink);transform:rotate(-2deg)}
+.gp-sfx{position:absolute;z-index:2;right:6%;top:16%;font:900 clamp(30px,5vw,54px)/.9 var(--f-sign);letter-spacing:.04em;color:var(--pap);-webkit-text-stroke:2px var(--ink);text-shadow:4px 4px 0 var(--lava);transform:rotate(8deg) scale(var(--k,.6));opacity:var(--o,0);pointer-events:none}
+.gp-now{position:relative;padding:14px 16px 16px;border-top:2px solid var(--pap)}
+.gp-now b{display:block;font:900 clamp(24px,3.2vw,34px)/1 var(--f-sign);text-transform:uppercase;letter-spacing:.02em;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.gp-now span{display:block;margin-top:6px;font:600 14px/1.3 var(--f-body);color:var(--ash)}
+.gp-rail{position:relative;height:22px;cursor:pointer;touch-action:none;outline-offset:3px}
+.gp-rail::before{content:"";position:absolute;left:0;right:0;top:9px;height:4px;background:#2a1a45;border:1px solid var(--pap)}
+.gp-rail i{position:absolute;left:0;top:9px;height:6px;width:0;background:var(--lava)}
+.gp-rail b{position:absolute;top:3px;left:0;width:16px;height:16px;margin-left:-8px;background:var(--pap);border:2px solid var(--ink);box-shadow:2px 2px 0 var(--lava);transform:rotate(45deg)}
+.gp-rail:focus-visible{outline:2px solid var(--lava)}
+.gp-t{display:flex;justify-content:space-between;font:700 13px/1 var(--f-sign);letter-spacing:.12em;color:var(--ash);font-variant-numeric:tabular-nums;margin-top:6px}
+.gp-btns{display:flex;justify-content:center;align-items:center;gap:clamp(8px,2vw,16px);margin-top:14px}
+.gp .ib{width:46px;height:46px;border:2px solid var(--pap);background:var(--ink);color:var(--pap);box-shadow:3px 3px 0 #2a1a45}
+.gp .ib svg{width:20px;height:20px;fill:currentColor}
+.gp .ib:hover{border-color:var(--lava);color:var(--lava)}
+.gp .ib.on{color:var(--lava);border-color:var(--lava)}
+.gp .ib.big{width:66px;height:66px;background:var(--pap);color:var(--ink);border:3px solid var(--ink);outline:2px solid var(--pap);box-shadow:5px 5px 0 var(--lava);font-size:24px}
+.gp .ib.big:hover{color:var(--ink);background:#fff}
+.gp .ib .r1{font:900 9px/1 var(--f-sign);position:absolute;margin:16px 0 0 18px}
+.gp .ib{position:relative}
+.gp-tabs{position:relative;display:flex;gap:8px;overflow-x:auto;scroll-snap-type:x mandatory;scrollbar-width:none;padding:12px 12px 10px;border-bottom:2px solid var(--pap);cursor:grab;-webkit-overflow-scrolling:touch}
+.gp-tabs::-webkit-scrollbar{display:none}
+.gp-tabs button{all:unset;flex:0 0 auto;scroll-snap-align:start;cursor:pointer;padding:9px 14px 8px;font:900 15px/1 var(--f-sign);letter-spacing:.16em;text-transform:uppercase;color:var(--bone);border:2px solid #2a1a45;white-space:nowrap}
+.gp-tabs button small{font:700 11px/1 var(--f-sign);color:var(--ash);margin-left:6px;letter-spacing:.08em}
+.gp-tabs button[aria-selected="true"]{background:var(--pap);color:var(--ink);border-color:var(--pap);box-shadow:3px 3px 0 var(--lava)}
+.gp-tabs button[aria-selected="true"] small{color:#5a4a6a}
+.gp-tabs button:focus-visible{outline:2px solid var(--lava)}
+.gp .tracks{position:relative;border-top:0;max-height:clamp(380px,64vh,620px);overflow-y:auto;overscroll-behavior:contain;scrollbar-width:thin;scrollbar-color:#2a1a45 transparent;flex:1}
+.gp .tracks li{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;border-bottom:1px solid #2a1a45}
+.gp .tracks li button.pl{grid-template-columns:38px minmax(0,1fr) auto;padding:12px 6px 12px 12px}
+.gp .tracks li button.pl:hover{background:rgba(239,228,242,.06);padding-left:16px}
+.gp .tracks .t{font-size:20px;overflow:hidden;text-overflow:ellipsis}
+.gp .tracks .t small{font-size:13px}
+.gp .tracks li.on{background:linear-gradient(90deg,rgba(255,47,156,.18),transparent 70%)}
+.gp .tracks li.on .n::before{content:"▶ ";font-size:11px}
+.gp .tracks button.qb{all:unset;cursor:pointer;width:40px;height:40px;margin-right:8px;display:grid;place-items:center;font:900 20px/1 var(--f-sign);color:var(--ash);border:1px solid transparent}
+.gp .tracks button.qb:hover,.gp .tracks button.qb:focus-visible{color:var(--lava);border-color:var(--lava)}
+.gp .tracks li.empty{display:block;padding:22px 14px;color:var(--ash);font:600 15px/1.45 var(--f-body)}
+.gp-toast{position:absolute;z-index:3;left:50%;bottom:14px;transform:translate(-50%,8px);background:var(--pap);color:var(--ink);font:900 12px/1 var(--f-sign);letter-spacing:.18em;text-transform:uppercase;padding:9px 12px;border:2px solid var(--ink);box-shadow:3px 3px 0 var(--lava);opacity:0;transition:opacity .2s,transform .2s;pointer-events:none;white-space:nowrap}
+.gp-toast.show{opacity:1;transform:translate(-50%,0)}
+.mini .nx{width:36px;height:36px}.mini .nx svg{width:16px;height:16px;fill:currentColor}
+@media (max-width:520px){.mini span{max-width:30vw}}
+@media (max-width:860px){.gp{grid-template-columns:1fr;grid-template-areas:"stage" "ctl" "list";box-shadow:6px 6px 0 var(--lava);transform:none;margin-inline:-4px}.gp .tracks{max-height:none;overflow:visible}.gp-win{aspect-ratio:4/3}}
 
 @media (max-width:860px){.tag{grid-template-columns:1fr}.fails{grid-template-columns:1fr 1fr}.sketch{max-width:200px}}
 
@@ -672,24 +725,37 @@ button.btn{border:0;cursor:pointer}
 
 <!-- SOUNDTRACK -->
 <section class="chapter" id="ost" data-layer="Soundtrack" data-tick="0">
-  <div class="wrap ost">
-    <div>
-      <div class="eyebrow">Original soundtrack · instrumental</div>
-      <h2 class="neon" data-live="5">Soundtrack</h2>
-      <p>Turn it on and the maw keeps time. Four teeth tick at once, spread around the ring, stepping clockwise on the beat like the escapement in a clock.</p>
-      <div class="deck">
-        <canvas id="scope" aria-hidden="true"></canvas>
-        <div class="now"><b id="nowt">Test signal</b><span class="eyebrow" id="nowd">0:00</span></div>
-        <div class="bar" id="seek" role="slider" aria-label="Track position" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" tabindex="0"><i id="seekf"></i></div>
-        <div class="ctl">
-          <button class="ib" type="button" id="prev" aria-label="Previous track">⏮</button>
-          <button class="ib big" type="button" data-snd aria-label="Play or pause" aria-pressed="false"><span class="pp">▶</span></button>
-          <button class="ib" type="button" id="next" aria-label="Next track">⏭</button>
+  <div class="wrap">
+    <div class="eyebrow">Original soundtrack · instrumental · 21 tracks</div>
+    <h2 class="neon" data-live="5">Soundtrack</h2>
+    <p style="max-width:640px">The full soundtrack, in the order the game plays it. Turn it on and the maw keeps time: four teeth tick at once, stepping clockwise on the beat like the escapement in a clock.</p>
+    <div class="gp" id="gp">
+      <div class="pn gp-stage">
+        <div class="gp-win" id="gpwin">
+          <img src="a/head.webp" alt="" width="900" height="742" loading="lazy">
+          <svg class="arch" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true"><path fill="#040107" fill-rule="evenodd" d="M0 0H100V100H0Z M7 100V44C7 22 26 9 50 3C74 9 93 22 93 44V100Z"/><path fill="none" stroke="#efe4f2" stroke-width="2" vector-effect="non-scaling-stroke" d="M7 100V44C7 22 26 9 50 3C74 9 93 22 93 44V100M12 100V46C12 27 28 15 50 9C72 15 88 27 88 46V100"/></svg>
+          <canvas id="scope" aria-hidden="true"></canvas>
+          <div class="gp-cap" id="gpcap">No. 01 · Side A</div>
+          <div class="gp-sfx" id="gpsfx" aria-hidden="true">THOOM</div>
+        </div>
+        <div class="gp-now"><b id="nowt">Dances With The Uncanny</b><span id="gpsub">Side A · track 1 of 21</span></div>
+      </div>
+      <div class="pn gp-ctl">
+        <div class="gp-rail" id="seek" role="slider" aria-label="Track position" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" tabindex="0"><i id="seekf"></i><b id="seekk"></b></div>
+        <div class="gp-t"><span id="nowd">0:00</span><span id="gplen">3:48</span></div>
+        <div class="gp-btns">
+          <button class="ib" type="button" id="shuf" aria-label="Shuffle" aria-pressed="false"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 6h4.5l9 12H21v-2l3 3-3 3v-2h-5.5l-9-12H3zM16.5 6H21V4l3 3-3 3V8h-4.5l-2.4 3.2-1.3-1.7zM3 18h4.5l2.4-3.2 1.3 1.7L7.5 20H3z"/></svg></button>
+          <button class="ib" type="button" id="prev" aria-label="Previous track"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 5h2v14H6zM20 5v14L9 12z"/></svg></button>
+          <button class="ib big" type="button" data-snd aria-label="Play or pause" aria-pressed="false"><span class="pp">▶&#xFE0E;</span></button>
+          <button class="ib" type="button" id="next" aria-label="Next track"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M16 5h2v14h-2zM4 5l11 7-11 7z"/></svg></button>
+          <button class="ib on" type="button" id="rep" aria-label="Repeat all"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 7h10V4l4 4-4 4V9H7v4H5V9a2 2 0 0 1 2-2zm10 10H7v3l-4-4 4-4v3h10v-4h2v4a2 2 0 0 1-2 2z"/></svg><span class="r1" id="rep1"></span></button>
         </div>
       </div>
-    </div>
-    <div>
-      <ol class="tracks" id="tracks"></ol>
+      <div class="pn gp-list">
+        <div class="gp-tabs" id="gptabs" role="tablist" aria-label="Soundtrack lists"></div>
+        <ol class="tracks" id="tracks" role="tabpanel"></ol>
+        <div class="gp-toast" id="gptoast" role="status" aria-live="polite"></div>
+      </div>
     </div>
   </div>
 </section>
@@ -708,7 +774,7 @@ button.btn{border:0;cursor:pointer}
     </div>
   </div>
 </section>
-<div class="mini" id="mini"><button class="ib" type="button" data-snd aria-label="Play or pause" aria-pressed="false"><span class="pp">▶</span></button><span id="minit">Test signal</span></div>
+<div class="mini" id="mini"><button class="ib" type="button" data-snd aria-label="Play or pause" aria-pressed="false"><span class="pp">▶</span></button><span id="minit">Dances With The Uncanny</span><button class="ib nx" type="button" id="minin" aria-label="Next track"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M16 5h2v14h-2zM4 5l11 7-11 7z"/></svg></button></div>
 <footer><div class="wrap"><span>DemoBoy: The Madness Within · an original game by anchorturtle · always in test</span><span>Built on Spawn</span></div></footer>
 
 <script>
@@ -816,7 +882,27 @@ if(RM){cv.remove()}
    {title:'Track name', note:'', src:'a/music/01-track.mp3'}
    The generated test signal stays as track 00 until then. */
 const TRACKS=[
-  {title:'Test signal',note:'Generated live in your browser. Real tracks replace it.',synth:true,bpm:96}
+  {title:'Dances With The Uncanny',len:'3:48',side:'A',src:'ost/01-dances-with-the-uncanny.mp3'},
+  {title:'Machine Quarters',len:'3:28',side:'A',src:'ost/02-machine-quarters.mp3'},
+  {title:'Starburst',len:'1:10',side:'A',src:'ost/03-starburst.mp3'},
+  {title:'That New News',len:'3:23',side:'A',src:'ost/04-that-new-news.mp3'},
+  {title:'Sweat',len:'2:36',side:'A',src:'ost/05-sweat.mp3'},
+  {title:'Know Peace',len:'3:33',side:'A',src:'ost/06-know-peace.mp3'},
+  {title:'LaserBreath',len:'2:42',side:'A',src:'ost/07-laserbreath.mp3'},
+  {title:'Shaders',len:'2:59',side:'A',src:'ost/08-shaders.mp3'},
+  {title:'Shadowman',len:'2:53',side:'A',src:'ost/09-shadowman.mp3'},
+  {title:'Sunken Palace',len:'3:45',side:'A',src:'ost/10-sunken-palace.mp3'},
+  {title:'Brass Knuckles',len:'3:38',side:'A',src:'ost/11-brass-knuckles.mp3'},
+  {title:'Half-Time Furnace',len:'3:19',side:'B',src:'ost/12-half-time-furnace.mp3'},
+  {title:'Phaser Bay',len:'3:19',side:'B',src:'ost/13-phaser-bay.mp3'},
+  {title:'Scrap Choir',len:'3:19',side:'B',src:'ost/14-scrap-choir.mp3'},
+  {title:'Circuit Walker',len:'3:19',side:'B',src:'ost/15-circuit-walker.mp3'},
+  {title:'Anvil Amen',len:'3:19',side:'B',src:'ost/16-anvil-amen.mp3'},
+  {title:'Steam Rhodes',len:'3:19',side:'B',src:'ost/17-steam-rhodes.mp3'},
+  {title:'Glitch Press',len:'3:19',side:'B',src:'ost/18-glitch-press.mp3'},
+  {title:'Oil Drum Funk',len:'3:20',side:'B',src:'ost/19-oil-drum-funk.mp3'},
+  {title:'Odd Gear',len:'3:19',side:'B',src:'ost/20-odd-gear.mp3'},
+  {title:'Night Shift Phaser',len:'3:19',side:'B',src:'ost/21-night-shift-phaser.mp3'}
 ];
 const TEETH={"c":[319.0,316.2],"t":[{"sx":0,"sy":96,"w":68,"h":51,"x":139,"y":248,"a":-2.853,"r":155.6},{"sx":312,"sy":0,"w":66,"h":67,"x":161,"y":212,"a":-2.615,"r":146.9},{"sx":196,"sy":0,"w":59,"h":72,"x":186,"y":180,"a":-2.34,"r":146.9},{"sx":153,"sy":0,"w":41,"h":72,"x":226,"y":157,"a":-2.094,"r":146.0},{"sx":36,"sy":0,"w":33,"h":71,"x":263,"y":151,"a":-1.844,"r":139.9},{"sx":0,"sy":0,"w":34,"h":94,"x":299,"y":134,"a":-1.575,"r":139.4},{"sx":71,"sy":0,"w":31,"h":68,"x":342,"y":151,"a":-1.305,"r":139.2},{"sx":104,"sy":0,"w":47,"h":79,"x":370,"y":153,"a":-1.049,"r":148.2},{"sx":257,"sy":0,"w":53,"h":72,"x":394,"y":180,"a":-0.802,"r":145.9},{"sx":380,"sy":0,"w":66,"h":67,"x":412,"y":212,"a":-0.527,"r":145.9},{"sx":70,"sy":96,"w":66,"h":47,"x":433,"y":252,"a":-0.283,"r":154.6},{"sx":206,"sy":96,"w":64,"h":32,"x":437,"y":310,"a":0.051,"r":153.4},{"sx":329,"sy":96,"w":53,"h":37,"x":434,"y":346,"a":0.314,"r":150.1},{"sx":384,"sy":96,"w":70,"h":67,"x":400,"y":357,"a":0.554,"r":136.8},{"sx":132,"sy":165,"w":59,"h":69,"x":375,"y":381,"a":0.861,"r":131.6},{"sx":283,"sy":165,"w":44,"h":67,"x":352,"y":402,"a":1.154,"r":131.7},{"sx":353,"sy":165,"w":23,"h":37,"x":344,"y":439,"a":1.336,"r":146.0},{"sx":193,"sy":165,"w":41,"h":86,"x":299,"y":398,"a":1.574,"r":127.5},{"sx":329,"sy":165,"w":22,"h":37,"x":274,"y":439,"a":1.798,"r":146.0},{"sx":236,"sy":165,"w":45,"h":69,"x":243,"y":402,"a":1.975,"r":134.1},{"sx":72,"sy":165,"w":58,"h":69,"x":207,"y":381,"a":2.273,"r":131.2},{"sx":0,"sy":165,"w":70,"h":65,"x":170,"y":358,"a":2.582,"r":136.2},{"sx":272,"sy":96,"w":55,"h":38,"x":151,"y":346,"a":2.822,"r":150.7},{"sx":138,"sy":96,"w":66,"h":36,"x":137,"y":304,"a":3.096,"r":152.8}]};
 const mawc=document.getElementById('mawc'),mctx=mawc.getContext('2d');
@@ -902,28 +988,86 @@ function ensureAC(){
   master.connect(comp);comp.connect(analyser);analyser.connect(AC.destination);
 }
 function stopAll(){if(synth){synth.stop();synth=null}if(audioEl){audioEl.pause()}}
-function startTrack(i){
-  ensureAC();AC.resume();stopAll();cur=(i+TRACKS.length)%TRACKS.length;const tr=TRACKS[cur];
-  if(tr.synth){synth=makeSynth(tr.bpm||96)}
-  else{if(!audioEl){audioEl=new Audio();audioEl.crossOrigin='anonymous';mediaSrc=AC.createMediaElementSource(audioEl);mediaSrc.connect(master);audioEl.addEventListener('ended',()=>startTrack(cur+1))}
-    audioEl.src=tr.src;audioEl.play().catch(()=>{})}
-  playing=true;ui()}
-function toggle(){if(!playing){if(AC&&TRACKS[cur].synth===false&&audioEl&&audioEl.src){AC.resume();audioEl.play();playing=true;ui()}else startTrack(cur)}else{stopAll();playing=false;ui()}}
+let order=TRACKS.map((_,i)=>i),queue=[],shuf=false,repMode=1,tab='all',hist=[];
+function startTrack(i,fromHist){
+  ensureAC();AC.resume();stopAll();i=(i+TRACKS.length)%TRACKS.length;if(!fromHist&&i!==cur)hist.push(cur);cur=i;const tr=TRACKS[cur];
+  if(!audioEl){audioEl=new Audio();audioEl.crossOrigin='anonymous';audioEl.preload='auto';mediaSrc=AC.createMediaElementSource(audioEl);mediaSrc.connect(master);
+    audioEl.addEventListener('ended',()=>{if(repMode===2){audioEl.currentTime=0;audioEl.play()}else advance(true)});}
+  audioEl.src=tr.src;audioEl.play().catch(()=>{});
+  playing=true;ui();meta()}
+function nextIndex(auto){
+  if(queue.length)return queue.shift();
+  if(shuf){if(TRACKS.length<2)return cur;let r;do{r=Math.random()*TRACKS.length|0}while(r===cur);return r}
+  if(auto&&repMode===0&&cur===TRACKS.length-1)return -1;
+  return cur+1}
+function advance(auto){const n=nextIndex(auto);if(n<0){playing=false;stopAll();ui();return}startTrack(n)}
+function back(){if(audioEl&&audioEl.currentTime>3){audioEl.currentTime=0;return}if(shuf&&hist.length){startTrack(hist.pop(),true)}else startTrack(cur-1,true)}
+function toggle(){if(!playing){if(AC&&audioEl&&audioEl.src&&!audioEl.ended){AC.resume();audioEl.play().catch(()=>{});playing=true;ui()}else startTrack(cur)}else{stopAll();playing=false;ui()}}
 const fmt=x=>{x=Math.max(0,x|0);return (x/60|0)+':'+String(x%60).padStart(2,'0')};
+const $=id=>document.getElementById(id);
 function ui(){
-  document.querySelectorAll('[data-snd]').forEach(b=>{b.setAttribute('aria-pressed',playing);b.classList.toggle('playing',playing);const pp=b.querySelector('.pp');if(pp)pp.textContent=playing?'❚❚':'▶';const st=b.querySelector('.sndt');if(st)st.textContent=playing?'Sound off':'Sound on'});
-  document.getElementById('nowt').textContent=TRACKS[cur].title;document.getElementById('minit').textContent=(playing?'Now playing · ':'Paused · ')+TRACKS[cur].title;
-  document.getElementById('mini').classList.toggle('show',playing||!!AC);
-  document.querySelectorAll('#tracks li[data-i]').forEach(li=>li.classList.toggle('on',+li.dataset.i===cur&&playing));
+  const tr=TRACKS[cur];
+  document.querySelectorAll('[data-snd]').forEach(b=>{b.setAttribute('aria-pressed',playing);b.classList.toggle('playing',playing);const pp=b.querySelector('.pp');if(pp)pp.textContent=playing?'❚❚':'▶\uFE0E';const st=b.querySelector('.sndt');if(st)st.textContent=playing?'Sound off':'Sound on'});
+  $('nowt').textContent=tr.title;$('minit').textContent=(playing?'Now playing · ':'Paused · ')+tr.title;
+  $('gpcap').textContent='No. '+String(cur+1).padStart(2,'0')+' · Side '+tr.side;
+  $('gpsub').textContent='Side '+tr.side+' · track '+(cur+1)+' of '+TRACKS.length+(queue.length?' · '+queue.length+' up next':'');
+  if(!audioEl||!audioEl.duration)$('gplen').textContent=tr.len;
+  $('mini').classList.toggle('show',playing||!!AC);
+  document.querySelectorAll('#tracks li[data-i]').forEach(li=>li.classList.toggle('on',+li.dataset.i===cur));
+  if(tab==='q')renderList();else renderTabs();
+  if('mediaSession' in navigator)navigator.mediaSession.playbackState=playing?'playing':'paused';
 }
+function meta(){if(!('mediaSession' in navigator)||!window.MediaMetadata)return;const tr=TRACKS[cur];
+  try{navigator.mediaSession.metadata=new MediaMetadata({title:tr.title,artist:'anchorturtle',album:'DemoBoy: The Madness Within (Soundtrack)',artwork:[{src:'og.png',sizes:'1200x630',type:'image/png'}]})}catch(e){}}
+if('mediaSession' in navigator){const ms=navigator.mediaSession,h=(a,f)=>{try{ms.setActionHandler(a,f)}catch(e){}};
+  h('play',()=>{if(!playing)toggle()});h('pause',()=>{if(playing)toggle()});h('nexttrack',()=>advance(false));h('previoustrack',back);
+  h('seekto',d=>{if(audioEl&&d.seekTime!=null)audioEl.currentTime=d.seekTime})}
 document.querySelectorAll('[data-snd]').forEach(b=>b.addEventListener('click',toggle));
-document.getElementById('prev').addEventListener('click',()=>startTrack(cur-1));
-document.getElementById('next').addEventListener('click',()=>startTrack(cur+1));
-document.getElementById('seek').addEventListener('click',e=>{if(!audioEl||TRACKS[cur].synth||!audioEl.duration)return;const r=e.currentTarget.getBoundingClientRect();audioEl.currentTime=(e.clientX-r.left)/r.width*audioEl.duration});
-(()=>{const ol=document.getElementById('tracks');
-  ol.innerHTML=TRACKS.map((t,i)=>`<li data-i="${i}"><button type="button" data-play="${i}"><span class="n">${String(i).padStart(2,'0')}</span><span class="t">${t.title}<small>${t.note||''}</small></span><span class="d">${t.synth?'loop':(t.len||'')}</span></button></li>`).join('')
-   +[1,2,3].map(k=>`<li class="slot"><span>${String(TRACKS.length-1+k).padStart(2,'0')}</span><span>Track slot · awaiting file</span></li>`).join('');
-  ol.querySelectorAll('[data-play]').forEach(b=>b.addEventListener('click',()=>startTrack(+b.dataset.play)));})();
+$('prev').addEventListener('click',back);
+$('next').addEventListener('click',()=>advance(false));
+$('minin').addEventListener('click',()=>advance(false));
+$('shuf').addEventListener('click',function(){shuf=!shuf;this.classList.toggle('on',shuf);this.setAttribute('aria-pressed',shuf);toast(shuf?'Shuffle on':'Shuffle off')});
+$('rep').addEventListener('click',function(){repMode=(repMode+1)%3;this.classList.toggle('on',repMode>0);$('rep1').textContent=repMode===2?'1':'';
+  const L=['Repeat off','Repeat all','Repeat one'][repMode];this.setAttribute('aria-label',L);toast(L)});
+let tt=0;function toast(m){const t=$('gptoast');t.textContent=m;t.classList.add('show');clearTimeout(tt);tt=setTimeout(()=>t.classList.remove('show'),1400)}
+/* seek rail: tap or drag, arrows step 5s */
+(()=>{const rail=$('seek');let drag=false;
+  const frac=x=>{const r=rail.getBoundingClientRect();return Math.min(1,Math.max(0,(x-r.left)/r.width))};
+  const go=f=>{if(audioEl&&audioEl.duration){audioEl.currentTime=f*audioEl.duration;paint(f)}};
+  rail.addEventListener('pointerdown',e=>{drag=true;rail.setPointerCapture(e.pointerId);go(frac(e.clientX))});
+  rail.addEventListener('pointermove',e=>{if(drag)go(frac(e.clientX))});
+  const end=()=>{drag=false};rail.addEventListener('pointerup',end);rail.addEventListener('pointercancel',end);
+  rail.addEventListener('keydown',e=>{if(!audioEl||!audioEl.duration)return;if(e.key==='ArrowRight'){audioEl.currentTime+=5;e.preventDefault()}if(e.key==='ArrowLeft'){audioEl.currentTime-=5;e.preventDefault()}});})();
+function paint(f){$('seekf').style.width=(f*100).toFixed(2)+'%';$('seekk').style.left=(f*100).toFixed(2)+'%';$('seek').setAttribute('aria-valuenow',Math.round(f*100))}
+/* tab rail + list (Orbit: tap a tab, swipe the rail, or swipe the list sideways) */
+const TABS=[['all','All'],['A','Side A'],['B','Side B'],['q','Up next']];
+function renderTabs(){const bar=$('gptabs');const cnt={all:TRACKS.length,A:TRACKS.filter(t=>t.side==='A').length,B:TRACKS.filter(t=>t.side==='B').length,q:queue.length};
+  if(!bar.children.length){bar.innerHTML=TABS.map(([k,l])=>`<button type="button" role="tab" data-tab="${k}" aria-selected="false">${l}<small></small></button>`).join('');
+    bar.querySelectorAll('button').forEach(b=>b.addEventListener('click',()=>setTab(b.dataset.tab)))}
+  bar.querySelectorAll('button').forEach(b=>{b.setAttribute('aria-selected',b.dataset.tab===tab);b.querySelector('small').textContent=cnt[b.dataset.tab]})}
+function setTab(k){if(k===tab)return;tab=k;renderTabs();renderList();const b=$('gptabs').querySelector(`[data-tab="${k}"]`);if(b)b.scrollIntoView({block:'nearest',inline:'nearest',behavior:RM?'auto':'smooth'})}
+function row(i,qpos){const t=TRACKS[i];return `<li data-i="${i}"${i===cur?' class="on"':''}><button type="button" class="pl" data-play="${i}"${qpos!=null?` data-qp="${qpos}"`:''}><span class="n">${String(i+1).padStart(2,'0')}</span><span class="t">${t.title}<small>Side ${t.side}</small></span><span class="d">${t.len}</span></button>`+
+  (qpos!=null?`<button type="button" class="qb" data-unq="${qpos}" aria-label="Remove ${t.title} from up next">×</button>`:`<button type="button" class="qb" data-q="${i}" aria-label="Play ${t.title} next">+</button>`)+'</li>'}
+function renderList(){const ol=$('tracks');let h;
+  if(tab==='q')h=queue.length?queue.map((i,p)=>row(i,p)).join(''):'<li class="empty">Nothing queued. Tap + on any track to play it next.</li>';
+  else h=TRACKS.map((t,i)=>tab==='all'||t.side===tab?row(i):'').join('');
+  ol.innerHTML=h;renderTabs()}
+$('tracks').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;
+  if(b.dataset.q!=null){queue.unshift(+b.dataset.q);toast('Up next: '+TRACKS[+b.dataset.q].title);ui();return}
+  if(b.dataset.unq!=null){queue.splice(+b.dataset.unq,1);ui();return}
+  if(b.dataset.qp!=null){queue.splice(+b.dataset.qp,1)}
+  if(b.dataset.play!=null)startTrack(+b.dataset.play)});
+(()=>{const ol=$('tracks');let x0=null,y0=0;
+  ol.addEventListener('touchstart',e=>{x0=e.touches[0].clientX;y0=e.touches[0].clientY},{passive:true});
+  ol.addEventListener('touchend',e=>{if(x0==null)return;const dx=e.changedTouches[0].clientX-x0,dy=e.changedTouches[0].clientY-y0;x0=null;
+    if(Math.abs(dx)>60&&Math.abs(dx)>Math.abs(dy)*1.6){const k=TABS.findIndex(t=>t[0]===tab)+(dx<0?1:-1);if(k>=0&&k<TABS.length)setTab(TABS[k][0])}},{passive:true});
+  const bar=$('gptabs');let down=false,sx=0,sl=0,moved=false;
+  bar.addEventListener('pointerdown',e=>{if(e.pointerType!=='mouse')return;down=true;moved=false;sx=e.clientX;sl=bar.scrollLeft});
+  addEventListener('pointermove',e=>{if(!down)return;const d=e.clientX-sx;if(Math.abs(d)>4)moved=true;bar.scrollLeft=sl-d});
+  addEventListener('pointerup',()=>{down=false});
+  bar.addEventListener('click',e=>{if(moved){e.stopPropagation();e.preventDefault();moved=false}},true);})();
+renderList();
+window.DBOST={play:startTrack,get i(){return cur},get a(){return audioEl}};
 /* scope + time readout, only while the deck is on screen */
 const scope=document.getElementById('scope'),sc=scope.getContext('2d');let scopeOn=false,sraf=0;
 new IntersectionObserver(([e])=>{scopeOn=e.isIntersecting;if(scopeOn&&!sraf)sraf=requestAnimationFrame(scopeLoop)}).observe(scope);
@@ -931,14 +1075,15 @@ function scopeLoop(t){
   if(!scopeOn){sraf=0;return}
   const w=scope.clientWidth,h=scope.clientHeight,d=Math.min(devicePixelRatio||1,1.5);if(scope.width!==w*d){scope.width=w*d;scope.height=h*d}
   sc.setTransform(d,0,0,d,0,0);sc.clearRect(0,0,w,h);
-  if(!(AC&&playing)||RM)drawMaw(t);
+  if(!heroOn)drawMaw(t);
   const n=NT,bw=w/n;
   for(let i=0;i<n;i++){const v=AC&&playing?Math.max(bins[i],bite[i]/22):(Math.sin(t/600+i*.5)*.5+.5)*.08;
     const bh=Math.max(2,v*h*.95);sc.fillStyle=i%2?'#ff2f9c':'#efe4f2';sc.globalAlpha=.35+v*.65;
     sc.beginPath();sc.moveTo(i*bw+bw*.15,h);sc.lineTo(i*bw+bw*.5,h-bh);sc.lineTo(i*bw+bw*.85,h);sc.fill()}
   sc.globalAlpha=1;
-  if(AC&&playing){const tr=TRACKS[cur];let pos=0,len=1;if(tr.synth&&synth){pos=synth.pos();len=synth.len}else if(audioEl){pos=audioEl.currentTime;len=audioEl.duration||1}
-    document.getElementById('seekf').style.width=(pos/len*100).toFixed(2)+'%';document.getElementById('nowd').textContent=fmt(pos)+' / '+fmt(len)}
+  if(AC&&playing&&audioEl){const pos=audioEl.currentTime,len=audioEl.duration||0;
+    if(len){paint(pos/len);$('gplen').textContent=fmt(len)}$('nowd').textContent=fmt(pos);
+    const k=RM?0:Math.exp(-(AC.currentTime-kickT)*5),sf=$('gpsfx');sf.style.setProperty('--o',(k>.08?k:0).toFixed(2));sf.style.setProperty('--k',(.7+k*.35).toFixed(3));$('gpwin').classList.toggle('thump',k>.5)}
   sraf=requestAnimationFrame(scopeLoop)}
 
 /* ---------- Arcadya foreground spires (one shape, built once) ---------- */
