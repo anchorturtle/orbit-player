@@ -1,12 +1,12 @@
 <!DOCTYPE html>
-<html class="dark" lang="en">
+<html lang="en">
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>DemoBoy: The Madness Within</title>
   <meta name="description" content="Swing, grind, dive, and unleash beast mode across Arcadya. An action-adventure game by AnchorTurtle, playable on Spawn."/>
   <link rel="canonical" href="https://www.anchorturtle.com/demoboy/"/>
-  <link rel="icon" type="image/png" sizes="256x256" href="favicon.png"/>
+  <link rel="icon" type="image/png" href="favicon.png"/>
   <link rel="apple-touch-icon" href="favicon.png"/>
 
   <meta property="og:type" content="website"/>
@@ -29,202 +29,967 @@
   <meta name="twitter:description" content="Swing, grind, dive, and unleash beast mode across Arcadya. An action-adventure game by AnchorTurtle, playable on Spawn."/>
   <meta name="twitter:image" content="https://www.anchorturtle.com/demoboy/og.png"/>
 
-  <link rel="stylesheet" href="../css/fonts.css?v=20261027self1"/>
-  <style>
-    :root {
-      --bg: #0b070d;
-      --text: #e9e1de;
-      --muted: rgba(233, 225, 222, .74);
-      --green: #00C896;
-      --purple: #7B2FFF;
-    }
-    * { box-sizing: border-box; }
-    html, body {
-      margin: 0;
-      min-height: 100%;
-      background: var(--bg);
-      color: var(--text);
-      font-family: "Plus Jakarta Sans", system-ui, sans-serif;
-    }
-    body {
-      min-height: 100vh;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: flex-start;
-      padding: 28px 20px 48px;
-    }
+  <link rel="preload" as="image" href="a/mawbase.webp"/>
+  <link rel="preload" as="image" href="a/teeth.webp"/>
+  <link rel="preload" as="font" type="font/woff2" href="fonts/unifrakturmaguntia-400-latin.woff2" crossorigin/>
+  <link rel="preload" as="font" type="font/woff2" href="fonts/barlow-400-latin.woff2" crossorigin/>
+  <link rel="preload" as="font" type="font/woff2" href="fonts/big-shoulders-display-latin.woff2" crossorigin/>
+<meta name="claude:viewport-fit-sides" content="cover">
+<style>
+/* self-hosted latin subsets, font-display:swap */
+@font-face{font-family:"Barlow";font-style:normal;font-weight:400;font-display:swap;src:url("fonts/barlow-400-latin.woff2") format("woff2");unicode-range:U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD}
+@font-face{font-family:"Barlow";font-style:normal;font-weight:500;font-display:swap;src:url("fonts/barlow-500-latin.woff2") format("woff2");unicode-range:U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD}
+@font-face{font-family:"Barlow";font-style:normal;font-weight:600;font-display:swap;src:url("fonts/barlow-600-latin.woff2") format("woff2");unicode-range:U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD}
+@font-face{font-family:"Big Shoulders Display";font-style:normal;font-weight:500 900;font-display:swap;src:url("fonts/big-shoulders-display-latin.woff2") format("woff2");unicode-range:U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD}
+@font-face{font-family:"UnifrakturMaguntia";font-style:normal;font-weight:400;font-display:swap;src:url("fonts/unifrakturmaguntia-400-latin.woff2") format("woff2");unicode-range:U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD}
+/* Layout: one long fall. Sticky scroll stages (maw, dark release) between quiet chapters, a depth gauge on the right. */
+:root{
+  --void:#07040c;      /* the nether, almost no light */
+  --basalt:#120a1c;    /* black basalt panels */
+  --steel:#2a1a45;     /* violet steel lines */
+  --demon:#5a35e8;     /* DemoBoy's skin */
+  --lava:#ff2f9c;      /* fuchsia lava, his eyes */
+  --bone:#efe4f2;      /* teeth, text */
+  --ash:#9c8fb0;       /* dim text */
+  --f-black:"UnifrakturMaguntia","Old English Text MT",serif;
+  --f-sign:"Big Shoulders Display","Arial Narrow",Impact,sans-serif;
+  --f-body:"Barlow","Helvetica Neue",Arial,sans-serif;
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+html{background:var(--void)}
+body{background:var(--void);color:var(--bone);font:400 17px/1.6 var(--f-body);overflow-x:clip}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:60;background:var(--void)}
+a{color:inherit}
+:focus-visible{outline:2px solid var(--lava);outline-offset:3px}
+img,video{display:block;max-width:100%;height:auto}
+html{overflow-x:clip}
+.wrap{max-width:1180px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.eyebrow{font:700 13px/1 var(--f-sign);letter-spacing:.28em;text-transform:uppercase;color:var(--ash)}
+h2{font:900 clamp(44px,8vw,112px)/.88 var(--f-sign);text-transform:uppercase;letter-spacing:-.01em;margin:.2em 0 .3em;text-wrap:balance}
+p{max-width:60ch;margin:0 0 1em;color:#d8cde0}
+.chapter{position:relative;padding-block:clamp(80px,14vh,160px)}
 
-    .wrap {
-      width: min(520px, 100%);
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      text-align: center;
-    }
-    .hero {
-      position: relative;
-      width: min(300px, 72vw);
-      aspect-ratio: 1;
-      margin: 0 0 8px;
-      overflow: hidden;
-    }
-    .hero img, .hero video {
-      position: absolute;
-      inset: 0;
-      display: block;
-      width: 100%;
-      height: 100%;
-      object-fit: contain;
-    }
-    .hero img.hero-still { display: none; }
-    @media (prefers-reduced-motion: reduce) {
-      .hero img.hero-anim { display: none; }
-      .hero img.hero-still { display: block; }
-    }
+/* ---------- Dead neon: a sign lights, then most of it dies ---------- */
+.neon{color:var(--bone)}
+.neon .l{display:inline-block}
+.neon.lit .l{animation:die 2.2s steps(1,end) forwards;animation-delay:var(--d,0s)}
+.neon.lit .l.live{animation:buzz 5s steps(1,end) infinite;animation-delay:1.4s;color:var(--lava);text-shadow:0 0 18px rgba(255,47,156,.7),0 0 2px #fff}
+@keyframes die{
+  0%{color:var(--lava);text-shadow:0 0 24px rgba(255,47,156,.8)}
+  8%{color:var(--bone);text-shadow:none}
+  14%{color:var(--lava);text-shadow:0 0 24px rgba(255,47,156,.8)}
+  40%{color:var(--lava);text-shadow:0 0 24px rgba(255,47,156,.8)}
+  46%{color:#3a2d4a;text-shadow:none}
+  52%{color:var(--lava);text-shadow:0 0 12px rgba(255,47,156,.5)}
+  60%,100%{color:#3a2d4a;text-shadow:none}
+}
+@keyframes buzz{0%,100%{opacity:1}3%{opacity:.25}5%{opacity:1}61%{opacity:.4}62%{opacity:1}}
 
-    .wrap { width: min(980px, 100%); }
-    .intro { width: min(520px, 100%); display: flex; flex-direction: column; align-items: center; text-align: center; }
-    .section { width: 100%; margin-top: 44px; }
-    .section h2 {
-      margin: 0 0 14px; font-size: 11px; font-weight: 700; letter-spacing: .14em;
-      text-transform: uppercase; color: var(--green); text-align: left;
-    }
-    .grid { display: grid; gap: 12px; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); }
-    .grid.two { grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); }
-    figure.card {
-      margin: 0; border-radius: 14px; overflow: hidden; text-align: left;
-      background: rgba(255,255,255,.035); border: 1px solid rgba(150,100,255,.18);
-    }
-    figure.card img { display: block; width: 100%; height: auto; }
-    figure.card.tall img { aspect-ratio: 3 / 4; object-fit: cover; }
-    figure.card figcaption {
-      padding: 9px 12px 11px; font-size: 11.5px; line-height: 1.4; color: rgba(233,225,222,.74);
-    }
-    figure.card figcaption b { display: block; font-size: 10px; letter-spacing: .08em; text-transform: uppercase; color: #c8b3ff; margin-bottom: 2px; }
-    .feature img { aspect-ratio: 16 / 9; object-fit: cover; }
-    .cta-row { display: flex; justify-content: center; margin-top: 40px; }
-    h1 {
-      margin: 8px 0 0;
-      font-size: clamp(22px, 5vw, 30px);
-      font-weight: 800;
-      letter-spacing: -0.02em;
-      line-height: 1.2;
-      color: #e9e1de;
-    }
-    .meta {
-      margin: 8px 0 0;
-      font-size: 11px;
-      font-weight: 700;
-      letter-spacing: .08em;
-      text-transform: uppercase;
-      color: var(--green);
-    }
-    .desc {
-      margin: 12px 0 0;
-      font-size: 15px;
-      line-height: 1.5;
-      color: var(--muted);
-      max-width: 36em;
-    }
-    .play {
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      margin-top: 22px;
-      padding: 11px 18px;
-      border-radius: 999px;
-      background: linear-gradient(135deg, rgba(123, 47, 255, .28), rgba(45, 91, 255, .20));
-      border: 1px solid rgba(123, 47, 255, .48);
-      color: #e9e1de;
-      text-decoration: none;
-      font-size: 13px;
-      font-weight: 700;
-      letter-spacing: .04em;
-      box-shadow: 0 3px 10px rgba(0, 0, 0, .35), inset 0 1px 0 rgba(255, 255, 255, .12);
-      transition: background .16s ease, border-color .16s ease, transform .14s ease;
-    }
-    .play:hover, .play:focus-visible {
-      background: linear-gradient(135deg, rgba(123, 47, 255, .42), rgba(0, 200, 150, .24));
-      border-color: rgba(0, 200, 150, .55);
-      color: #fff;
-    }
-    .play:active { transform: scale(.96); }
-    .play .material-symbols-outlined { font-size: 18px; }
-    .home {
-      margin-top: 22px;
-      font-size: 12px;
-      font-weight: 600;
-      letter-spacing: .04em;
-      color: rgba(233, 225, 222, .42);
-      text-decoration: none;
-    }
-    .home:hover, .home:focus-visible { color: rgba(126, 200, 227, .85); }
-  </style>
+/* ---------- Gauge ---------- */
+.gauge{position:fixed;right:max(18px,env(safe-area-inset-right,0px));top:50%;transform:translateY(-50%);z-index:40;display:flex;gap:12px;align-items:stretch;pointer-events:none;opacity:0;transition:opacity .6s}
+.gauge.on{opacity:1}
+.gauge ol{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;justify-content:space-between;height:46vh;font:700 11px/1 var(--f-sign);letter-spacing:.16em;color:#4b3d5e;text-align:right}
+.gauge ol li.here{color:var(--lava)}
+.gauge .rail{position:relative;width:2px;background:var(--steel)}
+.gauge .bead{position:absolute;left:-4px;top:0;width:10px;height:10px;border-radius:50%;background:var(--lava);box-shadow:0 0 12px var(--lava);transform:translateY(calc(var(--g,0) * (46vh - 10px)))}
+.gauge .read{position:absolute;right:30px;top:calc(100% + 16px);white-space:nowrap;font:700 12px/1 var(--f-sign);letter-spacing:.2em;text-transform:uppercase;color:var(--ash)}
+@media (max-width:760px){.gauge ol,.gauge .rail{display:none}.gauge{top:auto;bottom:calc(14px + env(safe-area-inset-bottom,0px));transform:none;right:max(14px,env(safe-area-inset-right,0px))}.gauge .read{position:static;background:rgba(7,4,12,.8);padding:8px 10px;border:1px solid var(--steel)}}
+
+/* ---------- 1. The Maw ---------- */
+.hero{height:260vh;position:relative}
+.stage{position:sticky;top:0;height:100vh;height:100svh;overflow:hidden;display:grid;place-items:center}
+.mawwrap{position:absolute;margin-top:-20vh;width:min(64vmin,600px);aspect-ratio:1;transform:translate(calc(var(--px,0)*-14px),calc(var(--py,0)*-10px))}
+.maw-spin{position:absolute;inset:0;animation:turn 90s linear infinite}
+.vortex{position:absolute;inset:0;width:100%;height:100%;pointer-events:none}
+.shard{position:absolute;left:var(--l);top:var(--t);width:var(--w);aspect-ratio:1;transform:translate(calc(var(--px,0)*var(--z)*-46px + var(--dx)*var(--p,0)*var(--p,0)*90vmax),calc(var(--py,0)*var(--z)*-30px + var(--dy)*var(--p,0)*var(--p,0)*90vmax)) scale(calc(1 + var(--p,0)*var(--p,0)*var(--z)*5));opacity:calc(.25 + var(--z)*.75);filter:blur(calc((1 - var(--z))*2.5px))}
+.shard i{display:block;width:100%;height:100%;background:linear-gradient(150deg,#2b2140,#0d0814 70%);clip-path:var(--cp);animation:float var(--fd,9s) ease-in-out infinite alternate;box-shadow:inset 0 0 0 1px #ff2f9c}
+.shard i::after{content:"";position:absolute;inset:0;background:linear-gradient(150deg,transparent 55%,rgba(255,47,156,.55) 58%,transparent 62%)}
+@keyframes float{from{transform:translateY(-10px) rotate(-6deg)}to{transform:translateY(12px) rotate(8deg)}}
+.maw{width:100%;height:100%;transform:scale(calc(.9 + var(--p,0)*var(--p,0)*9)) rotate(calc(var(--p,0)*140deg));will-change:transform}
+@keyframes turn{to{transform:rotate(360deg)}}
+.core{position:absolute;margin-top:-20vh;translate:calc(var(--px,0)*-14px) calc(var(--py,0)*-10px);width:min(30vmin,240px);aspect-ratio:1;border-radius:50%;background:radial-gradient(circle,rgba(255,47,156,.55),rgba(255,47,156,0) 70%);animation:breathe 4.5s ease-in-out infinite}
+.peye{transform-origin:100px 139.6px;animation:pblink 5.5s infinite}
+@keyframes pblink{0%,93%,100%{transform:scaleY(1)}95%{transform:scaleY(.08)}}
+@keyframes breathe{50%{transform:scale(1.25);opacity:.7}}
+.peer{position:absolute;margin-top:-20vh;width:min(15vmin,130px);transform:translate(calc(var(--px,0)*-22px),calc(var(--py,0)*-14px)) scale(calc(1 + var(--p,0)*2.6));opacity:calc(1 - var(--p,0)*1.8)}
+.title{position:absolute;inset:auto 0 calc(7vh + env(safe-area-inset-bottom,0px));text-align:center;opacity:calc(1 - var(--p,0)*3.2);transform:translate(calc(var(--px,0)*8px),calc(var(--p,0)*-60px + var(--py,0)*6px));z-index:3;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.title h1{margin:0;font:400 clamp(60px,10vw,150px)/.8 var(--f-black);color:var(--lava);text-shadow:0 0 40px rgba(255,47,156,.35),0 6px 0 #1a0b20}
+.title .sub{font:400 clamp(24px,3.6vw,46px)/1.1 var(--f-black);color:var(--bone);margin:.25em 0 1.1em}
+.vignette{position:absolute;inset:0;background:radial-gradient(ellipse at center,transparent 35%,var(--void) 78%);pointer-events:none}
+.fall{position:absolute;inset:0;background:var(--void);opacity:calc((var(--p,0) - .78)*4.5);pointer-events:none}
+.hint{position:absolute;top:calc(26px + env(safe-area-inset-top,0px));left:max(16px,env(safe-area-inset-left,0px));opacity:calc(.8 - var(--p,0)*4)}
+
+.btn{display:inline-flex;align-items:center;gap:12px;padding:16px 26px;background:var(--lava);color:#14020b;text-decoration:none;font:900 18px/1 var(--f-sign);letter-spacing:.14em;text-transform:uppercase;clip-path:polygon(0 0,100% 0,100% 70%,93% 100%,0 100%);transition:transform .2s,box-shadow .2s}
+.btn:hover{transform:translateY(-2px);box-shadow:0 10px 40px rgba(255,47,156,.45)}
+.btn.ghost{background:transparent;color:var(--bone);box-shadow:inset 0 0 0 2px var(--steel)}
+
+/* ---------- 2. Arcadya ---------- */
+.arcadya .pan{position:relative;overflow:hidden;aspect-ratio:3/1;max-height:70vh;width:100%;margin-bottom:56px;border-block:1px solid var(--steel)}
+.arcadya .pan img{position:absolute;inset:-8% 0 auto;width:100%;height:116%;object-fit:cover;transform:translateY(calc(var(--q,0) * -6%)) scale(1.04)}
+.arcadya .pan::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,transparent 55%,var(--void))}
+.ash{position:absolute;inset:0;pointer-events:none;overflow:hidden}
+.ash i{position:absolute;bottom:-10px;width:3px;height:3px;border-radius:50%;background:var(--lava);opacity:.0;animation:rise linear infinite}
+@keyframes rise{0%{transform:translate(0,0);opacity:0}10%{opacity:.8}100%{transform:translate(var(--x,20px),-70vh);opacity:0}}
+.two{display:grid;grid-template-columns:1.1fr .9fr;gap:clamp(28px,6vw,80px);align-items:start}
+.two>*{min-width:0}
+.quote{border-left:2px solid var(--lava);padding:6px 0 6px 22px;margin-top:10px}
+.quote q{display:block;font:500 clamp(22px,2.6vw,30px)/1.25 var(--f-body);font-style:italic;color:var(--bone);quotes:none}
+.quote span{display:block;margin-top:10px}
+
+/* ---------- 3. The Silent One ---------- */
+.silent .two{grid-template-columns:.9fr 1.1fr;align-items:center}
+.headbox{position:relative;aspect-ratio:1;max-width:520px;width:100%;margin:auto}
+.headbox svg{width:100%;height:100%;overflow:visible}
+.headbox .halo{position:absolute;inset:4%;border-radius:50%;background:radial-gradient(circle at 50% 55%,rgba(90,53,232,.6),rgba(255,47,156,.12) 45%,transparent 70%);animation:breathe 6s ease-in-out infinite}
+.facts{list-style:none;padding:0;margin:28px 0 0;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:1px;background:var(--steel);border:1px solid var(--steel)}
+.facts li{background:var(--void);padding:16px 18px}
+.facts b{display:block;font:700 13px/1 var(--f-sign);letter-spacing:.22em;text-transform:uppercase;color:var(--lava);margin-bottom:6px}
+.facts span{color:#cbbfd6;font-size:15px}
+
+/* ---------- 4. Dark Release ---------- */
+.release{height:240vh;position:relative}
+.release .stage{display:grid;grid-template-columns:1fr 1fr;align-items:center;gap:4vw;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));max-width:1280px;margin:0 auto}
+.release .stage>*{min-width:0}
+.swap{position:relative;background:var(--void);height:min(78vh,720px);aspect-ratio:3/4.4;max-width:100%;justify-self:center}
+.swap img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.swap .a{object-position:50% 30%;filter:brightness(calc(1 - var(--p,0)*.6));opacity:calc(1.7 - var(--p,0)*1.7)}
+.swap .b{object-position:50% 40%;filter:brightness(.85) contrast(1.15);-webkit-mask-image:radial-gradient(ellipse 75% 70% at 50% 42%,#000 50%,transparent 100%);mask-image:radial-gradient(ellipse 75% 70% at 50% 42%,#000 50%,transparent 100%);clip-path:circle(calc(var(--p,0)*var(--p,0)*95%) at 50% 24%);mix-blend-mode:normal}
+.swap .flash{position:absolute;inset:0;background:radial-gradient(circle at 50% 24%,rgba(255,47,156,.9),transparent 50%);opacity:calc(1 - (var(--p,0) - .45) * (var(--p,0) - .45) * 30);mix-blend-mode:screen;pointer-events:none}
+.swap::after{content:"";position:absolute;inset:0;box-shadow:inset 0 0 0 1px var(--steel);pointer-events:none}
+.meter{margin-top:26px;height:3px;background:var(--steel);position:relative;max-width:340px}
+.meter i{position:absolute;inset:0 auto 0 0;width:calc(var(--p,0)*100%);background:var(--lava);box-shadow:0 0 10px var(--lava)}
+.release .state{display:flex;justify-content:space-between;max-width:340px;margin-top:10px}
+
+/* ---------- 5. The Descent ---------- */
+.layer{display:grid;grid-template-columns:minmax(0,.85fr) minmax(0,1.15fr);gap:clamp(28px,5vw,72px);align-items:center;padding-block:clamp(56px,9vh,110px);border-top:1px solid var(--steel)}
+.layer.flip{grid-template-columns:minmax(0,1.15fr) minmax(0,.85fr)}
+.layer.flip .art{order:2}
+.layer .art{position:relative;overflow:hidden;aspect-ratio:4/5;background:var(--basalt)}
+.layer .art img{width:100%;height:115%;object-fit:cover;transform:translateY(calc(var(--q,0) * -8%))}
+.num{font:900 clamp(90px,14vw,190px)/.8 var(--f-sign);color:var(--steel)}
+.sign{display:inline-block;margin:6px 0 18px;padding:12px 18px 10px;background:var(--bone);color:var(--void);font:900 clamp(26px,3vw,38px)/1 var(--f-sign);text-transform:uppercase;transform:rotate(-2deg);box-shadow:6px 6px 0 var(--steel)}
+.train{aspect-ratio:auto;display:grid;place-items:center;background:radial-gradient(ellipse at 50% 60%,#1c1030,var(--void) 70%);padding:40px 20px;min-height:420px}
+.skull{width:min(100%,420px)}
+.board{margin-top:26px;width:100%;max-width:440px;border:1px solid var(--steel);background:#0b0612;font:700 15px/1 var(--f-sign);letter-spacing:.14em;text-transform:uppercase}
+.board div{display:flex;justify-content:space-between;gap:12px;padding:12px 14px;border-top:1px solid #1c1229}
+.board div:first-child{border-top:0;background:var(--steel);color:var(--bone)}
+.board .t{font-variant-numeric:tabular-nums;color:var(--lava)}
+.board .dim{color:var(--ash)}
+.gates{max-width:720px;display:grid;grid-template-columns:repeat(9,minmax(0,1fr));gap:6px;margin-top:20px}
+.gates span{aspect-ratio:1/1.6;border:1px solid var(--steel);display:grid;place-items:end center;padding-bottom:8px;font:700 13px/1 var(--f-sign);color:#4b3d5e;background:linear-gradient(180deg,transparent,rgba(42,26,69,.5))}
+.gates span.open{border-color:var(--lava);color:var(--lava);background:linear-gradient(180deg,transparent,rgba(255,47,156,.14))}
+.reality{text-align:center;padding-block:clamp(90px,16vh,180px);border-top:1px solid var(--steel)}
+.reality .big{font:400 clamp(54px,10vw,150px)/.9 var(--f-black);color:var(--bone);margin:.15em 0 .25em;text-wrap:balance}
+.reality p{margin-inline:auto}
+
+/* ---------- 6. Movement ---------- */
+.move .shot{position:relative;overflow:hidden;border:1px solid var(--steel)}
+.move .shot img{width:100%}
+.move .shot figcaption{position:absolute;left:12px;bottom:12px;background:rgba(7,4,12,.8);padding:6px 10px}
+.moves{list-style:none;padding:0;margin:0;counter-reset:m}
+.moves li{display:grid;grid-template-columns:auto 1fr;gap:4px 18px;padding:16px 0;border-top:1px solid var(--steel);transition:padding .25s}
+.moves li:hover{padding-left:10px}
+.moves b{font:900 26px/1 var(--f-sign);text-transform:uppercase;letter-spacing:.02em}
+.moves small{grid-column:2;color:var(--ash);font-size:15px}
+.moves i{grid-row:span 2;width:10px;height:10px;margin-top:8px;background:var(--steel);transform:rotate(45deg);transition:background .2s}
+.moves li:hover i{background:var(--lava)}
+.tagline{font:900 clamp(30px,4.4vw,58px)/.95 var(--f-sign);text-transform:uppercase;margin:0 0 28px}
+.tagline em{font-style:normal;color:var(--lava)}
+
+/* ---------- 7. Specimen ---------- */
+.spec{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:clamp(28px,5vw,70px);align-items:center}
+.spec figure{margin:0;position:relative;max-width:440px;justify-self:center;width:100%}
+.spec video{width:100%;aspect-ratio:3/4;object-fit:cover;background:#1c0f33}
+.spec figure::before{content:"";position:absolute;inset:0;background:repeating-linear-gradient(0deg,rgba(0,0,0,.22) 0 1px,transparent 1px 3px);pointer-events:none;z-index:1}
+.spec .rec{position:absolute;top:12px;left:12px;z-index:2;display:flex;gap:8px;align-items:center}
+.spec .rec::before{content:"";width:8px;height:8px;border-radius:50%;background:var(--lava);animation:buzz 1.2s steps(1) infinite}
+.spec dl{display:grid;grid-template-columns:auto 1fr;gap:10px 22px;margin:22px 0 0;font-size:15px}
+.spec dt{font:700 13px/1.6 var(--f-sign);letter-spacing:.2em;text-transform:uppercase;color:var(--ash)}
+.spec dd{margin:0}
+
+/* ---------- 8. Play ---------- */
+.play{text-align:center;padding-block:clamp(90px,16vh,170px) clamp(120px,18vh,200px);position:relative;overflow:hidden}
+.play .box{width:min(320px,70vw);margin:0 auto 34px;transform:perspective(900px) rotateY(calc(var(--mx,0)*10deg)) rotateX(calc(var(--my,0)*-8deg));transition:transform .3s ease-out;box-shadow:0 30px 80px rgba(255,47,156,.25)}
+.play .d{position:absolute;width:min(70vw,640px);left:50%;top:50%;transform:translate(-50%,-50%);opacity:.06;pointer-events:none}
+.play .row{display:flex;gap:14px;justify-content:center;flex-wrap:wrap;margin-top:26px}
+footer{border-top:1px solid var(--steel);padding-block:28px calc(28px + env(safe-area-inset-bottom,0px));color:#5e5170;font-size:13px}
+footer .wrap{display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap}
+
+
+/* ---------- home badge ---------- */
+.home{position:fixed;z-index:70;top:calc(14px + env(safe-area-inset-top,0px));right:max(14px,env(safe-area-inset-right,0px));display:flex;align-items:center;gap:10px;padding:9px 14px 9px 10px;background:rgba(7,4,12,.82);border:1px solid var(--steel);color:var(--bone);text-decoration:none;font:700 13px/1 var(--f-sign);letter-spacing:.18em;text-transform:uppercase;transition:border-color .2s,box-shadow .2s,transform .2s}
+.home svg{width:22px;height:22px;flex:none}
+.home small{display:block;font:500 10px/1 var(--f-sign);letter-spacing:.24em;color:var(--ash);margin-bottom:4px}
+.home:hover{border-color:var(--lava);box-shadow:0 0 22px rgba(255,47,156,.35);transform:translateY(-1px)}
+.home:hover .heye{fill:#ff2f9c}
+@media (max-width:520px){.home small{display:none}.home{padding:7px 10px 7px 8px;font-size:11px}}
+
+/* ---------- depth on Arcadya ---------- */
+.spires{position:absolute;left:-2%;right:-2%;bottom:-2px;height:60%;transform:translateY(calc((1 - var(--q,0)) * 30%));z-index:2;pointer-events:none}
+.fog{position:absolute;inset:auto -50% 8% -50%;height:40%;background:radial-gradient(ellipse at 30% 50%,rgba(255,47,156,.18),transparent 60%),radial-gradient(ellipse at 75% 60%,rgba(90,53,232,.22),transparent 60%);animation:drift 26s linear infinite alternate;z-index:1;pointer-events:none}
+@keyframes drift{to{transform:translateX(18%)}}
+.arcadya .pan{perspective:1200px}
+.arcadya .pan img{transform:translateY(calc(var(--q,0) * -6%)) scale(1.06) rotateX(calc(var(--ty,0)*1.5deg)) rotateY(calc(var(--tx,0)*-2deg))}
+
+/* ---------- reveal (only things below the fold at load) ---------- */
+.rv{transition:opacity .9s cubic-bezier(.2,.7,.2,1),transform .9s cubic-bezier(.2,.7,.2,1),clip-path 1.1s cubic-bezier(.7,0,.2,1);transition-delay:var(--rd,0s)}
+.rv.pre{opacity:0;transform:translateY(46px)}
+.rv.pre.clip{opacity:1;transform:none;clip-path:inset(100% 0 0 0)}
+.rv.clip{clip-path:inset(0 0 0 0)}
+
+/* ---------- tilt cards ---------- */
+.tilt{transform:perspective(900px) rotateX(calc(var(--ty,0)*-7deg)) rotateY(calc(var(--tx,0)*9deg));transition:transform .35s ease-out,opacity .9s;transform-style:preserve-3d}
+.tilt::after{content:"";position:absolute;inset:0;background:radial-gradient(circle at calc(50% + var(--tx,0)*50%) calc(50% + var(--ty,0)*50%),rgba(255,255,255,.14),transparent 55%);pointer-events:none;opacity:var(--glare,0);transition:opacity .3s}
+
+/* ---------- gate doors ---------- */
+.gate{height:200vh;position:relative}
+.gatestage{position:sticky;top:0;height:100vh;height:100svh;overflow:hidden;perspective:1400px;display:grid;place-items:center;background:radial-gradient(ellipse at center,rgba(255,47,156,calc(var(--p,0)*.5)),var(--void) 60%)}
+.gatestage .beyond{position:absolute;text-align:center;opacity:calc(var(--p,0)*1.6 - .3);transform:scale(calc(.8 + var(--p,0)*.25))}
+.gatestage .beyond .big{font:400 clamp(70px,14vw,200px)/.8 var(--f-black);color:var(--bone);text-shadow:0 0 40px rgba(255,47,156,.6)}
+.door{position:absolute;top:0;bottom:0;width:50.5%;overflow:hidden;background:repeating-linear-gradient(90deg,transparent 0 59px,rgba(255,255,255,.025) 59px 60px),linear-gradient(180deg,#171024,#0a0612);display:grid;place-items:center;box-shadow:inset 0 0 0 1px var(--steel)}
+.door.l{left:0;transform-origin:left center;transform:rotateY(calc(var(--p,0)*var(--p,0)*80deg)) translateX(calc(var(--p,0)*-8%))}
+.door.r{right:0;transform-origin:right center;transform:rotateY(calc(var(--p,0)*var(--p,0)*-80deg)) translateX(calc(var(--p,0)*8%))}
+.door span{position:absolute;font:900 16vw/1 var(--f-sign);color:#1e142e;-webkit-text-stroke:2px #5a4380;text-shadow:0 0 40px rgba(255,47,156,.15);white-space:nowrap}
+.door.l span{right:-.02em;transform:translateX(50%)}
+.door.r span{left:-.02em;transform:translateX(-50%)}
+.door .seam{position:absolute;top:0;bottom:0;width:2px;background:var(--lava);box-shadow:0 0 30px 6px rgba(255,47,156,.6);opacity:calc(.4 + var(--p,0)*3)}
+.door.l .seam{right:0}.door.r .seam{left:0}
+.door .rivets{position:absolute;inset:6% 10%;border:1px solid #2a1d3d;outline:1px solid #1a1226;outline-offset:14px}
+
+/* ---------- train tunnel ---------- */
+.train{position:relative;overflow:hidden}
+.train::before{content:"";position:absolute;left:-100%;right:-100%;top:38%;height:22%;background:repeating-linear-gradient(90deg,transparent 0 140px,rgba(255,47,156,.25) 140px 146px,transparent 146px 300px,rgba(239,228,242,.12) 300px 302px);animation:tunnel 1.6s linear infinite;filter:blur(1px)}
+@keyframes tunnel{to{transform:translateX(300px)}}
+.skull{position:relative;animation:bob 3.2s ease-in-out infinite}
+@keyframes bob{50%{transform:translateY(-6px) rotate(-.6deg)}}
+.board{position:relative}
+
+/* ---------- reality letters ---------- */
+.big .rl{display:inline-block;opacity:var(--o,1);filter:blur(calc((1 - var(--o,1))*8px));transform:translateY(calc((1 - var(--o,1))*14px))}
+
+/* ---------- specimen scan ---------- */
+.spec figure::after{content:"";position:absolute;left:0;right:0;height:18%;top:-18%;background:linear-gradient(180deg,transparent,rgba(255,47,156,.16),transparent);animation:scan 4s linear infinite;z-index:1;pointer-events:none}
+@keyframes scan{to{top:100%}}
+.move .shot img{transform:scale(calc(1.18 - var(--q,0)*.18))}
+
+/* ---------- play ---------- */
+.play .d{animation:dspin 40s linear infinite}
+@keyframes dspin{to{transform:translate(-50%,-50%) rotate(360deg)}}
+.play .boxwrap{animation:hover 5s ease-in-out infinite;width:min(320px,70vw);margin:0 auto 34px}
+.play .boxwrap .box{margin:0;width:100%}
+@keyframes hover{50%{transform:translateY(-12px)}}
+
+/* ---------- tag the city ---------- */
+.tag{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:clamp(28px,5vw,70px);align-items:center}
+.tag .wall{position:relative;max-width:420px;width:100%;justify-self:center;transform:rotate(-2deg)}
+.tag video{width:100%;aspect-ratio:9/16;object-fit:cover;background:#3a0d1c;box-shadow:0 30px 80px rgba(0,0,0,.6),0 0 0 1px var(--steel)}
+.tag .wall::after{content:"";position:absolute;inset:auto -8% -6% -8%;height:30%;background:radial-gradient(ellipse at center,rgba(90,53,232,.35),transparent 70%);z-index:-1;filter:blur(10px)}
+.drip{position:absolute;left:12%;right:12%;top:-14px;height:14px;background:linear-gradient(var(--demon),var(--demon)) top/100% 4px no-repeat}
+.drip i{position:absolute;top:2px;width:4px;border-radius:0 0 4px 4px;background:var(--demon);animation:dripdown var(--dd,3s) ease-in infinite;animation-delay:var(--dl,0s)}
+@keyframes dripdown{0%{height:0}70%{height:var(--dh,40px)}100%{height:var(--dh,40px);opacity:0}}
+.steps{list-style:none;padding:0;margin:22px 0 0;display:grid;gap:1px;background:var(--steel);border:1px solid var(--steel)}
+.steps li{background:var(--void);padding:14px 18px;display:grid;grid-template-columns:auto 1fr;gap:4px 16px}
+.steps b{font:900 22px/1 var(--f-sign);text-transform:uppercase;color:var(--bone)}
+.steps span{grid-column:2;color:var(--ash);font-size:15px}
+.steps em{grid-row:span 2;font:900 14px/1.6 var(--f-sign);color:var(--lava);font-style:normal;letter-spacing:.1em}
+
+/* ---------- fail screens ---------- */
+.fails{display:grid;grid-template-columns:1.1fr 1fr;gap:14px;margin-top:30px;align-items:start}
+.fails figure{margin:0;position:relative;overflow:hidden;border:1px solid var(--steel)}
+.fails figure:nth-child(1){transform:rotate(-1.5deg)}
+.fails figure:nth-child(2){transform:rotate(1.8deg) translateY(24px)}
+.fails img{width:100%;transition:transform .5s}
+.fails figure:hover img{transform:scale(1.06)}
+.fails figcaption{margin-top:40px;grid-column:1/-1;color:var(--ash)}
+
+/* ---------- origin sketch ---------- */
+.sketch{position:relative;margin:48px 0 0 8px;max-width:260px;background:#efe8dc;padding:10px 10px 34px;transform:rotate(3deg);box-shadow:0 24px 60px rgba(0,0,0,.6);transition:transform .4s}
+.sketch:hover{transform:rotate(0deg) scale(1.04)}
+.sketch img{width:100%}
+.sketch figcaption{position:absolute;left:12px;bottom:10px;font:700 13px/1 var(--f-sign);letter-spacing:.18em;text-transform:uppercase;color:#3a2d4a}
+
+/* ---------- play backdrop ---------- */
+.play .kb{position:absolute;inset:-10% 0;background:url(a/keyart.webp) center 85%/cover;opacity:.22;transform:translateY(calc((var(--q,0) - .5) * -8%)) scale(1.08);filter:saturate(.9)}
+.play .kb::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,var(--void) 0%,rgba(7,4,12,.35) 40%,rgba(7,4,12,.6) 75%,var(--void) 100%)}
+.play .glow{position:absolute;left:50%;top:30%;width:min(80vw,620px);aspect-ratio:1;transform:translate(-50%,-50%);mix-blend-mode:screen;opacity:.55;pointer-events:none;-webkit-mask-image:radial-gradient(circle,#000 45%,transparent 70%);mask-image:radial-gradient(circle,#000 45%,transparent 70%)}
+.play .wrap{position:relative}
+/* ---------- lineage ---------- */
+.lineage{position:relative}
+.lrail{position:relative;height:2px;background:var(--steel);margin:38px 0 34px}
+.lrail i{position:absolute;inset:0 auto 0 0;width:calc(var(--q,0)*160%);max-width:100%;background:var(--lava);box-shadow:0 0 12px var(--lava)}
+.lrail .next{position:absolute;right:0;top:14px;color:var(--lava);animation:buzz 3s steps(1) infinite}
+.lrail b{position:absolute;top:-5px;width:12px;height:12px;border-radius:50%;background:var(--void);border:2px solid var(--lava)}
+.plates{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:clamp(18px,3vw,36px);align-items:start}
+.plate{margin:0;position:relative}
+.plate .frame{position:relative;aspect-ratio:4/5;overflow:hidden;background:var(--basalt)}
+.plate .frame img,.plate .frame video{width:100%;height:100%;object-fit:cover}
+.plate.orig .frame{background:#8fc3f2}
+.plate.orig .inset{position:absolute;right:10px;bottom:10px;width:34%;aspect-ratio:1;border-radius:50%;overflow:hidden;box-shadow:0 0 0 3px var(--void),0 10px 30px rgba(0,0,0,.5);animation:hover 4s ease-in-out infinite}
+.plate.orig .inset img{width:100%;height:100%;object-fit:cover}
+.plate.paper .frame{background:#efe8dc;padding:12px 12px 0;transform:rotate(-1.5deg);box-shadow:0 24px 60px rgba(0,0,0,.6)}
+.plate.paper .frame img{object-fit:contain;object-position:top}
+.plate figcaption{margin-top:18px}
+.plate .era{font:900 14px/1 var(--f-sign);letter-spacing:.2em;color:var(--lava)}
+.plate h3{font:900 clamp(26px,2.6vw,34px)/1 var(--f-sign);text-transform:uppercase;margin:8px 0 8px}
+.plate p{font-size:15px;color:var(--ash);margin:0}
+.plate:nth-child(2){margin-top:46px}.plate:nth-child(3){margin-top:92px}
+@media (max-width:860px){.plates{grid-template-columns:1fr}.plate:nth-child(n){margin-top:0}.lrail{display:none}}
+
+/* ---------- sound ---------- */
+.maw{display:block}
+.ctarow{display:flex;gap:12px;justify-content:center;flex-wrap:wrap}
+button.btn{border:0;cursor:pointer}
+.eq{display:inline-flex;gap:3px;align-items:flex-end;height:14px}
+.eq i{width:3px;height:30%;background:currentColor;transition:height .08s}
+.playing .eq i{animation:eqb .5s ease-in-out infinite alternate}.playing .eq i:nth-child(2){animation-delay:-.2s}.playing .eq i:nth-child(3){animation-delay:-.35s}
+@keyframes eqb{from{height:25%}to{height:100%}}
+.ost{display:grid;grid-template-columns:minmax(0,.9fr) minmax(0,1.1fr);gap:clamp(28px,5vw,70px);align-items:start}
+.deck{position:relative;border:1px solid var(--steel);background:linear-gradient(180deg,#0e0818,var(--void));padding:22px}
+.deck canvas{display:block;width:100%;height:120px}
+.deck .now{display:flex;justify-content:space-between;gap:12px;align-items:baseline;margin:16px 0 10px}
+.deck .now b{font:900 26px/1 var(--f-sign);text-transform:uppercase}
+.deck .bar{height:3px;background:var(--steel);position:relative;cursor:pointer}
+.deck .bar i{position:absolute;inset:0 auto 0 0;width:0;background:var(--lava);box-shadow:0 0 10px var(--lava)}
+.deck .ctl{display:flex;gap:10px;margin-top:18px;align-items:center}
+.ib{width:44px;height:44px;display:grid;place-items:center;border:1px solid var(--steel);background:transparent;color:var(--bone);cursor:pointer;font:700 16px/1 var(--f-sign)}
+.ib:hover{border-color:var(--lava)}
+.ib.big{width:60px;height:60px;background:var(--lava);color:#14020b;border:0;font-size:22px}
+.tracks{list-style:none;padding:0;margin:0;border-top:1px solid var(--steel)}
+.tracks li{border-bottom:1px solid var(--steel)}
+.tracks button{all:unset;box-sizing:border-box;cursor:pointer;width:100%;display:grid;grid-template-columns:42px 1fr auto;gap:14px;align-items:center;padding:14px 8px;transition:background .2s,padding .2s}
+.tracks button:hover{background:rgba(42,26,69,.35);padding-left:14px}
+.tracks button:focus-visible{outline:2px solid var(--lava)}
+.tracks .n{font:900 18px/1 var(--f-sign);color:#4b3d5e;font-variant-numeric:tabular-nums}
+.tracks .t{font:900 22px/1.1 var(--f-sign);text-transform:uppercase}
+.tracks .t small{display:block;font:500 14px/1.4 var(--f-body);text-transform:none;color:var(--ash);margin-top:2px}
+.tracks .d{font:700 14px/1 var(--f-sign);color:var(--ash);font-variant-numeric:tabular-nums}
+.tracks li.on .n,.tracks li.on .t{color:var(--lava)}
+.tracks li.slot{padding:14px 8px;display:grid;grid-template-columns:42px 1fr;gap:14px;color:#4b3d5e;font:700 14px/1.3 var(--f-sign);letter-spacing:.14em;text-transform:uppercase}
+.mini{position:fixed;z-index:65;left:max(14px,env(safe-area-inset-left,0px));bottom:calc(14px + env(safe-area-inset-bottom,0px));display:flex;align-items:center;gap:10px;padding:6px 12px 6px 6px;background:rgba(7,4,12,.9);border:1px solid var(--steel);transform:translateY(160%);transition:transform .4s cubic-bezier(.2,.7,.2,1)}
+.mini.show{transform:none}
+.mini .ib{width:36px;height:36px}
+.mini span{font:700 12px/1.2 var(--f-sign);letter-spacing:.16em;text-transform:uppercase;max-width:42vw;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+@media (max-width:860px){.ost{grid-template-columns:1fr}}
+
+@media (max-width:860px){.tag{grid-template-columns:1fr}.fails{grid-template-columns:1fr 1fr}.sketch{max-width:200px}}
+
+@media (max-width:860px){
+  .mawwrap{width:84vmin}.mawwrap,.core,.peer{margin-top:-14vh}.peer{width:20vmin}.gatestage .door span{font-size:28vw}
+  .two,.silent .two,.layer,.layer.flip,.spec{grid-template-columns:1fr}
+  .layer.flip .art{order:0}
+  .release .stage{grid-template-columns:1fr;align-content:center;gap:20px}
+  .swap{height:52vh}
+  .release .copy p{display:none}
+  .facts{grid-template-columns:1fr}
+  .gates{grid-template-columns:repeat(9,minmax(0,1fr));gap:3px}
+}
+@media (prefers-reduced-motion:reduce){
+  .gate{height:auto}.gatestage{position:relative;height:60vh}.door{display:none}.gatestage .beyond{opacity:1;transform:none}
+  .shard{display:none}.rv.pre{opacity:1;transform:none;clip-path:none}
+  *,*::before,*::after{animation:none!important;transition:none!important}
+  .hero{height:auto}.hero .stage{position:relative}
+  .maw,.peer{transform:none}.title{opacity:1;transform:none}.fall{display:none}
+  .release{height:auto}.release .stage{position:relative;height:auto;padding-block:80px}
+  .swap .b{clip-path:none}.swap .flash{display:none}
+}
+</style>
 </head>
 <body>
-  <main class="wrap">
-    <div class="intro">
-      <div class="hero">
-        <img class="hero-anim" src="logo.webp" alt="DemoBoy" width="480" height="480"/>
-        <img class="hero-still" src="logo.png" alt="DemoBoy" width="800" height="800"/>
-      </div>
-      <h1>DemoBoy: The Madness Within</h1>
-      <p class="meta">Action / Adventure · Spawn</p>
-      <p class="desc">Swing, grind, dive, and unleash beast mode across Arcadya.</p>
-      <a class="play" href="https://www.spawn.co/@anchorturtle/demoboy-the-madness-within" target="_blank" rel="noopener noreferrer">
-        <span class="material-symbols-outlined">play_arrow</span>
-        <span>Play on Spawn</span>
-      </a>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false"><defs>
+<path id="dbHead" fill-rule="evenodd" d="M35.7 16.5L30.6 19.8L26.6 23.1L22.9 26.8L20.0 30.4L15.5 37.2L12.0 44.0L10.1 48.7L9.7 50.2L9.3 51.0L8.7 54.0L8.1 55.5L8.1 56.0L7.2 58.6L7.2 59.3L6.8 60.6L6.8 61.6L6.6 61.9L6.6 63.0L6.4 63.3L6.2 66.7L6.0 67.0L6.0 83.0L6.2 83.3L6.2 84.8L6.4 85.1L6.4 86.3L6.6 86.6L6.6 87.9L6.8 88.2L7.0 90.4L8.1 94.4L8.3 96.1L8.5 96.4L8.9 98.6L9.3 99.5L9.3 100.1L9.7 101.0L9.7 101.5L11.6 107.3L12.0 108.0L13.4 112.2L16.5 119.4L21.4 129.5L27.2 139.6L31.9 147.0L36.7 153.6L43.7 161.9L47.2 165.4L51.6 169.3L55.9 172.8L61.3 176.5L66.6 179.8L72.0 182.5L75.9 184.1L83.3 186.6L84.8 186.8L86.0 187.2L88.1 187.4L88.4 187.6L89.6 187.6L89.9 187.8L92.0 188.0L92.3 188.2L107.7 188.2L108.0 188.0L108.9 188.0L110.4 187.6L111.6 187.6L111.9 187.4L112.8 187.4L113.1 187.2L114.0 187.2L115.2 186.8L115.9 186.8L122.5 184.7L128.0 182.5L134.8 179.0L144.1 172.8L148.4 169.3L153.0 165.2L156.3 161.9L160.7 156.9L164.6 151.9L171.2 142.2L174.7 136.5L178.8 129.1L184.3 117.5L188.4 107.3L190.3 101.5L190.3 101.0L190.7 100.1L190.7 99.5L191.1 98.6L191.1 98.1L191.7 96.1L191.9 94.4L193.0 90.4L193.4 86.6L193.6 86.3L193.6 84.9L193.8 84.6L193.8 83.3L194.0 83.0L194.0 67.0L193.8 66.7L193.6 63.3L193.4 63.0L193.4 61.9L193.2 61.6L193.2 60.6L193.0 60.3L192.8 58.6L191.9 56.0L191.9 55.5L191.3 54.0L190.7 51.0L190.3 50.2L189.9 48.7L188.0 44.0L185.4 38.6L183.9 36.1L180.0 30.4L176.9 26.6L173.4 23.1L169.4 19.8L164.3 16.5L161.4 15.1L158.3 13.8L154.2 12.6L153.5 12.6L151.1 12.0L150.0 12.0L149.6 11.8L143.0 11.8L142.7 12.0L142.1 12.0L139.7 13.0L138.9 13.7L138.5 14.5L138.5 16.1L138.7 16.5L140.1 17.6L143.3 18.7L148.0 20.7L152.9 24.0L156.6 27.4L159.1 30.4L162.2 35.3L164.3 39.9L165.9 45.4L165.9 46.1L166.3 47.5L166.3 48.8L166.5 49.1L166.5 55.2L166.3 55.5L166.3 57.5L166.1 57.8L166.1 58.5L165.9 58.8L165.5 60.9L164.3 64.4L162.4 68.2L159.9 71.5L157.6 73.9L156.2 74.9L154.8 75.6L153.5 75.1L152.1 74.1L150.4 72.1L147.2 69.2L143.7 66.3L140.0 63.6L134.8 60.5L129.9 58.1L126.8 56.8L119.6 54.6L119.1 54.6L116.3 53.7L113.1 53.3L112.8 53.1L111.9 53.1L111.6 52.9L110.7 52.9L110.3 52.7L109.2 52.7L108.9 52.5L107.8 52.5L107.5 52.3L106.3 52.3L106.0 52.1L94.0 52.1L93.7 52.3L89.7 52.7L89.3 52.9L88.4 52.9L88.1 53.1L87.2 53.1L86.9 53.3L83.7 53.7L83.4 54.0L80.4 54.6L79.5 55.0L79.0 55.0L78.0 55.4L77.5 55.4L70.1 58.1L61.9 62.4L58.0 65.1L50.7 71.0L47.2 74.7L46.1 75.4L45.2 75.6L43.1 74.5L39.4 70.8L37.6 68.2L35.3 63.4L33.9 58.5L33.9 57.8L33.7 57.5L33.7 55.5L33.5 55.2L33.5 48.9L33.7 48.6L33.7 47.5L33.9 47.2L33.9 46.2L34.3 45.1L34.3 44.4L35.9 39.2L38.0 34.9L40.9 30.4L43.1 27.6L47.1 24.0L52.0 20.7L56.7 18.7L59.9 17.6L60.5 17.2L61.5 16.1L61.5 14.5L60.5 13.2L59.1 12.4L57.9 12.0L57.1 12.0L56.8 11.8L50.6 11.8L50.2 12.0L48.9 12.0L48.6 12.2L47.9 12.2L47.6 12.4L46.9 12.4L46.5 12.6L44.2 13.0L38.6 15.1ZM165.7 114.1L165.9 114.6L165.9 115.5L166.1 115.8L166.1 122.3L165.9 122.6L165.9 124.3L165.7 124.6L165.7 126.0L165.5 126.3L165.5 127.2L164.9 129.4L164.9 130.1L163.0 136.1L160.1 142.2L157.7 146.2L155.0 149.5L151.1 153.4L147.4 156.0L143.9 157.9L141.2 158.9L140.7 158.9L138.7 159.5L136.6 159.7L136.3 159.5L133.1 159.5L132.8 159.3L131.4 159.1L124.9 156.6L123.4 155.8L121.0 154.0L118.9 152.9L118.4 152.4L118.4 151.7L119.1 151.2L126.8 148.5L129.8 147.1L130.1 147.1L136.1 144.0L143.3 139.5L147.6 136.2L152.7 131.6L157.0 127.0L158.4 125.2L161.1 121.0L162.9 117.5L162.9 117.2L164.4 114.3L164.9 113.7L165.2 113.7ZM34.3 114.1L34.9 113.7L35.8 114.6L37.1 117.5L38.9 121.0L41.6 125.2L44.7 129.0L49.0 133.3L52.4 136.2L57.3 139.9L63.9 144.0L71.8 147.9L75.9 149.5L80.9 151.2L81.6 151.7L81.6 152.4L81.1 152.9L78.3 154.4L76.0 156.2L74.1 157.1L68.6 159.1L68.0 159.1L66.9 159.5L63.7 159.5L63.4 159.7L62.5 159.7L62.2 159.5L61.3 159.5L60.9 159.3L59.6 159.1L56.1 157.9L52.6 156.0L49.9 154.2L48.0 152.5L45.0 149.5L42.3 146.2L39.9 142.2L37.0 136.1L35.3 130.9L35.1 129.4L34.5 127.2L34.3 124.9L34.1 124.5L34.1 122.8L33.9 122.5L33.9 115.8L34.1 115.5L34.1 114.6Z"/>
+<path id="dbEyes" d="M165.7 114.1L165.9 114.6L165.9 115.5L166.1 115.8L166.1 122.3L165.9 122.6L165.9 124.3L165.7 124.6L165.7 126.0L165.5 126.3L165.5 127.2L164.9 129.4L164.9 130.1L163.0 136.1L160.1 142.2L157.7 146.2L155.0 149.5L151.1 153.4L147.4 156.0L143.9 157.9L141.2 158.9L140.7 158.9L138.7 159.5L136.6 159.7L136.3 159.5L133.1 159.5L132.8 159.3L131.4 159.1L124.9 156.6L123.4 155.8L121.0 154.0L118.9 152.9L118.4 152.4L118.4 151.7L119.1 151.2L126.8 148.5L129.8 147.1L130.1 147.1L136.1 144.0L143.3 139.5L147.6 136.2L152.7 131.6L157.0 127.0L158.4 125.2L161.1 121.0L162.9 117.5L162.9 117.2L164.4 114.3L164.9 113.7L165.2 113.7ZM34.3 114.1L34.9 113.7L35.8 114.6L37.1 117.5L38.9 121.0L41.6 125.2L44.7 129.0L49.0 133.3L52.4 136.2L57.3 139.9L63.9 144.0L71.8 147.9L75.9 149.5L80.9 151.2L81.6 151.7L81.6 152.4L81.1 152.9L78.3 154.4L76.0 156.2L74.1 157.1L68.6 159.1L68.0 159.1L66.9 159.5L63.7 159.5L63.4 159.7L62.5 159.7L62.2 159.5L61.3 159.5L60.9 159.3L59.6 159.1L56.1 157.9L52.6 156.0L49.9 154.2L48.0 152.5L45.0 149.5L42.3 146.2L39.9 142.2L37.0 136.1L35.3 130.9L35.1 129.4L34.5 127.2L34.3 124.9L34.1 124.5L34.1 122.8L33.9 122.5L33.9 115.8L34.1 115.5L34.1 114.6Z"/>
+</defs></svg>
+<a class="home" href="https://anchorturtle.com" target="_blank" rel="noopener" aria-label="Home: anchorturtle.com">
+  <svg viewBox="0 0 200 200" aria-hidden="true"><use href="#dbEyes" class="heye" fill="#c22a7e"/><use href="#dbHead" fill="#5a35e8"/></svg>
+  <span><small>Home</small>anchorturtle.com</span>
+</a>
+<nav class="gauge" id="gauge" aria-hidden="true">
+  <ol id="ticks"><li>Surface</li><li>I</li><li>II</li><li>III</li><li>IV</li><li>V</li><li>VI</li><li>VII</li><li>VIII</li><li>IX</li></ol>
+  <div class="rail"><div class="bead"></div></div>
+  <div class="read" id="read">Surface</div>
+</nav>
+
+<!-- 1. THE MAW -->
+<section class="hero scrub" id="top" data-layer="Surface" data-tick="0">
+  <div class="stage">
+    <div class="hint eyebrow">Scroll to fall in</div>
+    <div class="shard" style="--l:8%;--t:18%;--w:9vmin;--z:0.9;--dx:-1;--dy:-0.7;--cp:polygon(89% 61%,76% 89%,22% 83%,25% 21%,53% 9%);--fd:7.2s"><i></i></div><div class="shard" style="--l:82%;--t:14%;--w:7vmin;--z:0.6;--dx:1;--dy:-0.8;--cp:polygon(92% 39%,61% 93%,31% 80%,14% 48%,22% 17%,62% 11%);--fd:8.7s"><i></i></div><div class="shard" style="--l:14%;--t:62%;--w:6vmin;--z:0.4;--dx:-1;--dy:0.5;--cp:polygon(95% 52%,73% 87%,25% 77%,18% 20%,66% 11%);--fd:8.7s"><i></i></div><div class="shard" style="--l:88%;--t:58%;--w:10vmin;--z:1;--dx:1;--dy:0.4;--cp:polygon(99% 49%,65% 86%,18% 84%,13% 35%,62% 12%);--fd:8.2s"><i></i></div><div class="shard" style="--l:26%;--t:8%;--w:4vmin;--z:0.25;--dx:-0.4;--dy:-1;--cp:polygon(90% 41%,44% 87%,14% 50%,55% 4%);--fd:8.9s"><i></i></div><div class="shard" style="--l:70%;--t:78%;--w:5vmin;--z:0.35;--dx:0.6;--dy:1;--cp:polygon(90% 46%,65% 95%,27% 78%,10% 29%,52% 4%);--fd:7.5s"><i></i></div><div class="shard" style="--l:4%;--t:40%;--w:5vmin;--z:0.5;--dx:-1;--dy:0;--cp:polygon(90% 45%,64% 82%,32% 83%,15% 58%,37% 15%,65% 12%);--fd:10.4s"><i></i></div><div class="shard" style="--l:94%;--t:34%;--w:4vmin;--z:0.3;--dx:1;--dy:-0.2;--cp:polygon(90% 42%,55% 87%,7% 52%,56% 1%);--fd:9.4s"><i></i></div><div class="shard" style="--l:40%;--t:86%;--w:7vmin;--z:0.8;--dx:-0.2;--dy:1;--cp:polygon(86% 60%,75% 79%,35% 90%,11% 48%,20% 22%,69% 11%);--fd:10.8s"><i></i></div><div class="shard" style="--l:60%;--t:4%;--w:5vmin;--z:0.45;--dx:0.3;--dy:-1;--cp:polygon(98% 49%,38% 94%,9% 49%,47% 8%);--fd:8.0s"><i></i></div>
+    <div class="core"></div>
+    <div class="mawwrap"><div class="maw-spin"><canvas class="maw" id="mawc" width="640" height="640" aria-hidden="true"></canvas></div></div>
+    <canvas class="vortex" id="vortex" aria-hidden="true"></canvas>
+    <svg class="peer" viewBox="0 0 200 200" aria-hidden="true">
+      <defs><filter id="g1" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="3" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs>
+      <use href="#dbEyes" fill="#050309"/>
+      <g id="peyes"><g class="peye" filter="url(#g1)"><use href="#dbEyes" fill="#ff2f9c"/></g></g>
+      <use href="#dbHead" fill="#08050f" stroke="#3b2470" stroke-width="1.2"/>
+    </svg>
+    <div class="vignette"></div>
+    <div class="title">
+      <h1>DemoBoy</h1>
+      <div class="sub">The Madness Within</div>
+      <div class="ctarow"><a class="btn" href="https://www.spawn.co/@anchorturtle/demoboy-the-madness-within/play" target="_blank" rel="noopener">Play now on Spawn <span aria-hidden="true">→</span></a>
+      <button class="btn ghost snd" type="button" data-snd aria-pressed="false"><span class="eq" aria-hidden="true"><i></i><i></i><i></i></span><span class="sndt">Sound on</span></button></div>
     </div>
+    <div class="fall"></div>
+  </div>
+</section>
 
-    <section class="section">
-      <h2>Gear</h2>
-      <figure class="card feature">
-        <img src="img/gear-cover.webp" width="1600" height="900" alt="DemoBoy gear screen: a neon outline of DemoBoy with every gear slot called out around him" loading="lazy" decoding="async"/>
-        <figcaption><b>Gear screen</b>Every slot, one look: the Spectral Cannon, the ghost anchor and the rest of his kit.</figcaption>
-      </figure>
-    </section>
-
-    <section class="section">
-      <h2>Key art</h2>
-      <div class="grid two">
-        <figure class="card">
-          <img src="img/keyart-cloud-sea.webp" width="1280" height="720" alt="DemoBoy standing above the cloud sea with the hell city glowing below" loading="lazy" decoding="async"/>
-          <figcaption><b>Above the clouds</b>Arcadya's cloud sea, with the hell city burning below.</figcaption>
-        </figure>
-        <figure class="card">
-          <img src="img/keyart-wide.webp" width="1280" height="720" alt="Wide cinematic view of DemoBoy at the edge of a cloud waterfall over the hell city" loading="lazy" decoding="async"/>
-          <figcaption><b>The edge</b>One small figure, one very long drop.</figcaption>
-        </figure>
-      </div>
-    </section>
-
-    <section class="section">
-      <h2>Turnarounds</h2>
-      <div class="grid two">
-        <figure class="card">
-          <img src="img/beast-turnaround.webp" width="1280" height="808" alt="Beast Mode DemoBoy turnaround: front, side and back" loading="lazy" decoding="async"/>
-          <figcaption><b>Beast Mode</b>Front, side and back.</figcaption>
-        </figure>
-        <figure class="card">
-          <img src="img/beast-tiedye-heads.webp" width="1100" height="1169" alt="Tie-dye beast head from four angles" loading="lazy" decoding="async"/>
-          <figcaption><b>Tie-dye beast</b>Head study from four angles.</figcaption>
-        </figure>
-      </div>
-      <figure class="card" style="margin-top:12px">
-        <img src="img/original-concept.webp" width="1600" height="486" alt="The original DemoBoy concept sketches, turned around" loading="lazy" decoding="async"/>
-        <figcaption><b>Original concept</b>Where he started: horns, tail and the pink tee.</figcaption>
-      </figure>
-    </section>
-
-    <div class="cta-row">
-      <a class="play" href="https://www.spawn.co/@anchorturtle/demoboy-the-madness-within" target="_blank" rel="noopener noreferrer">
-        <span class="material-symbols-outlined">play_arrow</span>
-        <span>Play on Spawn</span>
-      </a>
+<!-- 2. ARCADYA -->
+<section class="chapter arcadya par" data-layer="Arcadya" data-tick="0">
+  <div class="pan"><img src="a/arcadya.webp" alt="DemoBoy swings on a spectral chain over Arcadya's fuchsia lava falls, a train crossing the bridge behind him." width="1500" height="500" loading="lazy">
+    <div class="fog"></div><svg class="spires" id="spires" viewBox="0 0 1500 300" preserveAspectRatio="none" aria-hidden="true"></svg>
+    <div class="ash" id="ash"></div></div>
+  <div class="wrap two">
+    <div>
+      <div class="eyebrow">Arcadya · a dead megacity in the purple nether</div>
+      <h2 class="neon" data-live="3">He came home</h2>
+      <p>DemoBoy left Arcadya once. He doesn't remember why. Now the city is black basalt and violet steel, wet asphalt over fuchsia lava, and nearly every neon sign has gone out.</p>
+      <p>Someone wants him back. She says it's to look for clues.</p>
     </div>
-    <p style="text-align:center;margin:0"><a class="home" href="/">AnchorTurtle</a></p>
-  </main>
+    <div>
+      <div class="quote"><q>There's no time to explain...</q><span class="eyebrow">Angela, the angel</span></div>
+      <p style="margin-top:26px;color:var(--ash)">Trust her if you like. Most people do.</p>
+    </div>
+  </div>
+</section>
+
+<!-- 3. THE SILENT ONE -->
+<section class="chapter silent" data-layer="Arcadya" data-tick="0">
+  <div class="wrap two">
+    <div class="headbox" id="headbox">
+      <div class="halo"></div>
+      <svg viewBox="0 0 200 200" role="img" aria-label="DemoBoy's face. His pink eyes follow your pointer.">
+        <defs>
+          <radialGradient id="skin" cx="38%" cy="28%" r="80%"><stop offset="0" stop-color="#7d5cff"/><stop offset=".55" stop-color="#4a2ad0"/><stop offset="1" stop-color="#1e0f63"/></radialGradient>
+          <filter id="rim" x="-20%" y="-20%" width="140%" height="140%"><feGaussianBlur stdDeviation="1.6" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+          <filter id="g2" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="2.4" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+        </defs>
+        <g id="headg">
+          <use href="#dbEyes" fill="#0a0613"/>
+          <g id="eyes" filter="url(#g2)"><use href="#dbEyes" fill="#ff2f9c"/></g>
+          <use href="#dbHead" fill="url(#skin)"/>
+          <use href="#dbHead" fill="none" stroke="#d9ccff" stroke-width="1.3" opacity=".75" filter="url(#rim)"/>
+        </g>
+      </svg>
+    </div>
+    <div>
+      <div class="eyebrow">The hero</div>
+      <h2 class="neon" data-live="0">Not a word</h2>
+      <p>DemoBoy is a blue demon with no mouth. He has no lines and he never will. Everything he feels comes through his eyes, his posture, his tail and the way he moves.</p>
+      <p>He's watching you right now.</p>
+      <ul class="facts">
+        <li><b>Eyes</b><span>Pink. The only light he carries.</span></li>
+        <li><b>Outfit</b><span>Tie-dye shirt, shorts, beat-up kicks.</span></li>
+        <li><b>Tail</b><span>Says what he won't.</span></li>
+        <li><b>Memory</b><span>Missing, around the part where he left.</span></li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<!-- 4. DARK RELEASE -->
+<section class="release scrub" data-layer="Dark release" data-tick="0">
+  <div class="stage">
+    <div class="swap">
+      <img class="a" src="a/crowd.webp" alt="DemoBoy standing in his tie-dye shirt among a crowd holding blank signs." width="900" height="1350" loading="lazy">
+      <img class="b" src="a/beast.webp" alt="DemoBoy in beast form: wings, claws, hooves, torn tie-dye." width="440" height="740" loading="lazy">
+      <div class="flash"></div>
+    </div>
+    <div class="copy">
+      <div class="eyebrow">Beast mode</div>
+      <h2>Dark release</h2>
+      <p>Hold it long enough and it comes out. Wings, claws, hooves. It isn't a power-up. It's what was underneath the whole time.</p>
+      <div class="meter"><i></i></div>
+      <div class="state eyebrow"><span>Holding</span><span>Released</span></div>
+    </div>
+  </div>
+</section>
+
+<!-- GATE -->
+<section class="gate scrub" data-layer="Gate I" data-tick="1" aria-label="Gate one opens">
+  <div class="gatestage">
+    <div class="beyond"><div class="eyebrow">Layer one</div><div class="big">Gate I</div></div>
+    <div class="door l"><div class="rivets"></div><span>I</span><div class="seam"></div></div>
+    <div class="door r"><div class="rivets"></div><span>I</span><div class="seam"></div></div>
+  </div>
+</section>
+
+<!-- 5. THE DESCENT -->
+<section class="chapter descent" style="padding-top:clamp(60px,10vh,120px)">
+  <div class="wrap">
+    <div class="eyebrow">The descent</div>
+    <h2 class="neon" data-live="5">Nine gates down</h2>
+    <p>Arcadya is built in layers, and each one goes deeper than the last. Two are open now.</p>
+
+    <article class="layer par" data-layer="Layer I" data-tick="1">
+      <div class="art tilt"><img src="a/cathedral.webp" alt="DemoBoy in a cathedral of stained glass, surrounded by a crowd holding up signs." width="832" height="1060" loading="lazy"></div>
+      <div>
+        <div class="num">I</div>
+        <div class="eyebrow">Layer one · the do-nothings</div>
+        <div class="sign">Hell is fine.</div>
+        <p>The people who did nothing and said nothing are still here. They protest with signs that say everything is fine. They worship the subway that takes them to work.</p>
+      </div>
+    </article>
+
+    <article class="layer flip par" data-layer="Layer II" data-tick="2">
+      <div class="art train tilt">
+        <svg class="skull" viewBox="0 0 400 260" role="img" aria-label="The Serpent Train's bone face, with empty eye sockets.">
+          <defs><linearGradient id="bone" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#e9dcee"/><stop offset="1" stop-color="#8b7a99"/></linearGradient></defs>
+          <path fill="url(#bone)" d="M40 150 C40 70 120 30 200 30 C280 30 360 70 360 150 L340 190 L300 200 L290 240 L250 222 L232 248 L200 228 L168 248 L150 222 L110 240 L100 200 L60 190Z"/>
+          <path fill="#07040c" d="M88 120 C100 88 150 84 172 116 C160 150 110 158 88 120Z"/>
+          <path fill="#07040c" d="M312 120 C300 88 250 84 228 116 C240 150 290 158 312 120Z"/>
+          <path fill="#07040c" d="M190 150 L200 172 L210 150Z"/>
+          <path fill="none" stroke="#5e4b70" stroke-width="2" d="M120 200 L280 200 M140 200 L140 214 M170 200 L170 220 M200 200 L200 222 M230 200 L230 220 M260 200 L260 214"/>
+          <path fill="none" stroke="#5e4b70" stroke-width="3" d="M200 30 L200 70 M140 40 L150 66 M260 40 L250 66"/>
+        </svg>
+        <div class="board" aria-live="off">
+          <div><span>Grand Central · Lower track</span><span>Due</span></div>
+          <div><span>Serpent</span><span class="t" id="due">66:00</span></div>
+          <div class="dim"><span>Waiting</span><span>Mikey · Sean · Brooks</span></div>
+        </div>
+      </div>
+      <div>
+        <div class="num">II</div>
+        <div class="eyebrow">Layer two · the metro</div>
+        <h3 class="tagline">The <em>Serpent</em> Train</h3>
+        <p>A bone locomotive shaped like a snake. It runs for the war machine. Its eye sockets are empty because there is no soul in there to look at you with.</p>
+        <p>Three soldiers have been waiting 66 minutes on the lower track while the demons file out to work. Someone is coming in on that train to start the mission.</p>
+      </div>
+    </article>
+
+    <div class="layer" style="grid-template-columns:1fr" data-layer="Gates III–IX" data-tick="3">
+      <div>
+        <div class="eyebrow">Gates III to IX</div>
+        <div class="gates" aria-label="Gates one and two open, three to nine sealed"><span class="open">I</span><span class="open">II</span><span>III</span><span>IV</span><span>V</span><span>VI</span><span>VII</span><span>VIII</span><span>IX</span></div>
+        <p style="margin-top:18px;color:var(--ash)">Sealed. Further down: five super soldiers on the needle, the things they carry with them, and a doctor in cleric's robes.</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="reality" data-layer="The bottom" data-tick="9">
+    <div class="wrap">
+      <div class="eyebrow">The Priest-Doctor</div>
+      <div class="big" id="reality">this is reality.</div>
+      <p>Calm voice. Clean hands. Syringes full of something a machine designed to put you to sleep. He's not a monster. He's following the procedure.</p>
+      <p style="color:var(--ash)">The devil was man-made.</p>
+    </div>
+  </div>
+</section>
+
+<!-- 6. MOVEMENT -->
+<section class="chapter move" data-layer="Movement" data-tick="0">
+  <div class="wrap two">
+    <div>
+      <div class="eyebrow">How it plays</div>
+      <h2 class="neon" data-live="2">Keep moving</h2>
+      <p class="tagline">Skill is <em>movement</em>,<br>not stats.</p>
+      <figure class="shot rv clip" style="margin:0"><img src="a/ingame.webp" alt="In-game: DemoBoy standing in a glowing pink summoning circle on dark gravel." width="1000" height="623" loading="lazy"><figcaption class="eyebrow">In game, current build</figcaption></figure>
+    </div>
+    <ul class="moves">
+      <li><i></i><b>Spectral chain grapple</b><small>Hook, swing, let go at the top.</small></li>
+      <li><i></i><b>Hover disc</b><small>Board the streets. Carry your speed.</small></li>
+      <li><i></i><b>Rail grinding</b><small>Every rail in Arcadya is a route.</small></li>
+      <li><i></i><b>Spectral cannon</b><small>Silver forearm cannon. The ghost on the end swaps: anchor, pitchfork saber, cyclops eye.</small></li>
+      <li><i></i><b>Gravity hammer</b><small>For when the turtles won't move.</small></li>
+      <li><i></i><b>Beast mode</b><small>Wings. Dark release.</small></li>
+    </ul>
+  </div>
+  <div class="wrap">
+    <div class="fails">
+      <figure class="tilt"><img src="a/loser.webp" alt="In-game: a LOSER banner over DemoBoy after a miss." width="720" height="579" loading="lazy"></figure>
+      <figure class="tilt"><img src="a/aww.webp" alt="In-game: an Awww... banner over DemoBoy lying flat on the asphalt." width="720" height="450" loading="lazy"></figure>
+      <figcaption class="eyebrow">Miss, and Arcadya lets you know</figcaption>
+    </div>
+  </div>
+</section>
+
+<!-- TAG THE CITY -->
+<section class="chapter" data-layer="The walls" data-tick="0">
+  <div class="wrap tag">
+    <div>
+      <div class="eyebrow">Spray can · in game</div>
+      <h2 class="neon" data-live="6">Say something</h2>
+      <p>He has no mouth, so the walls do the talking. The can rides in his tail, and moving fast keeps it pressurized.</p>
+      <ol class="steps">
+        <li><em>01</em><b>Mark</b><span>A quick tag. His eyes, over the blank eyes on the propaganda.</span></li>
+        <li><em>02</em><b>Piece</b><span>A full wall, one layer per pass. The cleaner your run, the better the signature.</span></li>
+      </ol>
+    </div>
+    <div class="wall">
+      <div class="drip" id="drip"></div>
+      <video id="tagv" src="a/tag.mp4" poster="a/tag.webp" muted loop playsinline preload="none" aria-label="In-game footage: DemoBoy's face being spray painted in blue on a red brick wall."></video>
+    </div>
+  </div>
+</section>
+
+<!-- 7. SPECIMEN -->
+<section class="chapter" data-layer="Specimen" data-tick="0">
+  <div class="wrap spec">
+    <figure>
+      <div class="rec eyebrow">Specimen · rotation</div>
+      <video id="spec" src="a/specimen.mp4" poster="a/specimen.webp" muted loop playsinline preload="none" aria-label="A shadow of DemoBoy turning slowly, arms out, tail visible."></video>
+    </figure>
+    <div>
+      <div class="eyebrow">Recovered file</div>
+      <h2 class="neon" data-live="1">Subject</h2>
+      <dl>
+        <dt>Designation</dt><dd>DemoBoy</dd>
+        <dt>Origin</dt><dd>Arcadya</dd>
+        <dt>Speech</dt><dd>None observed</dd>
+        <dt>Response</dt><dd>Eyes, posture, tail</dd>
+        <dt>Sedation</dt><dd>Not yet successful</dd>
+      </dl>
+    </div>
+  </div>
+</section>
+
+<!-- LINEAGE -->
+<section class="chapter lineage par" data-layer="Origins" data-tick="0">
+  <div class="wrap">
+    <div class="eyebrow">Why he's called DemoBoy</div>
+    <h2 class="neon" data-live="8">Never finished</h2>
+    <p>DemoBoy is always in some reform or test build. He's never quite done, and that's the name. Every build is a demo of the next one, and every one gets better.</p>
+    <div class="lrail"><i></i><b style="left:0"></b><b style="left:calc(50% - 6px)"></b><b style="right:0"></b><span class="next eyebrow">Next build →</span></div>
+    <div class="plates">
+      <figure class="plate orig rv tilt">
+        <div class="frame"><video id="origv" src="a/orig.mp4" poster="a/orig.webp" muted loop playsinline preload="none" aria-label="The original DemoBoy turning on a light blue background: purple skin, pink shirt, green shorts, white sneakers."></video>
+          <div class="inset"><img src="a/orighead.webp" alt="The original DemoBoy head: glossy purple, curved horns, white crescent eyes." width="640" height="640" loading="lazy"></div></div>
+        <figcaption><div class="era">Build 01 · The original</div><h3>DemoBoy</h3><p>Glossy purple, pink tee, green shorts. The first demo.</p></figcaption>
+      </figure>
+      <figure class="plate paper rv tilt" style="--rd:.12s">
+        <div class="frame"><img src="a/sketch.webp" alt="Hand-drawn sketch: a silent black-headed demon in a red shirt and blue shorts, crouched on a rope, tail curling up." width="700" height="809" loading="lazy"></div>
+        <figcaption><div class="era">Build 02 · First sketch of this version</div><h3>The silent hell diver</h3><p>Pen and marker. No mouth, a tail, a rope down. The rebuild starts here.</p></figcaption>
+      </figure>
+      <figure class="plate rv tilt" style="--rd:.24s">
+        <div class="frame"><img src="a/head.webp" alt="DemoBoy now: violet head, black mask, pink eyes, in a red-lit cathedral." width="900" height="742" loading="lazy" style="object-position:50% 30%"></div>
+        <figcaption><div class="era">Build 03 · Current, still in test</div><h3>The Madness Within</h3><p>Back in Arcadya. Same horns, no words. Not finished. Never will be.</p></figcaption>
+      </figure>
+    </div>
+  </div>
+</section>
+
+<!-- SOUNDTRACK -->
+<section class="chapter" id="ost" data-layer="Soundtrack" data-tick="0">
+  <div class="wrap ost">
+    <div>
+      <div class="eyebrow">Original soundtrack · instrumental</div>
+      <h2 class="neon" data-live="5">Soundtrack</h2>
+      <p>Turn it on and the maw keeps time. Four teeth tick at once, spread around the ring, stepping clockwise on the beat like the escapement in a clock.</p>
+      <div class="deck">
+        <canvas id="scope" aria-hidden="true"></canvas>
+        <div class="now"><b id="nowt">Test signal</b><span class="eyebrow" id="nowd">0:00</span></div>
+        <div class="bar" id="seek" role="slider" aria-label="Track position" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" tabindex="0"><i id="seekf"></i></div>
+        <div class="ctl">
+          <button class="ib" type="button" id="prev" aria-label="Previous track">⏮</button>
+          <button class="ib big" type="button" data-snd aria-label="Play or pause" aria-pressed="false"><span class="pp">▶</span></button>
+          <button class="ib" type="button" id="next" aria-label="Next track">⏭</button>
+        </div>
+      </div>
+    </div>
+    <div>
+      <ol class="tracks" id="tracks"></ol>
+    </div>
+  </div>
+</section>
+
+<!-- 8. PLAY -->
+<section class="play par" id="play" data-layer="Surface" data-tick="0">
+  <div class="kb" aria-hidden="true"></div>
+  <video class="glow" id="glowv" src="a/glowhead.mp4" poster="a/glowhead.webp" muted loop playsinline preload="none" aria-hidden="true"></video>
+  <div class="wrap">
+    <div class="boxwrap"><img class="box" id="box" src="a/cover.webp" alt="DemoBoy box art: DemoBoy mid-swing in front of a giant maw over a ruined city." width="720" height="1003" loading="lazy"></div>
+    <div class="eyebrow">Playable now</div>
+    <h2 class="neon" data-live="4">Go back down</h2>
+    <div class="row">
+      <a class="btn" href="https://www.spawn.co/@anchorturtle/demoboy-the-madness-within/play" target="_blank" rel="noopener">Play now on Spawn <span aria-hidden="true">→</span></a>
+      <a class="btn ghost" href="#top">Fall in again</a>
+    </div>
+  </div>
+</section>
+<div class="mini" id="mini"><button class="ib" type="button" data-snd aria-label="Play or pause" aria-pressed="false"><span class="pp">▶</span></button><span id="minit">Test signal</span></div>
+<footer><div class="wrap"><span>DemoBoy: The Madness Within · an original game by anchorturtle · always in test</span><span>Built on Spawn</span></div></footer>
+
+<script>
+(()=>{
+const RM=matchMedia('(prefers-reduced-motion: reduce)').matches;
+const scrubs=[...document.querySelectorAll('.scrub')];
+const pars=[...document.querySelectorAll('.par')];
+const layers=[...document.querySelectorAll('[data-layer]')];
+const gauge=document.getElementById('gauge'),read=document.getElementById('read'),ticks=[...document.querySelectorAll('#ticks li')];
+const cl=(v,a=0,b=1)=>v<a?a:v>b?b:v;
+
+/* split neon headings into letters; pick which ones survive */
+document.querySelectorAll('.neon').forEach(h=>{
+  const live=+h.dataset.live;let i=0;
+  h.innerHTML=h.textContent.split(' ').map(w=>'<span style="white-space:nowrap">'+[...w].map(c=>`<span class="l${i===live?' live':''}" style="--d:${(i++*0.06).toFixed(2)}s">${c}</span>`).join('')+'</span>').join(' ');
+});
+const io=new IntersectionObserver(es=>es.forEach(e=>{if(e.isIntersecting){e.target.classList.add('lit');io.unobserve(e.target)}}),{threshold:.6});
+if(!RM)document.querySelectorAll('.neon').forEach(h=>io.observe(h));
+
+/* reality: letters surface one by one, calmly */
+const realEl=document.getElementById('reality');const realL=[];
+realEl.innerHTML=[...realEl.textContent].map(c=>c===' '?' ':'<span class="rl">'+c+'</span>').join('');
+realEl.querySelectorAll('.rl').forEach(e=>realL.push(e));
+
+/* scroll: one pass per frame */
+let tick=false;
+function frame(){
+  tick=false;const vh=innerHeight;
+  if(!RM){
+    for(const s of scrubs){const r=s.getBoundingClientRect();if(r.bottom<0||r.top>vh)continue;s.style.setProperty('--p',cl(-r.top/(r.height-vh)).toFixed(4))}
+    for(const s of pars){const r=s.getBoundingClientRect();if(r.bottom<0||r.top>vh)continue;s.style.setProperty('--q',cl((vh-r.top)/(vh+r.height)).toFixed(4))}
+  }
+  if(!RM&&realL.length){const r=realEl.getBoundingClientRect();if(r.top<vh&&r.bottom>0){const pr=cl((vh*.9-r.top)/(vh*.55)),n=realL.length;realL.forEach((e,i)=>e.style.setProperty('--o',cl((pr*(n+6)-i)/6).toFixed(3)))}}
+  const doc=document.documentElement,g=cl(scrollY/(doc.scrollHeight-vh));
+  gauge.style.setProperty('--g',g.toFixed(4));gauge.classList.toggle('on',scrollY>vh*.6);
+  let cur=layers[0];for(const l of layers){if(l.getBoundingClientRect().top<vh*.5)cur=l}
+  if(read.textContent!==cur.dataset.layer)read.textContent=cur.dataset.layer;
+  ticks.forEach((t,i)=>t.classList.toggle('here',i===+cur.dataset.tick));
+}
+addEventListener('scroll',()=>{if(!tick){tick=true;requestAnimationFrame(frame)}},{passive:true});
+addEventListener('resize',frame);frame();
+
+/* ash drifting over Arcadya */
+const ash=document.getElementById('ash');
+if(!RM)for(let i=0;i<18;i++){const e=document.createElement('i');e.style.left=Math.random()*100+'%';e.style.setProperty('--x',(Math.random()*80-40)+'px');e.style.animationDuration=(7+Math.random()*9)+'s';e.style.animationDelay=(-Math.random()*12)+'s';ash.appendChild(e)}
+
+/* his eyes follow you. he blinks. he never speaks. */
+const eyes=document.getElementById('eyes'),head=document.getElementById('headg'),box=document.getElementById('headbox');
+let tx=0,ty=0,ex=0,ey=0,hx=0,hy=0,lastMove=0,blink=0,visible=false,raf=0;
+new IntersectionObserver(([e])=>{visible=e.isIntersecting;if(visible&&!raf)raf=requestAnimationFrame(look)}).observe(box);
+addEventListener('pointermove',e=>{
+  const r=box.getBoundingClientRect(),cx=r.left+r.width/2,cy=r.top+r.height*.6;
+  const dx=e.clientX-cx,dy=e.clientY-cy,d=Math.hypot(dx,dy)||1,m=Math.min(1,d/400);
+  tx=dx/d*m;ty=dy/d*m;lastMove=performance.now();
+},{passive:true});
+let nextBlink=performance.now()+2500;
+function look(t){
+  if(!visible){raf=0;return}
+  if(t-lastMove>2600){const k=t/1000;tx=Math.sin(k*.7)*.8;ty=Math.sin(k*.43)*.3}
+  const s=RM?1:.12;ex+=(tx-ex)*s;ey+=(ty-ey)*s;hx+=(tx-hx)*s*.5;hy+=(ty-hy)*s*.5;
+  if(t>nextBlink){blink=t;nextBlink=t+2200+Math.random()*3800}
+  const b=t-blink<160?Math.abs(Math.sin((t-blink)/160*Math.PI)):0;
+  eyes.setAttribute('transform',`translate(${(ex*5).toFixed(2)} ${(ey*3.5).toFixed(2)}) translate(0 139.6) scale(1 ${(1-b*.92).toFixed(3)}) translate(0 -139.6)`);
+  head.setAttribute('transform',`translate(${(hx*5).toFixed(2)} ${(hy*3).toFixed(2)}) rotate(${(hx*4).toFixed(2)} 100 110)`);
+  raf=requestAnimationFrame(look);
+}
+
+/* ---------- depth: hero pointer parallax + vortex ---------- */
+const hero=document.getElementById('top'),stage=hero.querySelector('.stage'),peyes=document.getElementById('peyes');
+const cv=document.getElementById('vortex'),cx2=cv.getContext('2d');
+let heroOn=true,hraf=0,ptx=0,pty=0,px=0,py=0,W=0,H=0,CX=0,CY=0,R=0,last=0;
+const DPR=Math.min(devicePixelRatio||1,1.5);
+function size(){const r=stage.getBoundingClientRect();W=r.width;H=r.height;cv.width=W*DPR;cv.height=H*DPR;const m=stage.querySelector('.mawwrap').getBoundingClientRect();CX=m.left-r.left+m.width/2;CY=m.top-r.top+m.height/2;R=Math.max(W,H)*.62}
+const parts=[];for(let i=0;i<150;i++)parts.push({a:Math.random()*6.283,r:Math.random(),z:Math.random(),c:Math.random()<.78});
+parts.forEach(p=>p.r=40+p.r*600);
+addEventListener('pointermove',e=>{ptx=(e.clientX/innerWidth-.5)*2;pty=(e.clientY/innerHeight-.5)*2},{passive:true});
+new IntersectionObserver(([e])=>{heroOn=e.isIntersecting;if(heroOn&&!hraf){last=performance.now();hraf=requestAnimationFrame(heroLoop)}}).observe(hero);
+addEventListener('resize',size);size();
+function heroLoop(t){
+  if(!heroOn){hraf=0;return}
+  const dt=Math.min(.05,(t-last)/1000);last=t;
+  px+=(ptx-px)*.06;py+=(pty-py)*.06;
+  stage.style.setProperty('--px',px.toFixed(3));stage.style.setProperty('--py',py.toFixed(3));
+  peyes.setAttribute('transform',`translate(${(px*5).toFixed(2)} ${(py*4).toFixed(2)})`);
+  const p=+hero.style.getPropertyValue('--p')||0;
+  cx2.setTransform(DPR,0,0,DPR,0,0);cx2.clearRect(0,0,W,H);cx2.globalCompositeOperation='lighter';
+  const cx=CX-px*14,cy=CY-py*10,out=p>.35,rush=out?(p-.35)*3.5:0;
+  for(const q of parts){
+    const ox=cx+Math.cos(q.a)*q.r,oy=cy+Math.sin(q.a)*q.r*.9;
+    if(!out){q.r-=(18+2600/(q.r+20))*(.4+q.z)*dt;q.a+=(.25+60/(q.r+30))*dt}
+    else{q.r+=(200+q.r*3.2)*rush*(.5+q.z)*dt;q.a+=.2*dt}
+    if(q.r<14||q.r>R*1.6){q.r=out?20+Math.random()*80:R*(.7+Math.random()*.5);q.a=Math.random()*6.283;continue}
+    const x=cx+Math.cos(q.a)*q.r,y=cy+Math.sin(q.a)*q.r*.9;
+    const fade=Math.min(1,(q.r-14)/90)*Math.min(1,(R*1.5-q.r)/(R*.5));
+    cx2.strokeStyle=q.c?`rgba(255,47,156,${(.25+q.z*.6)*fade})`:`rgba(239,228,242,${(.2+q.z*.4)*fade})`;
+    cx2.lineWidth=.6+q.z*1.8;cx2.beginPath();cx2.moveTo(ox,oy);cx2.lineTo(x,y);cx2.stroke();
+  }
+  drawMaw(t);
+  hraf=requestAnimationFrame(heroLoop);
+}
+if(RM){cv.remove()}
+
+/* ================= SOUND + TEETH =================
+   TRACKS: add real files here once they're published beside the page, e.g.
+   {title:'Track name', note:'', src:'a/music/01-track.mp3'}
+   The generated test signal stays as track 00 until then. */
+const TRACKS=[
+  {title:'Test signal',note:'Generated live in your browser. Real tracks replace it.',synth:true,bpm:96}
+];
+const TEETH={"c":[319.0,316.2],"t":[{"sx":0,"sy":96,"w":68,"h":51,"x":139,"y":248,"a":-2.853,"r":155.6},{"sx":312,"sy":0,"w":66,"h":67,"x":161,"y":212,"a":-2.615,"r":146.9},{"sx":196,"sy":0,"w":59,"h":72,"x":186,"y":180,"a":-2.34,"r":146.9},{"sx":153,"sy":0,"w":41,"h":72,"x":226,"y":157,"a":-2.094,"r":146.0},{"sx":36,"sy":0,"w":33,"h":71,"x":263,"y":151,"a":-1.844,"r":139.9},{"sx":0,"sy":0,"w":34,"h":94,"x":299,"y":134,"a":-1.575,"r":139.4},{"sx":71,"sy":0,"w":31,"h":68,"x":342,"y":151,"a":-1.305,"r":139.2},{"sx":104,"sy":0,"w":47,"h":79,"x":370,"y":153,"a":-1.049,"r":148.2},{"sx":257,"sy":0,"w":53,"h":72,"x":394,"y":180,"a":-0.802,"r":145.9},{"sx":380,"sy":0,"w":66,"h":67,"x":412,"y":212,"a":-0.527,"r":145.9},{"sx":70,"sy":96,"w":66,"h":47,"x":433,"y":252,"a":-0.283,"r":154.6},{"sx":206,"sy":96,"w":64,"h":32,"x":437,"y":310,"a":0.051,"r":153.4},{"sx":329,"sy":96,"w":53,"h":37,"x":434,"y":346,"a":0.314,"r":150.1},{"sx":384,"sy":96,"w":70,"h":67,"x":400,"y":357,"a":0.554,"r":136.8},{"sx":132,"sy":165,"w":59,"h":69,"x":375,"y":381,"a":0.861,"r":131.6},{"sx":283,"sy":165,"w":44,"h":67,"x":352,"y":402,"a":1.154,"r":131.7},{"sx":353,"sy":165,"w":23,"h":37,"x":344,"y":439,"a":1.336,"r":146.0},{"sx":193,"sy":165,"w":41,"h":86,"x":299,"y":398,"a":1.574,"r":127.5},{"sx":329,"sy":165,"w":22,"h":37,"x":274,"y":439,"a":1.798,"r":146.0},{"sx":236,"sy":165,"w":45,"h":69,"x":243,"y":402,"a":1.975,"r":134.1},{"sx":72,"sy":165,"w":58,"h":69,"x":207,"y":381,"a":2.273,"r":131.2},{"sx":0,"sy":165,"w":70,"h":65,"x":170,"y":358,"a":2.582,"r":136.2},{"sx":272,"sy":96,"w":55,"h":38,"x":151,"y":346,"a":2.822,"r":150.7},{"sx":138,"sy":96,"w":66,"h":36,"x":137,"y":304,"a":3.096,"r":152.8}]};
+const mawc=document.getElementById('mawc'),mctx=mawc.getContext('2d');
+const baseImg=new Image(),toothImg=new Image();let mawReady=0;
+baseImg.onload=toothImg.onload=()=>{if(++mawReady===2)drawMaw(performance.now())};
+baseImg.src='a/mawbase.webp';toothImg.src='a/teeth.webp';
+const NT=TEETH.t.length,bins=new Float32Array(NT),bite=new Float32Array(NT);
+let AC=null,master,analyser,fbuf,playing=false,cur=0,audioEl=null,mediaSrc=null;
+let kickT=-9,snareT=-9,lowAvg=0,tickIdx=-1,lastTickClock=-9,beatQ=[],lastBeat=-9;
+const lastHit=new Float64Array(NT).fill(-99);let modeAC=false;
+const HANDS=4,GAP=NT/HANDS;
+function clockTick(now){tickIdx=(tickIdx+1)%GAP;for(let h=0;h<HANDS;h++)lastHit[(tickIdx+h*GAP)%NT]=now;lastTickClock=now}
+const S={env:0};
+function drawMaw(t){
+  if(mawReady<2)return;
+  const sec=t/1000,ac=AC&&playing;
+  let kick=0,snare=0;
+  if(ac){const now=AC.currentTime;kick=Math.exp(-(now-kickT)*9);snare=Math.exp(-(now-snareT)*10);
+    if(analyser){analyser.getByteFrequencyData(fbuf);const n=fbuf.length;
+      let low=0;for(let i=1;i<6;i++)low+=fbuf[i];low/=5*255;
+      if(!TRACKS[cur].synth){if(low>lowAvg*1.25&&low>.35&&now-kickT>.35){kickT=now;clockTick(now)}lowAvg=lowAvg*.92+low*.08;if(now-lastTickClock>1.2)clockTick(now)}
+      for(let i=0;i<NT;i++){const b=Math.floor(Math.pow((i%12+1)/13,1.6)*n*.6)+2;bins[i]=bins[i]*.6+(fbuf[b]/255)*.4}}}
+  mctx.clearRect(0,0,640,640);mctx.drawImage(baseImg,0,0);
+  const cx=TEETH.c[0],cy=TEETH.c[1];
+  /* clockwork: one tooth ticks at a time, travelling clockwise */
+  const clk=ac?AC.currentTime:sec;
+  if(ac!==modeAC){modeAC=ac;lastHit.fill(-99)}
+  if(!ac&&!RM){const k=Math.floor(sec/.62);if(k!==S.k){S.k=k;clockTick(clk)}}
+  for(let i=0;i<NT;i++){const o=TEETH.t[i];
+    const dt=clk-lastHit[i];
+    let d=dt<0?0:dt<.08?(dt/.08)*11:11*Math.exp(-(dt-.08)*3.2);
+    if(ac)d+=kick*3;
+    bite[i]=d;
+    const dx=-Math.cos(o.a)*d,dy=-Math.sin(o.a)*d;
+    mctx.drawImage(toothImg,o.sx,o.sy,o.w,o.h,o.x+dx,o.y+dy,o.w,o.h);
+  }
+  S.env=ac?kick:0;
+}
+/* ---- generated test signal: breakbeat + saw bass + drone, 96 bpm ---- */
+let synth=null;
+function makeSynth(bpm){
+  const step=60/bpm/4,noise=AC.createBuffer(1,AC.sampleRate,AC.sampleRate),nd=noise.getChannelData(0);
+  for(let i=0;i<nd.length;i++)nd[i]=Math.random()*2-1;
+  const shaper=AC.createWaveShaper(),curve=new Float32Array(1024);for(let i=0;i<1024;i++){const x=i/512-1;curve[i]=Math.tanh(x*3.5)}shaper.curve=curve;
+  const bassF=AC.createBiquadFilter();bassF.type='lowpass';bassF.frequency.value=420;bassF.Q.value=6;shaper.connect(bassF);bassF.connect(master);
+  // drone
+  const dr=AC.createGain();dr.gain.value=0;const df=AC.createBiquadFilter();df.type='lowpass';df.frequency.value=600;
+  const lfo=AC.createOscillator(),lg=AC.createGain();lfo.frequency.value=.07;lg.gain.value=350;lfo.connect(lg);lg.connect(df.frequency);
+  const oscs=[41.2,41.6,61.7].map(f=>{const o=AC.createOscillator();o.type='sawtooth';o.frequency.value=f;o.connect(df);o.start();return o});
+  df.connect(dr);dr.connect(master);lfo.start();dr.gain.setTargetAtTime(.09,AC.currentTime,2);
+  const KICK=[1,0,0,0,0,0,1,0,0,0,1,0,0,0,0,0],SN=[0,0,0,0,1,0,0,0,0,0,0,0,1,0,0,.35],HAT=[1,.3,.7,.3,1,.3,.7,.5,1,.3,.7,.3,1,.3,.7,.6];
+  const RIFF=[[41.2,0,41.2,49],[0,41.2,55,0],[41.2,0,36.7,0],[41.2,61.7,0,55]];
+  let n=0,t0=AC.currentTime+.1,next=t0;
+  function hit(t,type,v){
+    if(type==='k'){const o=AC.createOscillator(),g=AC.createGain();o.frequency.setValueAtTime(150,t);o.frequency.exponentialRampToValueAtTime(42,t+.12);g.gain.setValueAtTime(.95*v,t);g.gain.exponentialRampToValueAtTime(.001,t+.35);o.connect(g);g.connect(master);o.start(t);o.stop(t+.4);kickQ.push(t)}
+    else{const s=AC.createBufferSource();s.buffer=noise;const f=AC.createBiquadFilter(),g=AC.createGain();
+      if(type==='s'){f.type='bandpass';f.frequency.value=1800;f.Q.value=.7;g.gain.setValueAtTime(.55*v,t);g.gain.exponentialRampToValueAtTime(.001,t+.18);snQ.push(t)}
+      else if(type==='h'){f.type='highpass';f.frequency.value=7000;g.gain.setValueAtTime(.12*v,t);g.gain.exponentialRampToValueAtTime(.001,t+.05)}
+      else{f.type='bandpass';f.frequency.value=3100;f.Q.value=12;g.gain.setValueAtTime(.5*v,t);g.gain.exponentialRampToValueAtTime(.001,t+.22)}
+      s.connect(f);f.connect(g);g.connect(master);s.start(t,Math.random()*.5);s.stop(t+.3)}}
+  function bass(t,fq){if(!fq)return;const o=AC.createOscillator(),g=AC.createGain();o.type='sawtooth';o.frequency.value=fq;g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(.35,t+.01);g.gain.setTargetAtTime(0,t+step*1.6,.04);o.connect(g);g.connect(shaper);o.start(t);o.stop(t+step*3)}
+  const kickQ=[],snQ=[];
+  const timer=setInterval(()=>{
+    while(next<AC.currentTime+.12){
+      const i=n%16,bar=Math.floor(n/16)%32,intro=bar<4,brk=bar%8===7&&i>=8;
+      if(!intro&&!brk&&KICK[i])hit(next,'k',1);
+      if(!intro&&SN[i])hit(next,'s',SN[i]);
+      if(HAT[i]&&!(brk&&i%2))hit(next,'h',HAT[i]);
+      if(i%4===0)beatQ.push(next);
+      if(!intro&&i===14&&bar%2===1)hit(next,'c',1);
+      if(bar>=2&&i%4===0||(bar>=2&&i%2===0&&RIFF[bar%4][i/4|0]&&i%4===2&&bar>=12))bass(next,RIFF[bar%4][Math.floor(i/4)]);
+      n++;next=t0+n*step}
+    while(kickQ.length&&kickQ[0]<=AC.currentTime){kickT=kickQ.shift()}
+    while(snQ.length&&snQ[0]<=AC.currentTime){snareT=snQ.shift()}
+    while(beatQ.length&&beatQ[0]<=AC.currentTime){clockTick(beatQ.shift())}
+  },20);
+  return{len:32*16*step,start:t0,stop(){clearInterval(timer);dr.gain.setTargetAtTime(0,AC.currentTime,.3);setTimeout(()=>{oscs.forEach(o=>o.stop());lfo.stop()},1500)},pos(){return (AC.currentTime-t0)%(32*16*step)}};
+}
+function ensureAC(){
+  if(AC)return;AC=new (window.AudioContext||window.webkitAudioContext)();
+  const comp=AC.createDynamicsCompressor();master=AC.createGain();master.gain.value=.55;
+  analyser=AC.createAnalyser();analyser.fftSize=256;analyser.smoothingTimeConstant=.6;fbuf=new Uint8Array(analyser.frequencyBinCount);
+  master.connect(comp);comp.connect(analyser);analyser.connect(AC.destination);
+}
+function stopAll(){if(synth){synth.stop();synth=null}if(audioEl){audioEl.pause()}}
+function startTrack(i){
+  ensureAC();AC.resume();stopAll();cur=(i+TRACKS.length)%TRACKS.length;const tr=TRACKS[cur];
+  if(tr.synth){synth=makeSynth(tr.bpm||96)}
+  else{if(!audioEl){audioEl=new Audio();audioEl.crossOrigin='anonymous';mediaSrc=AC.createMediaElementSource(audioEl);mediaSrc.connect(master);audioEl.addEventListener('ended',()=>startTrack(cur+1))}
+    audioEl.src=tr.src;audioEl.play().catch(()=>{})}
+  playing=true;ui()}
+function toggle(){if(!playing){if(AC&&TRACKS[cur].synth===false&&audioEl&&audioEl.src){AC.resume();audioEl.play();playing=true;ui()}else startTrack(cur)}else{stopAll();playing=false;ui()}}
+const fmt=x=>{x=Math.max(0,x|0);return (x/60|0)+':'+String(x%60).padStart(2,'0')};
+function ui(){
+  document.querySelectorAll('[data-snd]').forEach(b=>{b.setAttribute('aria-pressed',playing);b.classList.toggle('playing',playing);const pp=b.querySelector('.pp');if(pp)pp.textContent=playing?'❚❚':'▶';const st=b.querySelector('.sndt');if(st)st.textContent=playing?'Sound off':'Sound on'});
+  document.getElementById('nowt').textContent=TRACKS[cur].title;document.getElementById('minit').textContent=(playing?'Now playing · ':'Paused · ')+TRACKS[cur].title;
+  document.getElementById('mini').classList.toggle('show',playing||!!AC);
+  document.querySelectorAll('#tracks li[data-i]').forEach(li=>li.classList.toggle('on',+li.dataset.i===cur&&playing));
+}
+document.querySelectorAll('[data-snd]').forEach(b=>b.addEventListener('click',toggle));
+document.getElementById('prev').addEventListener('click',()=>startTrack(cur-1));
+document.getElementById('next').addEventListener('click',()=>startTrack(cur+1));
+document.getElementById('seek').addEventListener('click',e=>{if(!audioEl||TRACKS[cur].synth||!audioEl.duration)return;const r=e.currentTarget.getBoundingClientRect();audioEl.currentTime=(e.clientX-r.left)/r.width*audioEl.duration});
+(()=>{const ol=document.getElementById('tracks');
+  ol.innerHTML=TRACKS.map((t,i)=>`<li data-i="${i}"><button type="button" data-play="${i}"><span class="n">${String(i).padStart(2,'0')}</span><span class="t">${t.title}<small>${t.note||''}</small></span><span class="d">${t.synth?'loop':(t.len||'')}</span></button></li>`).join('')
+   +[1,2,3].map(k=>`<li class="slot"><span>${String(TRACKS.length-1+k).padStart(2,'0')}</span><span>Track slot · awaiting file</span></li>`).join('');
+  ol.querySelectorAll('[data-play]').forEach(b=>b.addEventListener('click',()=>startTrack(+b.dataset.play)));})();
+/* scope + time readout, only while the deck is on screen */
+const scope=document.getElementById('scope'),sc=scope.getContext('2d');let scopeOn=false,sraf=0;
+new IntersectionObserver(([e])=>{scopeOn=e.isIntersecting;if(scopeOn&&!sraf)sraf=requestAnimationFrame(scopeLoop)}).observe(scope);
+function scopeLoop(t){
+  if(!scopeOn){sraf=0;return}
+  const w=scope.clientWidth,h=scope.clientHeight,d=Math.min(devicePixelRatio||1,1.5);if(scope.width!==w*d){scope.width=w*d;scope.height=h*d}
+  sc.setTransform(d,0,0,d,0,0);sc.clearRect(0,0,w,h);
+  if(!(AC&&playing)||RM)drawMaw(t);
+  const n=NT,bw=w/n;
+  for(let i=0;i<n;i++){const v=AC&&playing?Math.max(bins[i],bite[i]/22):(Math.sin(t/600+i*.5)*.5+.5)*.08;
+    const bh=Math.max(2,v*h*.95);sc.fillStyle=i%2?'#ff2f9c':'#efe4f2';sc.globalAlpha=.35+v*.65;
+    sc.beginPath();sc.moveTo(i*bw+bw*.15,h);sc.lineTo(i*bw+bw*.5,h-bh);sc.lineTo(i*bw+bw*.85,h);sc.fill()}
+  sc.globalAlpha=1;
+  if(AC&&playing){const tr=TRACKS[cur];let pos=0,len=1;if(tr.synth&&synth){pos=synth.pos();len=synth.len}else if(audioEl){pos=audioEl.currentTime;len=audioEl.duration||1}
+    document.getElementById('seekf').style.width=(pos/len*100).toFixed(2)+'%';document.getElementById('nowd').textContent=fmt(pos)+' / '+fmt(len)}
+  sraf=requestAnimationFrame(scopeLoop)}
+
+/* ---------- Arcadya foreground spires (one shape, built once) ---------- */
+(()=>{const sp=document.getElementById('spires');let d='M0 300 ';let x=0;
+  while(x<1500){const w=18+Math.random()*60,h=60+Math.random()*190,k=Math.random();
+    if(k<.35){d+=`L${x} ${300-h*.55} L${x+w*.5} ${300-h} L${x+w} ${300-h*.55} `}
+    else if(k<.6){d+=`L${x} ${300-h*.7} L${x+w*.2} ${300-h*.7} L${x+w*.25} ${300-h} L${x+w*.3} ${300-h*.7} L${x+w} ${300-h*.7} `}
+    else{d+=`L${x} ${300-h*.4} L${x+w} ${300-h*.4} `}
+    x+=w}
+  sp.innerHTML=`<path d="${d}L1500 300Z" fill="#07040c"/><path d="${d}" fill="none" stroke="#2a1a45" stroke-width="1.5"/>`;
+  const sp2=[...Array(7)].map(()=>`<rect x="${(Math.random()*1480)|0}" y="${(200+Math.random()*80)|0}" width="3" height="5" fill="#ff2f9c" opacity=".7"/>`).join('');
+  sp.insertAdjacentHTML('beforeend',sp2)})();
+
+/* ---------- reveal on enter (only what starts below the fold) ---------- */
+const rvTargets=[...document.querySelectorAll('.chapter .eyebrow, .chapter h2, .chapter p, .facts li, .moves li, .quote, .layer>div, .spec figure, .gates span, .reality .big ~ p, .rv')];
+if(!RM){
+  const vh=innerHeight;
+  rvTargets.forEach(el=>{if(el.closest('.hero,.release,.gate'))return;el.classList.add('rv');if(el.getBoundingClientRect().top>vh*.95)el.classList.add('pre')});
+  [...document.querySelectorAll('.moves li')].forEach((e,i)=>e.style.setProperty('--rd',(i*.07)+'s'));
+  [...document.querySelectorAll('.gates span')].forEach((e,i)=>e.style.setProperty('--rd',(i*.06)+'s'));
+  [...document.querySelectorAll('.facts li')].forEach((e,i)=>e.style.setProperty('--rd',(i*.08)+'s'));
+  const rio=new IntersectionObserver(es=>es.forEach(e=>{if(e.isIntersecting){e.target.classList.remove('pre');rio.unobserve(e.target)}}),{rootMargin:'0px 0px -8% 0px'});
+  document.querySelectorAll('.rv.pre').forEach(el=>rio.observe(el));
+}
+
+/* ---------- tilt with glare ---------- */
+if(matchMedia('(pointer:fine)').matches&&!RM){
+  document.querySelectorAll('.tilt').forEach(el=>{
+    el.addEventListener('pointermove',e=>{const r=el.getBoundingClientRect();el.style.setProperty('--tx',((e.clientX-r.left)/r.width*2-1).toFixed(3));el.style.setProperty('--ty',((e.clientY-r.top)/r.height*2-1).toFixed(3));el.style.setProperty('--glare',1)});
+    el.addEventListener('pointerleave',()=>{el.style.setProperty('--tx',0);el.style.setProperty('--ty',0);el.style.setProperty('--glare',0)});
+  });
+  const pan=document.querySelector('.arcadya .pan');
+  pan.addEventListener('pointermove',e=>{const r=pan.getBoundingClientRect();pan.style.setProperty('--tx',((e.clientX-r.left)/r.width*2-1).toFixed(3));pan.style.setProperty('--ty',((e.clientY-r.top)/r.height*2-1).toFixed(3))});
+}
+
+/* departure board: 66 minutes, always */
+const due=document.getElementById('due');let left=66*60,boardOn=false;
+new IntersectionObserver(([e])=>{boardOn=e.isIntersecting}).observe(due);
+setInterval(()=>{if(!boardOn)return;left=left>0?left-1:66*60;due.textContent=String(Math.floor(left/60)).padStart(2,'0')+':'+String(left%60).padStart(2,'0')},1000);
+
+/* videos play only on screen */
+['spec','tagv','glowv','origv'].forEach(id=>{const v=document.getElementById(id);
+  new IntersectionObserver(([e])=>{if(e.isIntersecting){if(!RM)v.play().catch(()=>{})}else v.pause()},{threshold:.25}).observe(v)});
+const drip=document.getElementById('drip');
+if(!RM)for(let i=0;i<7;i++){const e=document.createElement('i');e.style.left=(5+Math.random()*90)+'%';e.style.setProperty('--dh',(18+Math.random()*50)+'px');e.style.setProperty('--dd',(2.4+Math.random()*3)+'s');e.style.setProperty('--dl',(-Math.random()*4)+'s');drip.appendChild(e)}
+
+/* box art tilts toward the pointer */
+const play=document.getElementById('play'),cover=document.getElementById('box');
+play.addEventListener('pointermove',e=>{const r=cover.getBoundingClientRect();cover.style.setProperty('--mx',cl((e.clientX-r.left)/r.width*2-1,-1,1).toFixed(3));cover.style.setProperty('--my',cl((e.clientY-r.top)/r.height*2-1,-1,1).toFixed(3))});
+play.addEventListener('pointerleave',()=>{cover.style.setProperty('--mx',0);cover.style.setProperty('--my',0)});
+})();
+</script>
 </body>
 </html>
