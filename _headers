@@ -6,3 +6,8 @@
   Content-Type: video/mp4
   Accept-Ranges: bytes
   Cache-Control: public, max-age=14400, must-revalidate
+
+/demoboy/a/*.mp4
+  Content-Type: video/mp4
+  Accept-Ranges: bytes
+  Cache-Control: public, max-age=14400, must-revalidate
