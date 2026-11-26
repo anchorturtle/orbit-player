@@ -1,3 +1,8 @@
 /audio/wavs/*
   Cache-Control: public, max-age=86400, no-transform
   Accept-Ranges: bytes
+
+/demoboy/og.mp4
+  Content-Type: video/mp4
+  Accept-Ranges: bytes
+  Cache-Control: public, max-age=14400, must-revalidate
