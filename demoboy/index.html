@@ -54,9 +54,7 @@
       justify-content: flex-start;
       padding: 28px 20px 48px;
     }
-    @media (min-height: 760px) {
-      body { justify-content: center; }
-    }
+
     .wrap {
       width: min(520px, 100%);
       display: flex;
@@ -84,6 +82,28 @@
       .hero img.hero-anim { display: none; }
       .hero img.hero-still { display: block; }
     }
+
+    .wrap { width: min(980px, 100%); }
+    .intro { width: min(520px, 100%); display: flex; flex-direction: column; align-items: center; text-align: center; }
+    .section { width: 100%; margin-top: 44px; }
+    .section h2 {
+      margin: 0 0 14px; font-size: 11px; font-weight: 700; letter-spacing: .14em;
+      text-transform: uppercase; color: var(--green); text-align: left;
+    }
+    .grid { display: grid; gap: 12px; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); }
+    .grid.two { grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); }
+    figure.card {
+      margin: 0; border-radius: 14px; overflow: hidden; text-align: left;
+      background: rgba(255,255,255,.035); border: 1px solid rgba(150,100,255,.18);
+    }
+    figure.card img { display: block; width: 100%; height: auto; }
+    figure.card.tall img { aspect-ratio: 3 / 4; object-fit: cover; }
+    figure.card figcaption {
+      padding: 9px 12px 11px; font-size: 11.5px; line-height: 1.4; color: rgba(233,225,222,.74);
+    }
+    figure.card figcaption b { display: block; font-size: 10px; letter-spacing: .08em; text-transform: uppercase; color: #c8b3ff; margin-bottom: 2px; }
+    .feature img { aspect-ratio: 16 / 9; object-fit: cover; }
+    .cta-row { display: flex; justify-content: center; margin-top: 40px; }
     h1 {
       margin: 8px 0 0;
       font-size: clamp(22px, 5vw, 30px);
@@ -144,18 +164,67 @@
 </head>
 <body>
   <main class="wrap">
-    <div class="hero">
-      <img class="hero-anim" src="logo.webp" alt="DemoBoy" width="640" height="640"/>
-      <img class="hero-still" src="logo.png" alt="DemoBoy" width="800" height="800"/>
+    <div class="intro">
+      <div class="hero">
+        <img class="hero-anim" src="logo.webp" alt="DemoBoy" width="480" height="480"/>
+        <img class="hero-still" src="logo.png" alt="DemoBoy" width="800" height="800"/>
+      </div>
+      <h1>DemoBoy: The Madness Within</h1>
+      <p class="meta">Action / Adventure · Spawn</p>
+      <p class="desc">Swing, grind, dive, and unleash beast mode across Arcadya.</p>
+      <a class="play" href="https://www.spawn.co/@anchorturtle/demoboy-the-madness-within" target="_blank" rel="noopener noreferrer">
+        <span class="material-symbols-outlined">play_arrow</span>
+        <span>Play on Spawn</span>
+      </a>
     </div>
-    <h1>DemoBoy: The Madness Within</h1>
-    <p class="meta">Action / Adventure · Spawn</p>
-    <p class="desc">Swing, grind, dive, and unleash beast mode across Arcadya.</p>
-    <a class="play" href="https://www.spawn.co/@anchorturtle/demoboy-the-madness-within" target="_blank" rel="noopener noreferrer">
-      <span class="material-symbols-outlined">play_arrow</span>
-      <span>Play on Spawn</span>
-    </a>
-    <a class="home" href="/">AnchorTurtle</a>
+
+    <section class="section">
+      <h2>Gear</h2>
+      <figure class="card feature">
+        <img src="img/gear-cover.webp" width="1600" height="900" alt="DemoBoy gear screen: a neon outline of DemoBoy with every gear slot called out around him" loading="lazy" decoding="async"/>
+        <figcaption><b>Gear screen</b>Every slot, one look: the Spectral Cannon, the ghost anchor and the rest of his kit.</figcaption>
+      </figure>
+    </section>
+
+    <section class="section">
+      <h2>Key art</h2>
+      <div class="grid two">
+        <figure class="card">
+          <img src="img/keyart-cloud-sea.webp" width="1280" height="720" alt="DemoBoy standing above the cloud sea with the hell city glowing below" loading="lazy" decoding="async"/>
+          <figcaption><b>Above the clouds</b>Arcadya's cloud sea, with the hell city burning below.</figcaption>
+        </figure>
+        <figure class="card">
+          <img src="img/keyart-wide.webp" width="1280" height="720" alt="Wide cinematic view of DemoBoy at the edge of a cloud waterfall over the hell city" loading="lazy" decoding="async"/>
+          <figcaption><b>The edge</b>One small figure, one very long drop.</figcaption>
+        </figure>
+      </div>
+    </section>
+
+    <section class="section">
+      <h2>Turnarounds</h2>
+      <div class="grid two">
+        <figure class="card">
+          <img src="img/beast-turnaround.webp" width="1280" height="808" alt="Beast Mode DemoBoy turnaround: front, side and back" loading="lazy" decoding="async"/>
+          <figcaption><b>Beast Mode</b>Front, side and back.</figcaption>
+        </figure>
+        <figure class="card">
+          <img src="img/beast-tiedye-heads.webp" width="1100" height="1169" alt="Tie-dye beast head from four angles" loading="lazy" decoding="async"/>
+          <figcaption><b>Tie-dye beast</b>Head study from four angles.</figcaption>
+        </figure>
+      </div>
+      <figure class="card" style="margin-top:12px">
+        <img src="img/original-concept.webp" width="1600" height="486" alt="The original DemoBoy concept sketches, turned around" loading="lazy" decoding="async"/>
+        <figcaption><b>Original concept</b>Where he started: horns, tail and the pink tee.</figcaption>
+      </figure>
+    </section>
+
+    <div class="cta-row">
+      <a class="play" href="https://www.spawn.co/@anchorturtle/demoboy-the-madness-within" target="_blank" rel="noopener noreferrer">
+        <span class="material-symbols-outlined">play_arrow</span>
+        <span>Play on Spawn</span>
+      </a>
+    </div>
+    <p style="text-align:center;margin:0"><a class="home" href="/">AnchorTurtle</a></p>
   </main>
 </body>
 </html>

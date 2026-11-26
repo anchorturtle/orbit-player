@@ -3285,8 +3285,8 @@ a.taskbar-btn:visited,
 a.mob-btn:visited {
   color: var(--baby-blue);
 }
-#btn-astor:not(:active),
-#btn-mob-astor:not(:active):not(.active) {
+#btn-demoboy:not(:active),
+#btn-mob-demoboy:not(:active):not(.active) {
   background: rgba(255,255,255,.045);
   transform: none;
   color: var(--baby-blue);
@@ -3548,4 +3548,26 @@ a.mob-btn:visited {
   letter-spacing: .04em;
   color: rgba(233, 225, 222, .42);
   text-align: center;
+}
+
+
+/* ============ DEMOBOY DOCK BUTTON (replaces the Astor entry): silhouette mark, pop-in, circling purple lightning ============ */
+#btn-demoboy, #btn-mob-demoboy { position: relative; overflow: visible; }
+.demoboy-mark { width: 20px; height: 20px; display: block; flex-shrink: 0; filter: drop-shadow(0 0 5px rgba(123,47,255,.65)); }
+#btn-mob-demoboy .demoboy-mark { width: 22px; height: 22px; }
+@media (max-width: 767px) { #btn-mob-demoboy .demoboy-mark { width: 20px; height: 20px; } }
+#btn-demoboy:not(:active), #btn-mob-demoboy:not(:active):not(.active) {
+  border-color: rgba(150,100,255,.38);
+  box-shadow: 0 3px 6px rgba(0,0,0,.45), 0 0 14px -3px rgba(123,47,255,.55), inset 0 1px 0 rgba(255,255,255,.10);
+}
+#btn-demoboy, #btn-mob-demoboy { animation: demoboy-pop .8s cubic-bezier(.34,1.56,.64,1) .6s backwards; }
+@keyframes demoboy-pop {
+  0%   { opacity: 0; transform: scale(.25) translateY(10px); }
+  55%  { opacity: 1; transform: scale(1.16) translateY(-2px); }
+  78%  { transform: scale(.96); }
+  100% { opacity: 1; transform: none; }
+}
+.demoboy-bolt { position: absolute; pointer-events: none; z-index: 3; left: 0; top: 0; }
+@media (prefers-reduced-motion: reduce) {
+  #btn-demoboy, #btn-mob-demoboy { animation: none; }
 }
